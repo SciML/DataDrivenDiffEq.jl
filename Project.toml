@@ -1,0 +1,4 @@
+name = "DynamicModeDecomposition"
+uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
+authors = ["jmartensen <julius.martensen@dfki.de>"]
+version = "0.1.0"
