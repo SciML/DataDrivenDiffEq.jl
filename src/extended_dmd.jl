@@ -4,11 +4,11 @@ mutable struct ExtendedDMD{D,O,C} <: abstractKoopmanOperator
     basis::C
 end
 
-function ExtendedDMD(X::AbstractArray, Ψ::BasisCandidate; B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
+function ExtendedDMD(X::AbstractArray, Ψ; B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
     return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, B = B, Δt = Δt)
 end
 
-function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::BasisCandidate; B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
+function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ; B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
     @assert size(X)[2] .== size(Y)[2]
     @assert size(Y)[1] .<= size(Y)[2]
 
@@ -18,8 +18,8 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::BasisCandidate; B::
     N,M = size(X)
 
     # Compute the transformed data
-    Ψ₀ = evaluate(Ψ, X)
-    Ψ₁ = evaluate(Ψ, Y)
+    Ψ₀ = hcat([Ψ(xi) for xi in eachcol(X)]...)
+    Ψ₁ = hcat([Ψ(xi) for xi in eachcol(Y)]...)
     Op = ExactDMD(Ψ₀, Ψ₁) # Initial guess based upon the basis
 
     # Transform back to states
@@ -45,7 +45,9 @@ end
 # We would need ∂Ψ/∂x or ∂Ψ/∂t
 function dynamics(m::ExtendedDMD)
     # Create a set of nonlinear eqs
-    Ψᵣ, p_ = collapse(m.basis, m.output*m.koopman.Ã)
+    #Ψᵣ, p_ = collapse(m.basis, m.output*m.koopman.Ã)
+    p_ = m.output*m.koopman.Ã
+    Ψᵣ = simplify_constants.(p_*m.basis)
     function dudt_(du, u, p, t)
         du .= p_*Ψᵣ(u)
     end
