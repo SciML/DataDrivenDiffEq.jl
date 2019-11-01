@@ -1,4 +1,4 @@
-module DynamicModeDecomposition
+module DataDrivenDiffEq
 
 using LinearAlgebra
 using ModelingToolkit

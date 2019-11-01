@@ -1,6 +1,6 @@
-name = "DynamicModeDecomposition"
+name = "DataDrivenDiffEq"
 uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
-authors = ["jmartensen <julius.martensen@dfki.de>"]
+authors = ["Julius Martensen <julius.martensen@gmail.com>"]
 version = "0.1.0"
 
 [deps]
