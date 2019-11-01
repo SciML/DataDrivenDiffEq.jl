@@ -1,6 +1,5 @@
+using DataDrivenDiffEq
 using DifferentialEquations
-using LinearAlgebra
-using DynamicModeDecomposition
 using Plots
 gr()
 
@@ -66,25 +65,6 @@ sol_cont = solve(prob_cont, saveat = 0.1)
 
 plot(sol_cont)
 
-#import DynamicModeDecomposition: dynamics
-#function dynamics(m::ExactDMD; discrete::Bool = true)
-#    if discrete
-#    # Return an inline function
-#        function dudt_(du, u, p, t)
-#            du .= m.Ã * u
-#        end
-#        return dudt_
-#    end
-#
-#    if iscontinouos(m)
-#        A = inv(m.ϕ)*Diagonal(m.ω)*m.ϕ
-#        function dudt_(du, u, p, t)
-#            du .= A *u
-#        end
-#        return dudt_
-#    end
-#end
-
 approx_cont = ExactDMD(sol_cont[:,:], Δt = 0.1)
 
 test = dynamics(approx_cont, discrete = false)
@@ -94,4 +74,4 @@ approx_sol = solve(approx_sys, saveat = 0.1)
 
 plot(sol_cont)
 plot!(approx_sol)
-plot((sol_cont .- approx_sol)')
+plot(abs.(sol_cont .- approx_sol)')
