@@ -8,6 +8,7 @@ gr()
 @variables u[1:2]
 basis = [u[1]; sin(u[1]); sin(u[2]); u[2]; u[1]*u[2]; u[2]^2]
 
+
 # Create a test system
 function test_discrete(du, u, p, t)
     du[1] = 0.9u[1] + 0.1u[2]^2
