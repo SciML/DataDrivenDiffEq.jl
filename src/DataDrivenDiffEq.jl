@@ -1,6 +1,7 @@
-module DynamicModeDecomposition
+module DataDrivenDiffEq
 
 using LinearAlgebra
+using ModelingToolkit
 
 abstract type abstractKoopmanOperator end;
 
@@ -10,9 +11,9 @@ export eigen, eigvals, eigvecs
 export modes, frequencies, isstable
 export dynamics, update!
 
-include("./basis_functions.jl")
-export BasisFunction
-export BasisCandidate
+#include("./basis_functions.jl")
+#export BasisFunction
+#export BasisCandidate
 
 include("./extended_dmd.jl")
 export ExtendedDMD
