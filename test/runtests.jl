@@ -1,6 +1,7 @@
 using DataDrivenDiffEq
 using ModelingToolkit
 using LinearAlgebra
+using DifferentialEquations
 using Test
 
 @testset "Basis" begin
@@ -47,7 +48,86 @@ end
 
 
 @testset "EDMD" begin
+    # Test for linear system
+    function linear_sys(u, p, t)
+        x = -0.9*u[1]
+        y = -0.3*u[2]
+        return [x;y]
+    end
+
+    u0 = [π; 1.0]
+    tspan = (0.0, 20.0)
+    prob = DiscreteProblem(linear_sys, u0, tspan)
+    sol = solve(prob)
+
+    @variables u[1:2]
+    h = [1u[1]; 1u[2]; sin(u[1]); cos(u[1]); u[1]*u[2]]
+    basis = Basis(h, u)
+
+    estimator = ExtendedDMD(sol[:,:], basis)
+    @test basis == estimator.basis
+    basis_2 = reduce_basis(estimator, threshold = 1e-5)
+    @test size(basis_2)[1] < size(basis)[1]
+    estimator_2 = ExtendedDMD(sol[:,:], basis_2)
+    p1 = DiscreteProblem(dynamics(estimator), u0, tspan, [])
+    s1 = solve(p1)
+    p2 = DiscreteProblem(dynamics(estimator_2), u0, tspan, [])
+    s2 = solve(p2)
+    p3 = DiscreteProblem(linear_dynamics(estimator_2), estimator_2(u0), tspan, [])
+    s3 = solve(p3)
+    @test sol[:,:] ≈ s1[:,:]
+    @test sol[:,:] ≈ s2[:,:]
+    @test hcat(estimator_2.basis.(eachcol(sol[:,:]))...)≈ s3[:,:]
+    @test eigvals(estimator_2) ≈ [-0.9; -0.3]
+
+    # Test for nonlinear system
+    function nonlinear_sys(du, u, p, t)
+        du[1] = sin(u[1])
+        du[2] = -0.3*u[2] -0.9*u[1]
+    end
+
+    prob = DiscreteProblem(nonlinear_sys, u0, tspan)
+    sol = solve(prob)
+    estimator = ExtendedDMD(sol[:,:], basis)
+    p4 = DiscreteProblem(dynamics(estimator), u0, tspan, [])
+    s4 = solve(p4)
+    @test sol[:,:] ≈ s4[:,:]
 end
 
 @testset "SInDy" begin
+    # Test the pendulum
+    function pendulum(u, p, t)
+        du1 = u[2]
+        du2 = -sin(u[1]) - 0.1*u[2]
+        return [du1; du2]
+    end
+    u0 = [0.99π; 0.3]
+    tspan = (0.0, 10.0)
+    prob = ODEProblem(pendulum, u0, tspan)
+    sol = solve(prob)
+    # Create the differential data
+    DX = similar(sol[:,:])
+    for (i, xi) in enumerate(eachcol(sol[:,:]))
+        DX[:,i] = pendulum(xi, [], 0.0)
+    end
+    # Create a basis
+    @variables u[1:2]
+
+    polys = [u[1]^0]
+    for i ∈ 1:3
+        for j ∈ 1:3
+            push!(polys, u[1]^i*u[2]^j)
+        end
+    end
+
+    h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
+
+    basis = Basis(h, u, parameters = [])
+    Ψ = SInDy(sol[:,:], DX, basis, ϵ = 1e-2, maxiter = 100)
+    @test size(Ψ)[1] == 2
+
+    # Simulate
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    sol_ = solve(estimator)
+    @test sol[:,:] ≈ sol_[:,:]
 end
