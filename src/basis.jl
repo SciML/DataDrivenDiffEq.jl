@@ -67,5 +67,5 @@ function Base.unique(b::Basis)
         push!(returns, any([isequal(b.basis[i], b.basis[j]) for j in i+1:N]))
     end
     returns = [!r for r in returns]
-    return Basis(b.basis[returns], variables(b), parameters(b))
+    return Basis(b.basis[returns], variables(b), parameters = parameters(b))
 end
