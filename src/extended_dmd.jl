@@ -43,9 +43,6 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::A
     return ExtendedDMD(Op, B, Ψ)
 end
 
-
-# TODO This is not tested and will most likely fail when used with
-# singular basis
 function update!(m::ExtendedDMD, x::AbstractArray, y::AbstractArray; p::AbstractArray = [], Δt::Float64 = 0.0, threshold::Float64 = 1e-3)
     Ψ₀ = m.basis(x, p = p)
     Ψ₁ = m.basis(y, p = p)
@@ -55,7 +52,6 @@ end
 
 # TODO How to implement continouos time dynamics?
 # We would need ∂Ψ/∂x or ∂Ψ/∂t
-
 function dynamics(m::ExtendedDMD)
     # Create a set of nonlinear eqs
     p_ = m.output*m.koopman.Ã
@@ -73,6 +69,6 @@ end
 # This is a fairly naive approach of doing this
 function reduce_basis(m::ExtendedDMD; threshold = 1e-5)
     b = m.output*m.koopman.Ã
-    inds = abs.(sum(b, dims = 1)) .< threshold
-    return Basis(m.basis.basis[vec(inds)])
+    inds = sum(abs, b, dims = 1) .> threshold
+    return Basis(m.basis.basis[vec(inds)], variables(m.basis), parameters = parameters(m.basis))
 end

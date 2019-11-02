@@ -8,7 +8,7 @@ end
 Base.print(io::IO, x::Basis) = show(io, x)
 Base.show(io::IO, x::Basis) = print(io, "$(length(x.basis)) dimensional basis in ", "$(String.([v.op.name for v in x.variables]))")
 
-function Basis(basis::AbstractVector{Operation}, variables;  parameters)
+function Basis(basis::AbstractVector{Operation}, variables;  parameters = Vector{Operation}())
     bs = unique(basis)
 
     vs = sort!([b for b in [ModelingToolkit.vars(bs)...] if !b.known], by = x -> x.name)
@@ -71,4 +71,8 @@ function Base.unique(b::Basis)
     end
     returns = [!r for r in returns]
     return Basis(b.basis[returns], variables(b), parameters = parameters(b))
+end
+
+function dynamics(b::Basis)
+    return b.f_
 end
