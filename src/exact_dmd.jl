@@ -75,7 +75,14 @@ end
 
 
 # Update with new measurements
-function update!(m::ExactDMD, x::AbstractArray, y::AbstractArray; Δt::Float64 = 0.0)
+function update!(m::ExactDMD, x::AbstractArray, y::AbstractArray; Δt::Float64 = 0.0, threshold::Float64 = 1e-3)
+    # Check the error
+    ϵ = norm(y - m.Ã*x, 2)
+
+    if ϵ < threshold
+        return
+    end
+
     m.Qₖ += y*x'
     m.Pₖ += x*x'
     m.Ã = m.Qₖ*inv(m.Pₖ)
