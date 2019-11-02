@@ -5,20 +5,24 @@ mutable struct Basis{O, V, P} <: abstractBasis
     f_
 end
 
-function Basis(basis::AbstractVector{Operation})
+Base.print(io::IO, x::Basis) = show(io, x)
+Base.show(io::IO, x::Basis) = print(io, "$(length(x.basis)) dimensional basis in ", "$(String.([v.op.name for v in x.variables]))")
+
+function Basis(basis::AbstractVector{Operation}, variables;  parameters)
     bs = unique(basis)
-    vs = [b for b in [ModelingToolkit.vars(bs)...] if !b.known]
-    ps = [b for b in [ModelingToolkit.vars(bs)...] if b.known]
+
+    vs = sort!([b for b in [ModelingToolkit.vars(bs)...] if !b.known], by = x -> x.name)
+    ps = sort!([b for b in [ModelingToolkit.vars(bs)...] if b.known], by = x -> x.name )
 
     f_ = ModelingToolkit.build_function(bs, vs, ps, (), simplified_expr, Val{false})[1]
-    return Basis(bs, vs, ps, f_)
+    return Basis(bs, variables, parameters, f_)
 end
 
 function update!(b::Basis)
-    b.variables = [bi for bi in [ModelingToolkit.vars(b.basis)...] if !bi.known]
-    b.parameter = [bi for bi in [ModelingToolkit.vars(b.basis)...] if bi.known]
+    vs = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if !bi.known], by = x->x.name)
+    ps = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if bi.known], by = x->x.name)
 
-    b.f_ = ModelingToolkit.build_function(b.basis, b.variables, b.parameter, (), simplified_expr, Val{false})[1]
+    b.f_ = ModelingToolkit.build_function(b.basis, vs, ps, (), simplified_expr, Val{false})[1]
     return
 end
 
@@ -43,9 +47,11 @@ ModelingToolkit.parameters(b::Basis) = b.parameter
 variables(b::Basis) = b.variables
 #isunique(b::Basis) = length(b.basis) == length(unique(b.basis))
 
-function jacobian(b::Basis, variables, parameters)
-    j = calculate_jacobian(b.basis, variables)
-    return ModelingToolkit.build_function(expand_derivatives.(j), variables, parameters, (), simplified_expr, Val{false})[1]
+function jacobian(b::Basis)
+    vs = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if !bi.known], by = x-> x.name)
+    ps = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if bi.known], by = x-> x.name)
+    j = calculate_jacobian(b.basis, variables(b))
+    return ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, (), simplified_expr, Val{false})[1]
 end
 
 function Base.unique!(b::Basis)
@@ -64,5 +70,5 @@ function Base.unique(b::Basis)
         push!(returns, any([isequal(b.basis[i], b.basis[j]) for j in i+1:N]))
     end
     returns = [!r for r in returns]
-    return Basis(b.basis[returns])
+    return Basis(b.basis[returns], variables(b), parameters = parameters(b))
 end
