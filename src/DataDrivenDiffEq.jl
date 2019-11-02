@@ -22,4 +22,7 @@ export ExtendedDMD
 export dynamics, linear_dynamics
 export reduce_basis, update!
 
+include("./sindy.jl")
+export SInDy
+
 end # module
