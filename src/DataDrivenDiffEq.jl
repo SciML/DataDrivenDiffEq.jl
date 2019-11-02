@@ -8,7 +8,7 @@ abstract type abstractKoopmanOperator end;
 
 include("./basis.jl")
 export Basis
-export variables
+export variables, jacobian
 
 include("./exact_dmd.jl")
 export ExactDMD
@@ -20,10 +20,6 @@ export dynamics, update!
 include("./extended_dmd.jl")
 export ExtendedDMD
 export dynamics, linear_dynamics
-# TODO check update
-# export update!
-
-
-
+export reduce_basis, update!
 
 end # module

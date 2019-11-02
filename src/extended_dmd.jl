@@ -2,26 +2,25 @@ import LinearAlgebra: eigen
 import LinearAlgebra: eigvals, eigvecs
 
 
-mutable struct ExtendedDMD{D,O,C, F} <: abstractKoopmanOperator
+mutable struct ExtendedDMD{D,O,C} <: abstractKoopmanOperator
     koopman::D
     output::O
     basis::C
-    f::F # This is the placeholder for the equation
 end
 
 # Make the struct callable for transformations
-(m::ExtendedDMD)(u; p = []) = m.f(u, p)
+(m::ExtendedDMD)(u; p = []) = m.basis(u, p = p)
 
 # Some nice functions
 eigen(m::ExtendedDMD) = eigen(m.koopman)
 eigvals(m::ExtendedDMD) = eigvals(m.koopman)
 eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
 
-function ExtendedDMD(X::AbstractArray, Ψ; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
+function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
     return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B, Δt = Δt)
 end
 
-function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
+function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
     @assert size(X)[2] .== size(Y)[2]
     @assert size(Y)[1] .<= size(Y)[2]
 
@@ -30,12 +29,9 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ; p::AbstractArray = 
     # Number of states and measurements
     N,M = size(X)
 
-    # Convert the modeling toolkit vector of operations into a function
-    f, _ = ModelingToolkit.build_function(Ψ, [ModelingToolkit.vars(Ψ)...], [], (), ModelingToolkit.simplified_expr, Val{false})
-
     # Compute the transformed data
-    Ψ₀ = hcat([f(xi, p) for xi in eachcol(X)]...)
-    Ψ₁ = hcat([f(xi, p) for xi in eachcol(Y)]...)
+    Ψ₀ = hcat([Ψ(xi, p = p) for xi in eachcol(X)]...)
+    Ψ₁ = hcat([Ψ(xi, p = p) for xi in eachcol(Y)]...)
     Op = ExactDMD(Ψ₀, Ψ₁) # Initial guess based upon the basis
 
     # Transform back to states
@@ -44,16 +40,16 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ; p::AbstractArray = 
     end
 
     # TODO Maybe reduce the observable space here
-    return ExtendedDMD(Op, B, Ψ, f)
+    return ExtendedDMD(Op, B, Ψ)
 end
 
 
 # TODO This is not tested and will most likely fail when used with
 # singular basis
-function update!(m::ExtendedDMD, x::AbstractArray, y::AbstractArray; p::AbstractArray = [], Δt::Float64 = 0.0)
-    Ψ₀ = m.f(x, p)
-    Ψ₁ = m.f(y, p)
-    update!(m.koopman, Ψ₀, Ψ₁, Δt = Δt)
+function update!(m::ExtendedDMD, x::AbstractArray, y::AbstractArray; p::AbstractArray = [], Δt::Float64 = 0.0, threshold::Float64 = 1e-3)
+    Ψ₀ = m.basis(x, p = p)
+    Ψ₁ = m.basis(y, p = p)
+    update!(m.koopman, Ψ₀, Ψ₁, Δt = Δt, threshold = threshold)
     return
 end
 
@@ -64,7 +60,7 @@ function dynamics(m::ExtendedDMD)
     # Create a set of nonlinear eqs
     p_ = m.output*m.koopman.Ã
     function dudt_(du, u, p, t)
-        du .= p_*m.f(u, p)
+        du .= p_*m.basis(u, p = p)
     end
 end
 
@@ -74,19 +70,9 @@ function linear_dynamics(m::ExtendedDMD; discrete::Bool = true)
 end
 
 # Reduction for basis
-function basis(m::ExtendedDMD; threshold = 1e-5)
-    b = approximator.output*approximator.koopman.Ã
-    b[abs.(b) .< threshold] .= 0.0
-    return simplified_expr.(simplify_constants.(b*approximator.basis))
+# This is a fairly naive approach of doing this
+function reduce_basis(m::ExtendedDMD; threshold = 1e-5)
+    b = m.output*m.koopman.Ã
+    inds = abs.(sum(b, dims = 1)) .< threshold
+    return Basis(m.basis.basis[vec(inds)])
 end
-
-
-
-
-#function reduce_basis!(m::ExtendedDMD, threshold::Number = 1e-3)
-#    b = approximator.output*approximator.koopman.Ã
-#    inds = sum(abs.(b), dims = 1) .> threshold
-#
-#    m.basis = m.basis[vec(inds)]
-#    return
-#end

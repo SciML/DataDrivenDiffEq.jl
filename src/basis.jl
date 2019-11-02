@@ -36,7 +36,6 @@ function Base.deleteat!(b::Basis, inds)
     return
 end
 
-(b::Basis)(x::AbstractArray) = b.f_(x, [])
 (b::Basis)(x::AbstractArray; p::AbstractArray = []) = b.f_(x, p)
 
 Base.size(b::Basis) = size(b.basis)
