@@ -26,6 +26,8 @@ end
 
 # Create a basis
 @variables u[1:2]
+
+# Lots of polynomials
 polys = [u[1]^0]
 for i ∈ 1:3
     for j ∈ 1:3
@@ -33,9 +35,8 @@ for i ∈ 1:3
     end
 end
 
+# And some other stuff
 h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
-
-[ui for ui in u]
 
 basis = Basis(h, u, parameters = [])
 
@@ -43,6 +44,6 @@ basis = Basis(h, u, parameters = [])
 Ψ = SInDy(sol[:,:], DX, basis, ϵ = 1e-2, maxiter = 100)
 
 # Simulate
-estimator = ODEProblem(Ψ.f_, u0, tspan)
+estimator = ODEProblem(dynamics(Ψ), u0, tspan)
 sol_ = solve(estimator, saveat = sol.t)
 norm(sol-sol_)
