@@ -5,6 +5,9 @@ mutable struct Basis{O, V, P} <: abstractBasis
     f_
 end
 
+Base.print(io::IO, x::Basis) = show(io, x)
+Base.show(io::IO, x::Basis) = print(io, "$(length(x.basis)) dimensional basis in ", "$(String.([v.op.name for v in x.variables]))")
+
 function Basis(basis::AbstractVector{Operation}, variables;  parameters)
     bs = unique(basis)
 
