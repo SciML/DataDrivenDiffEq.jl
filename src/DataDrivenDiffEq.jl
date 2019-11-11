@@ -25,4 +25,7 @@ export reduce_basis, update!
 include("./sindy.jl")
 export SInDy
 
+include("./isindy.jl")
+export ISInDy
+
 end # module
