@@ -62,7 +62,7 @@ function ridgeRegression(A::AbstractArray, Y::AbstractArray; ϵ::Number = 1e-3)
     dx = Convex.Variable(n_measurements)
 
     # Has always the same form
-    p = minimize(norm(A*x-dx, 2)+norm(x, 1))
+    p = minimize(norm(A*x-dx, 2)+ϵ*norm(x, 1))
 
     # Iterate over all variables
     for i in 1:n_states
