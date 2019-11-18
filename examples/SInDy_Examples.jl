@@ -1,6 +1,7 @@
 using DataDrivenDiffEq
 using ModelingToolkit
 using DifferentialEquations
+using LinearAlgebra
 using Plots
 gr()
 
@@ -41,7 +42,7 @@ h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]
 basis = Basis(h, u, parameters = [])
 
 #Generate eqs
-Ψ = SInDy(sol[:,:], DX, basis, ϵ = 1e-2, maxiter = 100)
+Ψ = SInDy(sol[:,:], DX, basis, ϵ = 1e-10)
 
 # Simulate
 estimator = ODEProblem(dynamics(Ψ), u0, tspan)
