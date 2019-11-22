@@ -5,7 +5,6 @@ os:
   - linux
 
 julia:
-  - 1.0
   - 1.2
   - nightly
 
