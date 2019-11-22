@@ -24,14 +24,14 @@ function sparseConvex(A::AbstractArray, Y::AbstractArray; ϵ::Float64 = 1e-3)
     Ξ = zeros(n_basis, n_states)
 
     # Initialize the mixed integer programming
-    #t = Convex.Variable(n_basis)
+    t = Convex.Variable(n_basis)
     x = Convex.Variable(n_basis)
     dx = Convex.Variable(n_measurements)
     # Has always the same form
     p = minimize(dot(ones(n_basis),t))
-    #p.constraints += A*x == dx
-    #p.constraints += x <= t
-    #p.constraints += x >= -t
+    p.constraints += A*x == dx
+    p.constraints += x <= t
+    p.constraints += x >= -t
 
     # Iterate over all variables
     for i in 1:n_states
@@ -50,37 +50,9 @@ function sparseConvex(A::AbstractArray, Y::AbstractArray; ϵ::Float64 = 1e-3)
     return Ξ'
 end
 
-function ridgeRegression(A::AbstractArray, Y::AbstractArray; ϵ::Number = 1e-3)
-    n_states, n_measurements = size(Y)
-    n_basis = size(A)[2]
-    # Preallocate the weights
-    Ξ = zeros(n_basis, n_states)
-
-    # Initialize the mixed integer programming
-    #t = Convex.Variable(n_basis)
-    x = Convex.Variable(n_basis)
-    dx = Convex.Variable(n_measurements)
-
-    # Has always the same form
-    p = minimize(norm(A*x-dx, 2)+ϵ*norm(x, 1))
-
-    # Iterate over all variables
-    for i in 1:n_states
-        # Fix the value for dx
-        dx.value = Y[i,:]
-        fix!(dx)
-        # Solve
-        solve!(p, ECOSSolver())
-        Ξ[:, i] = x.value
-    end
-    Ξ[abs.(Ξ) .<= ϵ] .= 0.0
-
-    return Ξ'
-end
-
 # Returns a basis for the differential state
 function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; p::AbstractArray = [], ϵ::Number = 1e-1)
     θ = hcat([Ψ(xi, p = p) for xi in eachcol(X)]...)
-    Ξ = ridgeRegression(θ', Ẋ, ϵ = ϵ)
+    Ξ = sparseConvex(θ', Ẋ, ϵ = ϵ)
     return Basis(simplify_constants.(Ξ*Ψ.basis), variables(Ψ), parameters = p)
 end
