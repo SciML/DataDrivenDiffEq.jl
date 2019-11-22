@@ -129,5 +129,5 @@ end
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_ = solve(estimator,Tsit5())
-    @test_broken sol[:,:] ≈ sol_[:,:]
+    @test sol[:,:] ≈ sol_[:,:]
 end
