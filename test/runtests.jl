@@ -1,7 +1,7 @@
 using DataDrivenDiffEq
 using ModelingToolkit
 using LinearAlgebra
-using DifferentialEquations
+using OrdinaryDiffEq
 using Test
 
 @testset "Basis" begin
@@ -58,7 +58,7 @@ end
     u0 = [π; 1.0]
     tspan = (0.0, 20.0)
     prob = DiscreteProblem(linear_sys, u0, tspan)
-    sol = solve(prob)
+    sol = solve(prob,FunctionMap())
 
     @variables u[1:2]
     h = [1u[1]; 1u[2]; sin(u[1]); cos(u[1]); u[1]*u[2]]
@@ -70,11 +70,11 @@ end
     @test size(basis_2)[1] < size(basis)[1]
     estimator_2 = ExtendedDMD(sol[:,:], basis_2)
     p1 = DiscreteProblem(dynamics(estimator), u0, tspan, [])
-    s1 = solve(p1)
+    s1 = solve(p1,FunctionMap())
     p2 = DiscreteProblem(dynamics(estimator_2), u0, tspan, [])
-    s2 = solve(p2)
+    s2 = solve(p2,FunctionMap())
     p3 = DiscreteProblem(linear_dynamics(estimator_2), estimator_2(u0), tspan, [])
-    s3 = solve(p3)
+    s3 = solve(p3,FunctionMap())
     @test sol[:,:] ≈ s1[:,:]
     @test sol[:,:] ≈ s2[:,:]
     @test hcat(estimator_2.basis.(eachcol(sol[:,:]))...)≈ s3[:,:]
@@ -87,10 +87,10 @@ end
     end
 
     prob = DiscreteProblem(nonlinear_sys, u0, tspan)
-    sol = solve(prob)
+    sol = solve(prob,FunctionMap())
     estimator = ExtendedDMD(sol[:,:], basis)
     p4 = DiscreteProblem(dynamics(estimator), u0, tspan, [])
-    s4 = solve(p4)
+    s4 = solve(p4,FunctionMap())
     @test sol[:,:] ≈ s4[:,:]
 end
 
@@ -104,7 +104,7 @@ end
     u0 = [0.99π; 0.3]
     tspan = (0.0, 10.0)
     prob = ODEProblem(pendulum, u0, tspan)
-    sol = solve(prob)
+    sol = solve(prob,Tsit5())
     # Create the differential data
     DX = similar(sol[:,:])
     for (i, xi) in enumerate(eachcol(sol[:,:]))
@@ -128,6 +128,6 @@ end
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_ = solve(estimator)
+    sol_ = solve(estimator,Tsit5())
     @test sol[:,:] ≈ sol_[:,:]
 end

@@ -2,7 +2,7 @@ module DataDrivenDiffEq
 
 using LinearAlgebra
 using ModelingToolkit
-using Convex, GLPKMathProgInterface, ECOS
+using Convex, GLPKMathProgInterface, Compat
 
 abstract type abstractBasis end;
 abstract type abstractKoopmanOperator end;
