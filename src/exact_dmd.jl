@@ -17,11 +17,11 @@ mutable struct ExactDMD{M,L,W,F, Q, P} <: abstractKoopmanOperator
 
 end
 
-function ExactDMD(X::AbstractArray; Δt::Float64 = 0.0)
-    return ExactDMD(X[:, 1:end-1], X[:, 2:end], Δt = Δt)
+function ExactDMD(X::AbstractArray; dt::Float64 = 0.0)
+    return ExactDMD(X[:, 1:end-1], X[:, 2:end], dt = dt)
 end
 
-function ExactDMD(X::AbstractArray, Y::AbstractArray; Δt::Float64 = 0.0)
+function ExactDMD(X::AbstractArray, Y::AbstractArray; dt::Float64 = 0.0)
     @assert size(X)[2] .== size(Y)[2]
     @assert size(Y)[1] .<= size(Y)[2]
 
@@ -30,9 +30,9 @@ function ExactDMD(X::AbstractArray, Y::AbstractArray; Δt::Float64 = 0.0)
     # Eigen Decomposition for solution
     Λ, W = eigen(Ã)
 
-    if Δt > 0.0
+    if dt > 0.0
         # Casting Complex enforces results
-        ω = log.(Complex.(Λ)) / Δt
+        ω = log.(Complex.(Λ)) / dt
     else
         ω = []
     end
@@ -75,7 +75,7 @@ end
 
 
 # Update with new measurements
-function update!(m::ExactDMD, x::AbstractArray, y::AbstractArray; Δt::Float64 = 0.0, threshold::Float64 = 1e-3)
+function update!(m::ExactDMD, x::AbstractArray, y::AbstractArray; dt::Float64 = 0.0, threshold::Float64 = 1e-3)
     # Check the error
     ϵ = norm(y - m.Ã*x, 2)
 
@@ -88,9 +88,9 @@ function update!(m::ExactDMD, x::AbstractArray, y::AbstractArray; Δt::Float64 =
     m.Ã = m.Qₖ*inv(m.Pₖ)
     m.λ, m.ϕ = eigen(m.Ã)
 
-    if Δt > 0.0
+    if dt > 0.0
         # Casting Complex enforces results
-        ω = log.(Complex.(m.λ)) / Δt
+        ω = log.(Complex.(m.λ)) / dt
     else
         ω = []
     end
