@@ -17,13 +17,14 @@ mutable struct ExactDMD{M,L,W,F, Q, P} <: abstractKoopmanOperator
 
 end
 
-function ExactDMD(X::AbstractArray; dt::Float64 = 0.0)
+function ExactDMD(X::AbstractArray; dt::T = 0.0)    where T <: Real
     return ExactDMD(X[:, 1:end-1], X[:, 2:end], dt = dt)
 end
 
-function ExactDMD(X::AbstractArray, Y::AbstractArray; dt::Float64 = 0.0)
-    @assert size(X)[2] .== size(Y)[2]
-    @assert size(Y)[1] .<= size(Y)[2]
+function ExactDMD(X::AbstractArray, Y::AbstractArray; dt::T = 0.0)  where T <: Real
+    @assert dt >= zero(typeof(dt)) "Provide positive dt"
+    @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
+    @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
 
     # Best Frob norm approximator
     Ã = Y*pinv(X)
@@ -75,7 +76,8 @@ end
 
 
 # Update with new measurements
-function update!(m::ExactDMD, x::AbstractArray, y::AbstractArray; dt::Float64 = 0.0, threshold::Float64 = 1e-3)
+function update!(m::ExactDMD, x::AbstractArray, y::AbstractArray; dt::T = 0.0, threshold::Float64 = 1e-3)  where T <: Real
+    @assert dt >= zero(typeof(dt)) "Provide positive dt"
     # Check the error
     ϵ = norm(y - m.Ã*x, 2)
 

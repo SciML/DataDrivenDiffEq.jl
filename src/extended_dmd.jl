@@ -16,13 +16,14 @@ eigen(m::ExtendedDMD) = eigen(m.koopman)
 eigvals(m::ExtendedDMD) = eigvals(m.koopman)
 eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
 
-function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), dt::Float64 = 1.0)
+function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), dt::T = 1.0)  where T <: Real
     return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B, dt = dt)
 end
 
-function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), dt::Float64 = 1.0)
-    @assert size(X)[2] .== size(Y)[2]
-    @assert size(Y)[1] .<= size(Y)[2]
+function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), dt::T = 1.0) where T <: Real
+    @assert dt >= zero(typeof(dt)) "Provide positive dt"
+    @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
+    @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
 
     # Based upon William et.al. , A Data-Driven Approximation of the Koopman operator
 
@@ -43,7 +44,7 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::A
     return ExtendedDMD(Op, B, Ψ)
 end
 
-function update!(m::ExtendedDMD, x::AbstractArray, y::AbstractArray; p::AbstractArray = [], dt::Float64 = 0.0, threshold::Float64 = 1e-3)
+function update!(m::ExtendedDMD, x::AbstractArray, y::AbstractArray; p::AbstractArray = [], dt::T = 0.0, threshold::Float64 = 1e-3) where T <: Real
     Ψ₀ = m.basis(x, p = p)
     Ψ₁ = m.basis(y, p = p)
     update!(m.koopman, Ψ₀, Ψ₁, dt = dt, threshold = threshold)
