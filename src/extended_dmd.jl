@@ -1,7 +1,3 @@
-import LinearAlgebra: eigen
-import LinearAlgebra: eigvals, eigvecs
-
-
 mutable struct ExtendedDMD{D,O,C} <: abstractKoopmanOperator
     koopman::D
     output::O
@@ -56,7 +52,7 @@ function dynamics(m::ExtendedDMD)
     # Create a set of nonlinear eqs
     p_ = m.output*m.koopman.Ã
     function dudt_(du, u, p, t)
-        du .= p_*m.basis(u, p = p)
+        mul!(du,p_,m.basis(u, p = p))
     end
 end
 

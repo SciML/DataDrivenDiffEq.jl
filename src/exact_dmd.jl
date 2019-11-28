@@ -1,9 +1,3 @@
-using LinearAlgebra
-
-import LinearAlgebra: eigen
-import LinearAlgebra: eigvals, eigvecs
-
-
 mutable struct ExactDMD{M,L,W,F, Q, P} <: abstractKoopmanOperator
 
     Ã::M # Approximation of the operator
@@ -57,7 +51,7 @@ function dynamics(m::ExactDMD; discrete::Bool = true)
     if discrete
     # Return an inline function
         @inline function dudt_(du, u, p, t)
-            du .= m.Ã * u
+            mul!(du,m.Ã,u)
         end
         return dudt_
 
@@ -66,7 +60,7 @@ function dynamics(m::ExactDMD; discrete::Bool = true)
         A = m.ϕ*Diagonal(m.ω)*inv(m.ϕ)
 
         @inline function dudt_c(du, u, p, t)
-            du .= A * u
+            mul!(du,A,u)
         end
 
         return dudt_c
