@@ -35,9 +35,9 @@ function ExactDMD(X::AbstractArray, Y::AbstractArray; Δt::Float64 = 0.0)
 end
 
 # Keep it simple
-eigen(m::ExactDMD) = m.λ, m.ϕ
-eigvals(m::ExactDMD) = m.λ
-eigvecs(m::ExactDMD) = m.ϕ
+LinearAlgebra.eigen(m::ExactDMD) = m.λ, m.ϕ
+LinearAlgebra.eigvals(m::ExactDMD) = m.λ
+LinearAlgebra.eigvecs(m::ExactDMD) = m.ϕ
 
 modes(m::ExactDMD) = eigvecs(m)
 frequencies(m::ExactDMD) =  !isempty(m.ω) ? m.ω : error("No continouos frequencies available.")

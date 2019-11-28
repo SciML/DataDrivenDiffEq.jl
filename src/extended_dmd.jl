@@ -8,9 +8,9 @@ end
 (m::ExtendedDMD)(u; p = []) = m.basis(u, p = p)
 
 # Some nice functions
-eigen(m::ExtendedDMD) = eigen(m.koopman)
-eigvals(m::ExtendedDMD) = eigvals(m.koopman)
-eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
+LinearAlgebra.eigen(m::ExtendedDMD) = eigen(m.koopman)
+LinearAlgebra.eigvals(m::ExtendedDMD) = eigvals(m.koopman)
+LinearAlgebra.eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
 
 function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
     return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B, Δt = Δt)
