@@ -39,10 +39,13 @@ end
 # And some other stuff
 h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
 
-basis = Basis(h, u, parameters = [])
+basis = Basis(h, u)
 
 #Generate eqs
 Ψ = SInDy(sol[:,:], DX, basis, ϵ = 1e-10)
+
+# Transform into ODE System
+sys = ODESystem(Ψ)
 
 # Simulate
 estimator = ODEProblem(dynamics(Ψ), u0, tspan)
