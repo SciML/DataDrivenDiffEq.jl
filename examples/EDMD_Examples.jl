@@ -10,7 +10,7 @@ gr()
 # Create a basis of functions aka observables ( aka features )
 @variables u[1:2]
 h = [u[1]; sin(u[1]); sin(u[2]); u[2]; u[1]*u[2]; u[2]^2]
-basis = Basis(h)
+basis = Basis(h, u)
 
 # Create a test system
 function test_discrete(du, u, p, t)
