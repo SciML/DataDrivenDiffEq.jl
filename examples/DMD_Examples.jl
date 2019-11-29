@@ -65,7 +65,7 @@ sol_cont = solve(prob_cont, saveat = 0.1)
 
 plot(sol_cont)
 
-approx_cont = ExactDMD(sol_cont[:,:], Δt = 0.1)
+approx_cont = ExactDMD(sol_cont[:,:], dt = 0.1)
 
 test = dynamics(approx_cont, discrete = false)
 
