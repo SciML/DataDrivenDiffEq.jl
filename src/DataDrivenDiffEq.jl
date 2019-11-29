@@ -25,7 +25,8 @@ export reduce_basis, update!
 
 include("./dmdc.jl")
 export DMDc
-export get_dynamics, get_input_map
+export eigen, eigvals, eigvecs
+export get_dynamics, get_input_map, dynamics
 
 include("./sindy.jl")
 export SInDy

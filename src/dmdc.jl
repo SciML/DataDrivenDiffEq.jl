@@ -1,9 +1,4 @@
-using OrdinaryDiffEq
-using DataDrivenDiffEq
-using LinearAlgebra
-using Plots
-
-mutable struct DMDc{K, B, Q, P}
+mutable struct DMDc{K, B, Q, P} <: abstractKoopmanOperator
     koopman::K
     forcing::B
 
@@ -43,7 +38,6 @@ function DMDc(X::AbstractArray, Y::AbstractArray, Γ::AbstractArray; B::Abstract
 
     koopman = ExactDMD(Ã, Λ, ω, W, nothing, nothing)
 
-
     return DMDc(koopman, B̃, nothing, nothing)
 end
 
@@ -64,42 +58,14 @@ get_dynamics(m::DMDc) = m.koopman
 get_input_map(m::DMDc) = m.forcing
 
 # TODO this can be done better, maybe use macros
-function DataDrivenDiffEq.dynamics(m::DMDc; discrete::Bool = true)
-    if discrete
-        dims = size(m.forcing)
-        nᵢ = length(dims)<=1 ? 1 : dims[2]
-        println(zeros(eltype(m.forcing), nᵢ))
-        function zero_callback(u, p, t)
-            return zeros(eltype(m.forcing), nᵢ)
-        end
-        @inline function dudt_(u, p, t; y = zero_callback)
-            m.koopman.Ã * u + m.forcing .* y(u, p, t)
-        end
-        return dudt_
-    else
-        throw(ErrorException("Continouos dynamics are not implemented right now."))
+function dynamics(m::DMDc; control = nothing)
+    control = isnothing(control) ? zero_callback(m) : control
+    @inline function dudt_(u, p, t; y = control)
+        m.koopman.Ã * u + m.forcing * y(u, p, t)
     end
+    return dudt_
 end
 
-X = [4 2 1 0.5 0.25; 7 0.7 0.07 0.007 0.0007]
-U = [-4 -2 -1 -0.5]
-B = Float32[1; 0]
-
-sys = DMDc(X, U)
-sys = DMDc(X, U, B = B)
-
-isstable(sys)
-
-get_input_map(sys)
-
-get_dynamics(sys)
-
-eigen(sys)
-
-dudt_ = dynamics(sys)
-dudt_(X[:, 1], [], 0.0)
-
-prob = DiscreteProblem(dudt_, X[:, 1], (0.0, 10.0))
-sol = solve(prob)
-
-plot(sol)
+function zero_callback(m::DMDc)
+    return length(size(m.forcing)) <= 1 ? (u, p, t) -> zero(eltype(m.forcing)) : (u, p, t) -> zeros(eltype(m.forcing), size(m.forcing)[2])
+end
