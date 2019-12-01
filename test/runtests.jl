@@ -34,6 +34,7 @@ end
         push!(y, A*y[end])
     end
     X = hcat(y...)
+    @test_throws AssertionError ExactDMD(X[:, 1:end-2], dt = -1.0)
     estimator = ExactDMD(X[:,1:end-2])
     @test isstable(estimator)
     @test estimator.Ã ≈ A
@@ -48,6 +49,7 @@ end
 
 
 @testset "EDMD" begin
+
     # Test for linear system
     function linear_sys(u, p, t)
         x = -0.9*u[1]
@@ -64,6 +66,7 @@ end
     h = [1u[1]; 1u[2]; sin(u[1]); cos(u[1]); u[1]*u[2]]
     basis = Basis(h, u)
 
+    @test_throws AssertionError ExtendedDMD(sol[:,:], basis, dt = -1.0)
     estimator = ExtendedDMD(sol[:,:], basis)
     @test basis == estimator.basis
     basis_2 = reduce_basis(estimator, threshold = 1e-5)
