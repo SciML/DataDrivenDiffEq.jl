@@ -24,6 +24,7 @@ using Test
     basis = Basis(g, u, parameters = w)
     f = jacobian(basis)
     @test f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
+    @test_nowarn sys = ODESystem(basis)
 end
 
 @testset "DMD" begin

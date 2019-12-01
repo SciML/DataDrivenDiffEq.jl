@@ -5,10 +5,14 @@ mutable struct Basis{O, V, P} <: abstractBasis
     f_
 end
 
+is_independent(o::Operation) = isempty(o.args)
+
 Base.print(io::IO, x::Basis) = show(io, x)
 Base.show(io::IO, x::Basis) = print(io, "$(length(x.basis)) dimensional basis in ", "$(String.([v.op.name for v in x.variables]))")
 
-function Basis(basis::AbstractVector{Operation}, variables;  parameters = Vector{Operation}())
+function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Operation};  parameters =  [])
+    @assert all(is_independent.(variables)) "Please provide independent variables for base."
+
     bs = unique(basis)
 
     vs = sort!([b for b in [ModelingToolkit.vars(bs)...] if !b.known], by = x -> x.name)
@@ -45,7 +49,6 @@ end
 Base.size(b::Basis) = size(b.basis)
 ModelingToolkit.parameters(b::Basis) = b.parameter
 variables(b::Basis) = b.variables
-#isunique(b::Basis) = length(b.basis) == length(unique(b.basis))
 
 function jacobian(b::Basis)
     vs = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if !bi.known], by = x-> x.name)
@@ -75,4 +78,19 @@ end
 
 function dynamics(b::Basis)
     return b.f_
+end
+
+function ModelingToolkit.ODESystem(b::Basis)
+    # Define the time
+    @parameters t
+    @derivatives D'~t
+
+    vs = similar(b.variables)
+    dvs = similar(b.variables)
+    for (i, vi) in enumerate(b.variables)
+        vs[i] = ModelingToolkit.Operation(vi.op, [t])
+        dvs[i] = D(vs[i])
+    end
+    eqs = dvs .~ b(vs, p = b.parameter)
+    return ODESystem(eqs)
 end

@@ -28,7 +28,7 @@ function sparseConvex(A::AbstractArray, Y::AbstractArray; ϵ::Float64 = 1e-3)
     x = Convex.Variable(n_basis)
     dx = Convex.Variable(n_measurements)
     # Has always the same form
-    p = minimize(dot(ones(n_basis),t))
+    p = Convex.minimize(Convex.dot(ones(n_basis),t))
     p.constraints += A*x == dx
     p.constraints += x <= t
     p.constraints += x >= -t
@@ -37,9 +37,9 @@ function sparseConvex(A::AbstractArray, Y::AbstractArray; ϵ::Float64 = 1e-3)
     for i in 1:n_states
         # Fix the value for dx
         dx.value = Y[i,:]
-        fix!(dx)
+        Convex.fix!(dx)
         # Solve
-        solve!(p, GLPKSolverMIP())
+        Convex.solve!(p, GLPKMathProgInterface.GLPKSolverMIP())
         # TODO Warmstarting the solver is not an option right now
         #, warmstart = i > 1 ? true : false, verbose = false)
         Ξ[:, i] = x.value
