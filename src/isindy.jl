@@ -27,7 +27,7 @@ function ADM(Y::AbstractArray, λ::T , ϵ::Float64, maxiter::Int64)  where T <: 
 
     # Filter results for information
     Q = Q[:,sum.(abs, eachcol(Q)) .> 0]
-    # Just relations
+    # Just relations between at least 2
     Q = Q[:, norm.(eachcol(Q), 0) .> 1]
     return Q
 end
@@ -46,4 +46,30 @@ function ADM(Y::AbstractArray, λ::AbstractArray, ϵ::Float64, maxiter::Int64)
     # Just relations
     Q = Q[:, norm.(eachcol(Q), 0) .> 1]
     return Q
+end
+
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, λ::Number; p::AbstractArray = [], cost::Function = (x, θ)->sqrt(norm(x, 0)^2 + norm(θ*x, 2)^2), ϵ::Number = 1e-1, maxiter::Int64 = 5000)
+    θ = hcat([Ψ(xi, p = p) for xi in eachcol(hcat([X; Ẋ]))]...)
+    θ₀ = nullspace(θ', atol = Inf)
+    Ξ = ADM(θ₀, λ, ϵ, maxiter)
+    # Find the best
+    # Closure
+    cost_(x) =  cost(x, θ)
+    sort!(Ξ, dims = 2, by = cost_)
+    basis = [convert(Operation,simplify_constants(ξ*bi)) for (ξ, bi) in zip(Ξ[:, 1], Ψ.basis) if abs.(ξ) >= λ]
+    return Basis(basis, variables(Ψ), parameters = p)
+end
+
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, λ::AbstractArray; p::AbstractArray = [], cost::Function = (x, θ)->sqrt(norm(x, 0)^2 + norm(θ*x, 2)^2), ϵ::Number = 1e-1, maxiter::Int64 = 5000)
+    θ = hcat([Ψ(xi, p = p) for xi in eachcol(hcat([X; Ẋ]))]...)
+    θ₀ = nullspace(θ', atol = Inf)
+    Ξ = ADM(θ₀, λ, ϵ, maxiter)
+    # Find the best
+    # Closure
+    cost_(x) = cost(x, θ)
+    sort!(Ξ, dims = 2, by = cost_)
+    # TODO Returns zeros columns; Why?
+    return Ξ
+    basis = [convert(Operation,simplify_constants(ξ*bi)) for (ξ, bi) in zip(Ξ[:, 1], Ψ.basis)]
+    return Basis(basis, variables(Ψ), parameters = p)
 end

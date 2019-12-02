@@ -27,6 +27,6 @@ include("./sindy.jl")
 export SInDy
 
 include("./isindy.jl")
-export ADM
+export ISInDy
 
 end # module
