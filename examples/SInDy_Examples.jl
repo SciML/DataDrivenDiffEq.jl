@@ -1,6 +1,6 @@
 using DataDrivenDiffEq
 using ModelingToolkit
-using DifferentialEquations
+using OrdinaryDiffEq
 using LinearAlgebra
 using Plots
 gr()
@@ -41,7 +41,7 @@ h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]
 
 basis = Basis(h, u)
 
-#Generate eqs
+# Get the reduced basis via the sparse regression
 Ψ = SInDy(sol[:,:], DX, basis, ϵ = 1e-10)
 
 # Transform into ODE System
@@ -50,4 +50,9 @@ sys = ODESystem(Ψ)
 # Simulate
 estimator = ODEProblem(dynamics(Ψ), u0, tspan)
 sol_ = solve(estimator, saveat = sol.t)
-norm(sol-sol_)
+
+# Yeah! We got it right
+plot(sol, vars = (1,2))
+plot!(sol, vars = (1,2))
+
+norm(sol-sol_) # ≈ 1.89e-13

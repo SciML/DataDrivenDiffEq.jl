@@ -41,7 +41,7 @@ sol_ = solve(prob_)
 
 # Plot the error
 # plot(sol.t, abs.(sol - sol_)')
-norm(sol-sol_)
+norm(sol-sol_) # ≈ 4.33e-13
 
 # Get the linear dynamics in koopman space
 dψdt = linear_dynamics(approximator)
@@ -52,12 +52,12 @@ dψdt = linear_dynamics(approximator)
 # Plot trajectory in edmd basis
 # plot(sol.t, ψ')
 # plot(sol.t, hcat([approximator(xi) for xi in eachcol(sol)]...)')
-norm(ψ - hcat([approximator(xi) for xi in eachcol(sol)]...))
+norm(ψ - hcat([approximator(xi) for xi in eachcol(sol)]...)) # ≈ 0.0158
 
 # And in observable space
 sol_ψ = approximator.output * ψ
 # plot(abs.(sol_ψ'- sol[:,:]'))
-norm(sol_ψ - sol)
+norm(sol_ψ - sol) # ≈ 0.00664
 
 
 # Reduce the basis
@@ -74,7 +74,7 @@ dψdt = linear_dynamics(reduced_approximator)
 # Plot trajectory in edmd basis with much higher accuracy than before
 #plot(sol.t, ψ')
 #plot!(sol.t, hcat([reduced_approximator(xi) for xi in eachcol(sol)]...)')
-norm(ψ - hcat([reduced_approximator(xi) for xi in eachcol(sol)]...))
+norm(ψ - hcat([reduced_approximator(xi) for xi in eachcol(sol)]...)) # ≈ 1.43..
 
 
 
@@ -89,11 +89,10 @@ dψdt = linear_dynamics(reduced_approximator)
 # Plot trajectory in edmd basis with much higher accuracy than before
 #plot(sol.t, ψ')
 #plot!(sol.t, hcat([reduced_approximator(xi) for xi in eachcol(sol)]...)')
-norm(ψ - hcat([reduced_approximator(xi) for xi in eachcol(sol)]...))
+norm(ψ - hcat([reduced_approximator(xi) for xi in eachcol(sol)]...)) # ≈ 1.14...
 
 # And in observable space, with lower accuracy since the original states are not in the
 # system anymore
 sol_ψ = reduced_approximator.output * ψ
-sol[:,:]
 #plot(abs.(sol_ψ'- sol[:,:]'))
-norm(sol_ψ - sol)
+norm(sol_ψ - sol) # ≈ 1.19
