@@ -46,6 +46,7 @@ isstable(m::ExactDMD) = !isempty(m.ω) ? all(real.(frequencies(m)) .<= 0.0) : al
 
 iscontinouos(m::ExactDMD) = !isempty(m.ω) ? true : false
 
+free_parameters(e::ExactDMD) = prod(size(e.Ã))
 
 # TODO this can be done better, maybe use macros
 function dynamics(m::ExactDMD; discrete::Bool = true)

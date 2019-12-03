@@ -12,6 +12,8 @@ LinearAlgebra.eigen(m::ExtendedDMD) = eigen(m.koopman)
 LinearAlgebra.eigvals(m::ExtendedDMD) = eigvals(m.koopman)
 LinearAlgebra.eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
 
+free_parameters(m::ExtendedDMD) = free_parameters(m.koopman)
+
 function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), dt::T = 1.0)  where T <: Real
     return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B, dt = dt)
 end

@@ -22,7 +22,7 @@ end
 u0 = [1.0; 2.0]
 tspan = (0.0, 50.0)
 prob = DiscreteProblem(test_discrete, u0, tspan)
-sol = solve(prob)
+sol = solve(prob, FunctionMap())
 # Plot the solution
 # plot(sol)
 
@@ -31,14 +31,17 @@ sol = solve(prob)
 approximator = ExtendedDMD(sol[:,:], basis)
 
 # Lets look at the eigenvalues
-# scatter(eigvals(approximator))
+scatter(eigvals(approximator))
 
 # Get the nonlinear dynamics
 dudt_ = dynamics(approximator)
 # Solve the estimation problem
 prob_ = DiscreteProblem(dudt_, u0, tspan, [])
-sol_ = solve(prob_)
+sol_ = solve(prob_, FunctionMap())
 
+
+# Compute AIC based on RMSE
+AIC(prod(free_parameters(approximator)), sol[:,:], sol_[:,:])
 # Plot the error
 # plot(sol.t, abs.(sol - sol_)')
 norm(sol-sol_) # ≈ 4.33e-13
@@ -50,8 +53,8 @@ dψdt = linear_dynamics(approximator)
 ψ = solve(ψ_prob, saveat = sol.t)
 
 # Plot trajectory in edmd basis
-# plot(sol.t, ψ')
-# plot(sol.t, hcat([approximator(xi) for xi in eachcol(sol)]...)')
+plot(sol.t, ψ')
+plot(sol.t, hcat([approximator(xi) for xi in eachcol(sol)]...)')
 norm(ψ - hcat([approximator(xi) for xi in eachcol(sol)]...)) # ≈ 0.0158
 
 # And in observable space
@@ -62,9 +65,11 @@ norm(sol_ψ - sol) # ≈ 0.00664
 
 # Reduce the basis
 reduced_basis = reduce_basis(approximator)
-
 # Reiterate for the reduced approximator with few measurements
 reduced_approximator = ExtendedDMD(sol[:,1:4], reduced_basis)
+
+AIC(free_parameters(approximator), sol[:,:], sol_ψ)
+AIC(free_parameters(reduced_approximator), sol[:,:], sol_ψ)
 
 dψdt = linear_dynamics(reduced_approximator)
 # Simply calling the EDMD struct transforms into the current basis

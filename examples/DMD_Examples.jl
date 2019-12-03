@@ -23,7 +23,7 @@ approx_dudt = dynamics(approx)
 # Create the associated problem
 prob_approx = DiscreteProblem(approx_dudt, u0, tspan)
 approx_sol = solve(prob_approx)
-
+AIC(free_parameters(approx), sol[:,:], approx_sol[:,:])
 # Show solutions
 plot(sol)
 plot!(approx_sol)

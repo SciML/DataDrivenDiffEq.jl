@@ -7,7 +7,14 @@ end
 
 is_independent(o::Operation) = isempty(o.args)
 
-Base.print(io::IO, x::Basis) = show(io, x)
+@inline function Base.print(io::IO, x::Basis)
+    show(io, x)
+    println()
+    for (i, bi) in enumerate(x.basis)
+        println("d$(x.variables[i]) = $bi")
+    end
+end
+
 Base.show(io::IO, x::Basis) = print(io, "$(length(x.basis)) dimensional basis in ", "$(String.([v.op.name for v in x.variables]))")
 
 function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Operation};  parameters =  [])
@@ -94,3 +101,14 @@ function ModelingToolkit.ODESystem(b::Basis)
     eqs = dvs .~ b(vs, p = b.parameter)
     return ODESystem(eqs)
 end
+
+function count_operations(o::Expression, ops::AbstractArray)
+    isa(o, ModelingToolkit.Constant) || return 0
+    k = o.op ∈ ops ? 1 : 0
+    if !isempty(o.args)
+        k += sum([count_operations(ai, ops) for ai in o.args])
+    end
+    return k
+end
+
+free_parameters(b::Basis; operations = [+]) = sum([count_operations(bi, operations) for bi in b.basis]) + length(b.basis)
