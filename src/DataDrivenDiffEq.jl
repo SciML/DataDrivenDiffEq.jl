@@ -29,6 +29,6 @@ include("./sindy.jl")
 export SInDy
 
 include("./model_selection.jl")
-export AIC
+export AIC, AICC, BIC
 
 end # module
