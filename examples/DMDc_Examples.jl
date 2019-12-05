@@ -1,5 +1,5 @@
 using DataDrivenDiffEq
-using DifferentialEquations
+using OrdinaryDiffEq
 using Plots
 gr()
 
@@ -16,16 +16,19 @@ sys = DMDc(X, U, B = B)
 # Extract the DMD from inside DMDc
 get_dynamics(sys)
 # Acess all the other stuff
-eigen(sys) .≈ eigen(get_dynamics(sys))
+eigen(sys)
+eigvals(sys)
+eigvecs(sys)
+isstable(sys)
 # Get unforced dynamics
 dudt_ = dynamics(sys)
 prob = DiscreteProblem(dudt_, X[:, 1], (0., 10.))
-sol_unforced = solve(prob)
+sol_unforced = solve(prob,  FunctionMap())
 plot(sol_unforced)
-
+sol_unforced[:,:]
 # Create a system with cos control input to stabilize
 dudt_ = dynamics(sys, control = (u, p, t) -> -0.5u[1])
 prob = DiscreteProblem(dudt_, X[:, 1], (0., 10.))
-sol = solve(prob)
+sol = solve(prob, FunctionMap())
 
 plot!(sol)
