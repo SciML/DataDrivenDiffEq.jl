@@ -50,7 +50,6 @@ end
 
 
 @testset "EDMD" begin
-
     # Test for linear system
     function linear_sys(u, p, t)
         x = -0.9*u[1]
@@ -97,6 +96,35 @@ end
     s4 = solve(p4,FunctionMap())
     @test sol[:,:] ≈ s4[:,:]
 end
+
+
+@testset "DMDc" begin
+    # Define measurements from unstable system with known control input
+    X = [4 2 1 0.5 0.25; 7 0.7 0.07 0.007 0.0007]
+    U = [-4 -2 -1 -0.5]
+    B = Float32[1; 0]
+
+    # But with a little more knowledge
+    sys = DMDc(X, U, B = B)
+    @test isa(get_dynamics(sys), ExactDMD)
+    @test sys.koopman.Ã ≈[1.5 0; 0 0.1]
+    @test get_input_map(sys) ≈ [1.0; 0.0]
+    @test !isstable(sys)
+    @test_nowarn eigen(sys)
+
+    # Check the solution of an unforced and forced system against each other
+    dudt_ = dynamics(sys)
+    prob = DiscreteProblem(dudt_, X[:, 1], (0., 10.))
+    sol_unforced = solve(prob,  FunctionMap())
+
+    dudt_ = dynamics(sys, control = (u, p, t) -> -0.5u[1])
+    prob = DiscreteProblem(dudt_, X[:, 1], (0., 10.))
+    sol = solve(prob, FunctionMap())
+
+    @test all(abs.(diff(sol[1,:])) .< 1e-5)
+    @test sol[2,:] ≈ sol_unforced[2,:]
+end
+
 
 @testset "SInDy" begin
     # Test the pendulum

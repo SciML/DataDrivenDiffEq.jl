@@ -24,6 +24,11 @@ export ExtendedDMD
 export dynamics, linear_dynamics
 export reduce_basis, update!
 
+include("./dmdc.jl")
+export DMDc
+export eigen, eigvals, eigvecs
+export get_dynamics, get_input_map, dynamics
+
 include("./sindy.jl")
 export SInDy
 
