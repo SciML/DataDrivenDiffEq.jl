@@ -35,27 +35,9 @@ function HankelDMD(X::AbstractArray, Y::AbstractArray, n::Int64 , m::Int64; dt::
         h1 *= norm(h0[:,1])/norm(X[:, 1])
     end
 
+    # Combine the measurements
     H₀ = vcat(H₀...)
     H₁ = vcat(H₁...)
 
-    # Compute Ã
-    U, S, V = svd(H₀)
-
-    idx = iszero(threshold) ? collect(1:size(X)[1]) : abs.(S) .>= threshold*maximum(S)
-
-    Ã = U[:, idx]'*H₁*V[:, idx]*Diagonal(one(eltype(S)) ./S[idx])
-
-    # Eigen Decomposition for solution
-    Λ, W = eigen(Ã)
-
-    W = U[:, idx]*W
-
-    if dt > 0.0
-        # Casting Complex enforces results
-        ω = log.(Complex.(Λ)) / dt
-    else
-        ω = []
-    end
-
-    return Koopman(Ã, Λ, ω, W, nothing, nothing, :HankelDMD, :SVD)
+    return koopman_svd(H₀, H₁, :HankelDMD, dt, size(X)[1], threshold)
 end

@@ -32,5 +32,6 @@ function CompanionMatrixDMD(X::AbstractArray, Y::AbstractArray; dt::T = 0.0)  wh
     else
         ω = []
     end
-    return Koopman(Ã,Λ,ω,W, nothing, nothing, :CompanionDMD)
+
+    return Koopman(Ã,Λ,ω,W, nothing, nothing, :CompanionDMD, :CompanionDMD)
 end

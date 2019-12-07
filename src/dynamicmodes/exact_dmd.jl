@@ -1,22 +1,12 @@
-function ExactDMD(X::AbstractArray; Δt::Float64 = 0.0)
-    return ExactDMD(X[:, 1:end-1], X[:, 2:end], Δt = Δt)
+function ExactDMD(X::AbstractArray; dt::T = 0.0, method::Symbol = :PINV, kwargs...) where T <: Real
+    return ExactDMD(X[:, 1:end-1], X[:, 2:end], dt , method , kwargs)
 end
 
-function ExactDMD(X::AbstractArray, Y::AbstractArray; Δt::Float64 = 0.0)
-    @assert size(X)[2] .== size(Y)[2]
-    @assert size(Y)[1] .<= size(Y)[2]
+function ExactDMD(X::AbstractArray, Y::AbstractArray, dt::T, method::Symbol, kwargs...) where T <: Real
+    if method == :PINV
+        return koopman_pinv(X, Y, :ExactDMD, dt)
+    elseif method == :SVD
 
-    # Best Frob norm approximator
-    Ã = Y*pinv(X)
-    # Eigen Decomposition for solution
-    Λ, W = eigen(Ã)
-
-    if Δt > 0.0
-        # Casting Complex enforces results
-        ω = log.(Complex.(Λ)) / Δt
-    else
-        ω = []
+        return koopman_svd(X, Y, :ExactDMD,  dt , size(X)[1] , 0.0)
     end
-
-    return Koopman(Ã, Λ, ω, W, Y*X', X*X', :ExactDMD)
 end

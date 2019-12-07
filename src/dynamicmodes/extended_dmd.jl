@@ -16,14 +16,11 @@ LinearAlgebra.eigen(m::ExtendedDMD) = eigen(m.koopman)
 LinearAlgebra.eigvals(m::ExtendedDMD) = eigvals(m.koopman)
 LinearAlgebra.eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
 
-function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), dt::Float64 = 1.0)
+function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), dt::T = 0.0) where T <: Real
     return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B, dt = dt)
 end
 
-function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), dt::Float64 = 1.0)
-    @assert size(X)[2] .== size(Y)[2]
-    @assert size(Y)[1] .<= size(Y)[2]
-
+function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), dt::T = 0.0) where T <: Real
     # Based upon William et.al. , A Data-Driven Approximation of the Koopman operator
 
     # Number of states and measurements
@@ -32,7 +29,7 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::A
     # Compute the transformed data
     Ψ₀ = hcat([Ψ(xi, p = p) for xi in eachcol(X)]...)
     Ψ₁ = hcat([Ψ(xi, p = p) for xi in eachcol(Y)]...)
-    Op = ExactDMD(Ψ₀, Ψ₁) # Initial guess based upon the basis
+    Op = ExactDMD(Ψ₀, Ψ₁, dt = dt) # Initial guess based upon the basis
 
     # Transform back to states
     if isempty(B)

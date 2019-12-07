@@ -5,29 +5,68 @@ mutable struct Koopman{M,L,W,F, Q, P} <: abstractKoopmanOperator
     ϕ::F # Modes
 
 
-    # For online DMD
+    # For online update
     Qₖ::Q
     Pₖ::P
 
-    # Algorithm
+    # Algorithm and method
     alg::Symbol
     method::Symbol
 end
 
-function Koopman(Ã::AbstractArray, alg::Symbol; dt::T = 0.0, method::Symbol = :PINV) where T <: Real
+function koopman_pinv(X::AbstractArray, Y::AbstractArray, alg::Symbol, dt::T = 0.0) where T <: Real
+    @assert dt >= 0 "Time step has to be positive semidefinite!"
+    @assert size(Y)[1] .<= size(Y)[2]
+    @assert size(X)[2] .== size(Y)[2]
+
+    # Best Frob norm approximator
+    Ã = Y*pinv(X)
+
     # Eigen Decomposition for solution
     Λ, W = eigen(Ã)
 
-    if Δt > 0.0
+    if dt > 0.0
         # Casting Complex enforces results
-        ω = log.(Complex.(Λ)) / Δt
+        ω = log.(Complex.(Λ)) / dt
     else
         ω = []
     end
 
-    return Koopman(Ã, Λ, ω, W, nothing, nothing, alg, :PINV)
+    return Koopman(Ã, Λ, ω, W, Y*X', X*X', alg, :PINV)
 end
 
+function koopman_svd(X::AbstractArray, Y::AbstractArray, alg::Symbol, dt::T1, dim::Int64 ,threshold::T2) where {T1 <: Real, T2 <: Real}
+    # Compute the koopman operator based on svd
+    U, S, V = svd(X)
+
+    idx = iszero(threshold) ? collect(1:dim) : abs.(S) .>= threshold*maximum(S)
+
+    # Operator approx
+    Ã = U[:, idx]'*Y*V[:, idx]*Diagonal(one(eltype(S)) ./S[idx])
+
+    # Eigen Decomposition for solution
+    Λ, W = eigen(Ã)
+
+    if dt > 0.0
+        # Casting Complex enforces results
+        ω = log.(Complex.(Λ)) / dt
+    else
+        ω = []
+    end
+
+    for (λ, wi) in zip(Λ, eachcol(W))
+        wi = Y*V[:, idx]*Diagonal(one(eltype(S)) ./ S[idx])*wi/λ
+    end
+
+    # Compute the exact modes
+    # W = Diagonal(eltype(Λ) ./ Λ)*Y*V[:, idx]*Diagonal(one(eltype(S)) ./S[idx])*W
+
+    # Compute P and Q
+    XX = Matrix(Diagonal(S[idx].^2))
+    YX = U[:, idx]'*Y*V[:, idx]*Diagonal(S[idx])
+
+    return Koopman(Ã, Λ, ω, W, YX, XX, alg, :SVD)
+end
 
 # Keep it simple
 LinearAlgebra.eigen(m::Koopman) = m.λ, m.ϕ
@@ -86,7 +125,7 @@ function update!(m::Koopman, x::AbstractArray, y::AbstractArray; dt::T1 = 0.0, t
     m.Ã = m.Qₖ*inv(m.Pₖ)
     m.λ, m.ϕ = eigen(m.Ã)
 
-    if Δt > 0.0
+    if dt > 0.0
         # Casting Complex enforces results
         ω = log.(Complex.(m.λ)) / Δt
     else
