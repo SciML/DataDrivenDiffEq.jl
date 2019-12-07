@@ -12,15 +12,15 @@ end
 (m::ExtendedDMD)(u; p = []) = m.basis(u, p = p)
 
 # Some nice functions
-eigen(m::ExtendedDMD) = eigen(m.koopman)
-eigvals(m::ExtendedDMD) = eigvals(m.koopman)
-eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
+LinearAlgebra.eigen(m::ExtendedDMD) = eigen(m.koopman)
+LinearAlgebra.eigvals(m::ExtendedDMD) = eigvals(m.koopman)
+LinearAlgebra.eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
 
-function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
-    return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B, Δt = Δt)
+function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), dt::Float64 = 1.0)
+    return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B, dt = dt)
 end
 
-function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), Δt::Float64 = 1.0)
+function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), dt::Float64 = 1.0)
     @assert size(X)[2] .== size(Y)[2]
     @assert size(Y)[1] .<= size(Y)[2]
 
@@ -43,15 +43,15 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::A
     return ExtendedDMD(Op, B, Ψ)
 end
 
-function update!(m::ExtendedDMD, x::AbstractArray, y::AbstractArray; p::AbstractArray = [], Δt::Float64 = 0.0, threshold::Float64 = 1e-3)
+function update!(m::ExtendedDMD, x::AbstractArray, y::AbstractArray; p::AbstractArray = [], dt::T1 = 0.0, threshold::T2 = 1e-3) where {T1 <: Real, T2 <: Real}
     Ψ₀ = m.basis(x, p = p)
     Ψ₁ = m.basis(y, p = p)
     update!(m.koopman, Ψ₀, Ψ₁, Δt = Δt, threshold = threshold)
     return
 end
 
-# TODO How to implement continouos time dynamics?
-# We would need ∂Ψ/∂x or ∂Ψ/∂t
+# We can provide the dynamics like in "normal" DMD
+# since this
 function dynamics(m::ExtendedDMD)
     # Create a set of nonlinear eqs
     p_ = m.output*m.koopman.Ã
@@ -67,7 +67,8 @@ end
 
 # Reduction for basis
 # This is a fairly naive approach of doing this
-function reduce_basis(m::ExtendedDMD; threshold = 1e-5)
+function reduce_basis(m::ExtendedDMD; threshold::T = 1e-5) where T <: Real
+    @assert threshold > 0 "Threshold has to be positive definite!"
     b = m.output*m.koopman.Ã
     inds = sum(abs, b, dims = 1) .> threshold
     return Basis(m.basis.basis[vec(inds)], variables(m.basis), parameters = parameters(m.basis))
