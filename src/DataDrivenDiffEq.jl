@@ -3,6 +3,7 @@ module DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
 using Compat
+using QuadGK, Statistics
 import Convex, GLPKMathProgInterface;
 
 abstract type abstractBasis end;
@@ -28,7 +29,8 @@ export reduce_basis, update!, free_parameters
 include("./sindy.jl")
 export SInDy
 
-include("./model_selection.jl")
+include("./utils.jl")
 export AIC, AICC, BIC
+export hankel, optimal_shrinkage, optimal_shrinkage!
 
 end # module
