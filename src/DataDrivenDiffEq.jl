@@ -28,6 +28,7 @@ export reduce_basis, update!, free_parameters
 
 include("./sindy.jl")
 export SInDy
+export strridge, sparseconvex
 
 include("./utils.jl")
 export AIC, AICC, BIC

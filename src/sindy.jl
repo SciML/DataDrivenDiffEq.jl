@@ -1,18 +1,25 @@
+# Build up an enum
+@enum SparseRegressionAlg strridge sparseconvex
+
 # Simple ridge regression based upon the sindy-mpc
 # repository, see https://arxiv.org/abs/1711.05501
 # and https://github.com/eurika-kaiser/SINDY-MPC/blob/master/LICENSE
-function STRridge(A::AbstractArray, Y::AbstractArray; ϵ::Number = 1e-3, maxiter::Int64 = 100)
+# Solves Y = A*X for sparse X via sequentially thresholded least squares
+function STRridge(A::AbstractArray, Y::AbstractArray; ϵ::Number = 1e-3, maxiter::Int64 = 1000)
     # Initial guess
-    Ξ = A \ Y
+    Ξ = A' \ Y'
+
     for i in 1:maxiter
         smallinds = abs.(Ξ) .<= ϵ
         Ξ[smallinds] .= 0.0
-        for (j, y) in enumerate(eachcol(Y))
+        for (j, y) in enumerate(eachrow(Y))
             biginds = @. ! smallinds[:, j]
-            Ξ[biginds, j] = A[:, biginds] \ y
+
+            Ξ[biginds, j] =  A[biginds, :]' \ y
         end
     end
-    return Ξ
+    Ξ[abs.(Ξ) .< ϵ] .= 0
+    return Ξ'
 end
 
 function sparseConvex(A::AbstractArray, Y::AbstractArray; ϵ::Float64 = 1e-3)
@@ -51,8 +58,15 @@ function sparseConvex(A::AbstractArray, Y::AbstractArray; ϵ::Float64 = 1e-3)
 end
 
 # Returns a basis for the differential state
-function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; p::AbstractArray = [], ϵ::Number = 1e-1)
+function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::SparseRegressionAlg = strridge, p::AbstractArray = [], ϵ::Number = 1e-1, maxiter::Int64 = 1000, denoise::Bool = false)
     θ = hcat([Ψ(xi, p = p) for xi in eachcol(X)]...)
-    Ξ = sparseConvex(θ', Ẋ, ϵ = ϵ)
+
+    denoise ? optimal_shrinkage!(θ) : nothing
+
+    if alg == strridge
+        Ξ = STRridge(θ, Ẋ, ϵ = ϵ, maxiter = maxiter)
+    elseif alg == sparseconvex
+        Ξ = sparseConvex(θ', Ẋ, ϵ = ϵ)
+    end
     return Basis(simplify_constants.(Ξ*Ψ.basis), variables(Ψ), parameters = p)
 end
