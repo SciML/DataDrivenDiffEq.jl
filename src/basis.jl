@@ -45,9 +45,32 @@ function Base.push!(b::Basis, op::Operation)
     return
 end
 
+function Base.push!(b::Basis, ops::AbstractArray{Operation})
+    @inbounds for o in ops
+        push!(b.basis, o)
+    end
+    unique!(b.basis)
+    update!(b)
+    return
+end
+
 function Base.deleteat!(b::Basis, inds)
     deleteat!(b.basis, inds)
     update!(b)
+    return
+end
+
+function Base.merge(basis_a::Basis, basis_b::Basis)
+    b =  unique(vcat(basis_a.basis, basis_b.basis))
+    vs = unique(vcat(basis_a.variables, basis_b.variables))
+    ps = unique(vcat(basis_a.parameter, basis_b.parameter))
+    return Basis(b, vs, parameters = ps)
+end
+
+function Base.merge!(basis_a::Basis, basis_b::Basis)
+    push!(basis_a, basis_b.basis)
+    basis_a.variables = unique(vcat(basis_a.variables, basis_b.variables))
+    basis_b.variables = unique(vcat(basis_a.parameter, basis_b.parameter))
     return
 end
 
@@ -62,6 +85,26 @@ function jacobian(b::Basis)
     ps = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if bi.known], by = x-> x.name)
     j = calculate_jacobian(b.basis, variables(b))
     return ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, (), simplified_expr, Val{false})[1]
+end
+
+function Base.unique(ops::AbstractArray{Operation})
+    N = length(ops)
+    returns = Bool[]
+    for i ∈ 1:N
+        push!(returns, any([isequal(ops[i], ops[j]) for j in i+1:N]))
+    end
+    returns = [!r for r in returns]
+    return ops[returns]
+end
+
+function Base.unique!(ops::AbstractArray{Operation})
+    N = length(ops)
+    removes = Bool[]
+    for i ∈ 1:N
+        push!(removes, any([isequal(ops[i], ops[j]) for j in i+1:N]))
+    end
+    deleteat!(ops, removes)
+    return
 end
 
 function Base.unique!(b::Basis)
