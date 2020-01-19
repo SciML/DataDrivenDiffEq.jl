@@ -53,12 +53,10 @@ opt = ADMM(1e-10, 0.05)
 Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
 println(Ψ.basis)
 
-
-opt = DataDrivenDiffEq.SR3(1e-2, 0.9)
-
-isa( opt, DataDrivenDiffEq.Optimise.AbstractOptimiser)
+opt = SR3(1e-2, 1.8)
 Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
 println(Ψ.basis)
+
 # Transform into ODE System
 sys = ODESystem(Ψ)
 
@@ -67,7 +65,7 @@ estimator = ODEProblem(dynamics(Ψ), u0, tspan)
 sol_ = solve(estimator, Tsit5(), saveat = sol.t)
 
 # Yeah! We got it right
-plot(sol[:,:]')
-scatter!(sol_[:,:]')
+scatter(sol[:,:]')
+plot!(sol_[:,:]')
 
 norm(sol[:,:]-sol_[:,:]) # ≈ 1.89e-13

@@ -130,13 +130,15 @@ end
     # Test the pendulum
     function pendulum(u, p, t)
         du1 = u[2]
-        du2 = -sin(u[1]) - 0.1*u[2]
+        du2 = -9.81sin(u[1]) - 0.1*u[2]
         return [du1; du2]
     end
-    u0 = [0.99π; 0.3]
-    tspan = (0.0, 10.0)
+
+    u0 = [0.2π; -1.0]
+    tspan = (0.0, 20.0)
     prob = ODEProblem(pendulum, u0, tspan)
-    sol = solve(prob,Tsit5())
+    sol = solve(prob, Tsit5(), saveat = 0.3)
+
     # Create the differential data
     DX = similar(sol[:,:])
     for (i, xi) in enumerate(eachcol(sol[:,:]))
@@ -154,12 +156,29 @@ end
 
     h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
 
+    opt = STRRidge(1e-10/0.05)
     basis = Basis(h, u, parameters = [])
-    Ψ = SInDy(sol[:,:], DX, basis, ϵ = 1e-2)
+    Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000)
     @test size(Ψ)[1] == 2
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_ = solve(estimator,Tsit5())
+    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
     @test sol[:,:] ≈ sol_[:,:]
+
+    opt = ADMM(1e-10, 0.05)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+    # Simulate
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
+    @test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
+
+    opt = SR3(1e-2, 1.8)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+
+    # Simulate
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
+    @test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
+    println(norm(sol[:,:] - sol_[:,:], 2))
 end
