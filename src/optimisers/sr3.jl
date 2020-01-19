@@ -9,9 +9,10 @@ mutable struct SR3{U,V, T} <: AbstractOptimiser
 end
 
 function SR3(λ = 1e-1, ν = 1.0)
-    R = NormL1(λ*ν)
+    R = NormL0(λ*ν)
     return SR3(λ, ν, R)
 end
+
 
 
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
