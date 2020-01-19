@@ -180,5 +180,4 @@ end
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_ = solve(estimator,Tsit5(), saveat = 0.3)
     @test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
-    println(norm(sol[:,:] - sol_[:,:], 2))
 end
