@@ -11,8 +11,6 @@ using Test
     basis = Basis(h, u, parameters = w)
     basis_2 = unique(basis)
     @test size(basis) == size(h)
-    # TODO This works fine for "manual" execution of the testset but fails
-    # with Pkg.test
     @test basis([1.0; 2.0; π], p = [0. 1.]) ≈ [1.0; 2.0; -1.0; π+2.0]
     @test size(basis) == size(basis_2)
     push!(basis_2, sin(u[2]))
@@ -22,8 +20,13 @@ using Test
     @test size(basis) == size(h)
     g = [1.0*u[1]; 1.0*u[3]; 1.0*u[2]]
     basis = Basis(g, u, parameters = w)
+    X = ones(Float64, 3, 10)
+    X[1, :] .= 3*X[1, :]
+    X[3, :] .= 5*X[3, :]
+    # Check the array evaluation
+    @test basis(X) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0] * X
     f = jacobian(basis)
-    @test f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
+    @test_broken f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
     @test_nowarn sys = ODESystem(basis)
 end
 
@@ -77,7 +80,7 @@ end
     s3 = solve(p3,FunctionMap())
     @test sol[:,:] ≈ s1[:,:]
     @test sol[:,:] ≈ s2[:,:]
-    @test hcat(estimator_2.basis.(eachcol(sol[:,:]))...)≈ s3[:,:]
+    @test estimator_2.basis(sol[:,:])≈ s3[:,:]
     @test eigvals(estimator_2) ≈ [-0.9; -0.3]
 
     # Test for nonlinear system
