@@ -10,6 +10,7 @@ abstract type abstractKoopmanOperator end;
 include("./optimisers/Optimise.jl")
 using .Optimise
 export STRRidge, ADMM, SR3
+export ADM
 
 include("./basis.jl")
 export Basis

@@ -1,7 +1,3 @@
-#using LinearAlgebra
-#using SparseArrays
-#using ProximalOperators
-
 
 mutable struct ADM{U, O} <: AbstractSubspaceOptimiser
     λ::U
@@ -30,6 +26,11 @@ end
 
 
 # Test
+
+#using LinearAlgebra
+#using SparseArrays
+#using ProximalOperators
+
 #opt = ADM(1e-2)
 #A = Matrix(sprandn(20, 40, 0.1))
 #U, S, V = svd(A, full = true)

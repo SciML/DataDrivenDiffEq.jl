@@ -32,6 +32,10 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
         # Add proximal iteration
         prox!(W, opt.R, X)
     end
-    X[abs.(X) .<= opt.λ] .= zero(eltype(X))
+
+    # This is the effective threshold of the SR3 algorithm
+    # See Unified Framework paper supplementary material S1
+    η = sqrt(2*opt.λ*opt.ν)
+    X[abs.(X) .< η] .= zero(eltype(X))
     return
 end

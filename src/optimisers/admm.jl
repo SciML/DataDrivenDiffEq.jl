@@ -27,5 +27,5 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
         ŷ .= ŷ + opt.ρ*(x̂ - X)
     end
 
-    X[abs.(X) .<= opt.λ] .= zero(eltype(X))
+    X[abs.(X) .< opt.λ] .= zero(eltype(X))
 end

@@ -46,9 +46,6 @@ end
     @test_nowarn update!(estimator, X[:, end-1], X[:,end])
 end
 
-
-
-
 @testset "EDMD" begin
     # Test for linear system
     function linear_sys(u, p, t)
@@ -171,13 +168,15 @@ end
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_ = solve(estimator,Tsit5(), saveat = 0.3)
-    @test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
+    #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
+    @test sol[:,:] ≈ sol_[:,:]
 
-    opt = SR3(1e-2, 1.8)
+    opt = SR3(1e-3, 1.8)
     Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_ = solve(estimator,Tsit5(), saveat = 0.3)
-    @test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
+    #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
+    @test sol[:,:] ≈ sol_[:,:]
 end
