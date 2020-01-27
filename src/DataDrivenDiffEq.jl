@@ -3,10 +3,14 @@ module DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
 using Compat
-import Convex, GLPKMathProgInterface;
 
 abstract type abstractBasis end;
 abstract type abstractKoopmanOperator end;
+
+include("./optimisers/Optimise.jl")
+using .Optimise
+export STRRidge, ADMM, SR3
+export ADM
 
 include("./basis.jl")
 export Basis

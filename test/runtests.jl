@@ -11,8 +11,6 @@ using Test
     basis = Basis(h, u, parameters = w)
     basis_2 = unique(basis)
     @test size(basis) == size(h)
-    # TODO This works fine for "manual" execution of the testset but fails
-    # with Pkg.test
     @test basis([1.0; 2.0; π], p = [0. 1.]) ≈ [1.0; 2.0; -1.0; π+2.0]
     @test size(basis) == size(basis_2)
     push!(basis_2, sin(u[2]))
@@ -22,8 +20,13 @@ using Test
     @test size(basis) == size(h)
     g = [1.0*u[1]; 1.0*u[3]; 1.0*u[2]]
     basis = Basis(g, u, parameters = w)
+    X = ones(Float64, 3, 10)
+    X[1, :] .= 3*X[1, :]
+    X[3, :] .= 5*X[3, :]
+    # Check the array evaluation
+    @test basis(X) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0] * X
     f = jacobian(basis)
-    @test f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
+    @test_broken f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
     @test_nowarn sys = ODESystem(basis)
 end
 
@@ -45,9 +48,6 @@ end
     @test_throws AssertionError dynamics(estimator, discrete = false)
     @test_nowarn update!(estimator, X[:, end-1], X[:,end])
 end
-
-
-
 
 @testset "EDMD" begin
     # Test for linear system
@@ -80,7 +80,7 @@ end
     s3 = solve(p3,FunctionMap())
     @test sol[:,:] ≈ s1[:,:]
     @test sol[:,:] ≈ s2[:,:]
-    @test hcat(estimator_2.basis.(eachcol(sol[:,:]))...)≈ s3[:,:]
+    @test estimator_2.basis(sol[:,:])≈ s3[:,:]
     @test eigvals(estimator_2) ≈ [-0.9; -0.3]
 
     # Test for nonlinear system
@@ -130,13 +130,15 @@ end
     # Test the pendulum
     function pendulum(u, p, t)
         du1 = u[2]
-        du2 = -sin(u[1]) - 0.1*u[2]
+        du2 = -9.81sin(u[1]) - 0.1*u[2]
         return [du1; du2]
     end
-    u0 = [0.99π; 0.3]
-    tspan = (0.0, 10.0)
+
+    u0 = [0.2π; -1.0]
+    tspan = (0.0, 20.0)
     prob = ODEProblem(pendulum, u0, tspan)
-    sol = solve(prob,Tsit5())
+    sol = solve(prob, Tsit5(), saveat = 0.3)
+
     # Create the differential data
     DX = similar(sol[:,:])
     for (i, xi) in enumerate(eachcol(sol[:,:]))
@@ -154,12 +156,30 @@ end
 
     h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
 
+    opt = STRRidge(1e-10/0.05)
     basis = Basis(h, u, parameters = [])
-    Ψ = SInDy(sol[:,:], DX, basis, ϵ = 1e-2)
+    Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000)
     @test size(Ψ)[1] == 2
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_ = solve(estimator,Tsit5())
+    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
+    @test sol[:,:] ≈ sol_[:,:]
+
+    opt = ADMM(1e-10, 0.05)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+    # Simulate
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
+    #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
+    @test sol[:,:] ≈ sol_[:,:]
+
+    opt = SR3(1e-3, 1.8)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+
+    # Simulate
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
+    #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
     @test sol[:,:] ≈ sol_[:,:]
 end

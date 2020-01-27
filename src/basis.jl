@@ -44,7 +44,15 @@ function Base.deleteat!(b::Basis, inds)
     return
 end
 
-(b::Basis)(x::AbstractArray; p::AbstractArray = []) = b.f_(x, p)
+(b::Basis)(x::AbstractArray{T, 1}; p::AbstractArray = []) where T <: Number = b.f_(x, p)
+
+function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Number
+    res = zeros(eltype(x), length(b.basis), size(x)[2])
+    @inbounds for i in 1:size(x)[2]
+        res[:, i] .= b.f_(x[:, i], p)
+    end
+    return res
+end
 
 Base.size(b::Basis) = size(b.basis)
 ModelingToolkit.parameters(b::Basis) = b.parameter

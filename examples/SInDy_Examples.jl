@@ -5,6 +5,8 @@ using LinearAlgebra
 using Plots
 gr()
 
+
+
 # Create a test problem
 function pendulum(u, p, t)
     x = u[2]
@@ -13,9 +15,9 @@ function pendulum(u, p, t)
 end
 
 u0 = [0.2π; -1.0]
-tspan = (0.0, 40.0)
+tspan = (0.0, 20.0)
 prob = ODEProblem(pendulum, u0, tspan)
-sol = solve(prob)
+sol = solve(prob, Tsit5(), saveat = 0.3)
 
 plot(sol)
 
@@ -42,17 +44,28 @@ h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]
 basis = Basis(h, u)
 
 # Get the reduced basis via the sparse regression
-Ψ = SInDy(sol[:,:], DX, basis, ϵ = 1e-10)
+opt = STRRidge(1e-10/0.05)
+Ψ = SInDy(sol[:,:], DX, basis, maxiter = 100, opt = opt)
+println(Ψ.basis)
+
+
+opt = ADMM(1e-10, 0.05)
+Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+println(Ψ.basis)
+
+opt = SR3(1e-2, 1.8)
+Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+println(Ψ.basis)
 
 # Transform into ODE System
 sys = ODESystem(Ψ)
 
 # Simulate
 estimator = ODEProblem(dynamics(Ψ), u0, tspan)
-sol_ = solve(estimator, saveat = sol.t)
+sol_ = solve(estimator, Tsit5(), saveat = sol.t)
 
 # Yeah! We got it right
-plot(sol, vars = (1,2))
-plot!(sol, vars = (1,2))
+scatter(sol[:,:]')
+plot!(sol_[:,:]')
 
-norm(sol-sol_) # ≈ 1.89e-13
+norm(sol[:,:]-sol_[:,:]) # ≈ 1.89e-13
