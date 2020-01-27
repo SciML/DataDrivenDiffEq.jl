@@ -36,4 +36,8 @@ export get_dynamics, get_input_map, dynamics
 include("./sindy.jl")
 export SInDy
 
+include("./isindy.jl")
+export ISInDy
+
+
 end # module

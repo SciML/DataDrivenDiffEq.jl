@@ -1,4 +1,4 @@
-function simplified_matvec(Ξ, basis)
+function simplified_matvec(Ξ::AbstractArray{T, 2}, basis) where T <: Real
     eqs = Operation[]
     for i=1:size(Ξ, 2)
         eq = nothing
@@ -16,6 +16,21 @@ function simplified_matvec(Ξ, basis)
         end
     end
     eqs
+end
+
+function simplified_matvec(Ξ::AbstractArray{T,1}, basis) where T <: Real
+    eq = nothing
+    @inbounds for i in 1:size(Ξ, 1)
+        if !iszero(Ξ[i])
+            if eq === nothing
+                eq = basis[i]*Ξ[i]
+            else
+                eq += basis[i]*Ξ[i]
+            end
+        end
+
+    end
+    eq
 end
 
 # Returns a basis for the differential state
