@@ -30,7 +30,8 @@ function update!(b::Basis)
     return
 end
 
-function Base.push!(b::Basis, op::Operation)
+function Base.push!(b::Basis, op₀::Operation)
+    op = simplify_constants(op₀)
     push!(b.basis, op)
     # Check for uniqueness
     unique!(b)
@@ -82,6 +83,17 @@ function Base.unique(b::Basis)
     end
     returns = [!r for r in returns]
     return Basis(b.basis[returns], variables(b), parameters = parameters(b))
+end
+
+function Base.unique(b₀::AbstractVector{Operation})
+    b = simplify_constants.(b₀)
+    N = length(b)
+    returns = Vector{Bool}()
+    for i ∈ 1:N
+        push!(returns, any([isequal(b[i], b[j]) for j in i+1:N]))
+    end
+    returns = [!r for r in returns]
+    return b[returns]
 end
 
 function dynamics(b::Basis)
