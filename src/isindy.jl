@@ -1,9 +1,10 @@
 # TODO I think here is some potential for faster computation
 # However, up to 25 states, the algorithm works fine and fast (main knobs are rtol and maxiter)
-# This is the specialized version assuming a mass matrix form / linear in dx
+# This is the specialized version assuming a **diagonal** mass matrix form / linear in dx
 # M(x, p)*dx = f(x, p)
 
-# TODO preallocation
+
+# TODO preallocation ?
 function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
     nb = length(Ψ.basis)
 
@@ -39,6 +40,35 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; maxiter::Int64 
 
         push!(eqs, -Fn/Fd)
     end
+
+    return Basis(eqs, variables(Ψ))
+end
+
+
+# This is the general form searching for solutions of the form
+# g(y, p, t) ∈ Null(Θ)
+# Highly unpredictable, but works in some cases
+# Y = [X Ẋ Ẍ ...], nx is the assumed space of the equations.
+# Should be really useful once MTK can solve DAEs...
+
+function ISInDy(Y::AbstractArray, Ψ::Basis; nx::Int64 = -1, maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
+    nb = length(Ψ.basis)
+    nx < 0 ? nx = round(Int64, size(Y, 1)/2) : nothing
+
+    # Compute the library and the corresponding nullspace
+    θ = Ψ(Y, p = p)
+    N = nullspace(θ', rtol = rtol)
+    Q = deepcopy(N) # Deepcopy for inplace
+    # Init for sweep over the differential variables
+    eqs = Operation[]
+
+    # Find sparse vectors in nullspace
+    # Calls effectively the ADM algorithm with varying initial conditions
+    DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
+    Q[abs.(Q) .< opt.λ] .= zero(eltype(Q))
+    sort!(Q, by = q->norm([norm(q, 0) ;norm(θ'*q, 2)], 2), dims = 2)
+
+    eqs = simplified_matvec(Q[:, 1:nx], Ψ.basis)
 
     return Basis(eqs, variables(Ψ))
 end

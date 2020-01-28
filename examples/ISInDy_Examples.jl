@@ -56,3 +56,59 @@ sol_[:,:] ≈ sol[:,:]
 plot(sol[:, :]', label = "Original")
 plot!(sol_[:,:]', label = "Estimation")
 plot(norm.(eachcol(sol[:,:] - sol_[:,:]), 2), label = "Error")
+
+# Full estimation
+
+
+# Create a test problem
+function simple_full(u, p, t)
+    du = [-u[1]; -3.0sin(u[2])+u[1]^2]
+    return inv(Float64[1 0 ;-1.2 1])*du
+end
+
+u0 =  [0.487; -1.53]
+tspan = (0.0, 5.0)
+prob = ODEProblem(simple_full, u0, tspan)
+sol = solve(prob, Tsit5(), saveat = 0.1)
+plot(sol)
+
+# Create the differential data
+X = sol[:,:]
+DX = similar(X)
+for (i, xi) in enumerate(eachcol(X))
+    DX[:, i] = more_advanced(xi, [], 0.0)
+end
+Y1 = vcat(X, DX[1, :]')
+Y2 = vcat(X, DX[2, :]')
+
+# Create a basis
+@variables x[1:2] ẋ[1]
+u = vcat(x, ẋ)
+polys = ModelingToolkit.Operation[]
+# Lots of basis functions
+for i ∈ 0:3
+    if i == 0
+        push!(polys, u[1]^0)
+        push!(polys, sin(u[1]))
+        push!(polys, sin(u[2]))
+        #push!(polys, sin(u[1])*u[1])
+        #push!(polys, sin(u[1])*u[2])
+    end
+    for ui in u
+        if i > 0
+            push!(polys, ui^i)
+        end
+    end
+end
+
+basis= Basis(polys, u)
+
+# Here the influence of threshold and the sample size can be seen
+opt = ADM(1e-2)
+Ψ1 = ISInDy(Y1[:, 1:10],basis, opt = opt, nx = 1, maxiter = 50, rtol = 0.99)
+println(Ψ1.basis)
+
+
+opt = ADM(1e-3)
+Ψ2 = ISInDy(Y2[:, 1:25],basis, opt = opt, nx = 1, maxiter = 50, rtol = 0.99)
+println(Ψ2.basis)
