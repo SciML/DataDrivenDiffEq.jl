@@ -14,6 +14,7 @@ function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Opera
     @assert all(is_independent.(variables)) "Please provide independent variables for base."
 
     bs = unique(basis)
+    fix_single_vars_in_basis!(bs, variables)
 
     vs = sort!([b for b in [ModelingToolkit.vars(bs)...] if !b.known], by = x -> x.name)
     ps = sort!([b for b in [ModelingToolkit.vars(bs)...] if b.known], by = x -> x.name )
@@ -32,6 +33,7 @@ end
 
 function Base.push!(b::Basis, op₀::Operation)
     op = simplify_constants(op₀)
+    fix_single_vars_in_basis!(op, b.variables)
     push!(b.basis, op)
     # Check for uniqueness
     unique!(b)
@@ -94,6 +96,16 @@ function Base.unique(b₀::AbstractVector{Operation})
     end
     returns = [!r for r in returns]
     return b[returns]
+end
+
+function fix_single_vars_in_basis!(basis,variables)
+    for (ind, el) in enumerate(basis)
+        for (ind_var, var) in enumerate(variables)
+            if isequal(el,var)
+                basis[ind] = 1var
+            end
+        end
+    end
 end
 
 function dynamics(b::Basis)
