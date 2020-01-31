@@ -50,10 +50,10 @@ println(Ψ.basis)
 
 
 opt = ADMM(1e-10, 0.05)
-Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+Ψ = SInDy(sol[:,:], DX, basis, maxiter = 100, opt = opt)
 println(Ψ.basis)
 
-opt = SR3(1e-2, 1.8)
+opt = SR3(1e-3, 1.8)
 Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
 println(Ψ.basis)
 
@@ -63,6 +63,7 @@ sys = ODESystem(Ψ)
 # Simulate
 estimator = ODEProblem(dynamics(Ψ), u0, tspan)
 sol_ = solve(estimator, Tsit5(), saveat = sol.t)
+)
 
 # Yeah! We got it right
 scatter(sol[:,:]')
