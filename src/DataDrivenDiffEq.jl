@@ -16,6 +16,8 @@ export ADM
 include("./basis.jl")
 export Basis
 export variables, jacobian, dynamics
+export free_parameters, parameter, variables
+
 
 include("./exact_dmd.jl")
 export ExactDMD

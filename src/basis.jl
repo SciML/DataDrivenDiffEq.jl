@@ -7,8 +7,14 @@ end
 
 is_independent(o::Operation) = isempty(o.args)
 
-Base.print(io::IO, x::Basis) = show(io, x)
 Base.show(io::IO, x::Basis) = print(io, "$(length(x.basis)) dimensional basis in ", "$(String.([v.op.name for v in x.variables]))")
+@inline function Base.print(io::IO, x::Basis)
+    show(io, x)
+    println()
+    for (i, bi) in enumerate(x.basis)
+        println("d$(x.variables[i]) = $bi")
+    end
+end
 
 function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Operation};  parameters =  [])
     @assert all(is_independent.(variables)) "Please provide independent variables for base."
@@ -31,6 +37,15 @@ function update!(b::Basis)
     return
 end
 
+function Base.push!(b::Basis, ops::AbstractArray{Operation})
+    @inbounds for o in ops
+        push!(b.basis, o)
+    end
+    unique!(b.basis)
+    update!(b)
+    return
+end
+
 function Base.push!(b::Basis, op₀::Operation)
     op = simplify_constants(op₀)
     fix_single_vars_in_basis!(op, b.variables)
@@ -47,6 +62,33 @@ function Base.deleteat!(b::Basis, inds)
     return
 end
 
+function Base.merge(basis_a::Basis, basis_b::Basis)
+    b =  unique(vcat(basis_a.basis, basis_b.basis))
+    vs = unique(vcat(basis_a.variables, basis_b.variables))
+    ps = unique(vcat(basis_a.parameter, basis_b.parameter))
+    return Basis(b, vs, parameters = ps)
+end
+
+function Base.merge!(basis_a::Basis, basis_b::Basis)
+    push!(basis_a, basis_b.basis)
+    basis_a.variables = unique(vcat(basis_a.variables, basis_b.variables))
+    basis_b.variables = unique(vcat(basis_a.parameter, basis_b.parameter))
+    return
+end
+
+function count_operation(o::Expression, ops::AbstractArray)
+    if isa(o, ModelingToolkit.Constant)
+        return 0
+    end
+    k = o.op ∈ ops ? 1 : 0
+    if !isempty(o.args)
+        k += sum([count_operation(ai, ops) for ai in o.args])
+    end
+    return k
+end
+
+free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
+
 (b::Basis)(x::AbstractArray{T, 1}; p::AbstractArray = []) where T <: Number = b.f_(x, p)
 
 function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Number
@@ -60,6 +102,7 @@ end
 Base.size(b::Basis) = size(b.basis)
 ModelingToolkit.parameters(b::Basis) = b.parameter
 variables(b::Basis) = b.variables
+parameter(b::Basis) = b.parameter
 
 function jacobian(b::Basis)
     vs = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if !bi.known], by = x-> x.name)

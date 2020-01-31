@@ -10,6 +10,11 @@ using Test
     h = [u[1]; u[2]; cos(w[1]*u[2]+w[2]*u[3]); u[3]+u[2]]
     h_not_unique = [1u[1]; u[1]; 1u[1]^1; h]
     basis = Basis(h_not_unique, u, parameters = w)
+    @test isequal(variables(basis), u)
+    @test isequal(parameter(basis), w)
+    @test free_parameters(basis) == 6
+    @test free_parameters(basis, operations = [+, cos]) == 7
+    @test DataDrivenDiffEq.count_operation((ModelingToolkit.Constant(1) + cos(u[2])*sin(u[1]))^3, [+, cos, ^, *]) == 4
     basis_2 = unique(basis)
     @test size(basis) == size(h)
     @test basis([1.0; 2.0; π], p = [0. 1.]) ≈ [1.0; 2.0; -1.0; π+2.0]
