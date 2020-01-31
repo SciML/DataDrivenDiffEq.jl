@@ -175,14 +175,13 @@ end
     #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
     @test sol[:,:] ≈ sol_2[:,:]
 
-    opt = SR3(1e-3, 1.8)
-    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+    opt = SR3(5e-4, 1.8)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 3000, opt = opt)
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_3 = solve(estimator,Tsit5(), saveat = 0.3)
-    #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
-    @test sol[:,:] ≈ sol_3[:,:]
+    @test norm(sol[:,:] - sol_3[:,:], 2) < 1e-1
 end
 
 @testset "ISInDy" begin
