@@ -1,9 +1,9 @@
-mutable struct ADMM{U, T} <: AbstractOptimiser
+mutable struct ADMM{U, T, V} <: AbstractOptimiser
     λ::U
     ρ::T
 end
 
-ADMM() = ADMM(0.1, 0.05)
+ADMM() = ADMM(0.1, 1.0)
 
 init(o::ADMM, A::AbstractArray, Y::AbstractArray) =  A \ Y
 
@@ -14,7 +14,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
     yn, ym = size(Y)
     @assert yn == n
 
-    g = NormL1(opt.λ)
+    g = NormL1(opt.λ/opt.ρ)
 
     x̂ = deepcopy(X)
     ŷ = zeros(eltype(Y), m, ym)
@@ -23,7 +23,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
     c = P*(A'*Y)
     @inbounds for i in 1:maxiter
         x̂ .= P*(opt.ρ*X - ŷ) + c
-        prox!(X, g, x̂ + ŷ/opt.ρ, opt.λ*opt.ρ)
+        prox!(X, g, x̂ + ŷ/opt.ρ)
         ŷ .= ŷ + opt.ρ*(x̂ - X)
     end
 
