@@ -234,3 +234,18 @@ end
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test sol[:,:] ≈ sol_[:,:]
 end
+
+@testset "Utilities" begin
+    t = collect(-2:0.01:2)
+    U = [cos.(17*t).*exp.(-t.^2) sin.(11*t)]
+    S = Diagonal([2.; .5])
+    V = [sin.(5*t).*exp.(-t.^2) cos.(13*t)]
+    A = U*S*V'
+    σ = 0.5
+    Â = A + σ*randn(401, 401)
+    n_1 = norm(A-Â)
+    B = optimal_shrinkage(Â)
+    optimal_shrinkage!(Â)
+    @test norm(A-Â) < n_1
+    @test norm(A-B) == norm(A-Â)
+end
