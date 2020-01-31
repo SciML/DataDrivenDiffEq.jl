@@ -41,3 +41,16 @@ function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; p::AbstractArray
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
     return Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
 end
+
+# Returns an array of basis for all values of lambda
+function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where T <: Optimise.AbstractOptimiser
+    basis = Basis[]
+    for threshold in thresholds
+        try
+            push!(basis, SInDy(X, Ẋ, Ψ, p = p, maxiter = maxiter, opt = opt))
+        catch
+            println("Failed for threshold $threshold")
+        end
+    end
+    return basis
+end
