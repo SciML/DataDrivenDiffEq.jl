@@ -171,18 +171,18 @@ end
     Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
+    sol_2 = solve(estimator,Tsit5(), saveat = 0.3)
     #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
-    @test sol[:,:] ≈ sol_[:,:]
+    @test sol[:,:] ≈ sol_2[:,:]
 
     opt = SR3(1e-3, 1.8)
     Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
+    sol_3 = solve(estimator,Tsit5(), saveat = 0.3)
     #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
-    @test sol[:,:] ≈ sol_[:,:]
+    @test sol[:,:] ≈ sol_3[:,:]
 end
 
 @testset "ISInDy" begin
