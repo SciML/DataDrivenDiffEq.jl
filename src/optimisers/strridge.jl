@@ -8,6 +8,10 @@ end
 
 STRRidge() = STRRidge(0.1)
 
+function set_threshold!(opt::STRRidge, threshold)
+    opt.λ = threshold
+end
+
 init(o::STRRidge, A::AbstractArray, Y::AbstractArray) = A \ Y
 
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STRRidge; maxiter::Int64 = 1)

@@ -9,6 +9,7 @@ abstract type abstractKoopmanOperator end;
 
 include("./optimisers/Optimise.jl")
 using .Optimise
+export set_threshold!
 export STRRidge, ADMM, SR3
 export ADM
 

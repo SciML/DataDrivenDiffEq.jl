@@ -13,6 +13,10 @@ function SR3(λ = 1e-1, ν = 1.0)
     return SR3(λ, ν, R)
 end
 
+function set_threshold!(opt::SR3, threshold)
+    opt.λ = threshold^2/(2*opt.ν)
+    return
+end
 
 
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y

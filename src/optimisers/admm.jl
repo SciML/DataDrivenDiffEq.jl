@@ -5,6 +5,10 @@ end
 
 ADMM() = ADMM(0.1, 1.0)
 
+function set_threshold!(opt::ADMM, threshold)
+    opt.λ = threshold*opt.ρ
+end
+
 init(o::ADMM, A::AbstractArray, Y::AbstractArray) =  A \ Y
 
 #soft_thresholding(x::AbstractArray, t::T) where T <: Real = sign.(x) .* max.(abs.(x) .- t, zero(eltype(x)))
