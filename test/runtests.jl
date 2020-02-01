@@ -178,6 +178,7 @@ end
     opt = STRRidge(1e-10/0.05)
     basis = Basis(h, u, parameters = [])
     Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000)
+    @test_nowarn set_threshold!(opt, 0.1)
     @test size(Ψ)[1] == 2
 
     # Simulate
@@ -187,6 +188,7 @@ end
 
     opt = ADMM(1e-10, 0.05)
     Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+    @test_nowarn set_threshold!(opt, 0.1)
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_2 = solve(estimator,Tsit5(), saveat = 0.3)
@@ -195,6 +197,7 @@ end
 
     opt = SR3(5e-4, 1.8)
     Ψ = SInDy(sol[:,:], DX, basis, maxiter = 3000, opt = opt)
+    @test_nowarn set_threshold!(opt, 0.1)
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
