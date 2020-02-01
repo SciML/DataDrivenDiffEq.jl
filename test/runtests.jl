@@ -11,19 +11,30 @@ using Test
     h_not_unique = [1u[1]; u[1]; 1u[1]^1; h]
     basis = Basis(h_not_unique, u, parameters = w)
     @test isequal(variables(basis), u)
-    @test isequal(parameter(basis), w)
+    @test isequal(parameters(basis), w)
     @test free_parameters(basis) == 6
     @test free_parameters(basis, operations = [+, cos]) == 7
     @test DataDrivenDiffEq.count_operation((ModelingToolkit.Constant(1) + cos(u[2])*sin(u[1]))^3, [+, cos, ^, *]) == 4
     basis_2 = unique(basis)
+    @test isequal(basis, basis_2)
     @test size(basis) == size(h)
     @test basis([1.0; 2.0; π], p = [0. 1.]) ≈ [1.0; 2.0; -1.0; π+2.0]
     @test size(basis) == size(basis_2)
     push!(basis_2, sin(u[2]))
     @test size(basis_2)[1] == length(h)+1
+
+    basis_3 = merge(basis, basis_2)
+    @test size(basis_3) == size(basis_2)
+    @test isequal(variables(basis_3), variables(basis_2))
+    @test isequal(parameters(basis_3), parameters(basis_2))
+
+    merge!(basis_3, basis)
+    @test basis_3 == basis_2
+
     push!(basis, 1u[3]+1u[2])
     unique!(basis)
     @test size(basis) == size(h)
+
     g = [1.0*u[1]; 1.0*u[3]; 1.0*u[2]]
     basis = Basis(g, u, parameters = w)
     X = ones(Float64, 3, 10)
@@ -34,6 +45,8 @@ using Test
     f = jacobian(basis)
     @test_broken f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
     @test_nowarn sys = ODESystem(basis)
+    @test_nowarn [xi for xi in basis]
+    @test_nowarn basis[2:end]; basis[2]
 end
 
 @testset "DMD" begin
