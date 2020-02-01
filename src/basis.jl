@@ -1,3 +1,6 @@
+import Base.==
+
+
 mutable struct Basis{O, V, P} <: abstractBasis
     basis::O
     variables::V
@@ -5,16 +8,23 @@ mutable struct Basis{O, V, P} <: abstractBasis
     f_
 end
 
-is_independent(o::Operation) = isempty(o.args)
-
 Base.show(io::IO, x::Basis) = print(io, "$(length(x.basis)) dimensional basis in ", "$(String.([v.op.name for v in x.variables]))")
+
 @inline function Base.print(io::IO, x::Basis)
     show(io, x)
     println()
-    for (i, bi) in enumerate(x.basis)
-        println("d$(x.variables[i]) = $bi")
+    if length(x.variables) == length(x.basis)
+        for (i, bi) in enumerate(x.basis)
+            println("d$(x.variables[i]) = $bi")
+        end
+    else
+        for (i, bi) in enumerate(x.basis)
+            println("f_$i = $bi")
+        end
     end
 end
+
+is_independent(o::Operation) = isempty(o.args)
 
 function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Operation};  parameters =  [])
     @assert all(is_independent.(variables)) "Please provide independent variables for base."
@@ -72,9 +82,28 @@ end
 function Base.merge!(basis_a::Basis, basis_b::Basis)
     push!(basis_a, basis_b.basis)
     basis_a.variables = unique(vcat(basis_a.variables, basis_b.variables))
-    basis_b.variables = unique(vcat(basis_a.parameter, basis_b.parameter))
+    basis_a.parameter = unique(vcat(basis_a.parameter, basis_b.parameter))
+    update!(basis_a)
     return
 end
+
+Base.getindex(b::Basis, idx::Int64) = b.basis[idx]
+Base.getindex(b::Basis, ids::UnitRange{Int64}) = b.basis[ids]
+Base.getindex(b::Basis, ::Colon) = b.basis
+Base.firstindex(b::Basis) = firstindex(b.basis)
+Base.lastindex(b::Basis) = lastindex(b.basis)
+Base.iterate(b::Basis) = iterate(b.basis)
+Base.iterate(b::Basis, id::Int64) = iterate(b.basis, id)
+
+function Base.isequal(x::Basis, y::Basis)
+    n = zeros(Bool, length(x.basis))
+    @inbounds for (i, xi) in enumerate(x)
+        n[i] = any(isequal.(xi, y.basis))
+    end
+    return all(n)
+end
+
+(==)(x::Basis, y::Basis) = isequal(x, y)
 
 function count_operation(o::Expression, ops::AbstractArray)
     if isa(o, ModelingToolkit.Constant)
@@ -89,7 +118,9 @@ end
 
 free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
 
-(b::Basis)(x::AbstractArray{T, 1}; p::AbstractArray = []) where T <: Number = b.f_(x, p)
+(b::Basis)(x::AbstractArray{T, 1}; p::AbstractArray = []) where T <: Number = b.f_(x, isempty(p) ? parameters(b) : p)
+
+
 
 function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Number
     res = zeros(eltype(x), length(b.basis), size(x)[2])
@@ -102,7 +133,6 @@ end
 Base.size(b::Basis) = size(b.basis)
 ModelingToolkit.parameters(b::Basis) = b.parameter
 variables(b::Basis) = b.variables
-parameter(b::Basis) = b.parameter
 
 function jacobian(b::Basis)
     vs = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if !bi.known], by = x-> x.name)
@@ -111,6 +141,7 @@ function jacobian(b::Basis)
     return ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, (), simplified_expr, Val{false})[1]
 end
 
+
 function Base.unique!(b::Basis)
     N = length(b.basis)
     removes = Vector{Bool}()
@@ -118,6 +149,7 @@ function Base.unique!(b::Basis)
         push!(removes, any([isequal(b.basis[i], b.basis[j]) for j in i+1:N]))
     end
     deleteat!(b, removes)
+    update!(b)
 end
 
 function Base.unique(b::Basis)
@@ -139,6 +171,15 @@ function Base.unique(b₀::AbstractVector{Operation})
     end
     returns = [!r for r in returns]
     return b[returns]
+end
+
+function Base.unique!(b::AbstractArray{Operation})
+    N = length(b)
+    removes = Vector{Bool}()
+    for i ∈ 1:N
+        push!(removes, any([isequal(b[i], b[j]) for j in i+1:N]))
+    end
+    deleteat!(b, removes)
 end
 
 function fix_single_vars_in_basis!(basis,variables)
