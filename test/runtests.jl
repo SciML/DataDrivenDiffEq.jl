@@ -46,7 +46,7 @@ using Test
     @test_broken f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
     @test_nowarn sys = ODESystem(basis)
     @test_nowarn [xi for xi in basis]
-    @test_nowarn basis[2:end]; basis[2]
+    @test_nowarn basis[2:end]; basis[2]; first(basis); last(basis); basis[:]
 end
 
 @testset "DMD" begin
