@@ -36,7 +36,7 @@ using Test
     @test size(basis) == size(h)
 
     g = [1.0*u[1]; 1.0*u[3]; 1.0*u[2]]
-    basis = Basis(g, u, parameters = w)
+    basis = Basis(g, u, parameters = [])
     X = ones(Float64, 3, 10)
     X[1, :] .= 3*X[1, :]
     X[3, :] .= 5*X[3, :]

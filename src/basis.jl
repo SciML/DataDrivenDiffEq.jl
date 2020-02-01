@@ -95,15 +95,13 @@ Base.lastindex(b::Basis) = lastindex(b.basis)
 Base.iterate(b::Basis) = iterate(b.basis)
 Base.iterate(b::Basis, id::Int64) = iterate(b.basis, id)
 
-function Base.isequal(x::Basis, y::Basis)
+function (==)(x::Basis, y::Basis)
     n = zeros(Bool, length(x.basis))
     @inbounds for (i, xi) in enumerate(x)
         n[i] = any(isequal.(xi, y.basis))
     end
     return all(n)
 end
-
-(==)(x::Basis, y::Basis) = isequal(x, y)
 
 function count_operation(o::Expression, ops::AbstractArray)
     if isa(o, ModelingToolkit.Constant)
@@ -123,14 +121,21 @@ free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operation
 
 
 function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Number
-    res = zeros(eltype(x), length(b.basis), size(x)[2])
+    if (isempty(p) || eltype(p) <: Expression) && !isempty(parameters(b))
+        pi = isempty(p) ? parameters(b) : p
+        res = zeros(eltype(pi), length(b), size(x)[2])
+    else
+        pi = p
+        res = zeros(eltype(x), length(b), size(x)[2])
+    end
     @inbounds for i in 1:size(x)[2]
-        res[:, i] .= b.f_(x[:, i], p)
+        res[:, i] .= b.f_(x[:, i], pi)
     end
     return res
 end
 
 Base.size(b::Basis) = size(b.basis)
+Base.length(b::Basis) = length(b.basis)
 ModelingToolkit.parameters(b::Basis) = b.parameter
 variables(b::Basis) = b.variables
 
