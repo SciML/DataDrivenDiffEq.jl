@@ -41,7 +41,7 @@ b([1;2;3])
 # Or for trajectories
 X = randn(3, 40)
 Y_p = b(X)
-Y = b(X, p = y[1:2])
+Y = b(X, p = [2;4])
 
 
 # This allows you to transform a basis simply via
