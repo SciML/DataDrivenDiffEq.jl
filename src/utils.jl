@@ -123,13 +123,13 @@ function savitzky_golay(x::Vector, windowSize::Integer, polyOrder::Integer; deri
 
 	# Some error checking
 	@assert isodd(windowSize) "Window size must be an odd integer."
-	@assert polyOrder < windowSize "Polynomial order must me less than window size."
+	@assert polyOrder < windowSize "Polynomial order must be less than window size."
 
 	# Form the design matrix A
 	halfWindow = Int(ceil((windowSize - 1)/2))
 	A = zeros(windowSize, polyOrder+1)
-	for coef = 0:polyOrder
-		A[:, coef+1] = (-halfWindow:halfWindow).^(coef)
+	for order = 0:polyOrder
+		A[:, order+1] = (-halfWindow:halfWindow).^(order)
 	end
 
 	# Compute the required column of the inverse of A'*A
