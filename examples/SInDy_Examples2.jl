@@ -79,3 +79,22 @@ basis = Basis(h, u)
 opt = STRRidge(0.1)
 Ψ = SInDy(X_cropped, DX_sg, basis, maxiter = 100, opt = opt)
 print(Ψ)
+
+
+# Now let's try adding some noise
+using Random
+seed = MersenneTwister(3)
+X_noisy = X + 0.01*randn(seed,size(X))
+
+DX_sg = similar(X)
+X_smoothed = similar(X)
+for i =1:size(X,1)
+    DX_sg[i,:] = savitzky_golay(X_noisy[i,:], windowSize, polyOrder, deriv=1, dt=dt)
+    X_smoothed[i,:] = savitzky_golay(X_noisy[i,:], windowSize, polyOrder, deriv=0, dt=dt)
+end
+
+DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
+X_smoothed = X_smoothed[:,halfWindow+1:end-halfWindow]
+
+Ψ = SInDy(X_smoothed, DX_sg, basis, maxiter = 100, opt = opt)
+print(Ψ)
