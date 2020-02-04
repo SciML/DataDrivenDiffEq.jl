@@ -46,6 +46,7 @@ end
 function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where T <: Optimise.AbstractOptimiser
     basis = Basis[]
     for threshold in thresholds
+        set_threshold!(opt, threshold)
         try
             push!(basis, SInDy(X, Ẋ, Ψ, p = p, maxiter = maxiter, opt = opt))
         catch

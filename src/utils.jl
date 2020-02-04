@@ -18,20 +18,6 @@ function BIC(k::Int64, X::AbstractArray, Y::AbstractArray; likelyhood = (X,Y) ->
     return - 2*log(likelyhood(X, Y)) + k*log(size(X)[2])
 end
 
-# Data transformation
-function hankel(a::AbstractArray, b::AbstractArray) where T <: Number
-    p = vcat([a; b[2:end]])
-    n = length(b)-1
-    m = length(p)-n+1
-    H = Array{eltype(p)}(undef, n, m)
-    @inbounds for i in 1:n
-        @inbounds for j in 1:m
-            H[i,j] = p[i+j-1]
-        end
-    end
-    return H
-end
-
 
 # Optimal Shrinkage for data in presence of white noise
 # See D. L. Donoho and M. Gavish, "The Optimal Hard Threshold for Singular
