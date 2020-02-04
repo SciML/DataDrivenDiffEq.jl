@@ -274,4 +274,34 @@ end
     @test BIC(k, X, Y) == -2*log(sum(abs2, X -Y)) + k*log(size(X)[2])
     @test AICC(k, X, Y, likelyhood = (X,Y)->sum(abs, X-Y)) == AIC(k, X, Y, likelyhood = (X,Y)->sum(abs, X-Y))+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
 
+    function lorenz(u,p,t)
+        x, y, z = u
+        ẋ = 10.0*(y - x)
+        ẏ = x*(28.0-z) - y
+        ż = x*y - (8/3)*z
+        return [ẋ, ẏ, ż]
+    end
+    u0 = [1.0;0.0;0.0]
+    tspan = (0.0,50.0)
+    dt = 0.005
+    prob = ODEProblem(lorenz,u0,tspan)
+    sol = solve(prob, Tsit5(), saveat = dt)
+
+    X = Array(sol)
+    DX = similar(X)
+    for (i, xi) in enumerate(eachcol(X))
+        DX[:,i] = lorenz(xi, [], 0.0)
+    end
+
+    windowSize, polyOrder = 9, 4
+    halfWindow = Int(ceil((windowSize+1)/2))
+    DX_sg = similar(X)
+    for i =1:size(X,1)
+        DX_sg[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=dt)
+    end
+
+    DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
+    DX = DX[:,halfWindow+1:end-halfWindow]
+
+    @test isapprox(DX_sg, DX, rtol=1e-2)
 end
