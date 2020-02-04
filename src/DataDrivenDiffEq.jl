@@ -2,7 +2,7 @@ module DataDrivenDiffEq
 
 using LinearAlgebra
 using ModelingToolkit
-using QuadGK, Statistics
+using QuadGK, Statistics, DSP
 using Compat
 
 abstract type abstractBasis end;
@@ -45,6 +45,6 @@ export ISInDy
 
 include("./utils.jl")
 export AIC, AICC, BIC
-export hankel, optimal_shrinkage, optimal_shrinkage!
+export hankel, optimal_shrinkage, optimal_shrinkage!, savitzky_golay
 
 end # module

@@ -114,3 +114,35 @@ function optimal_shrinkage!(X::AbstractArray{T, 2}) where T <: Number
     X .= U*Diagonal(S)*V'
     return
 end
+
+function savitzky_golay(x::Vector, windowSize::Integer, polyOrder::Integer; deriv::Integer=0, dt::Real=1.0)
+	# Polynomial smoothing with the Savitzky Golay filters
+	# Adapted from: https://github.com/BBN-Q/Qlab.jl/blob/master/src/SavitskyGolay.jl
+	# More information: https://pdfs.semanticscholar.org/066b/7534921b308925f6616480b4d2d2557943d1.pdf
+	# Requires LinearAlgebra and DSP modules loaded.
+
+	#Some error checking
+	@assert isodd(windowSize) "Window size must be an odd integer."
+	@assert polyOrder < windowSize "Polynomial order must me less than window size."
+
+	halfWindow = Int(ceil((windowSize-1)/2))
+
+	#Setup the A matrix of basis vectors.
+	A = zeros(windowSize, polyOrder+1)
+	for coef = 0:polyOrder
+		A[:,coef+1] = (-halfWindow:halfWindow).^(coef)
+	end
+
+	#Compute the filter coefficients for all orders
+	H_trans = A*pinv(A'*A)
+
+	#Slice out the derivative order we want
+	filterCoeffs = H_trans[:,deriv+1] * factorial(deriv) ./(dt^deriv);
+
+	#Pad the signal with the endpoints and convolve with filter
+	paddedX = [x[1]*ones(halfWindow); x; x[end]*ones(halfWindow)]
+	y = conv(filterCoeffs[end:-1:1], paddedX)
+
+	#Return the valid midsection
+	return y[2*halfWindow+1:end-2*halfWindow]
+end
