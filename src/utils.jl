@@ -121,28 +121,28 @@ function savitzky_golay(x::Vector, windowSize::Integer, polyOrder::Integer; deri
 	# More information: https://pdfs.semanticscholar.org/066b/7534921b308925f6616480b4d2d2557943d1.pdf
 	# Requires LinearAlgebra and DSP modules loaded.
 
-	#Some error checking
+	# Some error checking
 	@assert isodd(windowSize) "Window size must be an odd integer."
 	@assert polyOrder < windowSize "Polynomial order must me less than window size."
 
-	halfWindow = Int(ceil((windowSize-1)/2))
-
-	#Setup the A matrix of basis vectors.
+	# Form the design matrix A
+	halfWindow = Int(ceil((windowSize - 1)/2))
 	A = zeros(windowSize, polyOrder+1)
 	for coef = 0:polyOrder
-		A[:,coef+1] = (-halfWindow:halfWindow).^(coef)
+		A[:, coef+1] = (-halfWindow:halfWindow).^(coef)
 	end
 
-	#Compute the filter coefficients for all orders
-	H_trans = A*pinv(A'*A)
+	# Compute the required column of the inverse of A'*A
+	# and calculate filter coefficients
+	ei = zeros(polyOrder+1)
+	ei[deriv+1] = 1.0
+	inv_col = (A'*A) \ ei
+	filterCoeffs = A*inv_col * factorial(deriv) ./(dt^deriv);
 
-	#Slice out the derivative order we want
-	filterCoeffs = H_trans[:,deriv+1] * factorial(deriv) ./(dt^deriv);
-
-	#Pad the signal with the endpoints and convolve with filter
+	# Pad the signal with the endpoints and convolve with filter
 	paddedX = [x[1]*ones(halfWindow); x; x[end]*ones(halfWindow)]
 	y = conv(filterCoeffs[end:-1:1], paddedX)
 
-	#Return the valid midsection
+	# Return the valid midsection
 	return y[2*halfWindow+1:end-2*halfWindow]
 end
