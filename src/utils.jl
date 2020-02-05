@@ -115,12 +115,54 @@ function optimal_shrinkage!(X::AbstractArray{T, 2}) where T <: Number
     return
 end
 
-function savitzky_golay(x::Vector, windowSize::Integer, polyOrder::Integer; deriv::Integer=0, dt::Real=1.0)
+function savitzky_golay(x::AbstractVector{T}, windowSize::Integer, polyOrder::Integer; deriv::Integer=0, dt::Real=1.0) where T <: Number
 	# Polynomial smoothing with the Savitzky Golay filters
 	# Adapted from: https://github.com/BBN-Q/Qlab.jl/blob/master/src/SavitskyGolay.jl
 	# More information: https://pdfs.semanticscholar.org/066b/7534921b308925f6616480b4d2d2557943d1.pdf
 	# Requires LinearAlgebra and DSP modules loaded.
 
+	# Some error checking
+	@assert isodd(windowSize) "Window size must be an odd integer."
+	@assert polyOrder < windowSize "Polynomial order must be less than window size."
+
+	# Calculate filter coefficients
+	filterCoeffs = calculate_filterCoeffs(windowSize, polyOrder, deriv, dt)
+
+	# Pad the signal with the endpoints and convolve with filter
+	halfWindow = Int(ceil((windowSize - 1)/2))
+	paddedX = [x[1]*ones(halfWindow); x; x[end]*ones(halfWindow)]
+	y = conv(filterCoeffs[end:-1:1], paddedX)
+
+	# Return the valid midsection
+	return y[2*halfWindow+1:end-2*halfWindow]
+end
+
+function savitzky_golay(x::AbstractMatrix{T}, windowSize::Integer, polyOrder::Integer; deriv::Integer=0, dt::Real=1.0) where T <: Number
+	# Polynomial smoothing with the Savitzky Golay filters
+	# Adapted from: https://github.com/BBN-Q/Qlab.jl/blob/master/src/SavitskyGolay.jl
+	# More information: https://pdfs.semanticscholar.org/066b/7534921b308925f6616480b4d2d2557943d1.pdf
+	# Requires LinearAlgebra and DSP modules loaded.
+
+	# Some error checking
+	@assert isodd(windowSize) "Window size must be an odd integer."
+	@assert polyOrder < windowSize "Polynomial order must be less than window size."
+
+	# Calculate filter coefficients
+	filterCoeffs = calculate_filterCoeffs(windowSize, polyOrder, deriv, dt)
+
+	# Apply filter to each component
+	halfWindow = Int(ceil((windowSize - 1)/2))
+	y = similar(x)
+	for (i, xi) in enumerate(eachrow(x))
+		paddedX = [xi[1]*ones(halfWindow); xi; xi[end]*ones(halfWindow)]
+		y₀ = conv(filterCoeffs[end:-1:1], paddedX)
+		y[i,:] = y₀[2*halfWindow+1:end-2*halfWindow]
+	end
+
+	return y
+end
+
+function calculate_filterCoeffs(windowSize::Integer, polyOrder::Integer, deriv::Integer, dt::Real)
 	# Some error checking
 	@assert isodd(windowSize) "Window size must be an odd integer."
 	@assert polyOrder < windowSize "Polynomial order must be less than window size."
@@ -137,12 +179,5 @@ function savitzky_golay(x::Vector, windowSize::Integer, polyOrder::Integer; deri
 	ei = zeros(polyOrder+1)
 	ei[deriv+1] = 1.0
 	inv_col = (A'*A) \ ei
-	filterCoeffs = A*inv_col * factorial(deriv) ./(dt^deriv);
-
-	# Pad the signal with the endpoints and convolve with filter
-	paddedX = [x[1]*ones(halfWindow); x; x[end]*ones(halfWindow)]
-	y = conv(filterCoeffs[end:-1:1], paddedX)
-
-	# Return the valid midsection
-	return y[2*halfWindow+1:end-2*halfWindow]
+	return A*inv_col * factorial(deriv) ./(dt^deriv);
 end

@@ -18,8 +18,9 @@ end
 
 u0 = [1.0;0.0;0.0]
 tspan = (0.0,100.0)
+dt = 0.005
 prob = ODEProblem(lorenz,u0,tspan)
-sol = solve(prob, Tsit5(), saveat = 0.005)
+sol = solve(prob, Tsit5(), saveat = dt)
 
 plot(sol,vars=(1,2,3))
 
@@ -33,7 +34,7 @@ end
 # Estimate differential data from state variables via a Savitzky-Golay filter
 # Test on a single variable
 windowSize, polyOrder = 9, 4
-DX1_sg = savitzky_golay(X[1,:], windowSize, polyOrder, deriv=1, dt=0.005)
+DX1_sg = savitzky_golay(X[1,:], windowSize, polyOrder, deriv=1, dt=dt)
 
 # Exclude borders, where the estimation is less accurate
 halfWindow = Int(ceil((windowSize+1)/2))
@@ -48,15 +49,11 @@ plot!(DX[1,:],label="Ground truth")
 
 
 # Now let's estimate the derivatives for all variables and use them infer the equations
-DX_sg = similar(X)
-for i =1:size(X,1)
-    DX_sg[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=0.005)
-end
+DX_sg = savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt)
 
 # Exclude borders, where the estimation is less accurate
 DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
 X_cropped = X[:,halfWindow+1:end-halfWindow]
-
 
 # Create a basis
 @variables u[1:3]
@@ -81,17 +78,13 @@ opt = STRRidge(0.1)
 print(Ψ)
 
 
-# Now let's try adding some noise
+# Let's try adding some noise
 using Random
 seed = MersenneTwister(3)
 X_noisy = X + 0.01*randn(seed,size(X))
 
-DX_sg = similar(X)
-X_smoothed = similar(X)
-for i =1:size(X,1)
-    DX_sg[i,:] = savitzky_golay(X_noisy[i,:], windowSize, polyOrder, deriv=1, dt=dt)
-    X_smoothed[i,:] = savitzky_golay(X_noisy[i,:], windowSize, polyOrder, deriv=0, dt=dt)
-end
+DX_sg = savitzky_golay(X_noisy, windowSize, polyOrder, deriv=1, dt=dt)
+X_smoothed = savitzky_golay(X_noisy, windowSize, polyOrder, deriv=0, dt=dt)
 
 DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
 X_smoothed = X_smoothed[:,halfWindow+1:end-halfWindow]

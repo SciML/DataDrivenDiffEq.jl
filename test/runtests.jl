@@ -299,7 +299,8 @@ end
     for i =1:size(X,1)
         DX_sg[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=dt)
     end
-
+    DX_sg2 = savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt)
+    @test(DX_sg2 == DX_sg)
     DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
     DX = DX[:,halfWindow+1:end-halfWindow]
 
