@@ -43,7 +43,7 @@ using Test
     # Check the array evaluation
     @test basis(X) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0] * X
     f = jacobian(basis)
-    @test_broken f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
+    @test f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
     @test_nowarn sys = ODESystem(basis)
     @test_nowarn [xi for xi in basis]
     @test_nowarn basis[2:end]; basis[2]; first(basis); last(basis); basis[:]
