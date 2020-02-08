@@ -18,11 +18,11 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STRRidg
     smallinds = abs.(X) .<= opt.λ
     biginds = @. ! smallinds[:, 1]
     for i in 1:maxiter
-        smallinds = abs.(X) .<= opt.λ
+        smallinds .= abs.(X) .<= opt.λ
         X[smallinds] .= zero(eltype(X))
         for j in 1:size(Y, 2)
-            biginds = @. ! smallinds[:, j]
-            X[biginds, j] = A[:, biginds] \ Y[:,j]
+            biginds .= @. ! smallinds[:, j]
+            X[biginds, j] .= A[:, biginds] \ Y[:,j]
         end
     end
 
