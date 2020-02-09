@@ -20,7 +20,7 @@ end
 
 
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
-init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, A, Y)
+init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
 
 

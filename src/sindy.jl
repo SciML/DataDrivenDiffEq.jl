@@ -36,12 +36,13 @@ end
 # Returns a basis for the differential state
 function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where T <: Optimise.AbstractOptimiser
     @assert size(X) == size(Ẋ)
+    nx, nm = size(X)
 
     Ξ = zeros(eltype(X), length(Ψ), nx)
     θ = Ψ(X, p = p)
 
     # Initial estimate
-    Optimise.init(Ξ, opt, θ', Ẋ')
+    Optimise.init!(Ξ, opt, θ', Ẋ')
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
     return Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
 end
