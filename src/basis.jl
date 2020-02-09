@@ -46,7 +46,7 @@ function update!(b::Basis)
     b.f_ = ModelingToolkit.build_function(b.basis, vs, ps, (), simplified_expr, Val{false})[1]
     return
 end
-
+                               
 function Base.push!(b::Basis, ops::AbstractArray{Operation})
     @inbounds for o in ops
         push!(b.basis, o)
