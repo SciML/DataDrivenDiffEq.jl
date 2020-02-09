@@ -13,6 +13,7 @@ function set_threshold!(opt::STRRidge, threshold)
 end
 
 init(o::STRRidge, A::AbstractArray, Y::AbstractArray) = A \ Y
+init!(X::AbstractArray, o::STRRidge, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, A, Y)
 
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STRRidge; maxiter::Int64 = 1)
     smallinds = abs.(X) .<= opt.λ

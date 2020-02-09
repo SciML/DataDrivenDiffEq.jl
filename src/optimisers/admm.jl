@@ -11,6 +11,7 @@ function set_threshold!(opt::ADMM, threshold)
 end
 
 init(o::ADMM, A::AbstractArray, Y::AbstractArray) =  A \ Y
+init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, A, Y)
 
 #soft_thresholding(x::AbstractArray, t::T) where T <: Real = sign.(x) .* max.(abs.(x) .- t, zero(eltype(x)))
 

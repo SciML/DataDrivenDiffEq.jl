@@ -20,6 +20,8 @@ end
 
 
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
+init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, A, Y)
+
 
 
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 10)
