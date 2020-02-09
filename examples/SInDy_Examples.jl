@@ -62,6 +62,11 @@ opt = SR3(1e-2, 1.0)
 Ψ = SInDy(sol[:,1:30], DX[:, 1:30], basis, maxiter = 5000, opt = opt)
 println(Ψ)
 
+# Vary the sparsity threshold -> gives better results
+λs = exp10.(-5:0.1:-1)
+opt = ADMM(1e-2, 1.0)
+Ψ = SInDy(sol[:,1:30], DX[:, 1:30], basis, λs, maxiter = 20, opt = opt)
+println(Ψ)
 
 # Transform into ODE System
 sys = ODESystem(Ψ)
