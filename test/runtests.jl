@@ -10,25 +10,45 @@ using Test
     h = [u[1]; u[2]; cos(w[1]*u[2]+w[2]*u[3]); u[3]+u[2]]
     h_not_unique = [1u[1]; u[1]; 1u[1]^1; h]
     basis = Basis(h_not_unique, u, parameters = w)
+
+    @test isequal(variables(basis), u)
+    @test isequal(parameters(basis), w)
+    @test free_parameters(basis) == 6
+    @test free_parameters(basis, operations = [+, cos]) == 7
+    @test DataDrivenDiffEq.count_operation((ModelingToolkit.Constant(1) + cos(u[2])*sin(u[1]))^3, [+, cos, ^, *]) == 4
+
     basis_2 = unique(basis)
+    @test isequal(basis, basis_2)
     @test size(basis) == size(h)
     @test basis([1.0; 2.0; π], p = [0. 1.]) ≈ [1.0; 2.0; -1.0; π+2.0]
     @test size(basis) == size(basis_2)
     push!(basis_2, sin(u[2]))
     @test size(basis_2)[1] == length(h)+1
+
+    basis_3 = merge(basis, basis_2)
+    @test size(basis_3) == size(basis_2)
+    @test isequal(variables(basis_3), variables(basis_2))
+    @test isequal(parameters(basis_3), parameters(basis_2))
+
+    merge!(basis_3, basis)
+    @test basis_3 == basis_2
+
     push!(basis, 1u[3]+1u[2])
     unique!(basis)
     @test size(basis) == size(h)
+
     g = [1.0*u[1]; 1.0*u[3]; 1.0*u[2]]
-    basis = Basis(g, u, parameters = w)
+    basis = Basis(g, u, parameters = [])
     X = ones(Float64, 3, 10)
     X[1, :] .= 3*X[1, :]
     X[3, :] .= 5*X[3, :]
     # Check the array evaluation
     @test basis(X) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0] * X
     f = jacobian(basis)
-    @test_broken f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
+    @test f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
     @test_nowarn sys = ODESystem(basis)
+    @test_nowarn [xi for xi in basis]
+    @test_nowarn basis[2:end]; basis[2]; first(basis); last(basis); basis[:]
 end
 
 @testset "DMD" begin
@@ -128,61 +148,78 @@ end
 
 
 @testset "SInDy" begin
-    # Test the pendulum
+
+    # Create a nonlinear pendulum
     function pendulum(u, p, t)
-        du1 = u[2]
-        du2 = -9.81sin(u[1]) - 0.1*u[2]
-        return [du1; du2]
+        x = u[2]
+        y = -9.81sin(u[1]) - 0.1u[2]^3 -0.2*cos(u[1])
+        return [x;y]
     end
 
-    u0 = [0.2π; -1.0]
-    tspan = (0.0, 20.0)
+    u0 = [0.99π; -1.0]
+    tspan = (0.0, 10.0)
     prob = ODEProblem(pendulum, u0, tspan)
-    sol = solve(prob, Tsit5(), saveat = 0.3)
+    sol = solve(prob, Tsit5(), saveat = 0.1)
+
 
     # Create the differential data
     DX = similar(sol[:,:])
     for (i, xi) in enumerate(eachcol(sol[:,:]))
         DX[:,i] = pendulum(xi, [], 0.0)
     end
+
     # Create a basis
     @variables u[1:2]
 
-    polys = [u[1]^0]
-    for i ∈ 1:3
-        for j ∈ 1:3
+    # Lots of polynomials
+    polys = Operation[1]
+    for i ∈ 1:5
+        push!(polys, u.^i...)
+        for j ∈ 1:i-1
             push!(polys, u[1]^i*u[2]^j)
         end
     end
 
-    h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
+    # And some other stuff
+    h = [cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
 
-    opt = STRRidge(1e-10/0.05)
+    basis = Basis(h, u)
+
+    opt = STRRidge(1e-2)
     basis = Basis(h, u, parameters = [])
     Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000)
+    @test_nowarn set_threshold!(opt, 0.1)
     @test size(Ψ)[1] == 2
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
+    sol_ = solve(estimator,Tsit5(), saveat = 0.1)
     @test sol[:,:] ≈ sol_[:,:]
 
-    opt = ADMM(1e-10, 0.05)
-    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+    opt = ADMM(1e-2, 0.7)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 5000, opt = opt)
+    @test_nowarn set_threshold!(opt, 0.1)
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
-    #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
-    @test sol[:,:] ≈ sol_[:,:]
+    sol_2 = solve(estimator,Tsit5(), saveat = 0.1)
+    @test norm(sol[:,:] - sol_2[:,:], 2) < 2e-1
+    #@test sol[:,:] ≈ sol_2[:,:]
 
-    opt = SR3(1e-3, 1.8)
-    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+    opt = SR3(1e-2, 1.0)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 5000, opt = opt)
+    @test_nowarn set_threshold!(opt, 0.1)
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
-    #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
-    @test sol[:,:] ≈ sol_[:,:]
+    sol_3 = solve(estimator,Tsit5(), saveat = 0.1)
+    @test norm(sol[:,:] - sol_3[:,:], 2) < 1e-1
+
+    # Now use the threshold adaptation
+    λs = exp10.(-5:0.1:-1)
+    Ψ = SInDy(sol[:,:], DX[:, :], basis, λs,  maxiter = 20, opt = opt)
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    sol_4 = solve(estimator,Tsit5(), saveat = 0.1)
+    @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
 end
 
 @testset "ISInDy" begin
@@ -229,4 +266,29 @@ end
     estimator = ODEProblem(dynamics(Ψ), u0, tspan)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test sol[:,:] ≈ sol_[:,:]
+end
+
+@testset "Utilities" begin
+    t = collect(-2:0.01:2)
+    U = [cos.(t).*exp.(-t.^2) sin.(2*t)]
+    S = Diagonal([2.; 3.])
+    V = [sin.(t).*exp.(-t) cos.(t)]
+    A = U*S*V'
+    σ = 0.5
+    Â = A + σ*randn(401, 401)
+    n_1 = norm(A-Â)
+    B = optimal_shrinkage(Â)
+    optimal_shrinkage!(Â)
+    @test norm(A-Â) < n_1
+    @test norm(A-B) == norm(A-Â)
+
+    X = randn(3, 100)
+    Y = randn(3, 100)
+    k = 3
+
+    @test AIC(k, X, Y) == 2*k-2*log(sum(abs2, X- Y))
+    @test AICC(k, X, Y) == AIC(k, X, Y)+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
+    @test BIC(k, X, Y) == -2*log(sum(abs2, X -Y)) + k*log(size(X)[2])
+    @test AICC(k, X, Y, likelyhood = (X,Y)->sum(abs, X-Y)) == AIC(k, X, Y, likelyhood = (X,Y)->sum(abs, X-Y))+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
+
 end

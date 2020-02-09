@@ -2,6 +2,7 @@ module DataDrivenDiffEq
 
 using LinearAlgebra
 using ModelingToolkit
+using QuadGK, Statistics
 using Compat
 
 abstract type abstractBasis end;
@@ -9,12 +10,15 @@ abstract type abstractKoopmanOperator end;
 
 include("./optimisers/Optimise.jl")
 using .Optimise
+export set_threshold!
 export STRRidge, ADMM, SR3
 export ADM
 
 include("./basis.jl")
 export Basis
 export variables, jacobian, dynamics
+export free_parameters, parameters, variables
+
 
 include("./exact_dmd.jl")
 export ExactDMD
@@ -39,5 +43,8 @@ export SInDy
 include("./isindy.jl")
 export ISInDy
 
+include("./utils.jl")
+export AIC, AICC, BIC
+export hankel, optimal_shrinkage, optimal_shrinkage!
 
 end # module
