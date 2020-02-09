@@ -146,36 +146,44 @@ end
 
 
 @testset "SInDy" begin
-    # Test the pendulum
+
+    # Create a nonlinear pendulum
     function pendulum(u, p, t)
-        du1 = u[2]
-        du2 = -9.81sin(u[1]) - 0.1*u[2]
-        return [du1; du2]
+        x = u[2]
+        y = -9.81sin(u[1]) - 0.1u[2]^3 -0.2*cos(u[1])
+        return [x;y]
     end
 
-    u0 = [0.2π; -1.0]
-    tspan = (0.0, 20.0)
+    u0 = [0.99π; -1.0]
+    tspan = (0.0, 10.0)
     prob = ODEProblem(pendulum, u0, tspan)
-    sol = solve(prob, Tsit5(), saveat = 0.3)
+    sol = solve(prob, Tsit5(), saveat = 0.1)
+
 
     # Create the differential data
     DX = similar(sol[:,:])
     for (i, xi) in enumerate(eachcol(sol[:,:]))
         DX[:,i] = pendulum(xi, [], 0.0)
     end
+
     # Create a basis
     @variables u[1:2]
 
-    polys = [u[1]^0]
-    for i ∈ 1:3
-        for j ∈ 1:3
+    # Lots of polynomials
+    polys = Operation[1]
+    for i ∈ 1:5
+        push!(polys, u.^i...)
+        for j ∈ 1:i-1
             push!(polys, u[1]^i*u[2]^j)
         end
     end
 
-    h = [1u[1];1u[2]; cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
+    # And some other stuff
+    h = [cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
 
-    opt = STRRidge(1e-10/0.05)
+    basis = Basis(h, u)
+
+    opt = STRRidge(1e-2)
     basis = Basis(h, u, parameters = [])
     Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000)
     @test_nowarn set_threshold!(opt, 0.1)
@@ -183,26 +191,33 @@ end
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_ = solve(estimator,Tsit5(), saveat = 0.3)
+    sol_ = solve(estimator,Tsit5(), saveat = 0.1)
     @test sol[:,:] ≈ sol_[:,:]
 
-    opt = ADMM(1e-10, 0.05)
-    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 2000, opt = opt)
+    opt = ADMM(1e-2, 0.7)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 5000, opt = opt)
     @test_nowarn set_threshold!(opt, 0.1)
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_2 = solve(estimator,Tsit5(), saveat = 0.3)
-    #@test norm(sol[:,:] - sol_[:,:], 2) < 1e-1
-    @test sol[:,:] ≈ sol_2[:,:]
+    sol_2 = solve(estimator,Tsit5(), saveat = 0.1)
+    @test norm(sol[:,:] - sol_2[:,:], 2) < 2e-1
+    #@test sol[:,:] ≈ sol_2[:,:]
 
-    opt = SR3(5e-4, 1.8)
-    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 3000, opt = opt)
+    opt = SR3(1e-2, 1.0)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 5000, opt = opt)
     @test_nowarn set_threshold!(opt, 0.1)
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
-    sol_3 = solve(estimator,Tsit5(), saveat = 0.3)
+    sol_3 = solve(estimator,Tsit5(), saveat = 0.1)
     @test norm(sol[:,:] - sol_3[:,:], 2) < 1e-1
+
+    # Now use the threshold adaptation
+    λs = exp10.(-5:0.1:-1)
+    Ψ = SInDy(sol[:,:], DX[:, :], basis, λs,  maxiter = 20, opt = opt)
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    sol_4 = solve(estimator,Tsit5(), saveat = 0.1)
+    @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
 end
 
 @testset "ISInDy" begin
