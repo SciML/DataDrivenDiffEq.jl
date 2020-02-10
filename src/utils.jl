@@ -1,3 +1,5 @@
+import StatsBase: sample
+
 # Model selection
 
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
@@ -116,7 +118,7 @@ end
 
 @inline function burst_sampling(x::AbstractArray, samplesize::Int64, bursts::Int64)
     @assert size(x)[end] >= samplesize*bursts "Length of data array too small for subsampling of size $size!"
-    inds = collect(rand(1:size(x)[end]-samplesize, bursts)) # Starting points
+    inds = sample(1:size(x)[end]-samplesize, bursts, replace = false) # Starting points
     inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
     return resample(x, inds)
 end
@@ -125,10 +127,30 @@ end
 @inline function burst_sampling(x::AbstractArray, y::AbstractArray, samplesize::Int64, bursts::Int64)
     @assert size(x)[end] >= samplesize*bursts "Length of data array too small for subsampling of size $size!"
     @assert size(x)[end] == size(y)[end]
-    inds = collect(rand(1:size(x)[end]-samplesize, bursts)) # Starting points
+    inds = sample(1:size(x)[end]-samplesize, bursts, replace = false) # Starting points
     inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
     return resample(x, inds), resample(y, inds)
 end
+
+
+function burst_sampling(x::AbstractArray, t::AbstractVector, period::T, bursts::Int64) where T <: AbstractFloat
+    @assert size(x)[end] == size(t)[end]
+    @assert bursts >= 1
+    @assert t[end] >= period*bursts "Length of data array too small for subsampling of size $size !"
+    tstop = findlast((t[end] .- t) .>= period)
+    @assert bursts < tstop  "Bursting impossible. Please provide more data or reduce bursts."
+
+    inds = collect(sample(1:tstop-1, bursts, replace = false)) # Starting points
+    idx = Int64[]
+    for i in inds
+        _stop = findlast(t[i:tstop-1] .- t[i] .<= period)
+        isnothing(_stop) ? _stop = 1 : nothing
+        push!(idx, collect(i:i+_stop-1)...)
+    end
+    sort!(unique!(idx))
+    return resample(x, idx), resample(t, idx)
+end
+
 
 @inline function subsample(x::AbstractVector, frequency::Int64)
     @assert frequency > 1
