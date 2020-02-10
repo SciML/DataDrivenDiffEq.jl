@@ -100,3 +100,55 @@ function optimal_shrinkage!(X::AbstractArray{T, 2}) where T <: Number
     X .= U*Diagonal(S)*V'
     return
 end
+
+function hankel(a::AbstractArray, b::AbstractArray) where T <: Number
+    p = vcat([a; b[2:end]])
+    n = length(b)-1
+    m = length(p)-n+1
+    H = Array{eltype(p)}(undef, n, m)
+    @inbounds for i in 1:n
+        for j in 1:m
+            H[i,j] = p[i+j-1]
+        end
+    end
+    return H
+end
+
+@inline function burst_sampling(x::AbstractArray, samplesize::Int64, bursts::Int64)
+    @assert size(x)[end] >= samplesize*bursts "Length of data array too small for subsampling of size $size!"
+    inds = collect(rand(1:size(x)[end]-samplesize, bursts)) # Starting points
+    inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
+    return resample(x, inds)
+end
+
+
+@inline function burst_sampling(x::AbstractArray, y::AbstractArray, samplesize::Int64, bursts::Int64)
+    @assert size(x)[end] >= samplesize*bursts "Length of data array too small for subsampling of size $size!"
+    @assert size(x)[end] == size(y)[end]
+    inds = collect(rand(1:size(x)[end]-samplesize, bursts)) # Starting points
+    inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
+    return resample(x, inds), resample(y, inds)
+end
+
+@inline function subsample(x::AbstractVector, frequency::Int64)
+    @assert frequency > 1
+    return x[1:frequency:end]
+end
+
+
+@inline function subsample(x::AbstractArray, frequency::Int64)
+    @assert frequency > 1
+    return x[:, 1:frequency:end]
+end
+
+@inline function resample(x::AbstractArray{T,1}, indx::AbstractArray{Int64}) where T <: Number
+    @assert maximum(indx) <= length(x)
+    @assert minimum(indx) >= 1
+    return x[indx]
+end
+
+@inline function resample(x::AbstractArray{T,2}, indx::AbstractArray{Int64}) where T <: Number
+    @assert maximum(indx) <= size(x, 2)
+    @assert minimum(indx) >= 1
+    return x[:, indx]
+end

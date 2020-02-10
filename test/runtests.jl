@@ -291,4 +291,24 @@ end
     @test BIC(k, X, Y) == -2*log(sum(abs2, X -Y)) + k*log(size(X)[2])
     @test AICC(k, X, Y, likelyhood = (X,Y)->sum(abs, X-Y)) == AIC(k, X, Y, likelyhood = (X,Y)->sum(abs, X-Y))+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
 
+
+    # Sampling
+    X = randn(Float64, 2, 100)
+    t = collect(0:0.1:9.99)
+    Y = randn(size(X))
+    xt = burst_sampling(X, 5, 10)
+    @test 10 <= size(xt)[end] <= 60
+    @test all([any(xi .≈ X) for xi in eachcol(xt)])
+    xt, tt = burst_sampling(X, t, 5, 10)
+    @test all(diff(tt) .> 0.0)
+    @test size(xt)[end] == size(tt)[end]
+    @test all([any(xi .≈ X) for xi in eachcol(xt)])
+    @test !all([any(xi .≈ Y) for xi in eachcol(xt)])
+    X2n = subsample(X, 2)
+    t2n = subsample(t, 2)
+    @test size(X2n)[end] == size(t2n)[end]
+    @test size(X2n)[end] == Int(round(size(X)[end]/2))
+    @test X2n[:, 1] == X[:, 1]
+    @test X2n[:, end] == X[:, end-1]
+    @test all([any(xi .≈ X) for xi in eachcol(X2n)])
 end
