@@ -133,10 +133,10 @@ end
 end
 
 
-function burst_sampling(x::AbstractArray, t::AbstractVector, period::T, bursts::Int64) where T <: AbstractFloat
+@inline function burst_sampling(x::AbstractArray, t::AbstractVector, period::T, bursts::Int64) where T <: AbstractFloat
     @assert size(x)[end] == size(t)[end]
     @assert bursts >= 1
-    @assert t[end] >= period*bursts "Length of data array too small for subsampling of size $size !"
+    @assert t[end]-t[1]>= period*bursts "Bursting impossible. Please provide more data or reduce bursts."
     tstop = findlast((t[end] .- t) .>= period)
     @assert bursts < tstop  "Bursting impossible. Please provide more data or reduce bursts."
 
