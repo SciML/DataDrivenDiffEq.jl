@@ -319,5 +319,9 @@ end
     @test size(xs)[end] == size(ts)[end]
     @test size(xs)[1] == size(X)[1]
     @test all(diff(ts) .≈ 0.5)
-
+    # Loop this a few times to be sure its right
+    @test_nowarn for i in 1:20
+        xs, ts = burst_sampling(X, t, 2.0, 1)
+        xs, ts = subsample(X, t, 0.5)
+    end
 end
