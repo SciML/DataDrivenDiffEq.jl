@@ -134,6 +134,7 @@ end
 
 
 @inline function burst_sampling(x::AbstractArray, t::AbstractVector, period::T, bursts::Int64) where T <: AbstractFloat
+    @assert period > zero(typeof(period))
     @assert size(x)[end] == size(t)[end]
     @assert bursts >= 1
     @assert t[end]-t[1]>= period*bursts "Bursting impossible. Please provide more data or reduce bursts."
@@ -154,6 +155,21 @@ end
 @inline function subsample(x::AbstractArray, frequency::Int64)
     @assert frequency > 1
     return x[:, 1:frequency:end]
+end
+
+@inline function subsample(x::AbstractArray, t::AbstractVector, period::T) where T <: AbstractFloat
+    @assert period > zero(typeof(period))
+    @assert size(x)[end] == size(t)[end]
+    @assert t[end]-t[1]>= period "Subsampling impossible. Time window too short.."
+    idx = Int64[1]
+    t_now = t[1]
+    @inbounds for (i, t_current) in enumerate(t)
+        if t_current - t_now >= period
+            push!(idx, i)
+            t_now = t_current
+        end
+    end
+    return resample(x, idx), resample(t, idx)
 end
 
 @inline function resample(x::AbstractArray{T,1}, indx::AbstractArray{Int64}) where T <: Number

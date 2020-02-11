@@ -315,4 +315,9 @@ end
     @test X2n[:, 1] == X[:, 1]
     @test X2n[:, end] == X[:, end-1]
     @test all([any(xi .≈ X) for xi in eachcol(X2n)])
+    xs, ts = subsample(X, t, 0.5)
+    @test size(xs)[end] == size(ts)[end]
+    @test size(xs)[1] == size(X)[1]
+    @test all(diff(ts) .≈ 0.5)
+
 end
