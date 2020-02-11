@@ -137,18 +137,11 @@ end
     @assert size(x)[end] == size(t)[end]
     @assert bursts >= 1
     @assert t[end]-t[1]>= period*bursts "Bursting impossible. Please provide more data or reduce bursts."
-    tstop = findlast((t[end] .- t) .>= period)
-    @assert bursts < tstop  "Bursting impossible. Please provide more data or reduce bursts."
-
-    inds = collect(sample(1:tstop-1, bursts, replace = false)) # Starting points
-    idx = Int64[]
-    for i in inds
-        _stop = findlast(t[i:tstop-1] .- t[i] .<= period)
-        isnothing(_stop) ? _stop = 1 : nothing
-        push!(idx, collect(i:i+_stop-1)...)
-    end
-    sort!(unique!(idx))
-    return resample(x, idx), resample(t, idx)
+    t_ids = zero(eltype(t)) .<= t .- period  .<= t[end] .- 2*period
+    samplesize = Int64(round(period/(t[end]-t[1])*length(t)))
+    inds = sample(t_ids, bursts, replace = false)
+    inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
+    return resample(x, inds), resample(t, inds)
 end
 
 
