@@ -307,7 +307,7 @@ end
     xs, ts = burst_sampling(X, t, 2.0, 1)
     @test all([any(xi .≈ X) for xi in eachcol(xs)])
     @test size(xs)[end] == size(ts)[end]
-    @test ts[end]-ts[1] == 2.0
+    @test ts[end]-ts[1] ≈ 2.0
     X2n = subsample(X, 2)
     t2n = subsample(t, 2)
     @test size(X2n)[end] == size(t2n)[end]
