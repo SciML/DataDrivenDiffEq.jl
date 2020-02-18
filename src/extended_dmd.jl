@@ -12,11 +12,11 @@ LinearAlgebra.eigen(m::ExtendedDMD) = eigen(m.koopman)
 LinearAlgebra.eigvals(m::ExtendedDMD) = eigvals(m.koopman)
 LinearAlgebra.eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
 
-function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), dt::T = 1.0)  where T <: Real
+function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), dt::T = 0.0)  where T <: Real
     return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B, dt = dt)
 end
 
-function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), dt::T = 1.0) where T <: Real
+function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), dt::T = 0.0) where T <: Real
     @assert dt >= zero(typeof(dt)) "Provide positive dt"
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
     @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
