@@ -37,8 +37,9 @@ end
 function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where T <: Optimise.AbstractOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
+    ny, nm = size(Ẋ)
 
-    Ξ = zeros(eltype(X), length(Ψ), nx)
+    Ξ = zeros(eltype(X), length(Ψ), ny)
     θ = Ψ(X, p = p)
 
     # Initial estimate
@@ -52,14 +53,15 @@ end
 function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where T <: Optimise.AbstractOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
+    ny, nm = size(Ẋ)
 
     θ = Ψ(X, p = p)
 
-    ξ = zeros(eltype(X), length(Ψ), nx)
-    Ξ_opt = zeros(eltype(X), length(Ψ), nx)
-    Ξ = zeros(eltype(X), length(thresholds), nx, length(Ψ))
-    x = zeros(eltype(X), length(thresholds), nx, 2)
-    p = zeros(eltype(X),  nx, length(thresholds))
+    ξ = zeros(eltype(X), length(Ψ), ny)
+    Ξ_opt = zeros(eltype(X), length(Ψ), ny)
+    Ξ = zeros(eltype(X), length(thresholds), ny, length(Ψ))
+    x = zeros(eltype(X), length(thresholds), ny, 2)
+    pareto = zeros(eltype(X),  ny, length(thresholds))
 
     @inbounds for (j, threshold) in enumerate(thresholds)
         set_threshold!(opt, threshold)
@@ -72,8 +74,8 @@ function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::Abst
     # Create the evaluation
     @inbounds for i in 1:nx
         x[:, i, 2] .= x[:, i, 2]./maximum(x[:, i, 2])
-        p[i, :] = [norm(x[j, i, :], 2) for j in 1:length(thresholds)]
-        _, indx = findmin(p[i, :])
+        pareto[i, :] = [norm(x[j, i, :], 2) for j in 1:length(thresholds)]
+        _, indx = findmin(pareto[i, :])
         Ξ_opt[:, i] = Ξ[indx, i, :]
     end
 
