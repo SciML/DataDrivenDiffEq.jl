@@ -7,7 +7,8 @@ mutable struct DMDc{K, B, Q, P} <: abstractKoopmanOperator
 end
 
 
-function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractArray = [], dt::Float64 = 0.0)
+function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractArray = [], dt::T = 0.0) where T <: Real
+    @assert dt >= zero(dt)
     @assert all(size(X) .== size(Y))
     @assert size(X)[2] .== size(U)[2]
 
@@ -44,7 +45,7 @@ function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractA
 end
 
 
-function DMDc(X::AbstractArray, U::AbstractArray; B::AbstractArray = [], dt::Float64 = 0.0)
+function DMDc(X::AbstractArray, U::AbstractArray; B::AbstractArray = [], dt::T = 0.0) where T <: Real
     @assert size(X)[2]-1 == size(U)[2] "Provide consistent input data."
     return DMDc(X[:, 1:end-1], X[:, 2:end], U, B = B, dt = dt)
 end

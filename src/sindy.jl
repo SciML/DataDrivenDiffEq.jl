@@ -35,7 +35,7 @@ end
 
 # Returns a basis for the differential state
 function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where T <: Optimise.AbstractOptimiser
-    @assert size(X) == size(Ẋ)
+    @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
 
     Ξ = zeros(eltype(X), length(Ψ), nx)
@@ -50,7 +50,7 @@ end
 
 # Returns an array of basis for all values of lambda
 function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where T <: Optimise.AbstractOptimiser
-    @assert size(X) == size(Ẋ)
+    @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
 
     θ = Ψ(X, p = p)
