@@ -72,7 +72,7 @@ function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::Abst
     end
 
     # Create the evaluation
-    @inbounds for i in 1:nx
+    @inbounds for i in 1:ny
         x[:, i, 2] .= x[:, i, 2]./maximum(x[:, i, 2])
         pareto[i, :] = [norm(x[j, i, :], 2) for j in 1:length(thresholds)]
         _, indx = findmin(pareto[i, :])
