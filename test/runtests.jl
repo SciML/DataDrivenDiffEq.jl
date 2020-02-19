@@ -220,6 +220,11 @@ end
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_4 = solve(estimator,Tsit5(), saveat = 0.1)
     @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
+
+    # Check for errors
+    # TODO infer the type of array and automatically push this
+    @test_nowarn SInDy(sol[:,:], DX[1,:], basis, λs, maxiter = 1, opt = opt)
+    @test_nowarn SInDy(sol[:, :], DX[1, :], basis, maxiter = 1, opt = opt)
 end
 
 @testset "ISInDy" begin

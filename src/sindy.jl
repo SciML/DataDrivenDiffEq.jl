@@ -33,8 +33,12 @@ function simplified_matvec(Ξ::AbstractArray{T,1}, basis) where T <: Real
     eq
 end
 
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis; kwargs...) where S <: Number
+    return SInDy(X, Ẋ', Ψ; kwargs...)
+end
+
 # Returns a basis for the differential state
-function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where T <: Optimise.AbstractOptimiser
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where {T <: Optimise.AbstractOptimiser, S <: Number}
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
@@ -49,8 +53,12 @@ function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; p::AbstractArray
 end
 
 
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thresholds::AbstractArray; kwargs...) where S <: Number
+    return SInDy(X, Ẋ', Ψ, thresholds; kwargs...)
+end
+
 # Returns an array of basis for all values of lambda
-function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where T <: Optimise.AbstractOptimiser
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where {T <: Optimise.AbstractOptimiser, S <: Number}
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
@@ -72,7 +80,7 @@ function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::Abst
     end
 
     # Create the evaluation
-    @inbounds for i in 1:nx
+    @inbounds for i in 1:ny
         x[:, i, 2] .= x[:, i, 2]./maximum(x[:, i, 2])
         pareto[i, :] = [norm(x[j, i, :], 2) for j in 1:length(thresholds)]
         _, indx = findmin(pareto[i, :])
