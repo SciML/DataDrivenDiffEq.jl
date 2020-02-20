@@ -37,6 +37,10 @@ using Test
     unique!(basis)
     @test size(basis) == size(h)
 
+    @variables a
+    g = [u[1]; u[3]; a]
+    basis = Basis(g, [u; a])
+    @test basis([1; 2; 3; 4]) == [1; 3; 4]
     g = [1.0*u[1]; 1.0*u[3]; 1.0*u[2]]
     basis = Basis(g, u, parameters = [])
     X = ones(Float64, 3, 10)
@@ -230,7 +234,7 @@ end
     X = sol[:, :] + 1e-3*randn(size(sol[:,:])...)
     set_threshold!(opt, 3.5e-1)
     Ψ = SInDy(X, DX, basis, maxiter = 10000, opt = opt, denoise = true, normalize = true)
-    
+
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_4 = solve(estimator,Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_4[:,:], 2) < 5e-1
