@@ -223,18 +223,17 @@ end
     @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
 
     # Check for errors
-    # TODO infer the type of array and automatically push this
     @test_nowarn SInDy(sol[:,:], DX[1,:], basis, λs, maxiter = 1, opt = opt)
-    @test_nowarn SInDy(sol[:, :], DX[1, :], basis, maxiter = 1, opt = opt)
+    @test_nowarn SInDy(sol[:, :], DX[1, :], basis, λs, maxiter = 1, opt = opt, denoise = true, normalize = true)
 
     # Check with noise
     X = sol[:, :] + 1e-3*randn(size(sol[:,:])...)
-    set_threshold!(opt, 3e-1)
+    set_threshold!(opt, 3.5e-1)
     Ψ = SInDy(X, DX, basis, maxiter = 10000, opt = opt, denoise = true, normalize = true)
-    println(Ψ)
+    
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_4 = solve(estimator,Tsit5(), saveat = dt)
-    @test norm(sol[:,:] - sol_4[:,:], 2) < 2e-1
+    @test norm(sol[:,:] - sol_4[:,:], 2) < 5e-1
 
 end
 
