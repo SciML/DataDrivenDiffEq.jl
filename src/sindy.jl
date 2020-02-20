@@ -33,25 +33,59 @@ function simplified_matvec(Ξ::AbstractArray{T,1}, basis) where T <: Real
     eq
 end
 
+
+function normalize_theta!(scales::AbstractArray, θ::AbstractArray)
+    @assert length(scales) == size(θ, 1)
+    @inbounds for (i, ti) in enumerate(eachrow(θ))
+        scales[i] = norm(ti, 2)
+        normalize!(ti, 2)
+    end
+    return
+end
+
+function rescale_xi!(scales::AbstractArray, Ξ::AbstractArray)
+    for (si, ti) in zip(scales, eachrow(Ξ))
+        ti .= ti / si
+    end
+    return
+end
+
+
+# One Variable on multiple derivatives
+function SInDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis; kwargs...) where S <: Number
+    return SInDy(X', Ẋ, Ψ; kwargs...)
+end
+
+# Multiple on one
 function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis; kwargs...) where S <: Number
     return SInDy(X, Ẋ', Ψ; kwargs...)
 end
 
-# Returns a basis for the differential state
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge()) where {T <: Optimise.AbstractOptimiser, S <: Number}
+# General
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(), denoise::Bool = false, normalize::Bool = true) where {T <: Optimise.AbstractOptimiser, S <: Number}
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
 
     Ξ = zeros(eltype(X), length(Ψ), ny)
+    scales = ones(eltype(X), length(Ψ))
     θ = Ψ(X, p = p)
 
+    denoise ? optimal_shrinkage!(θ') : nothing
+    normalize ? normalize_theta!(scales, θ) : nothing
     # Initial estimate
     Optimise.init!(Ξ, opt, θ', Ẋ')
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
+
+    normalize ? rescale_xi!(scales, Ξ) : nothing
+
     return Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
 end
 
+
+function SInDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray; kwargs...) where S <: Number
+    return SInDy(X', Ẋ, Ψ, thresholds; kwargs...)
+end
 
 function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thresholds::AbstractArray; kwargs...) where S <: Number
     return SInDy(X, Ẋ', Ψ, thresholds; kwargs...)
