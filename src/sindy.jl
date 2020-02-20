@@ -44,7 +44,7 @@ function normalize_theta!(scales::AbstractArray, θ::AbstractArray)
 end
 
 function rescale_xi!(scales::AbstractArray, Ξ::AbstractArray)
-    for (si, ti) in zip(scales, eachrow(Ξ))
+    @inbounds for (si, ti) in zip(scales, eachrow(Ξ))
         ti .= ti / si
     end
     return
