@@ -34,14 +34,15 @@ end
 # Estimate differential data from state variables via a Savitzky-Golay filter
 # Test on a single variable
 windowSize, polyOrder = 9, 4
-DX1_sg = savitzky_golay(X[1,:], windowSize, polyOrder, deriv=1, dt=dt)
+DX1_cropped, DX1_sg = savitzky_golay(X[1,:], windowSize, polyOrder, deriv=1, dt=dt)
 
-# Exclude borders, where the estimation is less accurate
-halfWindow = Int(ceil((windowSize+1)/2))
-DX1_sg = DX1_sg[halfWindow+1:end-halfWindow]
-DX = DX[:,halfWindow+1:end-halfWindow]
+# By default savitzky_golay function crop the borders, where the estimation
+# is less accurate. Optionally this can be turn off by passing the
+# argument `crop = false` to savitzky_golay function.
 
 # Check if the estimated derivatives are approximate to the "ground truth"
+halfWindow = Int(ceil((windowSize+1)/2))
+DX = DX[:,halfWindow+1:end-halfWindow]
 isapprox(DX1_sg, DX[1,:], rtol=1e-2)
 
 plot(DX1_sg, label = "Estimated with Savitzky-Golay filter")
@@ -49,11 +50,7 @@ plot!(DX[1,:],label="Ground truth")
 
 
 # Now let's estimate the derivatives for all variables and use them infer the equations
-DX_sg = savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt)
-
-# Exclude borders, where the estimation is less accurate
-DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
-X_cropped = X[:,halfWindow+1:end-halfWindow]
+X_cropped, DX_sg = savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt)
 
 # Create a basis
 @variables u[1:3]
@@ -83,11 +80,8 @@ using Random
 seed = MersenneTwister(3)
 X_noisy = X + 0.01*randn(seed,size(X))
 
-DX_sg = savitzky_golay(X_noisy, windowSize, polyOrder, deriv=1, dt=dt)
-X_smoothed = savitzky_golay(X_noisy, windowSize, polyOrder, deriv=0, dt=dt)
-
-DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
-X_smoothed = X_smoothed[:,halfWindow+1:end-halfWindow]
+X_noisy_cropped, DX_sg = savitzky_golay(X_noisy, windowSize, polyOrder, deriv=1, dt=dt)
+X_noisy_cropped, X_smoothed = savitzky_golay(X_noisy, windowSize, polyOrder, deriv=0, dt=dt)
 
 Ψ = SInDy(X_smoothed, DX_sg, basis, maxiter = 100, opt = opt)
 print(Ψ)

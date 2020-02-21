@@ -296,13 +296,21 @@ end
     windowSize, polyOrder = 9, 4
     halfWindow = Int(ceil((windowSize+1)/2))
     DX_sg = similar(X)
+    DX_sg_cropped = similar(X[:,halfWindow+1:end-halfWindow])
+    X_cropped = similar(X[:,halfWindow+1:end-halfWindow])
     for i =1:size(X,1)
-        DX_sg[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=dt)
+        DX_sg[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=dt, crop=false)
+        X_cropped[i,:], DX_sg_cropped[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=dt)
     end
-    DX_sg2 = savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt)
+    DX_sg2 = savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt, crop=false)
+    X_cropped2, DX_sg_cropped2 =  savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt)
     @test(DX_sg2 == DX_sg)
     DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
-    DX = DX[:,halfWindow+1:end-halfWindow]
+    @test X_cropped == X[:,halfWindow+1:end-halfWindow]
+    @test DX_sg_cropped == DX_sg
+    @test X_cropped2 == X[:,halfWindow+1:end-halfWindow]
+    @test DX_sg_cropped2 == DX_sg
 
+    DX = DX[:,halfWindow+1:end-halfWindow]
     @test isapprox(DX_sg, DX, rtol=1e-2)
 end
