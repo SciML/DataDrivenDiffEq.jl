@@ -1,3 +1,5 @@
+import StatsBase: sample
+
 # Model selection
 
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
@@ -16,20 +18,6 @@ end
 function BIC(k::Int64, X::AbstractArray, Y::AbstractArray; likelyhood = (X,Y) -> sum(abs2, X-Y))
     @assert size(X) == size(Y) "Dimensions of trajectories should be equal !"
     return - 2*log(likelyhood(X, Y)) + k*log(size(X)[2])
-end
-
-# Data transformation
-function hankel(a::AbstractArray, b::AbstractArray) where T <: Number
-    p = vcat([a; b[2:end]])
-    n = length(b)-1
-    m = length(p)-n+1
-    H = Array{eltype(p)}(undef, n, m)
-    @inbounds for i in 1:n
-        @inbounds for j in 1:m
-            H[i,j] = p[i+j-1]
-        end
-    end
-    return H
 end
 
 
@@ -195,5 +183,73 @@ function calculate_filterCoeffs(windowSize::Integer, polyOrder::Integer, deriv::
 	ei = zeros(polyOrder+1)
 	ei[deriv+1] = 1.0
 	inv_col = (A'*A) \ ei
-	return A*inv_col * factorial(deriv) ./(dt^deriv);
+	return A*inv_col * factorial(deriv) ./(dt^deriv)
+end
+
+@inline function burst_sampling(x::AbstractArray, samplesize::Int64, bursts::Int64)
+    @assert size(x)[end] >= samplesize*bursts "Length of data array too small for subsampling of size $size!"
+    inds = sample(1:size(x)[end]-samplesize, bursts, replace = false)
+    inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
+    return resample(x, inds)
+end
+
+
+@inline function burst_sampling(x::AbstractArray, y::AbstractArray, samplesize::Int64, bursts::Int64)
+    @assert size(x)[end] >= samplesize*bursts "Length of data array too small for subsampling of size $size!"
+    @assert size(x)[end] == size(y)[end]
+    inds = sample(1:size(x)[end]-samplesize, bursts, replace = false)
+    inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
+    return resample(x, inds), resample(y, inds)
+end
+
+
+@inline function burst_sampling(x::AbstractArray, t::AbstractVector, period::T, bursts::Int64) where T <: AbstractFloat
+    @assert period > zero(typeof(period)) "Sampling period has to be positive."
+    @assert size(x)[end] == size(t)[end] "Provide consistent data."
+    @assert bursts >= 1 "Number of bursts has to be positive."
+    @assert t[end]-t[1]>= period*bursts "Bursting impossible. Please provide more data or reduce bursts."
+    t_ids = zero(eltype(t)) .<= t .- period  .<= t[end] .- 2*period
+    samplesize = Int64(floor(period/(t[end]-t[1])*length(t)))
+    inds = sample(collect(1:length(t))[t_ids], bursts, replace = false)
+    inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
+    return resample(x, inds), resample(t, inds)
+end
+
+
+@inline function subsample(x::AbstractVector, frequency::Int64)
+    @assert frequency > 1
+    return x[1:frequency:end]
+end
+
+
+@inline function subsample(x::AbstractArray, frequency::Int64)
+    @assert frequency > 1
+    return x[:, 1:frequency:end]
+end
+
+@inline function subsample(x::AbstractArray, t::AbstractVector, period::T) where T <: AbstractFloat
+    @assert period > zero(typeof(period)) "Sampling period has to be positive."
+    @assert size(x)[end] == size(t)[end] "Provide consistent data."
+    @assert t[end]-t[1]>= period "Subsampling impossible. Sampling period exceeds time window."
+    idx = Int64[1]
+    t_now = t[1]
+    @inbounds for (i, t_current) in enumerate(t)
+        if t_current - t_now >= period
+            push!(idx, i)
+            t_now = t_current
+        end
+    end
+    return resample(x, idx), resample(t, idx)
+end
+
+@inline function resample(x::AbstractArray{T,1}, indx::AbstractArray{Int64}) where T <: Number
+    @assert maximum(indx) <= length(x)
+    @assert minimum(indx) >= 1
+    return x[indx]
+end
+
+@inline function resample(x::AbstractArray{T,2}, indx::AbstractArray{Int64}) where T <: Number
+    @assert maximum(indx) <= size(x, 2)
+    @assert minimum(indx) >= 1
+    return x[:, indx]
 end

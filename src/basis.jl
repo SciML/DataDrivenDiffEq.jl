@@ -32,18 +32,18 @@ function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Opera
     bs = unique(basis)
     fix_single_vars_in_basis!(bs, variables)
 
-    vs = sort!([b for b in [ModelingToolkit.vars(bs)...] if !b.known], by = x -> x.name)
-    ps = sort!([b for b in [ModelingToolkit.vars(bs)...] if b.known], by = x -> x.name )
+    vs = [ModelingToolkit.Variable(Symbol(i)) for i in variables]
+    ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters]
 
     f_ = ModelingToolkit.build_function(bs, vs, ps, (), simplified_expr, Val{false})[1]
     return Basis(bs, variables, parameters, f_)
 end
 
-function update!(b::Basis)
-    vs = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if !bi.known], by = x->x.name)
-    ps = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if bi.known], by = x->x.name)
+function update!(basis::Basis)
+    vs = [ModelingToolkit.Variable(Symbol(i)) for i in variables(basis)]
+    ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters(basis)]
 
-    b.f_ = ModelingToolkit.build_function(b.basis, vs, ps, (), simplified_expr, Val{false})[1]
+    basis.f_ = ModelingToolkit.build_function(basis.basis, vs, ps, (), simplified_expr, Val{false})[1]
     return
 end
 
@@ -139,10 +139,12 @@ Base.length(b::Basis) = length(b.basis)
 ModelingToolkit.parameters(b::Basis) = b.parameter
 variables(b::Basis) = b.variables
 
-function jacobian(b::Basis)
-    vs = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if !bi.known], by = x-> x.name)
-    ps = sort!([bi for bi in [ModelingToolkit.vars(b.basis)...] if bi.known], by = x-> x.name)
-    j = calculate_jacobian(b.basis, variables(b))
+function jacobian(basis::Basis)
+
+    vs = [ModelingToolkit.Variable(Symbol(i)) for i in variables(basis)]
+    ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters(basis)]
+
+    j = calculate_jacobian(basis.basis, variables(basis))
     return ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, (), simplified_expr, Val{false})[1]
 end
 

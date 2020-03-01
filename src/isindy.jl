@@ -5,6 +5,7 @@
 
 # TODO preallocation
 function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
+    @assert size(X)[end] == size(Ẋ)[end]
     nb = length(Ψ.basis)
 
     # Compute the library and the corresponding nullspace
