@@ -4,6 +4,7 @@ using LinearAlgebra
 using ModelingToolkit
 using QuadGK
 using Statistics
+using DSP
 using Compat
 
 abstract type abstractBasis end;
@@ -47,6 +48,7 @@ export ISInDy
 include("./utils.jl")
 export AIC, AICC, BIC
 export hankel, optimal_shrinkage, optimal_shrinkage!
+export savitzky_golay
 export burst_sampling, subsample
 
 end # module
