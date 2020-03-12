@@ -90,16 +90,16 @@ function optimal_shrinkage(X::AbstractArray{T, 2}) where T <: Number
     m,n = minimum(size(X)), maximum(size(X))
     U, S, V = svd(X)
     τ = optimal_svht(m,n)
-    S[S .< τ*median(S)] .= 0
-    return U*Diagonal(S)*V'
+    inds = S .>= τ*median(S)
+    return U[:, inds]*Diagonal(S[inds])*V[:, inds]'
 end
 
 function optimal_shrinkage!(X::AbstractArray{T, 2}) where T <: Number
     m,n = minimum(size(X)), maximum(size(X))
     U, S, V = svd(X)
     τ = optimal_svht(m,n)
-    S[S .< τ*median(S)] .= 0
-    X .= U*Diagonal(S)*V'
+    inds = S .>= τ*median(S)
+    X .= U[:, inds]*Diagonal(S[inds])*V[:, inds]'
     return
 end
 
