@@ -86,7 +86,6 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::A
     end
 end
 
-
 function SInDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray; kwargs...) where S <: Number
     return SInDy(X', Ẋ, Ψ, thresholds; kwargs...)
 end
@@ -133,8 +132,8 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
     end
 
     if return_coefficients
-        return Ξ'
+        return Ξ_opt'
     else
-        return Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
+        return Basis(simplified_matvec(Ξ_opt, Ψ.basis), variables(Ψ), parameters = p)
     end
 end

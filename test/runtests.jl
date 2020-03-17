@@ -203,6 +203,7 @@ end
     @test size(Ψ)[1] == 2
 
     Ξ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000, return_coefficients = true)
+    print(size(Ξ))
     @assert size(Ξ) == (length(sol[:, 1]), length(basis))
     @assert isa(Ξ, AbstractArray)
 
