@@ -202,6 +202,10 @@ end
     @test_nowarn set_threshold!(opt, 1e-2)
     @test size(Ψ)[1] == 2
 
+    Ξ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000, return_coefficients = true)
+    @assert size(Ξ) == (length(sol[:, 1]), length(basis))
+    @assert isa(Ξ, AbstractArray)
+
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_ = solve(estimator,Tsit5(), saveat = dt)
