@@ -62,7 +62,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis; kwar
 end
 
 # General
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(), denoise::Bool = false, normalize::Bool = true) where {T <: Optimise.AbstractOptimiser, S <: Number}
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(), denoise::Bool = false, normalize::Bool = true, return_coefficients::Bool = false) where {T <: Optimise.AbstractOptimiser, S <: Number}
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
@@ -79,7 +79,11 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::A
 
     normalize ? rescale_xi!(scales, Ξ) : nothing
 
-    return Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
+    if return_coefficients
+        return Ξ'
+    else
+        return Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
+    end
 end
 
 
@@ -91,7 +95,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thre
     return SInDy(X, Ẋ', Ψ, thresholds; kwargs...)
 end
 
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true) where {T <: Optimise.AbstractOptimiser, S <: Number}
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true, return_coefficients::Bool = false) where {T <: Optimise.AbstractOptimiser, S <: Number}
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
@@ -128,5 +132,9 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
         Ξ_opt[:, i] = Ξ[indx, i, :]
     end
 
-    return Basis(simplified_matvec(Ξ_opt, Ψ.basis), variables(Ψ), parameters = p)
+    if return_coefficients
+        return Ξ'
+    else
+        return Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
+    end
 end
