@@ -204,6 +204,7 @@ function dynamics(b::Basis)
 end
 
 function ModelingToolkit.ODESystem(b::Basis)
+    @assert length(b) == length(variables(b))
     # Define the time
     @parameters t
     @derivatives D'~t
@@ -216,4 +217,23 @@ function ModelingToolkit.ODESystem(b::Basis)
     end
     eqs = dvs .~ b(vs, p = b.parameter)
     return ODESystem(eqs)
+end
+
+function ModelingToolkit.ODESystem(b::Basis, independent_variable::Operation)
+    @assert length(b) == length(variables(b))-1
+    @derivatives D'~independent_variable
+
+    vars = [vi for vi in variables(b) if ! isequal(vi, independent_variable)]
+
+    vs = similar(vars)
+    dvs = similar(vars)
+
+
+    for (i, vi) in enumerate(vars)
+        vs[i] = ModelingToolkit.Operation(vi.op, [independent_variable])
+        dvs[i] = D(vs[i])
+    end
+    
+    eqs = dvs .~ b([vs..., independent_variable], p = b.parameter)
+    return ODESystem(eqs, independent_variable, vs, b.parameter)
 end

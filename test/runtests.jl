@@ -53,6 +53,12 @@ using Test
     @test_nowarn sys = ODESystem(basis)
     @test_nowarn [xi for xi in basis]
     @test_nowarn basis[2:end]; basis[2]; first(basis); last(basis); basis[:]
+
+    @variables u[1:2] t
+
+    g = [u[2]; -sin(u[1])*exp(-t)]
+    basis = Basis(g, [u...; t])
+    @test_nowarn ODESystem(basis, t)
 end
 
 @testset "DMD" begin
