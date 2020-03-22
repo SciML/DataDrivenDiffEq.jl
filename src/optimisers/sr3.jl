@@ -9,12 +9,13 @@ mutable struct SR3{U,T} <: AbstractOptimiser
 end
 
 function SR3(λ = 1e-1, ν = 1.0)
-    R = NormL1(λ)
+    R = NormL1
     return SR3(λ, ν, R)
 end
 
 function set_threshold!(opt::SR3, threshold)
-    opt.λ = threshold
+    #sqrt(2*opt.λ*opt.ν)
+    opt.λ = (threshold / opt.ν /convert(typeof(threshold), 2))^2
     return
 end
 
@@ -22,9 +23,8 @@ end
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
-
-
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 10)
+    f = opt.R(opt.λ)
 
     n, m = size(A)
     W = copy(X)
@@ -36,12 +36,12 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
         # Solve rigde regression
         X .= P*(X̂+W/(opt.ν))
         # Add proximal iteration
-        prox!(W, opt.R, X, opt.ν*opt.λ)
+        prox!(W, f, X, opt.ν*opt.λ)
     end
 
     # This is the effective threshold of the SR3 algorithm
     # See Unified Framework paper supplementary material S1
-    #η = sqrt(2*opt.λ*opt.ν)
-    X[abs.(X) .< opt.λ] .= zero(eltype(X))
+    η = sqrt(2*opt.λ*opt.ν)
+    X[abs.(X) .< η] .= zero(eltype(X))
     return
 end
