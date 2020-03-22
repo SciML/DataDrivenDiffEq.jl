@@ -238,8 +238,8 @@ end
 
     # Check with noise
     X = sol[:, :] + 1e-3*randn(size(sol[:,:])...)
-    set_threshold!(opt, 3.5e-1)
-    Ψ = SInDy(X, DX, basis, maxiter = 10000, opt = opt, denoise = true, normalize = true)
+    #set_threshold!(opt, 3.5e-1)
+    Ψ = SInDy(X, DX, basis, λs, maxiter = 10000, opt = opt, denoise = true, normalize = true)
 
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_4 = solve(estimator,Tsit5(), saveat = dt)

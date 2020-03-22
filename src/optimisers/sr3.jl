@@ -14,8 +14,7 @@ function SR3(λ = 1e-1, ν = 1.0)
 end
 
 function set_threshold!(opt::SR3, threshold)
-    #sqrt(2*opt.λ*opt.ν)
-    opt.λ = (threshold / opt.ν /convert(typeof(threshold), 2))^2
+    opt.λ = threshold
     return
 end
 
@@ -41,7 +40,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
 
     # This is the effective threshold of the SR3 algorithm
     # See Unified Framework paper supplementary material S1
-    η = sqrt(2*opt.λ*opt.ν)
-    X[abs.(X) .< η] .= zero(eltype(X))
+    #η = sqrt(2*opt.λ*opt.ν)
+    X[abs.(X) .< opt.λ] .= zero(eltype(X))
     return
 end
