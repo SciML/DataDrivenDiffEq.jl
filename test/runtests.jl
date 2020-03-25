@@ -226,6 +226,7 @@ end
     @test norm(sol[:,:] - sol_3[:,:], 2) < 1e-1
 
     # Now use the threshold adaptation
+    opt = SR3(1e-2, 20.0)
     λs = exp10.(-5:0.1:-1)
     Ψ = SInDy(sol[:,:], DX[:, :], basis, λs,  maxiter = 20, opt = opt)
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])

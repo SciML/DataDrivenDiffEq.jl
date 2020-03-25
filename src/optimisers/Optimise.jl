@@ -14,7 +14,7 @@ include("./sr3.jl")
 #Nullspace for implicit sindy
 include("./adm.jl")
 
-export init, init!, fit!, set_threshold!
+export init, init!, fit!, set_threshold!, set_threshold
 export STRRidge, ADMM, SR3
 export ADM
 

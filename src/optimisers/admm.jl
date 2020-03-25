@@ -10,6 +10,8 @@ function set_threshold!(opt::ADMM, threshold)
     opt.λ = threshold*opt.ρ
 end
 
+get_threshold(opt::ADMM) = opt.λ/opt.ρ
+
 init(o::ADMM, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
@@ -18,7 +20,7 @@ init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X,
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 100)
     n, m = size(A)
 
-    g = NormL1(opt.λ/opt.ρ)
+    g = NormL1(get_threshold(opt))
 
     x̂ = deepcopy(X)
     ŷ = zero(X)
@@ -32,5 +34,5 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
         ŷ .= ŷ + opt.ρ*(x̂ - X)
     end
 
-    X[abs.(X) .< opt.λ/opt.ρ] .= zero(eltype(X))
+    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
 end

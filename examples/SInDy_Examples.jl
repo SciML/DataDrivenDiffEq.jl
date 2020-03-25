@@ -64,8 +64,9 @@ println(Ψ)
 
 # Vary the sparsity threshold -> gives better results
 λs = exp10.(-5:0.1:-1)
-opt = ADMM(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:30], DX[:, 1:30], basis, λs, maxiter = 20, opt = opt)
+# Use SR3 with high relaxation (allows the solution to diverge from LTSQ) and high iterations
+opt = SR3(1e-2, 20.0)
+Ψ = SInDy(sol[:,1:10], DX[:, 1:10], basis, λs, maxiter = 10000, opt = opt)
 println(Ψ)
 
 # Transform into ODE System
@@ -80,4 +81,4 @@ sol_ = solve(estimator, Tsit5(), saveat = sol.t)
 scatter(sol[:,:]')
 plot!(sol_[:,:]')
 plot(sol.t, abs.(sol-sol_)')
-norm(sol[:,:]-sol_[:,:]) # ≈ 1.89e-13
+norm(sol[:,:]-sol_[:,:], 2)
