@@ -12,6 +12,8 @@ function set_threshold!(opt::STRRidge, threshold)
     opt.λ = threshold
 end
 
+get_threshold(opt::STRRidge) = opt.λ
+
 init(o::STRRidge, A::AbstractArray, Y::AbstractArray) = A \ Y
 init!(X::AbstractArray, o::STRRidge, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
@@ -27,5 +29,5 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STRRidg
         end
     end
 
-    X[abs.(X) .< opt.λ] .= zero(eltype(X))
+    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
 end
