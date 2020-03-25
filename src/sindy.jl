@@ -156,7 +156,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
 
         sparse_regression!(ξ, θ, Ẋ, maxiter, opt, false, false)
 
-        [x[j, i, :] = [norm(xi, 0)/length(Ψ); norm(view(Ẋ , i, :) - θ'*xi, 2)] for (i, xi) in enumerate(eachcol(ξ))]
+        [x[j, i, :] = [norm(xi, 0); norm(view(Ẋ , i, :) - θ'*xi, 2)] for (i, xi) in enumerate(eachcol(ξ))]
 
         normalize ? rescale_xi!(scales, ξ) : nothing
         Ξ[j, :, :] = ξ[:, :]'
