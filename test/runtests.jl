@@ -178,7 +178,6 @@ end
     for (i, xi) in enumerate(eachcol(sol[:,:]))
         DX[:,i] = pendulum(xi, [], 0.0)
     end
-
     # Create a basis
     @variables u[1:2]
 
@@ -202,6 +201,7 @@ end
     @test_nowarn set_threshold!(opt, 1e-2)
     @test size(Ψ)[1] == 2
 
+
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_ = solve(estimator,Tsit5(), saveat = dt)
@@ -210,11 +210,11 @@ end
     opt = ADMM(1e-2, 0.7)
     Ψ = SInDy(sol[:,:], DX, basis, maxiter = 5000, opt = opt)
     @test_nowarn set_threshold!(opt, 1e-2)
+
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_2 = solve(estimator,Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_2[:,:], 2) < 2e-1
-    #@test sol[:,:] ≈ sol_2[:,:]
 
     opt = SR3(1e-2, 1.0)
     Ψ = SInDy(sol[:,:], DX, basis, maxiter = 5000, opt = opt)
@@ -232,23 +232,36 @@ end
     sol_4 = solve(estimator,Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
 
+
     # Check for errors
     @test_nowarn SInDy(sol[:,:], DX[1,:], basis, λs, maxiter = 1, opt = opt)
     @test_nowarn SInDy(sol[:, :], DX[1, :], basis, λs, maxiter = 1, opt = opt, denoise = true, normalize = true)
 
     # Check with noise
     X = sol[:, :] + 1e-3*randn(size(sol[:,:])...)
-    set_threshold!(opt, 3.5e-1)
-    Ψ = SInDy(X, DX, basis, maxiter = 10000, opt = opt, denoise = true, normalize = true)
+    Ψ = SInDy(X, DX, basis, λs, maxiter = 10000, opt = opt, denoise = true, normalize = true)
 
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
     sol_4 = solve(estimator,Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_4[:,:], 2) < 5e-1
 
+    # Check sparse_regression
+    X .= Array(sol)
+    opt = SR3(1e-1, 1.0)
+    maxiter = 5000
+    θ = basis(X)
+    Ξ1 = sparse_regression(X, DX, basis, parameters(basis), maxiter, opt, true, true)
+    Ξ2 = similar(Ξ1)
+    Ξ3 = similar(Ξ1)
+    sparse_regression!(Ξ2, X, DX, basis, parameters(basis), maxiter, opt, true, true)
+    sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true)
+
+    @test Ξ1 ≈ Ξ2 ≈ Ξ3
+    @test isapprox(norm(Ξ1'*θ - DX,2), 25.18; atol = 1e-1)
+
 end
 
 @testset "ISInDy" begin
-
 
     # Create a test problem
     function simple(u, p, t)

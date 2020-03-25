@@ -21,13 +21,11 @@ export Basis
 export variables, jacobian, dynamics
 export free_parameters, parameters, variables
 
-
 include("./exact_dmd.jl")
 export ExactDMD
 export eigen, eigvals, eigvecs
 export modes, frequencies, isstable
 export dynamics, update!
-
 
 include("./extended_dmd.jl")
 export ExtendedDMD
@@ -41,6 +39,7 @@ export get_dynamics, get_input_map, dynamics
 
 include("./sindy.jl")
 export SInDy
+export sparse_regression, sparse_regression!
 
 include("./isindy.jl")
 export ISInDy
