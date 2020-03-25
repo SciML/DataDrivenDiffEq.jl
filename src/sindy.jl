@@ -91,15 +91,21 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
 end
 
 # For pareto
-function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractArray, maxiter::Int64 , opt::T) where T <: Optimise.AbstractOptimiser
+function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractArray, maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool) where T <: Optimise.AbstractOptimiser
+
+    scales = ones(eltype(Ξ), size(θ, 1))
+
+    denoise ? optimal_shrinkage!(θ') : nothing
+    normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimise.init!(Ξ, opt, θ', Ẋ')'
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
+    normalize ? rescale_xi!(scales, Ξ) : nothing
+    normalize ? rescale_xi!(scales, θ) : nothing
+
     return
 end
-
-
 
 
 # One Variable on multiple derivatives
@@ -148,7 +154,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
     @inbounds for (j, threshold) in enumerate(thresholds)
         set_threshold!(opt, threshold)
 
-        sparse_regression!(ξ, θ, Ẋ, maxiter, opt)
+        sparse_regression!(ξ, θ, Ẋ, maxiter, opt, false, false)
 
         [x[j, i, :] = [norm(xi, 0)/length(Ψ); norm(view(Ẋ , i, :) - θ'*xi, 2)] for (i, xi) in enumerate(eachcol(ξ))]
 
