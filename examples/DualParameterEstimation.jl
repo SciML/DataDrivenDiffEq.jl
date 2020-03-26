@@ -107,22 +107,21 @@ function fit_!(Ξ::AbstractArray, p::AbstractArray, X::AbstractArray, A::Abstrac
         p .= res.minimizer
     end
 
-    return res
+    return
 end
 
 
 # SR3, works good with lesser data and tuning
 X = Array(sol)
-opt = DualOptimiser(SR3(1e-2, 10.0), NelderMead())
+opt = DualOptimiser(SR3(1e-1, 1.0), Newton())
 ps = [1.0; 1.0]
 θ = basis(X, p = ps)
 Ξ, E = init_(opt, X, θ, DX, basis) # This takes a long time
 Ξ = θ'\DX'
-res = fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 1, maxiter = 10) #This is super fast
+fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 10, maxiter = 5000) #This is super fast
 Ξ
-res.minimizer
-
-Ψ = Basis(simplify_constants.(Ξ'*basis(variables(basis), p = res.minimizer)), u)
+ps
+Ψ = Basis(simplify_constants.(Ξ'*basis(variables(basis), p = ps)), u)
 println(Ψ)
 
 plot(Ψ(X)')
