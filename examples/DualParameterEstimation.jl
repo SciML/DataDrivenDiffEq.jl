@@ -40,7 +40,7 @@ end
 @parameters p[1:2]
 
 # And some other stuff
-h = Operation[cos(u[1]+p[1]);u[2]^p[2]; u[1]]
+h = Operation[cos(u[1]+p[1]);u[2]*exp(p[2]*u[1]); u[1]]
 
 basis = Basis(h, u, parameters = p)
 
@@ -113,10 +113,11 @@ end
 
 # SR3, works good with lesser data and tuning
 X = Array(sol)
-opt = DualOptimiser(STRRidge(1e-2), BFGS())
+opt = DualOptimiser(SR3(1e-2, 10.0), NelderMead())
 ps = [1.0; 1.0]
 θ = basis(X, p = ps)
 Ξ, E = init_(opt, X, θ, DX, basis) # This takes a long time
+Ξ = θ'\DX'
 res = fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 1, maxiter = 10) #This is super fast
 Ξ
 res.minimizer
