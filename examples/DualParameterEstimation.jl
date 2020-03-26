@@ -97,7 +97,6 @@ function fit_!(Ξ::AbstractArray, p::AbstractArray, X::AbstractArray, A::Abstrac
     for i in 1:maxiter
         # Update θ
         update!(A, b, X, p)
-        println(A[1:2, 1:2])
         DataDrivenDiffEq.normalize_theta!(scales, θ)
         # First do a sparsifying regression step
         DataDrivenDiffEq.Optimise.fit!(Ξ, A', Y', opt.sparse_opt, maxiter = subiter)
@@ -113,14 +112,12 @@ end
 
 # SR3, works good with lesser data and tuning
 X = Array(sol)
-opt = DualOptimiser(SR3(1e-1, 1.0), Newton())
+opt = DualOptimiser(STRRidge(1e-1), BFGS())
 ps = [1.0; 1.0]
 θ = basis(X, p = ps)
 Ξ, E = init_(opt, X, θ, DX, basis) # This takes a long time
 Ξ = θ'\DX'
-fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 10, maxiter = 5000) #This is super fast
-Ξ
-ps
+fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 100, maxiter = 1000) #This is super fast
 Ψ = Basis(simplify_constants.(Ξ'*basis(variables(basis), p = ps)), u)
 println(Ψ)
 
