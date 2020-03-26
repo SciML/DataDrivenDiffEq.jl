@@ -112,12 +112,12 @@ end
 
 # SR3, works good with lesser data and tuning
 X = Array(sol)
-opt = DualOptimiser(STRRidge(1e-1), BFGS())
-ps = [1.0; 1.0]
+opt = DualOptimiser(SR3(3e-1), Newton())
+ps = [0.2; 0.0]
 θ = basis(X, p = ps)
 Ξ, E = init_(opt, X, θ, DX, basis) # This takes a long time
 Ξ = θ'\DX'
-fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 100, maxiter = 1000) #This is super fast
+fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 1000, maxiter = 100) #This is super fast
 Ψ = Basis(simplify_constants.(Ξ'*basis(variables(basis), p = ps)), u)
 println(Ψ)
 
