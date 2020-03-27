@@ -40,7 +40,7 @@ end
 @parameters p[1:3]
 
 # And some other stuff
-h = Operation[cos(u[1]+p[1]);u[2]; u[1]*sin(u[2]*p[2]); sin(p[3]*u[3])]
+h = Operation[cos(u[1]+p[1]); u[3];u[2]; u[1] ;u[1]*sin(u[2]*p[2]); sin(p[3]*u[3])]
 
 basis = Basis(h, u, parameters = p)
 
@@ -56,9 +56,9 @@ mutable struct DualOptimiser{S, P, O, L, B} <: AbstractDualOptimiser
     upper::B
 end
 
-has_bounds(d::DualOptimiser) = !(isnothing(d.lower) && !isnothing(d.upper))
+has_bounds(d::DualOptimiser) = !(isnothing(d.lower) || !isnothing(d.upper))
 get_options(d::DualOptimiser) = d.options
-
+has_bounds(opt)
 
 struct Evaluator{F, G, H}
     f::F
@@ -113,7 +113,16 @@ function init_(X::AbstractArray, A::AbstractArray, Y::AbstractArray, b::Basis; g
 end
 
 function fit_!(Ξ::AbstractArray, p::AbstractArray, X::AbstractArray, A::AbstractArray, Y::AbstractArray, b::Basis, e::Evaluator, opt::DualOptimiser; subiter::Int64 = 1, maxiter::Int64 = 10)
-
+    ipnewt = isa(opt.param_opt, IPNewton)
+    if ipnewt
+        if has_bounds(opt)
+            dfc = TwiceDifferentiableConstraints(opt.lower, opt.upper)
+        else
+            lx = fill(-Inf, length(p))
+            ux = fill(Inf, length(p))
+            dfc = TwiceDifferentiableConstraints(lx, ux)
+        end
+    end
     scales = ones(eltype(Ξ), size(θ, 1))
     for i in 1:maxiter
         # Update θ
@@ -125,7 +134,10 @@ function fit_!(Ξ::AbstractArray, p::AbstractArray, X::AbstractArray, A::Abstrac
         DataDrivenDiffEq.Optimise.fit!(Ξ, A', Y', opt.sparse_opt, maxiter = 1)
         DataDrivenDiffEq.rescale_xi!(scales, Ξ)
         # Update the parameter
-        if has_bounds(opt)
+        if ipnewt
+            df = TwiceDifferentiable(evaluate(e, Ξ)..., p)
+            res = Optim.optimize(df, dfc, p, opt.param_opt, get_options(opt))
+        elseif has_bounds(opt)
             res = Optim.optimize(evaluate(e, Ξ)..., opt.lower, opt.upper, p, opt.param_opt, get_options(opt))
         else
             res = Optim.optimize(evaluate(e, Ξ)..., p, opt.param_opt, get_options(opt))
@@ -149,15 +161,15 @@ X = Array(sol)
 X = [X; sol.t']
 upper = Float64[π; 10.0; 10.0]
 lower = Float64[-π; -10.0; -10.0]
-options = Optim.Options(iterations = 1)
-parameter_optimiser = Newton()
-
-opt = DualOptimiser(SR3(1e-1, 0.2), parameter_optimiser, options, nothing, upper)
-E = init_(X, θ, DX, basis, gradient = true, hessian = true) # This takes a long time
-ps = [0.2; 0.1; -0.2]
+options = Optim.Options(iterations = 100)
+parameter_optimiser = IPNewton()
+opt = DualOptimiser(SR3(2e-1), parameter_optimiser, options, nothing, nothing)
+ps = [-10.0; 0.3; 0.2]
 θ = basis(X, p = ps)
+E = init_(X, θ, DX, basis, gradient = true, hessian = true) # This takes a long time
 Ξ = qr(θ')\DX'
-fit_!(Ξ, ps, X, θ, DX, basis, E, opt, maxiter = 10) #This is super fast
+res = fit_!(Ξ, ps, X, θ, DX, basis, E, opt, maxiter = 2000) #This is super fast
+ps
 Ψ = Basis(simplify_constants.(Ξ'*basis(variables(basis), p = ps)), u)
 println(Ψ)
 plot(Ψ(X)')
