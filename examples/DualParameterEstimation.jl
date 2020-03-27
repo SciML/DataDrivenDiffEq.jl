@@ -40,7 +40,7 @@ end
 @parameters p[1:2]
 
 # And some other stuff
-h = Operation[cos(u[1]+p[1]);u[2]*exp(p[2]*u[1]); u[1]]
+h = Operation[cos(u[1]+p[1]);u[2]; u[1]*sin(u[2]*p[2])]
 
 basis = Basis(h, u, parameters = p)
 
@@ -97,13 +97,15 @@ function fit_!(Ξ::AbstractArray, p::AbstractArray, X::AbstractArray, A::Abstrac
     for i in 1:maxiter
         # Update θ
         update!(A, b, X, p)
-        DataDrivenDiffEq.normalize_theta!(scales, θ)
+        DataDrivenDiffEq.normalize_theta!(scales, A)
         # First do a sparsifying regression step
-        DataDrivenDiffEq.Optimise.fit!(Ξ, A', Y', opt.sparse_opt, maxiter = subiter)
+        DataDrivenDiffEq.Optimise.fit!(Ξ, A', Y', opt.sparse_opt, maxiter = 1)
         DataDrivenDiffEq.rescale_xi!(scales, Ξ)
         # Update the parameter
-        res = Optim.optimize(evaluate(e, Ξ)..., p, opt.param_opt, Optim.Options(iterations = subiter))
-        p .= res.minimizer
+        res = Optim.optimize(evaluate(e, Ξ)..., p, opt.param_opt, Optim.Options(iterations = 1))
+        #return res
+        p .= Optim.minimizer(res)
+        #return res
     end
 
     return
@@ -112,12 +114,17 @@ end
 
 # SR3, works good with lesser data and tuning
 X = Array(sol)
-opt = DualOptimiser(SR3(3e-1), Newton())
-ps = [0.2; 0.0]
+
+parameter_optimiser = Fminbox()
+opt = DualOptimiser(SR3(2e-1, 10.0), Newton())
+DataDrivenDiffEq.Optimise.get_threshold(opt.sparse_opt)
+ps = [0.2; 1.0]
 θ = basis(X, p = ps)
 Ξ, E = init_(opt, X, θ, DX, basis) # This takes a long time
 Ξ = θ'\DX'
-fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 1000, maxiter = 100) #This is super fast
+r = fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 1, maxiter = 2000) #This is super fast
+
+
 Ψ = Basis(simplify_constants.(Ξ'*basis(variables(basis), p = ps)), u)
 println(Ψ)
 
