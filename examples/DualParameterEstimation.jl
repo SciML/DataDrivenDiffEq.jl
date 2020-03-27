@@ -18,7 +18,7 @@ gr()
 
 function pendulum(u, p, t)
     x = u[2]
-    y = -9.81sin(u[1])
+    y = -9.81sin(u[1]) + 0.5*sin(t)
     return [x;y]
 end
 
@@ -36,11 +36,11 @@ for (i, xi) in enumerate(eachcol(sol[:,:]))
 end
 
 # Create a basis
-@variables u[1:2]
-@parameters p[1:2]
+@variables u[1:3]
+@parameters p[1:3]
 
 # And some other stuff
-h = Operation[cos(u[1]+p[1]);u[2]; u[1]*sin(u[2]*p[2])]
+h = Operation[cos(u[1]+p[1]);u[2]; u[1]*sin(u[2]*p[2]); sin(p[3]*u[3])]
 
 basis = Basis(h, u, parameters = p)
 
@@ -60,15 +60,21 @@ has_bounds(d::DualOptimiser) = !(isnothing(d.lower) && !isnothing(d.upper))
 get_options(d::DualOptimiser) = d.options
 
 
-struct Evaluator
-    f::Function
-    g::Function
-    h::Function
+struct Evaluator{F, G, H}
+    f::F
+    g::G
+    h::H
 end
 
 function evaluate(c::Evaluator, X::AbstractArray)
     f(p) = c.f(X, p)[1]
+    if isnothing(c.g)
+        return [f]
+    end
     g!(du, p) = c.g(du, X, p)
+    if isnothing(c.h)
+        return f, g!
+    end
     h!(du, p) = c.h(du, X, p)
     return f, g!, h!
 end
@@ -79,7 +85,7 @@ DataDrivenDiffEq.update!(θ::AbstractArray, b::Basis, X::AbstractArray, p::Abstr
 function init_(X::AbstractArray, A::AbstractArray, Y::AbstractArray, b::Basis; gradient::Bool = true, hessian::Bool = true)
 
     # Generate the cost function and its partial derivatives
-    @parameters xi[1:size(X, 1), 1:length(b)]
+    @parameters xi[1:size(DX, 1), 1:length(b)]
     # Cost function
     f = simplify_constants(sum((xi*b(X, p = parameters(b))-Y).^2))
 
@@ -87,7 +93,7 @@ function init_(X::AbstractArray, A::AbstractArray, Y::AbstractArray, b::Basis; g
     f_(u, p) = f_oop(u, p)[1]
 
     # TODO how to handle this?
-    g!, h! = (args...)->nothing, (args...)->nothing
+    g!, h! = nothing, nothing
 
     if gradient
         g_oop, g_iip = ModelingToolkit.build_function(ModelingToolkit.gradient(f, parameters(b)), xi, parameters(b), (), simplified_expr, Val{false})
@@ -112,6 +118,8 @@ function fit_!(Ξ::AbstractArray, p::AbstractArray, X::AbstractArray, A::Abstrac
     for i in 1:maxiter
         # Update θ
         update!(A, b, X, p)
+
+        # Can be done using sparse_regression
         DataDrivenDiffEq.normalize_theta!(scales, A)
         # First do a sparsifying regression step
         DataDrivenDiffEq.Optimise.fit!(Ξ, A', Y', opt.sparse_opt, maxiter = 1)
@@ -122,15 +130,14 @@ function fit_!(Ξ::AbstractArray, p::AbstractArray, X::AbstractArray, A::Abstrac
         else
             res = Optim.optimize(evaluate(e, Ξ)..., p, opt.param_opt, get_options(opt))
         end
-        #return res
+
         p .= Optim.minimizer(res)
-        #return res
     end
 
+    # Run a sparsification at the end
     update!(A, b, X, p)
     DataDrivenDiffEq.normalize_theta!(scales, A)
-    # First do a sparsifying regression step
-    DataDrivenDiffEq.Optimise.fit!(Ξ, A', Y', opt.sparse_opt, maxiter = 100)
+    DataDrivenDiffEq.Optimise.fit!(Ξ, A', Y', opt.sparse_opt, maxiter = 10000)
     DataDrivenDiffEq.rescale_xi!(scales, Ξ)
 
     return
@@ -139,20 +146,19 @@ end
 
 # SR3, works good with lesser data and tuning
 X = Array(sol)
-upper = Float64[π; 1.0]
-lower = Float64[-π; -1.0]
+X = [X; sol.t']
+upper = Float64[π; 10.0; 10.0]
+lower = Float64[-π; -10.0; -10.0]
 options = Optim.Options(iterations = 1)
-parameter_optimiser = GradientDescent()
-opt = DualOptimiser(SR3(2e-1, 10.0), parameter_optimiser, options, nothing, upper)
-has_bounds(opt)
-DataDrivenDiffEq.Optimise.get_threshold(opt.sparse_opt)
-ps = [0.2; 1.0]
+parameter_optimiser = Newton()
+
+opt = DualOptimiser(SR3(1e-1, 0.2), parameter_optimiser, options, nothing, upper)
+E = init_(X, θ, DX, basis, gradient = true, hessian = true) # This takes a long time
+ps = [0.2; 0.1; -0.2]
 θ = basis(X, p = ps)
-E = init_(X, θ, DX, basis, gradient = true, hessian = false) # This takes a long time
-Ξ = θ'\DX'
-r = fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 1, maxiter = 2000) #This is super fast
+Ξ = qr(θ')\DX'
+fit_!(Ξ, ps, X, θ, DX, basis, E, opt, maxiter = 10) #This is super fast
 Ψ = Basis(simplify_constants.(Ξ'*basis(variables(basis), p = ps)), u)
 println(Ψ)
-
 plot(Ψ(X)')
 plot!(DX')
