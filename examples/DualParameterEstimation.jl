@@ -48,10 +48,16 @@ basis = Basis(h, u, parameters = p)
 abstract type AbstractDualOptimiser end;
 
 
-mutable struct DualOptimiser{S, O} <: AbstractDualOptimiser
+mutable struct DualOptimiser{S, P, O, L, B} <: AbstractDualOptimiser
     sparse_opt::S
-    param_opt::O
+    param_opt::P
+    options::O
+    lower::L
+    upper::B
 end
+
+has_bounds(d::DualOptimiser) = !(isnothing(d.lower) && !isnothing(d.upper))
+get_options(d::DualOptimiser) = d.options
 
 
 struct Evaluator
@@ -70,25 +76,34 @@ end
 
 DataDrivenDiffEq.update!(θ::AbstractArray, b::Basis, X::AbstractArray, p::AbstractArray) = θ .= b(X, p = p)
 
-function init_(o::DualOptimiser, X::AbstractArray, A::AbstractArray, Y::AbstractArray, b::Basis)
-    # Normal sindy
-    Ξ = DataDrivenDiffEq.Optimise.init(o.sparse_opt, A', Y')
+function init_(X::AbstractArray, A::AbstractArray, Y::AbstractArray, b::Basis; gradient::Bool = true, hessian::Bool = true)
 
     # Generate the cost function and its partial derivatives
-    @parameters xi[1:size(Ξ, 2), 1:length(b)]
+    @parameters xi[1:size(X, 1), 1:length(b)]
     # Cost function
     f = simplify_constants(sum((xi*b(X, p = parameters(b))-Y).^2))
 
     f_oop, f_iip = ModelingToolkit.build_function(f, xi, parameters(b), (), simplified_expr, Val{false})
-    g_oop, g_iip = ModelingToolkit.build_function(ModelingToolkit.gradient(f, parameters(b)), xi, parameters(b), (), simplified_expr, Val{false})
-    h_oop, h_iip = ModelingToolkit.build_function(ModelingToolkit.hessian(f, parameters(b)), xi, parameters(b), (), simplified_expr, Val{false})
-
     f_(u, p) = f_oop(u, p)[1]
-    g!(du, u, p) = g_iip(du, u, p)
-    h!(du, u, p) = h_iip(du, u, p)
+
+    # TODO how to handle this?
+    g!, h! = (args...)->nothing, (args...)->nothing
+
+    if gradient
+        g_oop, g_iip = ModelingToolkit.build_function(ModelingToolkit.gradient(f, parameters(b)), xi, parameters(b), (), simplified_expr, Val{false})
+        g!(du, u, p) = g_iip(du, u, p)
+    end
+
+
+    if hessian
+        h_oop, h_iip = ModelingToolkit.build_function(ModelingToolkit.hessian(f, parameters(b)), xi, parameters(b), (), simplified_expr, Val{false})
+        h!(du, u, p) = h_iip(du, u, p)
+    end
+
+
     c = Evaluator(f_, g!, h!)
 
-    return Ξ, c
+    return c
 end
 
 function fit_!(Ξ::AbstractArray, p::AbstractArray, X::AbstractArray, A::AbstractArray, Y::AbstractArray, b::Basis, e::Evaluator, opt::DualOptimiser; subiter::Int64 = 1, maxiter::Int64 = 10)
@@ -102,11 +117,21 @@ function fit_!(Ξ::AbstractArray, p::AbstractArray, X::AbstractArray, A::Abstrac
         DataDrivenDiffEq.Optimise.fit!(Ξ, A', Y', opt.sparse_opt, maxiter = 1)
         DataDrivenDiffEq.rescale_xi!(scales, Ξ)
         # Update the parameter
-        res = Optim.optimize(evaluate(e, Ξ)..., p, opt.param_opt, Optim.Options(iterations = 1))
+        if has_bounds(opt)
+            res = Optim.optimize(evaluate(e, Ξ)..., opt.lower, opt.upper, p, opt.param_opt, get_options(opt))
+        else
+            res = Optim.optimize(evaluate(e, Ξ)..., p, opt.param_opt, get_options(opt))
+        end
         #return res
         p .= Optim.minimizer(res)
         #return res
     end
+
+    update!(A, b, X, p)
+    DataDrivenDiffEq.normalize_theta!(scales, A)
+    # First do a sparsifying regression step
+    DataDrivenDiffEq.Optimise.fit!(Ξ, A', Y', opt.sparse_opt, maxiter = 100)
+    DataDrivenDiffEq.rescale_xi!(scales, Ξ)
 
     return
 end
@@ -114,17 +139,18 @@ end
 
 # SR3, works good with lesser data and tuning
 X = Array(sol)
-
-parameter_optimiser = Fminbox()
-opt = DualOptimiser(SR3(2e-1, 10.0), Newton())
+upper = Float64[π; 1.0]
+lower = Float64[-π; -1.0]
+options = Optim.Options(iterations = 1)
+parameter_optimiser = GradientDescent()
+opt = DualOptimiser(SR3(2e-1, 10.0), parameter_optimiser, options, nothing, upper)
+has_bounds(opt)
 DataDrivenDiffEq.Optimise.get_threshold(opt.sparse_opt)
 ps = [0.2; 1.0]
 θ = basis(X, p = ps)
-Ξ, E = init_(opt, X, θ, DX, basis) # This takes a long time
+E = init_(X, θ, DX, basis, gradient = true, hessian = false) # This takes a long time
 Ξ = θ'\DX'
 r = fit_!(Ξ, ps, X, θ, DX, basis, E, opt, subiter = 1, maxiter = 2000) #This is super fast
-
-
 Ψ = Basis(simplify_constants.(Ξ'*basis(variables(basis), p = ps)), u)
 println(Ψ)
 
