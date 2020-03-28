@@ -18,7 +18,7 @@ function set_threshold!(opt::SR3, threshold)
     return
 end
 
-get_threshold(opt::SR3) = sqrt(2*opt.λ/opt.ν)
+get_threshold(opt::SR3) = sqrt(2*opt.λ*opt.ν)
 
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
