@@ -14,7 +14,7 @@ function SR3(λ = 1e-1, ν = 1.0)
 end
 
 function set_threshold!(opt::SR3, threshold)
-    opt.λ = threshold^2*opt.ν /2
+    opt.λ = threshold^2/(opt.ν*2)
     return
 end
 
