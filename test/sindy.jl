@@ -99,8 +99,8 @@
     Ξ3 = similar(Ξ1)
     sparse_regression!(Ξ2, X, DX, basis, parameters(basis), maxiter, opt, true, true)
     sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true)
-    @test_broken Ξ1 ≈ Ξ2 ≈ Ξ3
-    @test_broken isapprox(norm(Ξ3'*θ - DX,2), 25.18; atol = 1e-1)
+    @test Ξ1 ≈ Ξ2 ≈ Ξ3
+    @test_broken isapprox(norm(Ξ1'*θ - DX,2), 25.18; atol = 1e-1)
 end
 
 
