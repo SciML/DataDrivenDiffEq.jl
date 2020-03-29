@@ -42,6 +42,6 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
     # This is the effective threshold of the SR3 algorithm
     # See Unified Framework paper supplementary material S1
     #η = sqrt(2*opt.λ*opt.ν)
-    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
+    #X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
     return
 end

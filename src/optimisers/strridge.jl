@@ -28,6 +28,4 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STRRidg
             X[biginds, j] .= A[:, biginds] \ Y[:,j]
         end
     end
-
-    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
 end
