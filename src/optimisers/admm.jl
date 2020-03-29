@@ -1,18 +1,25 @@
+# Adapted code for useage from
+# https://web.stanford.edu/~boyd/papers/admm/basis_pursuit/basis_pursuit.html
+# and the correlated paper
+# Distributed Optimization and Statistical Learning via the Alternating Direction Method of Multipliers
+# by Boyd et. al. 2010
+
 mutable struct ADMM{U} <: AbstractOptimiser
-    λ::U
-    ρ::U
+    λ::U # threshold
+    ρ::U # Lagrangian
+    α::U # Relaxation
 end
 
-ADMM() = ADMM(0.1, 1.0)
+ADMM() = ADMM(0.1, 1.0 ,1.0)
 
 
 function set_threshold!(opt::ADMM, threshold)
-    opt.λ = threshold*opt.ρ
+    opt.λ = threshold
 end
 
-get_threshold(opt::ADMM) = opt.λ/opt.ρ
+get_threshold(opt::ADMM) = opt.λ
 
-init(o::ADMM, A::AbstractArray, Y::AbstractArray) =  A \ Y
+init(o::ADMM, A::AbstractArray, Y::AbstractArray) =  qr(A) \ Y
 init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
 #soft_thresholding(x::AbstractArray, t::T) where T <: Real = sign.(x) .* max.(abs.(x) .- t, zero(eltype(x)))
@@ -22,17 +29,22 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
 
     g = NormL1(get_threshold(opt))
 
-    x̂ = deepcopy(X)
-    ŷ = zero(X)
+    x̂ = zero(X)
+    z = zero(X)
+    u = zero(X)
 
-    P = I(m)/opt.ρ - (A' * pinv(opt.ρ*I(n) + A*A') *A)/opt.ρ
-    c = P*(A'*Y)
-
+    P = I(m) - A'*(A*A' \ A)
+    Q = A'*(A*A' \ Y)
     @inbounds for i in 1:maxiter
-        x̂ .= P*(opt.ρ*X - ŷ) + c
-        prox!(X, g, x̂ + ŷ/opt.ρ)
-        ŷ .= ŷ + opt.ρ*(x̂ - X)
+        X .= P*(z-u) + Q
+        x̂ .= opt.α*X+(one(opt.α)-opt.α)*z
+        shrinkage!(z, x̂ + u, opt.λ\opt.ρ)
+        u .+= x̂ - z
     end
 
     X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
+end
+
+function shrinkage!(z::AbstractArray, x::AbstractArray, κ::T) where T <: Number
+    z .= sign.(x) .* max.(zero(x), abs.(x) .- κ)
 end
