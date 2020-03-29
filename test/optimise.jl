@@ -21,7 +21,7 @@ opts = [STRRidge(), ADMM(), SR3()]
             Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
             fit!(Ξ, x', y', opt, maxiter = 1000)
             #@test norm(A-Ξ') < 1e-10
-            @test A ≈ Ξ'
+            @test A ≈ Ξ' atol = 1e-3
         end
     end
 
@@ -37,7 +37,7 @@ end
             Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
             fit!(Ξ, x', y', opt, maxiter = 1000)
             #@test norm(A-Ξ') < 1e-10
-            @test A ≈ Ξ'
+            @test A ≈ Ξ' atol = 1e-3
         end
     end
 
