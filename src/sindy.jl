@@ -65,6 +65,7 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
     Optimise.init!(Ξ, opt, θ', Ẋ')
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
+
     normalize ? rescale_xi!(scales, Ξ) : nothing
 
     Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
@@ -87,9 +88,9 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     Optimise.init!(Ξ, opt, θ', Ẋ')
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
-    normalize ? rescale_xi!(scales, Ξ) : nothing
-
     Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
+
+    normalize ? rescale_xi!(scales, Ξ) : nothing
 
     return
 end
@@ -105,11 +106,10 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
     Optimise.init!(Ξ, opt, θ', Ẋ')'
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
+    Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
+
     normalize ? rescale_xi!(scales, Ξ) : nothing
     normalize ? rescale_xi!(scales, θ) : nothing
-
-
-    #Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
 
     return
 end
