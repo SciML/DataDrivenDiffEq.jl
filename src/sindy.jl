@@ -109,7 +109,7 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
     normalize ? rescale_xi!(scales, θ) : nothing
 
 
-    Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
+    #Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
 
     return
 end
@@ -156,6 +156,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
     scales = ones(eltype(X), length(Ψ))
 
     denoise ? optimal_shrinkage!(θ') : nothing
+
     normalize ? normalize_theta!(scales, θ) : nothing
 
     @inbounds for (j, threshold) in enumerate(thresholds)
@@ -163,15 +164,22 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
 
         sparse_regression!(ξ, θ, Ẋ, maxiter, opt, false, false)
 
+        normalize ? rescale_xi!(scales, ξ) : nothing
+
         [x[j, i, :] = [norm(xi, 0); norm(view(Ẋ , i, :) - θ'*xi, 2)] for (i, xi) in enumerate(eachcol(ξ))]
 
-        normalize ? rescale_xi!(scales, ξ) : nothing
+
+        ξ[abs.(ξ) .< get_threshold(opt)] .= zero(eltype(ξ))
+
+
         Ξ[j, :, :] = ξ[:, :]'
     end
 
+    #return Ξ, x
+
     # Create the evaluation
     @inbounds for i in 1:ny
-        x[:, i, 2] .= x[:, i, 2]./maximum(x[:, i, 2])
+        #x[:, i, 2] .= x[:, i, 2]./maximum(x[:, i, 2])
         pareto[i, :] = [norm(x[j, i, :], 2) for j in 1:length(thresholds)]
         _, indx = findmin(pareto[i, :])
         Ξ_opt[:, i] = Ξ[indx, i, :]

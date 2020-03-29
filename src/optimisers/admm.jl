@@ -27,14 +27,14 @@ init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X,
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 100)
     n, m = size(A)
 
-    g = NormL1(get_threshold(opt))
-
     x̂ = zero(X)
     z = zero(X)
     u = zero(X)
 
     P = I(m) - A'*(A*A' \ A)
     Q = A'*(A*A' \ Y)
+
+
     @inbounds for i in 1:maxiter
         X .= P*(z-u) + Q
         x̂ .= opt.α*X+(one(opt.α)-opt.α)*z
