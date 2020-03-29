@@ -8,6 +8,12 @@ end
 
 STRRidge() = STRRidge(0.1)
 
+Base.show(io::IO, x::STRRidge) = print(io, "STRRidge($(get_threshold(x)))")
+
+@inline function Base.print(io::IO, x::STRRidge)
+    show(io, x)
+end
+
 function set_threshold!(opt::STRRidge, threshold)
     opt.λ = threshold
 end

@@ -13,6 +13,14 @@ mutable struct SR3{U,T} <: AbstractOptimiser
     R::T
 end
 
+
+Base.show(io::IO, x::SR3) = print(io, "SR3($(get_threshold(x)))")
+
+@inline function Base.print(io::IO, x::SR3)
+    show(io, x)
+end
+
+
 function SR3(λ = 1e-1, ν = 0.5, R = NormL0)
     return SR3(λ, ν, R)
 end

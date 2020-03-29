@@ -23,7 +23,6 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; maxiter::Int64 
         # Calls effectively the ADM algorithm with varying initial conditions
         DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
 
-
         # Compute pareto front
         pareto = map(q->norm([norm(q, 0) ;norm(Θ'*q, 2)], 2), eachcol(Q))
         score, posmin = findmin(pareto)

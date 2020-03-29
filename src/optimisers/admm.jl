@@ -12,6 +12,11 @@ end
 
 ADMM() = ADMM(0.1, 1.0 ,1.0)
 
+Base.show(io::IO, x::ADMM) = print(io, "ADMM($(get_threshold(x)))")
+
+@inline function Base.print(io::IO, x::ADMM)
+    show(io, x)
+end
 
 function set_threshold!(opt::ADMM, threshold)
     opt.λ = threshold

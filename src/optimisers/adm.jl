@@ -4,6 +4,14 @@ mutable struct ADM{U, O} <: AbstractSubspaceOptimiser
     R::O
 end
 
+
+Base.show(io::IO, x::ADM) = print(io, "ADM($(get_threshold(x)))")
+
+@inline function Base.print(io::IO, x::ADM)
+    show(io, x)
+end
+
+
 function ADM(λ::T = 0.1) where T <: Real
     f = NormL1(λ)
     return ADM(λ, f)
