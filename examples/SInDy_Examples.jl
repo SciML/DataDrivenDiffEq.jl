@@ -59,9 +59,8 @@ opt = ADMM(λ, 0.2,1.0)
 println(Ψ)
 
 # SR3, works good with more data and tuning
-# However, the
 # Use SR3 with high relaxation (allows the solution to diverge from LTSQ) and high iterations
-opt = SR3(1.0, 10.0)
+opt = SR3(1.0, 100.0)
 set_threshold!(opt, λ)
 Ψ = SInDy(sol[:,1:25], DX[:, 1:25], basis, maxiter = 5000, opt = opt)
 println(Ψ)
@@ -85,4 +84,3 @@ scatter(sol[:,:]')
 plot!(sol_[:,:]')
 plot(sol.t, abs.(sol-sol_)')
 norm(sol[:,:]-sol_[:,:], 2)
-@test all(sol[:,:] .≈ sol_[:,:])
