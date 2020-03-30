@@ -35,9 +35,9 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
     u = zero(X)
 
     g = NormL1(opt.λ\opt.ρ)
-
-    P = I(m) - A'*(A*A' \ A)
-    Q = A'*(A*A' \ Y)
+    qrA = qr(A*A',  Val(true))
+    P = I(m) - A'*(qrA \ A)
+    Q = A'*(qrA \ Y)
 
 
     @inbounds for i in 1:maxiter
