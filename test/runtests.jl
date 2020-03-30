@@ -2,9 +2,8 @@ using DataDrivenDiffEq
 using ModelingToolkit
 using LinearAlgebra
 using OrdinaryDiffEq
-using SparseArrays
-using Test
 using DataDrivenDiffEq.Optimise
+using Test
 using Random
 Random.seed!(123)
 
