@@ -1,60 +1,58 @@
-
-function generate_data(x_dim::Int64, y_dim::Int64, sparsity::Float64, ratio::Float64)
-    n, m, k = x_dim, y_dim, max(floor(Int64,ratio*x_dim), y_dim)
-    x = randn(n,k) # Fully random input vector
-    # Generate random sparse matrix we want to recover
-    A = Matrix(10.0*sprand(m,n, sparsity))
-    y = A*x # measurements
-    return y, A, x
-end
-
 opts = [STRRidge(), ADMM(), SR3()]
-
+iters = Int64[500, 1000, 10000]
+atols = Float64[1e-3, 1e-2, 2e-1]
 
 @testset "Equal Sizes" begin
-    @testset for sparsity in 0.05:0.05:0.85
-        y, A, x = generate_data(3, 3,sparsity, 3.0)
-        threshold = min(1/norm(y, Inf), 1e-1)^2
 
-        @testset for opt in opts
-            set_threshold!(opt, threshold)
-            Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
-            fit!(Ξ, x', y', opt, maxiter = 1000)
-            #@test norm(A-Ξ') < 1e-10
-            @test A ≈ Ξ' atol = 1e-3
-        end
+    x = randn(3, 10)
+    A = [1.0 0 -0.1; 0 -2.0 0; 0.1 0.5 -1.0]
+    y = A*x
+
+    threshold = 0.9*minimum(abs.(A[abs.(A) .> 0.0]))
+
+    @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
+        set_threshold!(opt, threshold)
+        Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
+        fit!(Ξ, x', y', opt, maxiter = maxiter)
+        @test A ≈ Ξ' atol = a_tol
     end
-
 end
 
 @testset "Single Signal" begin
-    @testset for sparsity in 0.05:0.05:0.85
-        y, A, x = generate_data(10, 1,sparsity, 3.0)
-        threshold = min(1/norm(y, Inf), 1e-1)^2
 
-        @testset for opt in opts
-            set_threshold!(opt, threshold)
-            Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
-            fit!(Ξ, x', y', opt, maxiter = 1000)
-            #@test norm(A-Ξ') < 1e-10
-            @test A ≈ Ξ' atol = 1e-3
-        end
+    x = randn(3, 10)
+    A = [1.0 0 -0.1]
+    y = A*x
+
+    threshold = 0.9*minimum(abs.(A[abs.(A) .> 0.0]))
+
+    @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
+        set_threshold!(opt, threshold)
+        Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
+        fit!(Ξ, x', y', opt, maxiter = maxiter)
+        @test A ≈ Ξ' atol = a_tol
     end
-
 end
 
 
 @testset "Multiple Signals" begin
-    @testset for sparsity in 0.05:0.05:0.85
-        y, A, x = generate_data(50, 5,sparsity, 1.0)
-        threshold = min(1/norm(y, Inf), 1e-1)^2
 
-        @testset for opt in opts
-            set_threshold!(opt, threshold)
-            Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
-            fit!(Ξ, x', y', opt, maxiter = 100)
-            @test A ≈ Ξ' atol = 1e-3
-        end
+    x = randn(100, 500)
+    A = zeros(5,100)
+    A[1,1] = 1.0
+    A[1, 50] = 3.0
+    A[2, 75] = 10.0
+    A[3, 5] = -2.0
+    A[4,80] = 0.2
+    A[5,5] = 0.1
+    y = A*x
+    threshold =0.9*minimum(abs.(A[abs.(A) .> 0.0]))
+
+    @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
+        set_threshold!(opt, threshold)
+        Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
+        fit!(Ξ, x', y', opt, maxiter = maxiter)
+        @test A ≈ Ξ' atol = a_tol
     end
 end
 

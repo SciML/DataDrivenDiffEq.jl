@@ -57,7 +57,7 @@
     norm(sol[:,:] - sol_2[:,:], 2)
     @test norm(sol[:,:] - sol_2[:,:], 2) < 1e-3
 
-    opt = SR3(1.0, 10.0)
+    opt = SR3()
     set_threshold!(opt, 1e-2)
     Ψ = SInDy(sol[:,:], DX, basis, maxiter = 5000, opt = opt)
     @test_nowarn set_threshold!(opt, 0.1)
