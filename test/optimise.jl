@@ -1,14 +1,17 @@
+using Random
+Random.seed!(123)
+
 opts = [STRRidge(), ADMM(), SR3()]
-iters = Int64[500, 1000, 10000]
-atols = Float64[1e-3, 1e-2, 2e-1]
+iters = Int64[1000, 1000, 10000]
+atols = Float64[1e-10, 1e-10, 1e-3]
 
 @testset "Equal Sizes" begin
 
-    x = randn(3, 10)
-    A = [1.0 0 -0.1; 0 -2.0 0; 0.1 0.5 -1.0]
+    x = 10.0*randn(3, 3)
+    A = [0.6 0 -0.1; 0.1 -8.0 0; 0.9 0 -0.8]
     y = A*x
 
-    threshold = 0.9*minimum(abs.(A[abs.(A) .> 0.0]))
+    threshold = 1e-2
 
     @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
         set_threshold!(opt, threshold)
@@ -20,11 +23,12 @@ end
 
 @testset "Single Signal" begin
 
-    x = randn(3, 10)
+
+    x = 10.0*randn(3, 10)
     A = [1.0 0 -0.1]
     y = A*x
 
-    threshold = 0.9*minimum(abs.(A[abs.(A) .> 0.0]))
+    threshold = 1e-2
 
     @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
         set_threshold!(opt, threshold)
@@ -37,7 +41,7 @@ end
 
 @testset "Multiple Signals" begin
 
-    x = randn(100, 500)
+    x = 10.0*randn(100, 1000)
     A = zeros(5,100)
     A[1,1] = 1.0
     A[1, 50] = 3.0
@@ -46,7 +50,7 @@ end
     A[4,80] = 0.2
     A[5,5] = 0.1
     y = A*x
-    threshold =0.9*minimum(abs.(A[abs.(A) .> 0.0]))
+    threshold =1e-2
 
     @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
         set_threshold!(opt, threshold)
