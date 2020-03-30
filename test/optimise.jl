@@ -3,7 +3,7 @@ function generate_data(x_dim::Int64, y_dim::Int64, sparsity::Float64, ratio::Flo
     n, m, k = x_dim, y_dim, max(floor(Int64,ratio*x_dim), y_dim)
     x = randn(n,k) # Fully random input vector
     # Generate random sparse matrix we want to recover
-    A = Matrix(sprandn(m,n, sparsity))
+    A = Matrix(10.0*sprand(m,n, sparsity))
     y = A*x # measurements
     return y, A, x
 end
@@ -53,7 +53,7 @@ end
             set_threshold!(opt, threshold)
             Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
             fit!(Ξ, x', y', opt, maxiter = 100)
-            @test norm(A-Ξ') < 1e-1
+            @test A ≈ Ξ' atol = 1e-3
         end
     end
 end
