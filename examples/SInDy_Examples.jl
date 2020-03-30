@@ -17,7 +17,7 @@ end
 u0 = [0.99π; -1.0]
 tspan = (0.0, 20.0)
 prob = ODEProblem(pendulum, u0, tspan)
-sol = solve(prob, Tsit5(), saveat = 0.3)
+sol = solve(prob, Tsit5(),atol = 1e-6, rtol = 1e-6, saveat = 0.1)
 
 plot(sol)
 
@@ -32,7 +32,7 @@ end
 
 # Lots of polynomials
 polys = Operation[1]
-for i ∈ 1:5
+for i ∈ 1:15
     push!(polys, u.^i...)
     for j ∈ 1:i-1
         push!(polys, u[1]^i*u[2]^j)
@@ -48,25 +48,28 @@ println(basis)
 # Get the reduced basis via the sparse regression
 # Thresholded Sequential Least Squares, works fine for more data
 # than assumptions, converges fast but fails sometimes with too much noise
-opt = STRRidge(1e-2)
-Ψ = SInDy(sol[:,1:25], DX[:, 1:25], basis, maxiter = 100, opt = opt)
+λ = 1/norm(DX, Inf)^2 # Good initial guess for threshold
+opt = STRRidge(λ)
+Ψ = SInDy(sol[:,1:end], DX[:, 1:end], basis, maxiter = 1000, opt = opt)
 println(Ψ)
 
-# Lasso as ADMM, typically needs more information, more tuning
-opt = ADMM(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:50], DX[:, 1:50], basis, maxiter = 5000, opt = opt)
+# Parameter tweak for ADMM enables better performance
+opt = ADMM(λ, 0.2,1.0)
+Ψ = SInDy(sol[:,1:20], DX[:, 1:20], basis, maxiter = 1000, opt = opt)
 println(Ψ)
 
-# SR3, works good with lesser data and tuning
-opt = SR3(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:30], DX[:, 1:30], basis, maxiter = 5000, opt = opt)
-println(Ψ)
-
-# Vary the sparsity threshold -> gives better results
-λs = exp10.(-5:0.1:-1)
+# SR3, works good with more data and tuning
+# However, the
 # Use SR3 with high relaxation (allows the solution to diverge from LTSQ) and high iterations
-opt = SR3(1e-2, 20.0)
-Ψ = SInDy(sol[:,1:10], DX[:, 1:10], basis, λs, maxiter = 10000, opt = opt)
+opt = SR3(1.0, 10.0)
+set_threshold!(opt, λ)
+Ψ = SInDy(sol[:,1:25], DX[:, 1:25], basis, maxiter = 5000, opt = opt)
+println(Ψ)
+
+# Vary the sparsity threshold with unknown signals
+λs = exp10.(-7:0.1:-1)
+opt = STRRidge()
+Ψ= SInDy(sol[:,1:40], DX[:, 1:40], basis, λs, maxiter = 500, opt = opt)
 println(Ψ)
 
 # Transform into ODE System
@@ -82,3 +85,4 @@ scatter(sol[:,:]')
 plot!(sol_[:,:]')
 plot(sol.t, abs.(sol-sol_)')
 norm(sol[:,:]-sol_[:,:], 2)
+@test all(sol[:,:] .≈ sol_[:,:])
