@@ -1,5 +1,3 @@
-using Random
-Random.seed!(123)
 
 opts = [STRRidge(), ADMM(), SR3()]
 iters = Int64[1000, 1000, 10000]

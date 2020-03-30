@@ -25,9 +25,8 @@ julia = "1"
 
 [extras]
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
-
 
 [targets]
-test = ["SparseArrays", "OrdinaryDiffEq", "Test"]
+test = ["Random", "OrdinaryDiffEq", "Test"]
