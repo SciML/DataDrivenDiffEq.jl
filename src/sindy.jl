@@ -68,8 +68,6 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
 
     normalize ? rescale_xi!(scales, Ξ) : nothing
 
-    Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
-
     return Ξ
 end
 
@@ -90,7 +88,6 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
 
 
     normalize ? rescale_xi!(scales, Ξ) : nothing
-    Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
 
     return
 end
@@ -109,7 +106,6 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
 
     normalize ? rescale_xi!(scales, Ξ) : nothing
     normalize ? rescale_xi!(scales, θ) : nothing
-    Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
 
     return
 end

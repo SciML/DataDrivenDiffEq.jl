@@ -46,6 +46,8 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
         shrinkage!(z, x̂ + u, opt.λ\opt.ρ)
         u .+= x̂ - z
     end
+
+    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
 end
 
 function shrinkage!(z::AbstractArray, x::AbstractArray, κ::T) where T <: Number

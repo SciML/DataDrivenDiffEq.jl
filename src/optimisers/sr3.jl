@@ -39,5 +39,6 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
         prox!(W, f, X)
     end
 
+    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
     return
 end
