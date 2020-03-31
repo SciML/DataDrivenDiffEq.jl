@@ -8,7 +8,7 @@
 
     u0 = [0.99π; -1.0]
     tspan = (0.0, 20.0)
-    dt = 0.3
+    dt = 0.1
     prob = ODEProblem(pendulum, u0, tspan)
     sol = solve(prob, Tsit5(), saveat = dt)
 
@@ -23,7 +23,7 @@
 
     # Lots of polynomials
     polys = Operation[1]
-    for i ∈ 1:5
+    for i ∈ 1:10
         push!(polys, u.^i...)
         for j ∈ 1:i-1
             push!(polys, u[1]^i*u[2]^j)
@@ -35,7 +35,7 @@
     basis = Basis(h, u)
     opt = STRRidge(1e-2)
     basis = Basis(h, u, parameters = [])
-    Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000)
+    Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 500)
     @test_nowarn set_threshold!(opt, 1e-2)
     @test size(Ψ)[1] == 2
 
@@ -45,10 +45,10 @@
     sol_ = solve(estimator,Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_[:,:],2) < 1e-3
 
-
+    
     opt = ADMM()
     set_threshold!(opt, 1e-2)
-    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 5000, opt = opt)
+    Ψ = SInDy(sol[:,:], DX, basis, maxiter = 1000, opt = opt)
     @test_nowarn set_threshold!(opt, 1e-2)
 
     # Simulate
@@ -90,17 +90,22 @@
     @test norm(sol[:,:] - sol_4[:,:], 2) < 5e-1
 
     # Check sparse_regression
-    X .= Array(sol)
-    opt = ADMM()
-    maxiter = 500
+    X = Array(sol)
+    opt = STRRidge(1e-2)
+    maxiter = 100
     θ = basis(X)
-    Ξ1 = sparse_regression(X, DX, basis, parameters(basis), maxiter, opt, true, true)
+    Ξ1 = sparse_regression(X, DX, basis, parameters(basis), maxiter, opt, false, false)
     Ξ2 = similar(Ξ1)
     Ξ3 = similar(Ξ1)
-    sparse_regression!(Ξ2, X, DX, basis, parameters(basis), maxiter, opt, true, true)
-    sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true)
-    @test Ξ1 ≈ Ξ2 ≈ Ξ3
-    @test_broken isapprox(norm(Ξ1'*θ - DX,2), 25.18; atol = 1e-1)
+    sparse_regression!(Ξ2, X, DX, basis, parameters(basis), maxiter, opt, false, true)
+    sparse_regression!(Ξ3, θ, DX, maxiter, opt, false, true)
+    X_n = X + 1e-4*randn(size(X)...)
+    Ξ4 = sparse_regression(X_n, DX, basis, parameters(basis), 1000, opt, true, false)
+    @test θ ≈ basis(X)
+    @test Ξ1 ≈ Ξ2
+    @test Ξ1 ≈ Ξ3
+    @test Ξ1 ≈ Ξ4 atol = 1e-3
+    @test Ξ1'*θ ≈ DX
 end
 
 

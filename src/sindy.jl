@@ -43,7 +43,15 @@ function normalize_theta!(scales::AbstractArray, θ::AbstractArray)
     return
 end
 
-function rescale_xi!(scales::AbstractArray, Ξ::AbstractArray)
+function rescale_theta!(θ::AbstractArray, scales::AbstractArray)
+    @assert length(scales) == size(θ, 1)
+    @inbounds for (i, ti) in enumerate(eachrow(θ))
+        ti .= scales[i]*ti
+    end
+    return
+end
+
+function rescale_xi!(Ξ::AbstractArray, scales::AbstractArray)
     @inbounds for (si, ti) in zip(scales, eachrow(Ξ))
         ti .= ti / si
     end
@@ -65,8 +73,7 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
     Optimise.init!(Ξ, opt, θ', Ẋ')
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
-
-    normalize ? rescale_xi!(scales, Ξ) : nothing
+    normalize ? rescale_xi!(Ξ, scales) : nothing
 
     Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
     return Ξ
@@ -87,8 +94,7 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     Optimise.init!(Ξ, opt, θ', Ẋ')
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
-
-    normalize ? rescale_xi!(scales, Ξ) : nothing
+    normalize ? rescale_xi!(Ξ, scales) : nothing
 
     Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
     return
@@ -105,9 +111,7 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
     Optimise.init!(Ξ, opt, θ', Ẋ')'
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
-
-    normalize ? rescale_xi!(scales, Ξ) : nothing
-    normalize ? rescale_xi!(scales, θ) : nothing
+    normalize ? (rescale_xi!(Ξ, scales); rescale_theta!(θ, scales)) : nothing
 
     Ξ[abs.(Ξ) .< get_threshold(opt)] .= zero(eltype(Ξ))
     return

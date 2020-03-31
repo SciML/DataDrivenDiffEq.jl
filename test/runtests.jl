@@ -14,4 +14,4 @@ include("./koopman.jl")
 include("./sindy.jl")
 include("./utilities.jl")
 # Optimisers
-include("./optimise.jl");
+include("./optimise.jl")
