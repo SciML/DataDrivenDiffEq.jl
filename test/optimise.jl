@@ -1,6 +1,6 @@
 opts = [STRRidge(), ADMM(), SR3()]
 iters = Int64[1000, 10000, 10000]
-atols = Float64[1e-10, 1e-2, 1e-8]
+atols = Float64[1e-10, 1e-2, 1e-7]
 
 @testset "Equal Sizes" begin
 
