@@ -187,7 +187,7 @@ function calculate_filterCoeffs(windowSize::Integer, polyOrder::Integer, deriv::
 end
 
 @inline function burst_sampling(x::AbstractArray, samplesize::Int64, bursts::Int64)
-    @assert size(x)[end] >= samplesize*bursts "Length of data array too small for subsampling of size $size!"
+    @assert size(x)[end] >= samplesize*bursts "Bursting impossible. Please provide more data or reduce bursts or samplesize."
     inds = sample(1:size(x)[end]-samplesize, bursts, replace = false)
     inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
     return resample(x, inds)
@@ -195,7 +195,7 @@ end
 
 
 @inline function burst_sampling(x::AbstractArray, y::AbstractArray, samplesize::Int64, bursts::Int64)
-    @assert size(x)[end] >= samplesize*bursts "Length of data array too small for subsampling of size $size!"
+    @assert size(x)[end] >= samplesize*bursts "Bursting impossible. Please provide more data or reduce bursts or samplesize"
     @assert size(x)[end] == size(y)[end]
     inds = sample(1:size(x)[end]-samplesize, bursts, replace = false)
     inds = sort(unique(vcat([collect(i:i+samplesize) for i in inds]...)))
@@ -207,7 +207,7 @@ end
     @assert period > zero(typeof(period)) "Sampling period has to be positive."
     @assert size(x)[end] == size(t)[end] "Provide consistent data."
     @assert bursts >= 1 "Number of bursts has to be positive."
-    @assert t[end]-t[1]>= period*bursts "Bursting impossible. Please provide more data or reduce bursts."
+    @assert t[end]-t[1]>= period*bursts "Bursting impossible. Please provide more data or reduce bursts or samplesize"
     t_ids = zero(eltype(t)) .<= t .- period  .<= t[end] .- 2*period
     samplesize = Int64(floor(period/(t[end]-t[1])*length(t)))
     inds = sample(collect(1:length(t))[t_ids], bursts, replace = false)
@@ -217,13 +217,13 @@ end
 
 
 @inline function subsample(x::AbstractVector, frequency::Int64)
-    @assert frequency > 1
+    @assert frequency > 0 "Sampling frequency has to be positive."
     return x[1:frequency:end]
 end
 
 
 @inline function subsample(x::AbstractArray, frequency::Int64)
-    @assert frequency > 1
+    @assert frequency > 0 "Sampling frequency has to be positive."
     return x[:, 1:frequency:end]
 end
 
@@ -243,13 +243,13 @@ end
 end
 
 @inline function resample(x::AbstractArray{T,1}, indx::AbstractArray{Int64}) where T <: Number
-    @assert maximum(indx) <= length(x)
-    @assert minimum(indx) >= 1
+    @assert maximum(indx) <= length(x) "Sampling index has to be consistent with array dimensions."
+    @assert minimum(indx) >= 1 "Sampling index has to be consistent with array dimensions."
     return x[indx]
 end
 
 @inline function resample(x::AbstractArray{T,2}, indx::AbstractArray{Int64}) where T <: Number
-    @assert maximum(indx) <= size(x, 2)
-    @assert minimum(indx) >= 1
+    @assert maximum(indx) <= size(x, 2) "Sampling index has to be consistent with array dimensions."
+    @assert minimum(indx) >= 1 "Sampling index has to be consistent with array dimensions."
     return x[:, indx]
 end
