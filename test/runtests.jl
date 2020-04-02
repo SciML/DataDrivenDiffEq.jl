@@ -3,6 +3,10 @@ using ModelingToolkit
 using LinearAlgebra
 using OrdinaryDiffEq
 using Test
+using DataDrivenDiffEq.Optimise
+
+include("./optimise.jl")
+
 
 @testset "Basis" begin
     @variables u[1:3]
