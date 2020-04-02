@@ -14,7 +14,7 @@ atols = Float64[1e-10, 1e-2, 1e-8]
         set_threshold!(opt, threshold)
         Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
         fit!(Ξ, x', y', opt, maxiter = maxiter)
-        @test A ≈ Ξ' atol = a_tol
+        @test norm(A - Ξ', 2) < a_tol
 
     end
 end
@@ -28,7 +28,7 @@ end
         set_threshold!(opt, threshold)
         Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
         fit!(Ξ, x', y', opt, maxiter = maxiter)
-        @test A ≈ Ξ' atol = a_tol
+        @test norm(A - Ξ', 2) < a_tol
     end
 end
 @testset "Multiple Signals" begin
@@ -46,7 +46,7 @@ end
         set_threshold!(opt, threshold)
         Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
         fit!(Ξ, x', y', opt, maxiter = maxiter)
-        @test A ≈ Ξ' atol = a_tol
+        @test norm(A - Ξ', 2) < a_tol
     end
 end
 @testset "ADM" begin
