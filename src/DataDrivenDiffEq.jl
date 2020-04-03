@@ -6,6 +6,10 @@ using QuadGK
 using Statistics
 using DSP
 using Compat
+using Parameters
+using ControlSystems
+using Lasso
+using Plots
 
 abstract type abstractBasis end;
 abstract type abstractKoopmanOperator end;
@@ -44,10 +48,27 @@ export sparse_regression, sparse_regression!
 include("./isindy.jl")
 export ISInDy
 
+include("./havok/DelayEmbedding.jl")
+export DelayEmbedding, HankelMatrix, embed
+
+include("./havok/NumericalDifferentiation.jl")
+export NumericalDifferentiation
+
+include("./havok/RegressionSolve.jl")
+export RegressionSolve, SequentialLeastSquares
+
+include("./havok/havok.jl")
+export HAVOKanalysis, HAVOKmodel, HAVOKsim, fit
+
+include("./havok/Visualization.jl")
+export plot3d, plot, eigentimeseries, PPplane, forcing
+export heatmap, havok_modes, linear_intermittently_forced_dynamics, eigenseries_dist, forcing_dist
+
 include("./utils.jl")
 export AIC, AICC, BIC
 export hankel, optimal_shrinkage, optimal_shrinkage!
 export savitzky_golay
 export burst_sampling, subsample
+export PearsonCorrelates
 
-end # module
+end
