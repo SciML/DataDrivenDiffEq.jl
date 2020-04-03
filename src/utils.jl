@@ -253,3 +253,41 @@ end
     @assert minimum(indx) >= 1
     return x[:, indx]
 end
+
+function PearsonCorrelates(H::HAVOKmodel)
+    # Computes pearson coefficients of HAVOK method fit
+    beginning = Int(round(H.sim.tspan[1] / H.dt))         # initial time of simulation
+    pred = H.Embedding.Eigenseries[beginning:end-beginning,:]*H.RegressionCoefficient[1+(end-H.r):end,:]
+
+    return [cor(H.NumericalDerivative[1:length(pred[:,i]),i],pred[:,i]) for i in 1:H.r]
+end
+
+function mean_off_diagonal(A, trange)
+    # Computes the mean of the off-diagonal. In a prefect theoretic case by definition of the henkel matrix
+    # every off-diagonal element should be the same but just to be safe I compute the avg
+    # Im not sure how helpful it is but empirically it isnt as helpful as I thought.
+    n, m = size(A)
+    smallside = minimum([n, m])
+    sol = zeros(length(trange))
+    for (idx, t) in enumerate(trange)
+        start = [minimum([n,t]), maximum([1,t-n-1])]
+        range = minimum([t, smallside, n+m-t])
+        for i in 0:range-1
+            sol[idx] += A[(start-[i,-i])...]
+        end
+        sol[idx] /= range
+    end
+    return sol
+end
+
+function print_info(d,q,r)
+    params = ["fractal dimension" d; "delays" q; "rank" r]
+    chosen_idx = [i for i=1:3 if params[i,2] != 0]
+    if !isempty(chosen_idx)
+        print("Manually selected")
+        for idx in chosen_idx
+            print(" $(params[idx,1]):$(params[idx,2])")
+        end
+        print(".\n")
+    end
+end
