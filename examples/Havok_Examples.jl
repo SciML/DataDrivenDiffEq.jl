@@ -33,7 +33,7 @@ X = Array(sol)
 # Time delay coordinates
 stackmax = 100
 
-H = zeros(eltype(x), stackmax, size(X,2)-stackmax)
+H = zeros(eltype(X), stackmax, size(X,2)-stackmax)
 for i in 1:stackmax
     H[i, :] = X[1, i:end-stackmax+i-1]
 end

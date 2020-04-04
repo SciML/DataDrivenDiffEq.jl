@@ -23,6 +23,14 @@ function RegressionSolve(X::Array{<:AbstractFloat,2}, y::Array{<:AbstractFloat,2
 
         if reg_method=="SequentialLeastSquares"
             # Derivative of one dimension at a time
+            #=
+            # Frist we define a set of variables and parameters
+            @variables u[1:r]
+
+            # Then we simply create a basis
+            b = Basis(u, u)
+            β = SInDy(X, y, b;  maxiter=1)
+            =#
             for i in 1:r
                 β[:,i] = SequentialLeastSquares(X, y[:,i], λ*i, n)
             end
@@ -40,11 +48,11 @@ function RegressionSolve(X::Array{<:AbstractFloat,2}, y::Array{<:AbstractFloat,2
 end
 
 # Compute sparse regression: sequential least squares
-function SequentialLeastSquares(X::Array{<:AbstractFloat,2}, y::Array{<:AbstractFloat,1}, λ::Real, n::Int)
+function SequentialLeastSquares(X::Array{<:AbstractFloat,2}, y::Array{<:AbstractFloat,1}, λ::Real, maxiter::Int)
     # initial guess: Least-squares
     β = X\y
 
-    for k=1:10
+    for k=1:maxiter
         # find small/big coefficients with λ as our sparsification knob.
         smallinds = findall(x->abs(x)<λ, β)
         biginds = findall(x->abs(x)>=λ, β)
@@ -53,7 +61,7 @@ function SequentialLeastSquares(X::Array{<:AbstractFloat,2}, y::Array{<:Abstract
         β[smallinds] = zeros(length(smallinds))
 
         # n is state dimension
-        for i = 1:n
+        for i = 1:size(y, 2)
             # Regress dynamics onto remaining terms to find sparse Xi
             β[biginds,i] = X[:,biginds]\y[:,i];
         end

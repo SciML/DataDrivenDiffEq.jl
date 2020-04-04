@@ -3,9 +3,9 @@ import Plots.plot3d, Plots.plot, Plots.heatmap
 # TODO
 # ADD COLORING PARAMETRIZED WITH TIME TO PHASE PLANE
 # ADD PAIRED COLORINGS BETWEEN DATA AND MODEL PRED IN EIGENTIMESERIES
+# ADD LAYOUT FUNCTIONALITY TO EIGENTIMESERIES
 # ADD HAVOKmodel METHODS TO EXTRACT INFO
 # ADD CROSSVALIDATION ROUTINES
-# ADD HISTOGRAM LAYOUT AND DISCOVER WHY EIGENSERIES EMPIRIRCAL DISTRIBUTIONS SEEMS GEOMETRICALLY SIMILAR
 
 # Plots phase plane
 function PPplane(H::HAVOKmodel; vars=(1,2,3), title="HAVOK Attractor", label="HAVOKmodel", tspan=H.sim.tspan)
@@ -110,19 +110,31 @@ function modes(H::HAVOKmodel; vars=1:H.r)
 end
 
 # Plots Eigenseries empirial distribution with corresponding gaussian fit
-function eigenseries_dist(H::HAVOKmodel, vars)
+function eigenseries_dist(H::HAVOKmodel, vars; layout=(1,1))
     @unpack Eigenseries = H.Embedding
-
-    # Plot a histogram of the Eigenseries
-    histogram(Eigenseries[:,vars], normalize=:pdf, color=:darkorange, label=reshape(["Histogram V$var" for var in vars],(1,length(vars))))
-
+    if layout==(1,1)
+        # Plot a histogram of the Eigenseries
+        histogram(Eigenseries[:,vars], normalize=:pdf, color=:darkorange, label=reshape(["Histogram V$var" for var in vars],(1,length(vars))))
+        return draw_gauss(vars, Eigenseries; label="Gaussian")
+    else
+        plot_array = []
+        for var in vars
+            p = histogram(Eigenseries[:,var], normalize=:pdf, color=:darkorange, label=:none)
+            draw_gauss(var, Eigenseries)
+            push!(plot_array,p) # make a plot and add it to the plot_array
+        end
+        return plot(plot_array..., suptitle="Empirical Distributions of V$vars", layout=layout)
+    end
     # Plot a gaussian with sample mean and variance
+end
+
+function draw_gauss(vars, Eigenseries; label=:none)
     for var in vars
         σ = std(Eigenseries[:,var])
         plt_range = -3*σ:σ/50:3*σ
         gaussianD(μ, σ) = x -> 1/(exp((((x-μ)/σ)^2)/2)*(σ*sqrt(2*pi)))
         gauss_vec = map(gaussianD(0, σ), plt_range)
-        plot!(-3*σ:σ/50:3*σ, gauss_vec, color=:black, line=(:dash,4), title="Eigenseries Statistics", label="Gaussian Fit $var")
+        plot!(-3*σ:σ/50:3*σ, gauss_vec, color=:black, line=(:dash,4), title="V$var", label=label)
     end
     plot!()
 end
