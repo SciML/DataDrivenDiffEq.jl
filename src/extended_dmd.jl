@@ -30,7 +30,7 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::A
     Ψ₀ = Ψ(X, p = p)
     Ψ₁ = Ψ(Y, p = p)
 
-    Op = ExactDMD(Ψ₀, Ψ₁) # Initial guess based upon the basis
+    Op = ExactDMD(Ψ₀, Ψ₁, dt = dt) # Initial guess based upon the basis
 
     # Transform back to states
     if isempty(B)
