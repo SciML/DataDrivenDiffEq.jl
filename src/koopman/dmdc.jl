@@ -22,13 +22,7 @@ function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; alg::O = DMD
     end
 
     # Create a function
-    b(u, p, t) = zeros(u)
-    if length(size(B)) == 1
-        b(u, p, t) = B.*u
-    else
-        b(u, p, t) = B*u
-    end
-
+    b(u, p, t) = length(size(B)) == 1 ? B.*u :  B*u
     ψ(u, p, t) = identity(u)
     C(u, p, t) = identity(u)
 
