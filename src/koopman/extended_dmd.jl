@@ -15,7 +15,7 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ; alg::O = DMDPINV(),
 
     C = X*pinv(Ψ₀)
 
-    return  Koopman(A, ψ, C, Q = Ψ₁*Ψ₀', P = Ψ₀*Ψ₀', dt = dt)
+    return  Koopman(A, ψ, (u, p, t)->C*u, Q = Ψ₁*Ψ₀', P = Ψ₀*Ψ₀', dt = dt)
 end
 
 function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ::Basis; alg::O = DMDPINV(), p::AbstractArray = [], dt::T = 0.0, kwargs...)  where {O <: abstractDMDAlg, T <: Real}

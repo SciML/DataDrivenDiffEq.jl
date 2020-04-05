@@ -73,6 +73,16 @@ end
     p4 = DiscreteProblem(dynamics(estimator)[2], u0, tspan, [])
     s4 = solve(p4,FunctionMap())
     @test sol[:,:] ≈ s4[:,:]
+
+    # Add non-basis test
+    f_(x::AbstractVector, p, t) = [x[1]; x[2]; sin(x[1])]
+    f_(x::AbstractArray, p, t) = hcat(map(xi->f_(xi,p,t), eachcol(x)))
+
+    estimator = ExtendedDMD(sol[:,:], f_)
+    p5 = DiscreteProblem(dynamics(estimator)[1], u0, tspan, [])
+    s5 = solve(p5,FunctionMap())
+    @test sol[:,:] ≈ s5[:,:]
+
 end
 
 
