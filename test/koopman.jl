@@ -122,7 +122,6 @@ end
     @test inputmap(sys)(1.0, [], 0.0) ≈ [1.0; 0.0]
     @test !isstable(sys)
     @test_nowarn eigen(sys)
-    println(iscontrolled(sys))
     @test iscontrolled(sys)
 
     # Check the solution of an unforced and forced system against each other
