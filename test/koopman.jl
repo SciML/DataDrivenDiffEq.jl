@@ -10,12 +10,16 @@
     @test_throws AssertionError ExactDMD(X[:, 1:end-2], dt = -1.0)
     estimator = ExactDMD(X[:,1:end-2])
     @test isstable(estimator)
+
     @test estimator.A ≈ A
     @test eigvals(estimator) ≈ eigvals(A)
     @test eigvecs(estimator) ≈ eigvecs(A)
+
+    @test isupdateable(estimator)
+    @test !islifted(estimator)
     @test_nowarn dynamics(estimator)
     @test_throws AssertionError dynamics(estimator, force_continouos = true)
-    @test_nowarn update!(estimator, X[:, end-1], X[:,end])
+    @test_nowarn update!(estimator, X[:, end-1], X[:,end], threshold = 0.0)
 end
 
 
@@ -40,6 +44,7 @@ end
 
     @test_throws AssertionError ExtendedDMD(sol[:,:], basis, dt = -1.0)
     estimator = ExtendedDMD(sol[:,:], basis)
+    @test islifted(estimator)
 
     basis2 = Basis(h[1:2], u)
 
@@ -98,6 +103,8 @@ end
     @test inputmap(sys)(1.0, [], 0.0) ≈ [1.0; 0.0]
     @test !isstable(sys)
     @test_nowarn eigen(sys)
+    println(iscontrolled(sys))
+    @test iscontrolled(sys)
 
     # Check the solution of an unforced and forced system against each other
     #dudt_ = dynamics(sys)

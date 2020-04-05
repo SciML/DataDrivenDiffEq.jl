@@ -51,18 +51,15 @@ function Koopman(A::AbstractArray{T,2}, ψ, C ; B = nothing, Q::AbstractArray{T,
         ω = eltype(A)[]
     end
 
-    if isnothing(B)
-        b(u,p,t) = zeros(u)
-    else
-        b = B
-    end
+    b(u,p,t) = isnothing(B) ? zeros(u) : B(u,p,t)
 
-    return Koopman(A, ψ, b, C ,Complex.(Λ), Complex.(ω), Complex.(W), Q, P, true, false)
+    return Koopman(A, ψ, b, C ,Complex.(Λ), Complex.(ω), Complex.(W), Q, P, true, !isnothing(B))
 end
 
 function Koopman(A::AbstractArray{T,2}, ψ::AbstractArray{T,2}, C::AbstractArray{T,2} ; B = nothing, Q::AbstractArray{T,2} = Array{T}(undef, 0, 0), P::AbstractArray{T,2} = Array{T}(undef, 0, 0), dt::R = 0.0) where {T <: Real, R <: Real}
     psi(u,p,t) = ψ*u
     c(u,p,t) = C*u
+
     return Koopman(A, psi, c, B = B, Q = Q, P = P, dt = dt)
 end
 
