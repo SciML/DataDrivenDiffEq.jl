@@ -115,7 +115,7 @@ end
 # General case (everything is a function)
 function (o::Koopman)(u, p, t; force_discrete::Bool = false) where T <: Real
     if iscontinouos(o) && !force_discrete
-        A = o.ϕ*Diagonal(o.ω)*inv(o.ϕ)
+        A = real.(o.ϕ*Diagonal(o.ω)*inv(o.ϕ))
         return o.C(A*o.ψ(u,p,t), p, t)
     else
         return o.C(o.A*o.ψ(u,p,t), p, t)
@@ -124,7 +124,7 @@ end
 
 function (o::Koopman)(du, u, p, t; force_discrete::Bool = false) where T <: Real
     if iscontinouos(o) && !force_discrete
-        A = o.ϕ*Diagonal(o.ω)*inv(o.ϕ)
+        A = real.(o.ϕ*Diagonal(o.ω)*inv(o.ϕ))
         du .= o.C(A*o.ψ(u,p,t), p, t)
     else
         du .=  o.C(o.A*o.ψ(u,p,t), p, t)
@@ -146,7 +146,7 @@ function dynamics(o::Koopman; force_discrete::Bool = false, force_continouos::Bo
         return f_oop, f_iip
     else
         @assert iscontinouos(o) "Koopman has no continouos representation!"
-        A = o.ϕ*Diagonal(o.ω)*inv(o.ϕ)
+        A = real.(o.ϕ*Diagonal(o.ω)*inv(o.ϕ))
 
         function df_oop(u,p,t)
             return o.C(A*o.ψ(u,p,t), p, t)
@@ -173,7 +173,7 @@ function linear_dynamics(o::Koopman; force_discrete::Bool = false, force_contino
         return f_oop, f_iip
     else
         @assert iscontinouos(o) "Koopman has no continouos representation!"
-        A = o.ϕ*Diagonal(o.ω)*inv(o.ϕ)
+        A = real.(o.ϕ*Diagonal(o.ω)*inv(o.ϕ))
 
         function df_oop(u,p,t)
             return A*u

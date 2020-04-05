@@ -20,6 +20,25 @@
     @test_nowarn dynamics(estimator)
     @test_throws AssertionError dynamics(estimator, force_continouos = true)
     @test_nowarn update!(estimator, X[:, end-1], X[:,end], threshold = 0.0)
+
+    # Add Linear ODE
+    function linear(du, u, p, t)
+        du[1] = -0.9*u[1]
+        du[2] = -0.1*u[2] + 0.2*u[1]
+    end
+
+    u0 = [10.0; -1.0]
+    prob = ODEProblem(linear, u0, (0.0, 10.0))
+    sol = solve(prob, Tsit5(), saveat = 0.1)
+
+    estimator = ExactDMD(sol[:,:], dt = 0.1)
+    @test_nowarn estimator(u0, [], 0.0)
+    du0 = similar(u0)
+    @test_nowarn estimator(du0, [], 0.0)
+    @test estimator(u0, [], 0.0) ≈ [-0.9 0.0; 0.2 -0.1]*u0 atol = 1e-2
+    approx_p = ODEProblem(estimator, u0, (0.0, 10.0))
+    sol_ = solve(approx_p, Tsit5(), saveat = 0.1)
+    @test sol_[:,:] ≈ sol[:,:] atol = 1e-2
 end
 
 
