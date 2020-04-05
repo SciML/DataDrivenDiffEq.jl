@@ -9,6 +9,7 @@ using Compat
 
 abstract type abstractBasis end;
 abstract type abstractKoopmanOperator end;
+abstract type abstractDMDAlg end;
 
 include("./optimisers/Optimise.jl")
 using .Optimise
@@ -21,21 +22,41 @@ export Basis
 export variables, jacobian, dynamics
 export free_parameters, parameters, variables
 
-include("./exact_dmd.jl")
+include("./koopman/dmd_algorithms.jl")
+export DMDPINV
+
+include("./koopman/koopman.jl")
+export Koopman
+export eigen, eigvals, eigvecs, modes, frequencies
+export dynamics, linear_dynamics, inputmap
+export update!
+export isstable, iscontinouos, isdiscrete
+export islifted, iscontrolled, isupdateable
+
+include("./koopman/exact_dmd.jl")
 export ExactDMD
-export eigen, eigvals, eigvecs
-export modes, frequencies, isstable
-export dynamics, update!
 
-include("./extended_dmd.jl")
+include("./koopman/extended_dmd.jl")
 export ExtendedDMD
-export dynamics, linear_dynamics
-export reduce_basis, update!
 
-include("./dmdc.jl")
+include("./koopman/dmdc.jl")
 export DMDc
-export eigen, eigvals, eigvecs
-export get_dynamics, get_input_map, dynamics
+
+#include("./exact_dmd.jl")
+#export ExactDMD
+#export eigen, eigvals, eigvecs
+#export modes, frequencies, isstable
+#export dynamics, update!
+#
+#include("./extended_dmd.jl")
+#export ExtendedDMD
+#export dynamics, linear_dynamics
+#export reduce_basis, update!
+#
+#include("./dmdc.jl")
+#export DMDc
+#export eigen, eigvals, eigvecs
+#export get_dynamics, get_input_map, dynamics
 
 include("./sindy.jl")
 export SInDy
