@@ -28,10 +28,12 @@ export DMDPINV
 include("./koopman/koopman.jl")
 export Koopman
 export eigen, eigvals, eigvecs, modes, frequencies
-export dynamics, linear_dynamics, inputmap
+export dynamics, linear_dynamics
+export inputmap, lifting, outputmap
 export update!
 export isstable, iscontinouos, isdiscrete
 export islifted, iscontrolled, isupdateable
+export reduce_basis
 
 include("./koopman/exact_dmd.jl")
 export ExactDMD

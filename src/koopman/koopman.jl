@@ -72,6 +72,8 @@ modes(m::Koopman) = eigvecs(m)
 frequencies(m::Koopman) =  !isempty(m.ω) ? m.ω : error("No continouos frequencies available.")
 
 inputmap(m::Koopman) = m.B
+lifting(m::Koopman) = m.ψ
+outputmap(m::Koopman) = m.C
 
 isstable(m::Koopman) = !isempty(m.ω) ? all(real.(frequencies(m)) .<= 0.0) : all(abs.(eigvals(m)) .<= 1)
 iscontinouos(m::Koopman) = !isempty(m.ω) ? true : false
@@ -79,7 +81,6 @@ isdiscrete(m::Koopman) = !iscontinouos(m)
 islifted(m::Koopman) = m.islifted
 iscontrolled(m::Koopman) = m.iscontrolled
 isupdateable(m::Koopman) = !isempty(m.Qₖ) && !isempty(m.Pₖ)
-
 
 
 function update!(m::Koopman, x::AbstractArray, y::AbstractArray; p::AbstractArray = [], dt::T = 0.0, threshold::Float64 = 1e-3) where T <: Real
@@ -184,4 +185,13 @@ function linear_dynamics(o::Koopman; force_discrete::Bool = false, force_contino
 
         return df_oop, df_iip
     end
+end
+
+function reduce_basis(o::Koopman; threshold = 1e-5)
+    @assert isa(o.ψ, Basis) "Lifting has to be a Basis!"
+    # Reduction for basis
+    b = outputmap(o)(o.A, [], 0.0)
+    inds = sum(abs, b, dims = 1) .> threshold
+    reduced_b = Basis(o.ψ.basis[vec(inds)], variables(o.ψ), parameters = parameters(o.ψ))
+    return reduced_b
 end
