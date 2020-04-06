@@ -42,8 +42,6 @@
 end
 
 
-
-
 @testset "EDMD" begin
     # Test for linear system
     function linear_sys(u, p, t)
@@ -63,26 +61,24 @@ end
 
     @test_throws AssertionError ExtendedDMD(sol[:,:], basis, dt = -1.0)
     estimator = ExtendedDMD(sol[:,:], basis)
+    @test basis == estimator.ψ
     @test islifted(estimator)
+    basis_2 = reduce_basis(estimator, threshold = 1e-5)
+    @test size(basis_2)[1] < size(basis)[1]
 
-    basis2 = Basis(h[1:2], u)
-
-    # TODO Move this into the basis ( simplify matvec)
-    #@test basis == estimator.basis
-    #basis_2 = reduce_basis(estimator, threshold = 1e-5)
-    #@test size(basis_2)[1] < size(basis)[1]
-
-    estimator_2 = ExtendedDMD(sol[:,:], basis2)
+    estimator_2 = ExtendedDMD(sol[:,:], basis_2)
     p1 = DiscreteProblem(dynamics(estimator)[1], u0, tspan, [])
     s1 = solve(p1,FunctionMap())
     p2 = DiscreteProblem(dynamics(estimator_2)[2], u0, tspan, [])
     s2 = solve(p2,FunctionMap())
-    p3 = DiscreteProblem(linear_dynamics(estimator_2)[1], basis2(u0), tspan, [])
+    p3 = DiscreteProblem(linear_dynamics(estimator_2)[1], basis_2(u0), tspan, [])
     s3 = solve(p3,FunctionMap())
     @test sol[:,:] ≈ s1[:,:]
     @test sol[:,:] ≈ s2[:,:]
-    @test basis2(sol[:,:])≈ s3[:,:]
+    @test basis_2(sol[:,:])≈ s3[:,:]
     @test eigvals(estimator_2) ≈ [-0.9; -0.3]
+    @test_nowarn lifting(estimator_2)
+    @test_nowarn outputmap(estimator_2)
 
     # Test for nonlinear system
     function nonlinear_sys(du, u, p, t)
@@ -106,6 +102,7 @@ end
     p5 = DiscreteProblem(dynamics(estimator)[1], u0, tspan, [])
     s5 = solve(p5,FunctionMap())
     @test sol[:,:] ≈ s5[:,:]
+    @test_throws AssertionError reduce_basis(estimator)
 
 end
 

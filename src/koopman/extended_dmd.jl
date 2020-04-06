@@ -30,6 +30,6 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ::Basis; alg::O = DMD
 
     C = X*pinv(Ψ₀)
 
-    return  Koopman(A, (u, p, t)->ψ(u, p = p), (u, p, t)->C*u, Q = Ψ₁*Ψ₀', P = Ψ₀*Ψ₀', dt = dt)
+    return  Koopman(A, ψ, (u, p, t)->C*u, Q = Ψ₁*Ψ₀', P = Ψ₀*Ψ₀', dt = dt)
 
 end

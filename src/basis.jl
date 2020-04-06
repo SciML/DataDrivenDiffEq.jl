@@ -117,7 +117,9 @@ end
 free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
 
 (b::Basis)(x::AbstractArray{T, 1}; p::AbstractArray = []) where T <: Number = b.f_(x, isempty(p) ? parameters(b) : p)
-
+# TODO This has to be adapted at the function generation and Basis constructor
+# We may need an independent variable inside the basis object
+(b::Basis)(x::AbstractArray, p::AbstractArray, t::T) where T <: Number = b(x, p = p)
 
 
 function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Number
@@ -233,7 +235,7 @@ function ModelingToolkit.ODESystem(b::Basis, independent_variable::Operation)
         vs[i] = ModelingToolkit.Operation(vi.op, [independent_variable])
         dvs[i] = D(vs[i])
     end
-    
+
     eqs = dvs .~ b([vs..., independent_variable], p = b.parameter)
     return ODESystem(eqs, independent_variable, vs, b.parameter)
 end
