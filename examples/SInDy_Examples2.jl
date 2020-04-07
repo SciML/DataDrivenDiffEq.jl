@@ -71,7 +71,7 @@ basis = Basis(h, u)
 
 # Get the reduced basis via the sparse regression
 opt = STRRidge(0.1)
-Ψ = SInDy(X_cropped, DX_sg, basis, maxiter = 100, opt = opt)
+Ψ = SInDy(X_cropped, DX_sg, basis, maxiter = 100, opt = opt, normalize = false)
 print(Ψ)
 
 
@@ -83,5 +83,5 @@ X_noisy = X + 0.01*randn(seed,size(X))
 X_noisy_cropped, DX_sg = savitzky_golay(X_noisy, windowSize, polyOrder, deriv=1, dt=dt)
 X_noisy_cropped, X_smoothed = savitzky_golay(X_noisy, windowSize, polyOrder, deriv=0, dt=dt)
 
-Ψ = SInDy(X_smoothed, DX_sg, basis, maxiter = 100, opt = opt)
+Ψ = SInDy(X_smoothed, DX_sg, basis, maxiter = 100, opt = opt, normalize = false)
 print(Ψ)

@@ -12,8 +12,7 @@ function simple(u, p, t)
     return [(2.0u[2]^2 - 3.0)/(1.0 + u[1]^2); -u[1]^2/(2.0 + u[2]^2); (1-u[2])/(1+u[3]^2)]
 end
 
-#u0 = [2.37; 1.58; -3.10]
-u0 =  randn(3)*5.0
+u0 = [2.37; 1.58; -3.10]
 tspan = (0.0, 10.0)
 prob = ODEProblem(simple, u0, tspan)
 sol = solve(prob, Tsit5(), saveat = 0.1)
