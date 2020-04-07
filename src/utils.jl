@@ -255,11 +255,15 @@ end
 end
 
 function PearsonCorrelates(H::HAVOKmodel)
+    @unpack dt, sim, NumericalDerivative, Embedding, RegressionCoefficient, r = H
+    @unpack Eigenseries = Embedding
+    @unpack fulltspan = sim
+    
     # Computes pearson coefficients of HAVOK method fit
-    beginning = Int(round(H.sim.tspan[1] / H.dt))         # initial time of simulation
-    pred = H.Embedding.Eigenseries[beginning:end-beginning,:]*H.RegressionCoefficient[1+(end-H.r):end,:]
+    beginning = Int(round(fulltspan[1] / dt))         # initial time of simulation
+    pred = Eigenseries[beginning:end-beginning,:]*RegressionCoefficient[1+(end-r):end,:]
 
-    return [cor(H.NumericalDerivative[1:length(pred[:,i]),i],pred[:,i]) for i in 1:H.r]
+    return [cor(NumericalDerivative[1:length(pred[:,i]),i],pred[:,i]) for i in 1:r]
 end
 
 function mean_off_diagonal(A, trange)

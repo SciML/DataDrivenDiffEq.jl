@@ -59,9 +59,13 @@ export RegressionSolve, SequentialLeastSquares
 
 include("./havok/havok.jl")
 export HAVOKanalysis, HAVOKmodel, HAVOKsim, fit
+export timeseries, delay, rank, timestep, embedding
+export modes, eigenvalues, eigenseries
+export derivative, coefficients, fulltspan
+export forcing, dynamics
 
 include("./havok/Visualization.jl")
-export plot3d, plot, eigentimeseries, PPplane, forcing
+export plot3d, plot
 export heatmap, havok_modes, linear_intermittently_forced_dynamics, eigenseries_dist, forcing_dist
 
 include("./utils.jl")

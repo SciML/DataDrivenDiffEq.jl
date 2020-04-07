@@ -5,7 +5,7 @@
 
 @with_kw mutable struct HAVOKsim{R}
     sol = [0.0]
-    tspan::Union{StepRangeLen{R,Base.TwicePrecision{R},Base.TwicePrecision{R}},StepRange{Int,Int}} = 0:0.1:1
+    fulltspan::Union{StepRangeLen{R,Base.TwicePrecision{R},Base.TwicePrecision{R}},StepRange{Int,Int}} = 0:0.1:1
     x0::Array{R,1} = [0.0]
     u::Array{R,1} = [0.0]
 end
@@ -22,6 +22,40 @@ end
     RegressionCoefficient::Array{R,2} = [0.0 0.0]
     sys::StateSpace{R,Array{R,2}} = ss([0.0],[0.0],[0.0],[0.0])
     sim::HAVOKsim = HAVOKsim()
+end
+
+
+timeseries(H::HAVOKmodel) = H.timeseries
+delay(H::HAVOKmodel) = H.q
+rank(H::HAVOKmodel) = H.r
+timestep(H::HAVOKmodel) = H.dt
+embedding(H::HAVOKmodel) = H.Embedding
+modes(E::DelayEmbedding) = E.Eigenmodes
+modes(H::HAVOKmodel; plotQ=false, vars=1:rank(H)) = return (plotQ ? modes_plot(H, vars=vars) : modes(embedding(H)))
+eigenvalues(E::DelayEmbedding) = E.Eigenvalues
+eigenvalues(H::HAVOKmodel) = eigenvalues(embedding(H))
+eigenseries(E::DelayEmbedding) = E.Eigenseries
+eigenseries(H::HAVOKmodel) = eigenseries(embedding(H))
+derivative(H::HAVOKmodel) = H.NumericalDerivative
+coefficients(H::HAVOKmodel) = H.RegressionCoefficient
+fulltspan(H::HAVOKmodel) = H.sim.fulltspan
+forcing(H::HAVOKmodel; plotQ=false) = return (plotQ ? forcing_plot(H) : eigenseries(H)[:,rank(H)])
+function dynamics(H::HAVOKmodel; vars=1:rank(H), tspan=fulltspan(H), plotQ=false)
+    if plotQ
+        # Plots real data, svd approx, and HAVOK model prediction
+        return dynamics_plot(H; vars=vars, tspan=tspan)
+    else
+        @unpack dt, Embedding, sim, r = H
+        @unpack Eigenseries, Eigenmodes, Eigenvalues = Embedding
+        @unpack fulltspan, sol = sim
+
+        base = (Eigenmodes)*(Diagonal(Eigenvalues))
+
+        range = map(x->Int(round((x - fulltspan[1]) / dt) + 1), tspan)      # idx range of solution
+        HAVOKData = base[:,1:r-1]*sol'
+
+        return mean_off_diagonal(HAVOKData, range)
+    end
 end
 
 
@@ -120,9 +154,10 @@ end
 
 
 function sim(sys::StateSpace{R,Array{R,2}}, range::UnitRange{Int}, Embedding::DelayEmbedding{R}, dt::R) where R <: AbstractFloat
-    tspan = dt * range                              # time span of simulation
-    x0 = Embedding.Eigenseries[range[1],1:end-1]    # initial Condition
-    u = Embedding.Eigenseries[range,end]            # external Forcing
+    @unpack Eigenseries = Embedding
+    tspan = dt * range          # time span of simulation
+    x0 = Eigenseries[range[1], 1:end-1] # initial Condition
+    u = Eigenseries[range, end]         # external Forcing
     sol, t, full_sol = lsim(sys, u, tspan, x0=x0)   # solve
 
     # Create and return HAVOKsim object
