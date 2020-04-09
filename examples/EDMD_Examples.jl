@@ -25,73 +25,78 @@ sol = solve(prob, FunctionMap())
 # Plot the solution
 plot(sol)
 
-
 # Build the edmd with subset of measurements
 approximator = ExtendedDMD(sol[:,:], basis)
-
 # Lets look at the eigenvalues
 scatter(eigvals(approximator))
+# The discrete time approximation of the next step
+sol[:, 2] ≈ approximator(u0, [], 0.0)
 
-# Get the nonlinear dynamics
-dudt_ = dynamics(approximator)
+# Add non-basis test
+f_(x::AbstractVector, p, t) = [x[1]; x[2]; sin(x[1]); x[2]^2]
+f_(x::AbstractArray, p, t) = hcat(map(xi->f_(xi,p,t), eachcol(x)))
+approx = ExtendedDMD(sol[:, :], f_)
+
+approx(u0, [], 0.0) ≈ approximator(u0, [], 0.0) ≈ sol[:, 2]
+
 # Solve the estimation problem
-prob_ = DiscreteProblem(dudt_, u0, tspan, [])
+prob_ = DiscreteProblem(approximator, u0, tspan, [])
 sol_ = solve(prob_, FunctionMap())
 
 # Plot the error
-plot(sol_)
+plot(sol)
+plot!(sol_)
+
 plot(sol.t, abs.(sol - sol_)')
 norm(sol-sol_) # ≈ 4.33e-13
+# Calling dynamics returns the out of place and inplace function
+dynamics(approximator)
 
 # Get the linear dynamics in koopman space
-dψdt = linear_dynamics(approximator)
+dψdt = linear_dynamics(approximator)[1]
+lifted_sol = lifting(approximator)(Array(sol), [], 0.0)
 # Simply calling the EDMD struct transforms into the current basis
-ψ_prob = DiscreteProblem(dψdt, approximator(u0), tspan)
+ψ_prob = DiscreteProblem(dψdt, lifted_sol[:,1], tspan)
 ψ = solve(ψ_prob, FunctionMap())
-
 # Plot trajectory in edmd basis
 plot(sol.t, ψ')
-plot(sol.t, approximator(Array(sol))')
-norm((ψ - approximator(Array(sol)))) # ≈ 0.0158
+plot!(sol.t, lifted_sol')
+norm((ψ - lifted_sol)) # ≈ 0.0158
 
 # And in observable space
-sol_ψ = approximator.output * ψ
+sol_ψ = outputmap(approximator)(ψ, [], 0.0)
 plot(abs.(sol_ψ'- sol[:,:]'))
 norm(sol_ψ - sol) # ≈ 0.00664
 
-
 # Reduce the basis
-reduced_basis = reduce_basis(approximator)
+reduced = reduce_basis(approximator)
 
 # Reiterate for the reduced approximator with few measurements
-reduced_approximator = ExtendedDMD(sol[:,1:4], reduced_basis)
+reduced_approximator = ExtendedDMD(sol[:,1:4], reduced)
 
-dψdt = linear_dynamics(reduced_approximator)
+dψdt = linear_dynamics(reduced_approximator)[1]
+g0 = reduced(u0)
 # Simply calling the EDMD struct transforms into the current basis
-ψ_prob = DiscreteProblem(dψdt, reduced_approximator(u0), tspan)
-ψ = solve(ψ_prob, FunctionMap())
-
-# Plot trajectory in edmd basis with much higher accuracy than before
-#plot(sol.t, ψ')
-#plot!(sol.t, hcat([reduced_approximator(xi) for xi in eachcol(sol)]...)')
-norm(ψ - reduced_approximator(Array(sol))) # ≈ 1.43..
-
-
-
-# Update with all other measurements
-update!(reduced_approximator, sol[:,8:end-1], sol[:, 9:end], threshold = 1e-7)
-
-dψdt = linear_dynamics(reduced_approximator)
-# Simply calling the EDMD struct transforms into the current basis
-ψ_prob = DiscreteProblem(dψdt, reduced_approximator(u0), tspan)
+ψ_prob = DiscreteProblem(dψdt,g0 , tspan)
 ψ = solve(ψ_prob, FunctionMap())
 
 # Plot trajectory in edmd basis with much higher accuracy than before
 plot(sol.t, ψ')
-norm(ψ - reduced_approximator(Array(sol))) # ≈ 0.347...
+plot!(sol.t, reduced(Array(sol))')
+norm(ψ - reduced(Array(sol))) # ≈ 1.43..
 
-# And in observable space, with lower accuracy since the original states are not in the
+# Update with all other measurements
+update!(reduced_approximator, sol[:,8:end-1], sol[:, 9:end], threshold = 1e-7)
+dψdt = linear_dynamics(reduced_approximator)[2]
+ψ_prob = DiscreteProblem(dψdt, reduced(u0), tspan)
+ψ = solve(ψ_prob, FunctionMap())
+
+# Plot trajectory in edmd basis with much higher accuracy than before
+plot(sol.t, ψ')
+norm(ψ - reduced(Array(sol))) # ≈ 0.347...
+
+# And in state space, with lower accuracy since the original states are not in the
 # system anymore
-sol_ψ = reduced_approximator.output * ψ
+sol_ψ = outputmap(reduced_approximator)(ψ, [], 0.0)
 plot(abs.(sol_ψ'- sol[:,:]'))
 norm(sol_ψ - sol) # ≈ 0.464
