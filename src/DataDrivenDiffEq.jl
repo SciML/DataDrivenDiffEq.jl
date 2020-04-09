@@ -29,7 +29,7 @@ include("./koopman/koopman.jl")
 export Koopman
 export eigen, eigvals, eigvecs, modes, frequencies
 export dynamics, linear_dynamics
-export inputmap, lifting, outputmap
+export operator, inputmap, lifting, outputmap
 export update!
 export isstable, iscontinouos, isdiscrete
 export islifted, iscontrolled, isupdateable

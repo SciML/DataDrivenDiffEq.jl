@@ -71,6 +71,7 @@ LinearAlgebra.eigvecs(m::Koopman) = m.ϕ
 modes(m::Koopman) = eigvecs(m)
 frequencies(m::Koopman) =  !isempty(m.ω) ? m.ω : error("No continouos frequencies available.")
 
+operator(k::Koopman) = k.A
 inputmap(m::Koopman) = m.B
 lifting(m::Koopman) = m.ψ
 outputmap(m::Koopman) = m.C

@@ -11,7 +11,7 @@
     estimator = ExactDMD(X[:,1:end-2])
     @test isstable(estimator)
 
-    @test estimator.A ≈ A
+    @test operator(estimator) ≈ A
     @test eigvals(estimator) ≈ eigvals(A)
     @test eigvecs(estimator) ≈ eigvecs(A)
 
@@ -115,7 +115,7 @@ end
 
     # But with a little more knowledge
     sys = DMDc(X, U, B = B)
-    @test sys.A ≈[1.5 0; 0 0.1]
+    @test operator(sys) ≈[1.5 0; 0 0.1]
     @test inputmap(sys)(1.0, [], 0.0) ≈ [1.0; 0.0]
     @test !isstable(sys)
     @test_nowarn eigen(sys)
