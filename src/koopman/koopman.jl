@@ -168,7 +168,7 @@ function linear_dynamics(o::Koopman; force_discrete::Bool = false, force_contino
         end
 
         function f_iip(du, u, p, t)
-            mul!(du, A, u)
+            mul!(du, o.A, u)
         end
 
         return f_oop, f_iip
