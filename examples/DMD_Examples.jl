@@ -56,7 +56,7 @@ y = sol2[:,2:21]
 update!(approx, x, y)
 
 # Lets have a look at the operator, which moves near the true value
-approx.A
+operator(approx)
 
 # Add time continouos system
 function linear(du, u, p, t)
