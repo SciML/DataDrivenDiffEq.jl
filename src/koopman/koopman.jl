@@ -72,6 +72,8 @@ modes(m::Koopman) = eigvecs(m)
 frequencies(m::Koopman) =  !isempty(m.ω) ? m.ω : error("No continouos frequencies available.")
 
 operator(k::Koopman) = k.A
+generator(k::Koopman) = iscontinouos(k) ? real.(k.ϕ*Diagonal(k.ω)*inv(k.ϕ)) : error("No continouos system information available.")
+
 inputmap(m::Koopman) = m.B
 lifting(m::Koopman) = m.ψ
 outputmap(m::Koopman) = m.C
@@ -117,7 +119,7 @@ end
 # General case (everything is a function)
 function (o::Koopman)(u, p, t; force_discrete::Bool = false) where T <: Real
     if iscontinouos(o) && !force_discrete
-        A = real.(o.ϕ*Diagonal(o.ω)*inv(o.ϕ))
+        A = generator(o)
         return o.C(A*o.ψ(u,p,t), p, t)
     else
         return o.C(o.A*o.ψ(u,p,t), p, t)
@@ -126,7 +128,7 @@ end
 
 function (o::Koopman)(du, u, p, t; force_discrete::Bool = false) where T <: Real
     if iscontinouos(o) && !force_discrete
-        A = real.(o.ϕ*Diagonal(o.ω)*inv(o.ϕ))
+        A = generator(o)
         du .= o.C(A*o.ψ(u,p,t), p, t)
     else
         du .=  o.C(o.A*o.ψ(u,p,t), p, t)
@@ -148,7 +150,7 @@ function dynamics(o::Koopman; force_discrete::Bool = false, force_continouos::Bo
         return f_oop, f_iip
     else
         @assert iscontinouos(o) "Koopman has no continouos representation!"
-        A = real.(o.ϕ*Diagonal(o.ω)*inv(o.ϕ))
+        A = generator(o)
 
         function df_oop(u,p,t)
             return o.C(A*o.ψ(u,p,t), p, t)
@@ -175,7 +177,7 @@ function linear_dynamics(o::Koopman; force_discrete::Bool = false, force_contino
         return f_oop, f_iip
     else
         @assert iscontinouos(o) "Koopman has no continouos representation!"
-        A = real.(o.ϕ*Diagonal(o.ω)*inv(o.ϕ))
+        A = generator(o)
 
         function df_oop(u,p,t)
             return A*u
