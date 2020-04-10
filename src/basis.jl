@@ -117,9 +117,18 @@ end
 free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
 
 (b::Basis)(x::AbstractArray{T, 1}; p::AbstractArray = []) where T <: Number = b.f_(x, isempty(p) ? parameters(b) : p)
+function (b::Basis)(y::AbstractArray{T,1}, x::AbstractArray{T,1}; p::AbstractArray = []) where T <: Number
+    @assert size(y, 2) == size(x, 2)
+    @assert size(y, 1) == length(b)
+
+    y .= b.f_(x, isempty(p) ? parameters(b) : p)
+    return
+end
+
 # TODO This has to be adapted at the function generation and Basis constructor
 # We may need an independent variable inside the basis object
-(b::Basis)(x::AbstractArray, p::AbstractArray, t::T) where T <: Number = b(x, p = p)
+(b::Basis)(x::AbstractArray, p::AbstractArray , t::T) where T <: Number = b(x, p = p)
+(b::Basis)(y::AbstractArray, x::AbstractArray, p::AbstractArray , t::T) where T <: Number = b(y, x, p = p)
 
 
 function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Number
@@ -134,6 +143,24 @@ function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Nu
         res[:, i] .= b.f_(x[:, i], pi)
     end
     return res
+end
+
+function (b::Basis)(y::AbstractArray{T, 2}, x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Number
+    @assert size(y, 2) == size(x, 2)
+    @assert size(y, 1) == length(b)
+
+    if (isempty(p) || eltype(p) <: Expression) && !isempty(parameters(b))
+        pi = isempty(p) ? parameters(b) : p
+        res = zeros(eltype(pi), length(b), size(x)[2])
+    else
+        pi = p
+        res = zeros(eltype(x), length(b), size(x)[2])
+    end
+
+    @inbounds for i in 1:size(x)[2]
+        y[:, i] .= b.f_(x[:, i], pi)
+    end
+    return
 end
 
 Base.size(b::Basis) = size(b.basis)

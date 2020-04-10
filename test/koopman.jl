@@ -61,9 +61,15 @@ end
 
     @test_throws AssertionError ExtendedDMD(sol[:,:], basis, dt = -1.0)
     estimator = ExtendedDMD(sol[:,:], basis)
-    @test basis == estimator.ψ
+    @test basis == lifting(estimator)
     @test islifted(estimator)
     basis_2 = reduce_basis(estimator, threshold = 1e-5)
+    dg = zeros(5)
+    lifting(estimator)(dg, u0, [], 0.0)
+    @test dg ≈ lifting(estimator)(u0, [], 0.0)
+    du = zeros(2)
+    outputmap(estimator)(du, dg, [], 0.0)
+    @test du ≈ outputmap(estimator)(dg, [], 0.0)
     @test size(basis_2)[1] < size(basis)[1]
 
     estimator_2 = ExtendedDMD(sol[:,:], basis_2)

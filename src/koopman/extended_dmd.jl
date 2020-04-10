@@ -14,8 +14,10 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ; alg::O = DMDPINV(),
     A = estimate_operator(alg, Ψ₀, Ψ₁; kwargs...)
 
     C = X*pinv(Ψ₀)
+    c(u, p, t) = C*u
+    c(du, u, p, t) = mul!(du, C, u)
 
-    return  Koopman(A, ψ, (u, p, t)->C*u, Q = Ψ₁*Ψ₀', P = Ψ₀*Ψ₀', dt = dt)
+    return  Koopman(A, ψ, c, Q = Ψ₁*Ψ₀', P = Ψ₀*Ψ₀', dt = dt)
 end
 
 function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ::Basis; alg::O = DMDPINV(), p::AbstractArray = [], dt::T = 0.0, kwargs...)  where {O <: AbstractDMDAlg, T <: Real}
@@ -30,6 +32,9 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ::Basis; alg::O = DMD
 
     C = X*pinv(Ψ₀)
 
-    return  Koopman(A, ψ, (u, p, t)->C*u, Q = Ψ₁*Ψ₀', P = Ψ₀*Ψ₀', dt = dt)
+    c(u, p, t) = C*u
+    c(du, u, p, t) = mul!(du, C, u)
+
+    return  Koopman(A, ψ, c, Q = Ψ₁*Ψ₀', P = Ψ₀*Ψ₀', dt = dt)
 
 end

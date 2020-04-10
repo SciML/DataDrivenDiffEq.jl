@@ -17,6 +17,9 @@
     @test size(basis) == size(h)
     @test basis([1.0; 2.0; π], p = [0. 1.]) ≈ [1.0; 2.0; -1.0; π+2.0]
     @test basis([1.0; 2.0; π], [0. 1.], 0.0) ≈ [1.0; 2.0; -1.0; π+2.0]
+    dg = zeros(4)
+    basis(dg, [1.0; 2.0; π], p = [0. 1.])
+    @test dg ≈ [1.0; 2.0; -1.0; π+2.0]
     @test size(basis) == size(basis_2)
     push!(basis_2, sin(u[2]))
     @test size(basis_2)[1] == length(h)+1
