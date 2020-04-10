@@ -1,9 +1,9 @@
 
-function ExtendedDMD(X::AbstractArray, Ψ; alg::O = DMDPINV(), p::AbstractArray = [], dt::T = 0.0, kwargs...)  where {O <: abstractDMDAlg, T <: Real}
+function ExtendedDMD(X::AbstractArray, Ψ; alg::O = DMDPINV(), p::AbstractArray = [], dt::T = 0.0, kwargs...)  where {O <: AbstractDMDAlg, T <: Real}
     return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, alg = alg, p = p, dt = dt, kwargs...)
 end
 
-function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ; alg::O = DMDPINV(), p::AbstractArray = [], dt::T = 0.0, kwargs...)  where {O <: abstractDMDAlg, T <: Real}
+function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ; alg::O = DMDPINV(), p::AbstractArray = [], dt::T = 0.0, kwargs...)  where {O <: AbstractDMDAlg, T <: Real}
     @assert dt >= zero(typeof(dt)) "Provide positive dt"
     @assert size(X) == size(Y) "Provide consistent dimensions for data"
 
@@ -18,7 +18,7 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ; alg::O = DMDPINV(),
     return  Koopman(A, ψ, (u, p, t)->C*u, Q = Ψ₁*Ψ₀', P = Ψ₀*Ψ₀', dt = dt)
 end
 
-function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ::Basis; alg::O = DMDPINV(), p::AbstractArray = [], dt::T = 0.0, kwargs...)  where {O <: abstractDMDAlg, T <: Real}
+function ExtendedDMD(X::AbstractArray, Y::AbstractArray, ψ::Basis; alg::O = DMDPINV(), p::AbstractArray = [], dt::T = 0.0, kwargs...)  where {O <: AbstractDMDAlg, T <: Real}
     @assert dt >= zero(typeof(dt)) "Provide positive dt"
     @assert size(X) == size(Y) "Provide consistent dimensions for data"
 

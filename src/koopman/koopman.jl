@@ -1,4 +1,4 @@
-mutable struct Koopman{T, FP, FB, FC} <: abstractKoopmanOperator
+mutable struct Koopman{T, FP, FB, FC} <: AbstractKoopmanOperator
 
     A::AbstractArray{T,2} # Approximation of the operator, Transition
 
@@ -58,7 +58,10 @@ end
 
 function Koopman(A::AbstractArray{T,2}, ψ::AbstractArray{T,2}, C::AbstractArray{T,2} ; B = nothing, Q::AbstractArray{T,2} = Array{T}(undef, 0, 0), P::AbstractArray{T,2} = Array{T}(undef, 0, 0), dt::R = 0.0) where {T <: Real, R <: Real}
     psi(u,p,t) = ψ*u
+    psi(du, u, p, t) = mul!(du, ψ, u)
+
     c(u,p,t) = C*u
+    c(du, u, p, t) = mul!(du, C, u)
 
     return Koopman(A, psi, c, B = B, Q = Q, P = P, dt = dt)
 end

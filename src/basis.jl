@@ -1,7 +1,7 @@
 import Base.==
 
 
-mutable struct Basis{O, V, P} <: abstractBasis
+mutable struct Basis{O, V, P} <: AbstractBasis
     basis::O
     variables::V
     parameter::P

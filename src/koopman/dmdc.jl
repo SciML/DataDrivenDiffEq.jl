@@ -1,8 +1,8 @@
-function DMDc(X::AbstractArray, U::AbstractArray; alg::O = DMDPINV(), B::AbstractArray = [], dt::T = 0.0, kwargs...) where {O <: abstractDMDAlg, T <: Real}
+function DMDc(X::AbstractArray, U::AbstractArray; alg::O = DMDPINV(), B::AbstractArray = [], dt::T = 0.0, kwargs...) where {O <: AbstractDMDAlg, T <: Real}
     return DMDc(X[:, 1:end-1], X[:, 2:end], U, alg = alg, B = B, dt = dt, kwargs...)
 end
 
-function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; alg::O = DMDPINV(), B::AbstractArray = [], dt::T = 0.0, kwargs...) where {O <: abstractDMDAlg, T <: Real}
+function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; alg::O = DMDPINV(), B::AbstractArray = [], dt::T = 0.0, kwargs...) where {O <: AbstractDMDAlg, T <: Real}
     @assert dt >= zero(dt)
     @assert size(X) == size(Y)
     @assert size(X)[2] .== size(U)[2]

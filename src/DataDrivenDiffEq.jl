@@ -7,9 +7,9 @@ using Statistics
 using DSP
 using Compat
 
-abstract type abstractBasis end;
-abstract type abstractKoopmanOperator end;
-abstract type abstractDMDAlg end;
+abstract type AbstractBasis end;
+abstract type AbstractKoopmanOperator end;
+abstract type AbstractDMDAlg end;
 
 include("./optimisers/Optimise.jl")
 using .Optimise
@@ -43,22 +43,6 @@ export ExtendedDMD
 
 include("./koopman/dmdc.jl")
 export DMDc
-
-#include("./exact_dmd.jl")
-#export ExactDMD
-#export eigen, eigvals, eigvecs
-#export modes, frequencies, isstable
-#export dynamics, update!
-#
-#include("./extended_dmd.jl")
-#export ExtendedDMD
-#export dynamics, linear_dynamics
-#export reduce_basis, update!
-#
-#include("./dmdc.jl")
-#export DMDc
-#export eigen, eigvals, eigvecs
-#export get_dynamics, get_input_map, dynamics
 
 include("./sindy.jl")
 export SInDy
