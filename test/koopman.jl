@@ -1,4 +1,3 @@
-
 @testset "DMD" begin
     # Create some linear data
     A = [0.9 -0.2; 0.0 0.2]
@@ -14,12 +13,16 @@
     @test operator(estimator) ≈ A
     @test eigvals(estimator) ≈ eigvals(A)
     @test eigvecs(estimator) ≈ eigvecs(A)
+    @test [eigen(A)...] ≈ [eigen(estimator)...]
+
+    @test estimator(X[:, 1], [], 0.0) ≈ X[:, 2]
 
     @test isupdateable(estimator)
     @test !islifted(estimator)
     @test_nowarn dynamics(estimator)
     @test_throws AssertionError dynamics(estimator, force_continouos = true)
     @test_nowarn update!(estimator, X[:, end-1], X[:,end], threshold = 0.0)
+    @test_nowarn update!(estimator, X[:, end-1], X[:,end], threshold = 5.0)
 
     # Add Linear ODE
     function linear(du, u, p, t)
@@ -32,10 +35,20 @@
     sol = solve(prob, Tsit5(), saveat = 0.1)
 
     estimator = ExactDMD(sol[:,:], dt = 0.1)
+
+    v, m = eigen([-0.9 0.0; 0.2 -0.1])
+
+    @test abs.(real.(modes(estimator))) ≈ abs.(m) atol = 1e-5
+    @test real.(frequencies(estimator)) ≈ v atol = 1e-5
+
     @test_nowarn estimator(u0, [], 0.0)
     du0 = similar(u0)
     @test_nowarn estimator(du0, [], 0.0)
     @test estimator(u0, [], 0.0) ≈ [-0.9 0.0; 0.2 -0.1]*u0 atol = 1e-2
+    @test_nowarn dynamics(estimator)
+    d_oop, d_iip = dynamics(estimator)
+    @test d_oop(u0, [], 0.0) ≈ estimator(u0, [], 0.0)
+    
     approx_p = ODEProblem(estimator, u0, (0.0, 10.0))
     sol_ = solve(approx_p, Tsit5(), saveat = 0.1)
     @test sol_[:,:] ≈ sol[:,:] atol = 1e-2
