@@ -37,11 +37,11 @@ export DMDc
 export eigen, eigvals, eigvecs
 export get_dynamics, get_input_map, dynamics
 
-include("./sindy.jl")
+include("./sindy/sindy.jl")
 export SInDy
 export sparse_regression, sparse_regression!
 
-include("./isindy.jl")
+include("./sindy/isindy.jl")
 export ISInDy
 
 include("./utils.jl")
