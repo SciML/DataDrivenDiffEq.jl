@@ -73,11 +73,11 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
     normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimise.init!(Ξ, opt, θ', Ẋ')
-    Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
+    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
 
-    return Ξ
+    return Ξ, iters
 end
 
 function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool ) where T <: Optimise.AbstractOptimiser
@@ -93,11 +93,11 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimise.init!(Ξ, opt, θ', Ẋ')
-    Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
+    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
 
-    return
+    return iters
 end
 
 # For pareto
@@ -109,12 +109,12 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
     normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimise.init!(Ξ, opt, θ', Ẋ')'
-    Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
+    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
     normalize ? rescale_theta!(θ, scales) : nothing
 
-    return
+    return iters
 end
 
 
@@ -130,7 +130,7 @@ end
 
 # General
 function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(), denoise::Bool = false, normalize::Bool = true) where {T <: Optimise.AbstractOptimiser, S <: Number}
-    Ξ = sparse_regression(X, Ẋ, Ψ, p, maxiter, opt, denoise, normalize)
+    Ξ, iters = sparse_regression(X, Ẋ, Ψ, p, maxiter, opt, denoise, normalize)
     Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
 end
 
@@ -157,6 +157,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
     x = zeros(eltype(X), length(thresholds), ny, 2)
     pareto = zeros(eltype(X),  ny, length(thresholds))
     scales = ones(eltype(X), length(Ψ))
+    iters = zeros(Int64, length(thresholds))
 
     denoise ? optimal_shrinkage!(θ') : nothing
     normalize ? normalize_theta!(scales, θ) : nothing
