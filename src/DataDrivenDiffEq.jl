@@ -39,6 +39,7 @@ export get_dynamics, get_input_map, dynamics
 
 include("./sindy/results.jl")
 export SparseIdentificationResult
+export print_equations
 export get_coefficients, get_error, get_sparsity, get_aicc
 
 include("./sindy/sindy.jl")

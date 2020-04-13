@@ -41,6 +41,8 @@ Base.show(io::IO, x::SparseIdentificationResult) = print(io, "Sparse Identificat
     end
 end
 
+print_equations(r::SparseIdentificationResult) = print(r.equations)
+
 function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T , convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
     Ŷ = coeff'*equations(X, p = p)
     training_error = norm.(eachrow(Y-Ŷ), 2)
