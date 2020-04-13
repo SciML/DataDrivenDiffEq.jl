@@ -198,12 +198,13 @@ function ModelingToolkit.ODESystem(b::Basis)
 
     vs = similar(b.variables)
     dvs = similar(b.variables)
+
     for (i, vi) in enumerate(b.variables)
         vs[i] = ModelingToolkit.Operation(vi.op, [t])
         dvs[i] = D(vs[i])
     end
-    eqs = dvs .~ b(vs, p = b.parameter)
-    return ODESystem(eqs)
+    eqs = dvs .~ b(vs, p = parameters(b))
+    return ODESystem(eqs, t, variables(b), parameters(b))
 end
 
 function ModelingToolkit.ODESystem(b::Basis, independent_variable::Operation)

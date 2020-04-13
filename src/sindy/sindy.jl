@@ -182,5 +182,5 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
         Ξ_opt[:, i] = Ξ[indx, i, :]
     end
 
-    return Basis(simplified_matvec(Ξ_opt, Ψ.basis), variables(Ψ), parameters = p)
+    return Basis(simplified_matvec(Ξ_opt, Ψ.basis), variables(Ψ), parameters = parameters(Ψ))
 end
