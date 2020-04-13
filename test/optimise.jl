@@ -13,7 +13,8 @@ atols = Float64[1e-10, 1e-2, 1e-7]
     @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
         set_threshold!(opt, threshold)
         Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
-        fit!(Ξ, x', y', opt, maxiter = maxiter)
+        _iters = fit!(Ξ, x', y', opt, maxiter = maxiter)
+        @test _iters <= maxiter
         @test norm(A - Ξ', 2) < a_tol
 
     end
@@ -27,10 +28,12 @@ end
     @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
         set_threshold!(opt, threshold)
         Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
-        fit!(Ξ, x', y', opt, maxiter = maxiter)
+        _iters = fit!(Ξ, x', y', opt, maxiter = maxiter)
+        @test _iters <= maxiter
         @test norm(A - Ξ', 2) < a_tol
     end
 end
+
 @testset "Multiple Signals" begin
     x = 10.0*randn(100, 1000)
     A = zeros(5,100)
@@ -45,10 +48,13 @@ end
     @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
         set_threshold!(opt, threshold)
         Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
-        fit!(Ξ, x', y', opt, maxiter = maxiter)
+        _iters = fit!(Ξ, x', y', opt, maxiter = maxiter)
+        @test _iters <= maxiter
         @test norm(A - Ξ', 2) < a_tol
     end
 end
+
+
 @testset "ADM" begin
     x = randn(3, 100)
     A = Float64[1 0 3; 0 1 0; 0 2 1]
