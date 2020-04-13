@@ -30,7 +30,6 @@ function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Opera
     @assert all(is_independent.(variables)) "Please provide independent variables for base."
 
     bs = unique(basis)
-    fix_single_vars_in_basis!(bs, variables)
 
     vs = [ModelingToolkit.Variable(Symbol(i)) for i in variables]
     ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters]
@@ -58,7 +57,6 @@ end
 
 function Base.push!(b::Basis, op₀::Operation)
     op = simplify_constants(op₀)
-    fix_single_vars_in_basis!(op, b.variables)
     push!(b.basis, op)
     # Check for uniqueness
     unique!(b)
@@ -117,8 +115,6 @@ end
 free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
 
 (b::Basis)(x::AbstractArray{T, 1}; p::AbstractArray = []) where T <: Number = b.f_(x, isempty(p) ? parameters(b) : p)
-
-
 
 function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Number
     if (isempty(p) || eltype(p) <: Expression) && !isempty(parameters(b))
@@ -189,15 +185,6 @@ function Base.unique!(b::AbstractArray{Operation})
     deleteat!(b, removes)
 end
 
-function fix_single_vars_in_basis!(basis,variables)
-    for (ind, el) in enumerate(basis)
-        for (ind_var, var) in enumerate(variables)
-            if isequal(el,var)
-                basis[ind] = 1var
-            end
-        end
-    end
-end
 
 function dynamics(b::Basis)
     return b.f_
@@ -211,12 +198,13 @@ function ModelingToolkit.ODESystem(b::Basis)
 
     vs = similar(b.variables)
     dvs = similar(b.variables)
+
     for (i, vi) in enumerate(b.variables)
         vs[i] = ModelingToolkit.Operation(vi.op, [t])
         dvs[i] = D(vs[i])
     end
-    eqs = dvs .~ b(vs, p = b.parameter)
-    return ODESystem(eqs)
+    eqs = dvs .~ b(vs, p = parameters(b))
+    return ODESystem(eqs, t, variables(b), parameters(b))
 end
 
 function ModelingToolkit.ODESystem(b::Basis, independent_variable::Operation)
@@ -233,7 +221,7 @@ function ModelingToolkit.ODESystem(b::Basis, independent_variable::Operation)
         vs[i] = ModelingToolkit.Operation(vi.op, [independent_variable])
         dvs[i] = D(vs[i])
     end
-    
+
     eqs = dvs .~ b([vs..., independent_variable], p = b.parameter)
     return ODESystem(eqs, independent_variable, vs, b.parameter)
 end
