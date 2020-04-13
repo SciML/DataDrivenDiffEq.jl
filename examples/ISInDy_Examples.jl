@@ -50,6 +50,8 @@ sys = ODESystem(Ψ)
 dudt = ODEFunction(sys)
 ps = parameters(Ψ)
 
+print_equations(Ψ)
+
 # Simulate
 estimator = ODEProblem(dudt, u0, tspan, ps)
 sol_ = solve(estimator, Tsit5(), saveat = 0.1)
@@ -59,4 +61,4 @@ plot(sol.t[:], sol[:,:]', color = :red, label = nothing)
 plot!(sol_.t, sol_[:, :]', color = :green, label = "Estimation")
 
 plot(sol.t, abs.(sol-sol_)')
-norm(sol[:,:]-sol_[:,:], 2) # approx 0.0976
+norm(sol[:,:]-sol_[:,:], 2) # approx 9e-7

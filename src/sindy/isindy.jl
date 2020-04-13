@@ -52,11 +52,9 @@ end
 
 function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T, convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
 
-    sparsities = zeros(Int64, 2, size(coeff, 2))
-    sparsities[1, :] .= Int64.(norm(eachcol(coeff[1:length(equations), :]), 0))
-    sparsities[2, :] .= Int64.(norm(eachcol(coeff[length(equations)+1:end, :]), 0))
+    sparsities = Int64.(norm.(eachcol(coeff), 0))
 
-    b_, p_ = derive_implicit_parameterized_eqs(coeff, equations, sum.(eachrow(sparsities)))
+    b_, p_ = derive_implicit_parameterized_eqs(coeff, equations)
     ps = [p; p_]
 
     Ŷ = b_(X, p = ps)
@@ -64,17 +62,21 @@ function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Bas
     aicc = similar(training_error)
 
     for i in 1:length(aicc)
-        aicc[i] = AICC(sum(sparsities[:, i]), view(Ŷ, i, :) , view(Y, i, :))
+        aicc[i] = AICC(sum(sparsities[i]), view(Ŷ, i, :) , view(Y, i, :))
     end
-    return SparseIdentificationResult(coeff, [p...;p_...], b_ , opt, iters, convergence,  training_error, aicc,  sum.(eachcol(sparsities)))
+    return SparseIdentificationResult(coeff, [p...;p_...], b_ , opt, iters, convergence,  training_error, aicc,  sparsities)
 end
 
 
 
-function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsities::Array{Int64, 1}) where T <: Real
-    @parameters p[1:sum(sparsities)]
-    p_ = zeros(eltype(Ξ), sum(sparsities))
+function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) where T <: Real
+
+    sparsity = Int64(norm(Ξ, 0))
+
+    @parameters p[1:sparsity]
+    p_ = zeros(eltype(Ξ), sparsity)
     cnt = 1
+
     b_ = Basis(Operation[], variables(b), parameters = [parameters(b)...; p...])
 
     for i=1:size(Ξ, 2)

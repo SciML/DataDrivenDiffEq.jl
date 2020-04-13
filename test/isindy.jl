@@ -35,15 +35,18 @@
 
     basis= Basis(polys, u)
 
-    opt = ADM(1e-3)
-    Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.1)
-
-    @test all(get_error(Ψ) .< 1e-6)
+    opt = ADM(1e-2)
+    Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 10, rtol = 0.1)
 
     # Transform into ODE System
-    @test_nowarn sys = ODESystem(Ψ)
+    sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
-    @test_nowarn ps = parameters(Ψ)
+    ps = parameters(Ψ)
+
+    @test all(get_error(Ψ) .< 1e-6)
+    @test length(ps) == 11
+    @test get_sparsity(Ψ) == [4; 3; 4]
+    @test abs.(ps) ≈ abs.(Float64[-1/3 ; -1/3 ; -1.00 ; 2/3; 1.00 ;0.5 ;0.5 ; 1.0; 1.0; -1.0; 1.0])
 
     # Simulate
     estimator = ODEProblem(dudt, u0, tspan, ps)
