@@ -17,7 +17,7 @@ init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X,
 
 #soft_thresholding(x::AbstractArray, t::T) where T <: Real = sign.(x) .* max.(abs.(x) .- t, zero(eltype(x)))
 
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 100)
+function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 100, convergence_error::T = 1e-10) where T <: Real
     n, m = size(A)
 
     g = NormL1(get_threshold(opt))
@@ -28,11 +28,27 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
     P = I(m)/opt.ρ - (A' * pinv(opt.ρ*I(n) + A*A') *A)/opt.ρ
     c = P*(A'*Y)
 
+
+    x_i = similar(X)
+    x_i .= X
+
+    iters = 0
+
     @inbounds for i in 1:maxiter
+        iters += 1
+
         x̂ .= P*(opt.ρ*X - ŷ) + c
         prox!(X, g, x̂ + ŷ/opt.ρ)
         ŷ .= ŷ + opt.ρ*(x̂ - X)
+
+        if norm(x_i - X, 2) < convergence_error
+            break
+        else
+            x_i .= X
+        end
+
     end
 
     X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
+    return iters
 end
