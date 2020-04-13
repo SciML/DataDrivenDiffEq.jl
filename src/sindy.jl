@@ -43,12 +43,22 @@ function normalize_theta!(scales::AbstractArray, θ::AbstractArray)
     return
 end
 
-function rescale_xi!(scales::AbstractArray, Ξ::AbstractArray)
+function rescale_xi!(Ξ::AbstractArray, scales::AbstractArray)
+    @assert length(scales) == size(Ξ, 1)
     @inbounds for (si, ti) in zip(scales, eachrow(Ξ))
         ti .= ti / si
     end
     return
 end
+
+function rescale_theta!(θ::AbstractArray, scales::AbstractArray)
+    @assert length(scales) == size(θ, 1)
+    @inbounds for (i, ti) in enumerate(eachrow(θ))
+        ti .= ti * scales[i]
+    end
+    return
+end
+
 
 function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool ) where T <: Optimise.AbstractOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
@@ -65,7 +75,7 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
     Optimise.init!(Ξ, opt, θ', Ẋ')
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
-    normalize ? rescale_xi!(scales, Ξ) : nothing
+    normalize ? rescale_xi!(Ξ, scales) : nothing
 
     return Ξ
 end
@@ -85,7 +95,7 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     Optimise.init!(Ξ, opt, θ', Ẋ')
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
-    normalize ? rescale_xi!(scales, Ξ) : nothing
+    normalize ? rescale_xi!(Ξ, scales) : nothing
 
     return
 end
@@ -101,8 +111,8 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
     Optimise.init!(Ξ, opt, θ', Ẋ')'
     Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
 
-    normalize ? rescale_xi!(scales, Ξ) : nothing
-    normalize ? rescale_xi!(scales, θ) : nothing
+    normalize ? rescale_xi!(Ξ, scales) : nothing
+    normalize ? rescale_theta!(θ, scales) : nothing
 
     return
 end
@@ -158,7 +168,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
 
         [x[j, i, :] = [norm(xi, 0); norm(view(Ẋ , i, :) - θ'*xi, 2)] for (i, xi) in enumerate(eachcol(ξ))]
 
-        normalize ? rescale_xi!(scales, ξ) : nothing
+        normalize ? rescale_xi!(ξ, scales) : nothing
         Ξ[j, :, :] = ξ[:, :]'
     end
 
