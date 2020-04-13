@@ -14,7 +14,7 @@ mutable struct SparseIdentificationResult <: AbstractSparseIdentificationResult
     sparsity
 end
 
-Base.show(io::IO, x::SparseIdentificationResult) = print(io, "Sparse Identification Result with $(x.sparsity) active terms.")
+Base.show(io::IO, x::SparseIdentificationResult) = print(io, "Sparse Identification Result with $(sum(x.sparsity)) active terms.")
 
 @inline function Base.print(io::IO, x::SparseIdentificationResult)
     println("Sparse Identification Result")
@@ -28,9 +28,12 @@ Base.show(io::IO, x::SparseIdentificationResult) = print(io, "Sparse Identificat
     for (i, ei) in enumerate(x.error)
         println("   Equation $i : $ei")
     end
-    println("AICC : $(x.aicc)\n")
+    println("AICC :")
+    for (i, ai) in enumerate(x.aicc)
+        println("   Equation $i : $ai")
+    end
 
-    print("$(x.opt)")
+    print("\n$(x.opt)")
     if x.converged
         println(" converged after $(x.iterations) iterations.")
     else
@@ -39,11 +42,16 @@ Base.show(io::IO, x::SparseIdentificationResult) = print(io, "Sparse Identificat
 end
 
 function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T , convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
-    error = norm.(eachrow(Y-coeff'*equations(X)), 2)
+    Ŷ = coeff'*equations(X, p = p)
+    training_error = norm.(eachrow(Y-Ŷ), 2)
     sparsity = Int64.(norm.(eachcol(coeff), 0))
-    aicc = AICC(sum(sparsity), coeff'*equations(X), Y)
+
+    aicc = similar(training_error)
+    for i in 1:length(aicc)
+        aicc[i] = AICC(sparsity[i], view(Ŷ, i, :) , view(Y, i, :))
+    end
     b_, p_ = derive_parameterized_eqs(coeff, equations, sum(sparsity))
-    return SparseIdentificationResult(coeff, [p...;p_...], b_ , opt, iters, convergence,  error, aicc,  sparsity)
+    return SparseIdentificationResult(coeff, [p...;p_...], b_ , opt, iters, convergence,  training_error, aicc,  sparsity)
 end
 
 
@@ -71,7 +79,17 @@ function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::I
     b_, p_
 end
 
+Base.size(r::SparseIdentificationResult) = size(r.sparsity)
+Base.length(r::SparseIdentificationResult) = length(r.sparsity)
+
 ModelingToolkit.parameters(r::SparseIdentificationResult) = r.parameters
+
+dynamics(b::SparseIdentificationResult) = dynamics(b.equations)
+
+get_sparsity(r::SparseIdentificationResult) = r.sparsity
+get_error(r::SparseIdentificationResult) = r.error
+get_aicc(r::SparseIdentificationResult) = r.aicc
+get_coefficients(r::SparseIdentificationResult) = r.coeff
 
 function ModelingToolkit.ODESystem(b::SparseIdentificationResult)
     return ODESystem(b.equations)
@@ -81,4 +99,6 @@ function ModelingToolkit.ODESystem(b::SparseIdentificationResult, independent_va
     return ODESystem(b.equations, independent_variable)
 end
 
-dynamics(b::SparseIdentificationResult) = dynamics(b.equations)
+
+
+(r::SparseIdentificationResult)(X::AbstractArray = []) = r.equations(X, p = r.parameters)
