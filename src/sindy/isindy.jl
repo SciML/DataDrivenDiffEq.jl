@@ -5,7 +5,7 @@
 # Where M is diagonal!
 
 # TODO preallocation
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; weights::AbstractArray = [], f_target = (x, w) ->  norm(w .* x, 2), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
     nb = length(Ψ.basis)
 
@@ -15,6 +15,9 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; maxiter::Int64 
     eqs = Operation[]
     ps = Operation[]
     Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
+
+    isempty(weights) ? weights = ones(eltype(θ), 2)/2 : nothing
+    f_t(x) = f_target(x, weights)
 
     @inbounds for i in 1:size(Ẋ, 1)
         dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
@@ -28,8 +31,8 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; maxiter::Int64 
 
 
         # Compute pareto front
-        pareto = map(q->norm([norm(q, 0) ;norm(Θ'*q, 2)], 2), eachcol(Q))
-        score, posmin = findmin(pareto)
+        pareto = map(q->[norm(q, 0) ;norm(Θ'*q, 2)], eachcol(Q))
+        score, posmin = findmin(f_t.(pareto))
         # Get the corresponding eqs
         q_best = Q[:, posmin]
         # Remove small entries

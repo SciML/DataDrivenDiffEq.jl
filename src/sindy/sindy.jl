@@ -139,7 +139,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
     end
 
     # Closure
-    isempty(weights) ? weights = ones(eltype(x), 2)/length(x) : nothing
+    isempty(weights) ? weights = ones(eltype(x), 2)/2 : nothing
     f_t(x) = f_target(x, weights)
 
     _iter = Inf

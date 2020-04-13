@@ -44,13 +44,12 @@ basis= Basis(polys, u)
 opt = ADM(1e-2)
 Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 10, rtol = 0.1)
 println(Ψ)
+print_equations(Ψ)
 
 # Transform into ODE System
 sys = ODESystem(Ψ)
 dudt = ODEFunction(sys)
 ps = parameters(Ψ)
-
-print_equations(Ψ)
 
 # Simulate
 estimator = ODEProblem(dudt, u0, tspan, ps)
