@@ -38,8 +38,15 @@
     opt = ADM(1e-3)
     Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.1)
 
+    @test all(get_error(Ψ) .< 1e-6)
+
+    # Transform into ODE System
+    @test_nowarn sys = ODESystem(Ψ)
+    dudt = ODEFunction(sys)
+    @test_nowarn ps = parameters(Ψ)
+
     # Simulate
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan)
+    estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test sol[:,:] ≈ sol_[:,:]
 end
