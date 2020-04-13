@@ -74,6 +74,7 @@ opt = STRRidge(0.1)
 Ψ = SInDy(X_cropped, DX_sg, basis, maxiter = 100, opt = opt, normalize = false)
 print(Ψ)
 print_equations(Ψ)
+print_equations(Ψ, show_parameter = true)
 
 # Let's try adding some noise
 using Random
