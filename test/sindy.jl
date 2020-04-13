@@ -100,6 +100,6 @@
     sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true)
 
     @test Ξ1 ≈ Ξ2 ≈ Ξ3
-    @test isapprox(norm(Ξ1'*θ - DX,2), 25.18; atol = 1e-1)
+    @test isapprox(norm(Ξ1'*θ - DX,2), 10.18; atol = 1e-1)
 
 end
