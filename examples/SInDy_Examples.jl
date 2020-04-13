@@ -59,7 +59,7 @@ println(Ψ)
 
 # SR3, works good with lesser data and tuning
 opt = SR3(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:30], DX[:, 1:30], basis, maxiter = 5000, opt = opt)
+Ψ = SInDy(sol[:,1:end], DX[:, 1:end], basis, maxiter = 5000, opt = opt)
 println(Ψ)
 
 # Vary the sparsity threshold -> gives better results
@@ -71,11 +71,11 @@ println(Ψ)
 
 # Transform into ODE System
 sys = ODESystem(Ψ)
+ps = parameters(Ψ)
 
 # Simulate
-estimator = ODEProblem(dynamics(Ψ), u0, tspan)
+estimator = ODEProblem(dynamics(Ψ), u0, tspan, ps)
 sol_ = solve(estimator, Tsit5(), saveat = sol.t)
-
 
 # Yeah! We got it right
 scatter(sol[:,:]')
