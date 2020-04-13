@@ -1,6 +1,5 @@
 using DataDrivenDiffEq
 using ModelingToolkit
-using ProximalOperators
 using OrdinaryDiffEq
 using LinearAlgebra
 using Plots
@@ -27,7 +26,7 @@ end
 
 # Create a basis
 @variables u[1:3]
-polys = ModelingToolkit.Operation[]
+polys = Operation[]
 # Lots of basis functions
 for i ∈ 0:6
     if i == 0
@@ -44,14 +43,20 @@ basis= Basis(polys, u)
 
 opt = ADM(1e-2)
 Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 10, rtol = 0.1)
-println(Ψ.basis)
+println(Ψ)
+
+# Transform into ODE System
+sys = ODESystem(Ψ)
+dudt = ODEFunction(sys)
+ps = parameters(Ψ)
 
 # Simulate
-estimator = ODEProblem(dynamics(Ψ), u0, tspan)
+estimator = ODEProblem(dudt, u0, tspan, ps)
 sol_ = solve(estimator, Tsit5(), saveat = 0.1)
-plot(sol_)
-sol_[:,:] ≈ sol[:,:]
+
 # Yeah! We got it right
-plot(sol[:, :]', label = "Original")
-plot!(sol_[:,:]', label = "Estimation")
-plot(norm.(eachcol(sol[:,:] - sol_[:,:]), 2), label = "Error")
+plot(sol.t[:], sol[:,:]', color = :red, label = nothing)
+plot!(sol_.t, sol_[:, :]', color = :green, label = "Estimation")
+
+plot(sol.t, abs.(sol-sol_)')
+norm(sol[:,:]-sol_[:,:], 2) # approx 0.0976
