@@ -17,7 +17,7 @@ get_threshold(opt::STRRidge) = opt.λ
 init(o::STRRidge, A::AbstractArray, Y::AbstractArray) = A \ Y
 init!(X::AbstractArray, o::STRRidge, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STRRidge; maxiter::Int64 = 1, convergence_error::T = 1e-10) where T <: Real
+function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STRRidge; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
     smallinds = abs.(X) .<= opt.λ
     biginds = @. ! smallinds[:, 1]
 

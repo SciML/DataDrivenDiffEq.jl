@@ -23,7 +23,7 @@ get_threshold(opt::SR3) = sqrt(2*opt.λ/opt.ν)
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 10, convergence_error::T = 1e-10) where T <: Real
+function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
     f = opt.R(get_threshold(opt))
 
     n, m = size(A)
