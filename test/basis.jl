@@ -47,6 +47,9 @@
     X[3, :] .= 5*X[3, :]
     # Check the array evaluation
     @test basis(X) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0] * X
+    Y = similar(X)
+    basis(Y, X)
+    @test Y ≈ basis(X)
     f = jacobian(basis)
     @test f([1;1;1], [0.0 0.0]) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
     @test_nowarn sys = ODESystem(basis)

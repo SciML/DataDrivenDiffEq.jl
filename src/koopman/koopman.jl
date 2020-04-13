@@ -68,7 +68,7 @@ end
 
 
 # Keep it simple
-LinearAlgebra.eigen(m::Koopman) = m.λ, m.ϕ
+LinearAlgebra.eigen(m::Koopman) = eigen(m.A)
 LinearAlgebra.eigvals(m::Koopman) = m.λ
 LinearAlgebra.eigvecs(m::Koopman) = m.ϕ
 modes(m::Koopman) = eigvecs(m)
