@@ -89,29 +89,6 @@ function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::I
     b_, p_
 end
 
-function derive_parameterized_eqs(Ξ::AbstractArray{T, 1}, b::Basis, sparsity::Int64) where T <: Real
-    @parameters p[1:sparsity]
-    p_ = zeros(eltype(Ξ), sparsity)
-    cnt = 1
-    b_ = Basis(Operation[], variables(b), parameters = [parameters(b)...; p...])
-
-    @inbounds for i=1:size(Ξ, 1)
-        eq = nothing
-        if !iszero(Ξ[i])
-            if eq === nothing
-                eq = p[cnt]*b[i]
-            else
-                eq += p[cnt]*b[i]
-            end
-            p_[cnt] = Ξ[i]
-            cnt += 1
-        end
-        push!(b_, eq)
-    end
-    b_, p_
-end
-
-
 Base.size(r::SparseIdentificationResult) = size(r.sparsity)
 Base.length(r::SparseIdentificationResult) = length(r.sparsity)
 
@@ -131,7 +108,5 @@ end
 function ModelingToolkit.ODESystem(b::SparseIdentificationResult, independent_variable::Operation)
     return ODESystem(b.equations, independent_variable)
 end
-
-
 
 (r::SparseIdentificationResult)(X::AbstractArray = []) = r.equations(X, p = r.parameters)
