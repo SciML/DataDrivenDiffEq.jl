@@ -29,7 +29,7 @@ end
 
 # Create a basis
 @variables u[1:2]
-
+@parameters w[1:2]
 # Lots of polynomials
 polys = Operation[1]
 for i ∈ 1:5
@@ -40,41 +40,45 @@ for i ∈ 1:5
 end
 
 # And some other stuff
-h = [cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
+h = [w[1]*cos(u[1]); w[2]*sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
 
-basis = Basis(h, u)
+basis = Basis(h, u, parameters = w)
 println(basis)
 
 # Get the reduced basis via the sparse regression
 # Thresholded Sequential Least Squares, works fine for more data
 # than assumptions, converges fast but fails sometimes with too much noise
 opt = STRRidge(1e-2)
-Ψ = SInDy(sol[:,1:25], DX[:, 1:25], basis, maxiter = 100, opt = opt)
+Ψ = SInDy(sol[:,1:25], DX[:, 1:25], basis, p = [1.0; 1.0], maxiter = 100, opt = opt)
 println(Ψ)
 
 # Lasso as ADMM, typically needs more information, more tuning
 opt = ADMM(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:50], DX[:, 1:50], basis, maxiter = 5000, opt = opt)
+Ψ = SInDy(sol[:,1:50], DX[:, 1:50], basis, p = [1.0; 1.0], maxiter = 5000, opt = opt)
 println(Ψ)
+print_equations(Ψ)
+# Get the associated parameters out of the result
+parameters(Ψ)
 
 # SR3, works good with lesser data and tuning
 opt = SR3(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:end], DX[:, 1:end], basis, maxiter = 5000, opt = opt)
+Ψ = SInDy(sol[:,1:end], DX[:, 1:end], basis, p = [0.5; 0.5], maxiter = 5000, opt = opt)
 println(Ψ)
+print_equations(Ψ, show_parameter = true)
+
 
 # Vary the sparsity threshold -> gives better results
 λs = exp10.(-5:0.1:-1)
 # Use SR3 with high relaxation (allows the solution to diverge from LTSQ) and high iterations
 opt = SR3(1e-2, 20.0)
-Ψ = SInDy(sol[:,1:10], DX[:, 1:10], basis, λs, maxiter = 10000, opt = opt)
+Ψ = SInDy(sol[:,1:10], DX[:, 1:10], basis, λs, p = [1.0; 1.0], maxiter = 10000, opt = opt)
 println(Ψ)
 
 # Transform into ODE System
 sys = ODESystem(Ψ)
-ps = parameters(Ψ)
 
 # Simulate
-estimator = ODEProblem(dynamics(Ψ), u0, tspan, ps)
+estimator = ODEProblem(ODEFunction(sys), u0, tspan, [1.0; 1.0])
 sol_ = solve(estimator, Tsit5(), saveat = sol.t)
 
 # Yeah! We got it right
