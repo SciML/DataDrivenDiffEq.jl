@@ -100,11 +100,11 @@
     opt = SR3(1e-1, 1.0)
     maxiter = 5000
     θ = basis(X)
-    Ξ1, iters_1 = sparse_regression(X, DX, basis, parameters(basis), maxiter, opt, true, true)
+    Ξ1, iters_1 = sparse_regression(X, DX, basis, parameters(basis), maxiter, opt, true, true, eps())
     Ξ2 = similar(Ξ1)
     Ξ3 = similar(Ξ1)
-    iters_2 = sparse_regression!(Ξ2, X, DX, basis, parameters(basis), maxiter, opt, true, true)
-    iters_3 = sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true)
+    iters_2 = sparse_regression!(Ξ2, X, DX, basis, parameters(basis), maxiter, opt, true, true, eps())
+    iters_3 = sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true, eps())
 
     @test iters_1 == iters_2 == iters_3
     @test Ξ1 ≈ Ξ2 ≈ Ξ3

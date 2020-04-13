@@ -60,7 +60,7 @@ function rescale_theta!(θ::AbstractArray, scales::AbstractArray)
 end
 
 
-function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool ) where T <: Optimise.AbstractOptimiser
+function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimise.AbstractOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
@@ -73,14 +73,14 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
     normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimise.init!(Ξ, opt, θ', Ẋ')
-    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
+    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
 
     return Ξ, iters
 end
 
-function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool ) where T <: Optimise.AbstractOptimiser
+function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimise.AbstractOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
@@ -93,7 +93,7 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimise.init!(Ξ, opt, θ', Ẋ')
-    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
+    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
 
@@ -101,7 +101,7 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
 end
 
 # For pareto
-function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractArray, maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool) where T <: Optimise.AbstractOptimiser
+function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractArray, maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimise.AbstractOptimiser
 
     scales = ones(eltype(Ξ), size(θ, 1))
 
@@ -109,7 +109,7 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
     normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimise.init!(Ξ, opt, θ', Ẋ')'
-    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter)
+    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
     normalize ? rescale_theta!(θ, scales) : nothing
@@ -129,8 +129,8 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis; kwar
 end
 
 # General
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(), denoise::Bool = false, normalize::Bool = true) where {T <: Optimise.AbstractOptimiser, S <: Number}
-    Ξ, iters = sparse_regression(X, Ẋ, Ψ, p, maxiter, opt, denoise, normalize)
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(), denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimise.AbstractOptimiser, S <: Number}
+    Ξ, iters = sparse_regression(X, Ẋ, Ψ, p, maxiter, opt, denoise, normalize, convergence_error)
     convergence = iters < maxiter
     SparseIdentificationResult(Ξ, Ψ, iters, opt, convergence, Ẋ, X, p = p)
 end
@@ -145,7 +145,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thre
     return SInDy(X, Ẋ', Ψ, thresholds; kwargs...)
 end
 
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true) where {T <: Optimise.AbstractOptimiser, S <: Number}
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimise.AbstractOptimiser, S <: Number}
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
@@ -166,7 +166,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
     @inbounds for (j, threshold) in enumerate(thresholds)
         set_threshold!(opt, threshold)
 
-        sparse_regression!(ξ, θ, Ẋ, maxiter, opt, false, false)
+        sparse_regression!(ξ, θ, Ẋ, maxiter, opt, false, false, convergence_error)
 
         [x[j, i, :] = [norm(xi, 0); norm(view(Ẋ , i, :) - θ'*xi, 2)] for (i, xi) in enumerate(eachcol(ξ))]
 

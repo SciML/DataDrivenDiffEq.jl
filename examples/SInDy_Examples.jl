@@ -49,12 +49,13 @@ println(basis)
 # Thresholded Sequential Least Squares, works fine for more data
 # than assumptions, converges fast but fails sometimes with too much noise
 opt = STRRidge(1e-2)
-Ψ = SInDy(sol[:,1:25], DX[:, 1:25], basis, p = [1.0; 1.0], maxiter = 100, opt = opt)
+# Enforce all 100 iterations
+Ψ = SInDy(sol[:,1:25], DX[:, 1:25], basis, p = [1.0; 1.0], maxiter = 100, opt = opt, convergence_error = 0.0)
 println(Ψ)
 
 # Lasso as ADMM, typically needs more information, more tuning
 opt = ADMM(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:50], DX[:, 1:50], basis, p = [1.0; 1.0], maxiter = 5000, opt = opt)
+Ψ = SInDy(sol[:,1:50], DX[:, 1:50], basis, p = [1.0; 1.0], maxiter = 5000, opt = opt, convergence_error = 1e-3)
 println(Ψ)
 print_equations(Ψ)
 # Get the associated parameters out of the result
@@ -62,7 +63,7 @@ parameters(Ψ)
 
 # SR3, works good with lesser data and tuning
 opt = SR3(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:end], DX[:, 1:end], basis, p = [0.5; 0.5], maxiter = 5000, opt = opt)
+Ψ = SInDy(sol[:,1:end], DX[:, 1:end], basis, p = [0.5; 0.5], maxiter = 5000, opt = opt, convergence_error = 1e-5)
 println(Ψ)
 print_equations(Ψ, show_parameter = true)
 
