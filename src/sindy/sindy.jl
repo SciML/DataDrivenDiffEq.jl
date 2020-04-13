@@ -131,7 +131,7 @@ end
 # General
 function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(), denoise::Bool = false, normalize::Bool = true) where {T <: Optimise.AbstractOptimiser, S <: Number}
     Ξ, iters = sparse_regression(X, Ẋ, Ψ, p, maxiter, opt, denoise, normalize)
-    Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
+    #Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
 end
 
 
