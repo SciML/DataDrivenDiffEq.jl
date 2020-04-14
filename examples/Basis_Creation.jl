@@ -71,3 +71,17 @@ independent_variable(b)
 
 # We can also check if two bases are equal
 b == b
+
+# Every function which is defined over Operations can be parsed
+f(u, p, t) = [u[3]; u[2]*u[1]; sin(u[1])*u[2]]
+b = Basis(f, u)
+
+using Flux
+NNlib.σ(x::Operation) = 1 / (1+exp(-x))
+# Build a fully
+c = Chain(Dense(3,5,σ), Dense(5, 2, σ))
+ps, re = Flux.destructure(c)
+@parameters p[1:length(ps)]
+g(u, p, t) = re(p)(u)
+b = Basis(g, u, parameters = p)
+println(b)

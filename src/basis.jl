@@ -27,7 +27,7 @@ end
 
 is_independent(o::Operation) = isempty(o.args)
 
-function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};  parameters::AbstractArray =  [], iv = nothing)
+function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};  parameters::AbstractArray =  Operation[], iv = nothing)
     @assert all(is_independent.(variables)) "Please provide independent variables for basis."
 
     bs = unique(basis)
@@ -48,6 +48,22 @@ function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operati
     return Basis(bs, variables, parameters, iv, f_)
 end
 
+
+function Basis(basis::Function, variables::AbstractArray{Operation};  parameters::AbstractArray =  Operation[], iv = nothing)
+    @assert all(is_independent.(variables)) "Please provide independent variables for basis."
+
+    if isnothing(iv)
+        @parameters t
+        iv = t
+    end
+
+    try
+        eqs = basis(variables, parameters, iv)
+        return Basis(eqs, variables, parameters = parameters, iv = iv)
+    catch e
+        rethrow(e)
+    end
+end
 
 function update!(basis::Basis)
 
