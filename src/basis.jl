@@ -1,11 +1,11 @@
 import Base.==
 
 
-mutable struct Basis{O, P, V} <: abstractBasis
-    basis::Vector{O}
-    variables::Vector{O}
+mutable struct Basis{B, V, P, T} <: abstractBasis
+    basis::B
+    variables::V
     parameter::P
-    iv::V
+    iv::T
     f_::Function
 end
 
@@ -27,7 +27,7 @@ end
 
 is_independent(o::Operation) = isempty(o.args)
 
-function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Operation};  parameters =  [], iv = nothing)
+function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};  parameters::AbstractArray =  [], iv = nothing)
     @assert all(is_independent.(variables)) "Please provide independent variables for basis."
 
     bs = unique(basis)
@@ -37,7 +37,7 @@ function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Opera
         iv = t
     end
 
-    vs = [ModelingToolkit.Variable(Symbol(i))(iv) for i in variables]
+    vs = [ModelingToolkit.Variable(Symbol(i)) for i in variables]
     ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters]
 
     f_oop, f_iip = ModelingToolkit.build_function(bs, vs, ps, [iv], expression = Val{false})
