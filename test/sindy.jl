@@ -1,6 +1,5 @@
 
 @testset "SInDy" begin
-
     # Create a nonlinear pendulum
     function pendulum(u, p, t)
         x = u[2]
@@ -20,9 +19,9 @@
     for (i, xi) in enumerate(eachcol(sol[:,:]))
         DX[:,i] = pendulum(xi, [], 0.0)
     end
+
     # Create a basis
     @variables u[1:2]
-
     # Lots of polynomials
     polys = Operation[1]
     for i ∈ 1:5
@@ -33,12 +32,11 @@
     end
 
     # And some other stuff
-    h = [cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]
+    h = [cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys]
 
     basis = Basis(h, u)
 
     opt = STRRidge(1e-2)
-    basis = Basis(h, u, parameters = [])
     Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000)
     @test_nowarn set_threshold!(opt, 1e-2)
 
@@ -100,14 +98,13 @@
     opt = SR3(1e-1, 1.0)
     maxiter = 5000
     θ = basis(X)
-    Ξ1, iters_1 = sparse_regression(X, DX, basis, parameters(basis), maxiter, opt, true, true, eps())
+    Ξ1, iters_1 = sparse_regression(X, DX, basis, parameters(basis), [], maxiter, opt, true, true, eps())
     Ξ2 = similar(Ξ1)
     Ξ3 = similar(Ξ1)
-    iters_2 = sparse_regression!(Ξ2, X, DX, basis, parameters(basis), maxiter, opt, true, true, eps())
+    iters_2 = sparse_regression!(Ξ2, X, DX, basis, parameters(basis), [], maxiter, opt, true, true, eps())
     iters_3 = sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true, eps())
 
     @test iters_1 == iters_2 == iters_3
     @test Ξ1 ≈ Ξ2 ≈ Ξ3
     @test isapprox(norm(Ξ1'*θ - DX,2), 10.18; atol = 1e-1)
-
 end
