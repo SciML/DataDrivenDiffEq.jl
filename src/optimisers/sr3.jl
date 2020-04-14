@@ -23,7 +23,7 @@ get_threshold(opt::SR3) = sqrt(2*opt.λ/opt.ν)
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 10)
+function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
     f = opt.R(get_threshold(opt))
 
     n, m = size(A)
@@ -32,16 +32,26 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
     # Init matrices
     P = inv(A'*A+I(m)/(opt.ν))
     X̂ = A'*Y
+
+    w_i = similar(W)
+    w_i .= W
+    iters = 0
+
     for i in 1:maxiter
+        iters += 1
         # Solve rigde regression
         X .= P*(X̂+W/(opt.ν))
         # Add proximal iteration
         prox!(W, f, X, opt.ν*opt.λ)
+
+        if norm(w_i - W, 2)/opt.ν < convergence_error
+            break
+        else
+            w_i .= W
+        end
+
     end
 
-    # This is the effective threshold of the SR3 algorithm
-    # See Unified Framework paper supplementary material S1
-    #η = sqrt(2*opt.λ*opt.ν)
     X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
-    return
+    return iters
 end

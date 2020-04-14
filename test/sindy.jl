@@ -41,11 +41,18 @@
     basis = Basis(h, u, parameters = [])
     Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000)
     @test_nowarn set_threshold!(opt, 1e-2)
-    @test size(Ψ)[1] == 2
 
+    @test length(Ψ) == 2
+    @test size(Ψ) == (2, )
+    @test parameters(Ψ) ≈ [1.0; -0.2; -9.81; -0.1]
+    W = get_coefficients(Ψ)
+    @test size(W) == (length(basis), 2)
+    @test_nowarn get_aicc(Ψ)
+    @test sum(get_sparsity(Ψ)) == 4
+    @test sum(get_error(Ψ)) < 1e-10
 
     # Simulate
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
     sol_ = solve(estimator,Tsit5(), saveat = dt)
     @test sol[:,:] ≈ sol_[:,:]
 
@@ -54,7 +61,7 @@
     @test_nowarn set_threshold!(opt, 1e-2)
 
     # Simulate
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
     sol_2 = solve(estimator,Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_2[:,:], 2) < 2e-1
 
@@ -63,7 +70,7 @@
     @test_nowarn set_threshold!(opt, 0.1)
 
     # Simulate
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
     sol_3 = solve(estimator,Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_3[:,:], 2) < 1e-1
 
@@ -71,7 +78,7 @@
     opt = SR3(1e-2, 20.0)
     λs = exp10.(-5:0.1:-1)
     Ψ = SInDy(sol[:,:], DX[:, :], basis, λs,  maxiter = 20, opt = opt)
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
     sol_4 = solve(estimator,Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
 
@@ -84,7 +91,7 @@
     X = sol[:, :] + 1e-3*randn(size(sol[:,:])...)
     Ψ = SInDy(X, DX, basis, λs, maxiter = 10000, opt = opt, denoise = true, normalize = true)
 
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, [])
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
     sol_4 = solve(estimator,Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_4[:,:], 2) < 5e-1
 
@@ -93,13 +100,14 @@
     opt = SR3(1e-1, 1.0)
     maxiter = 5000
     θ = basis(X)
-    Ξ1 = sparse_regression(X, DX, basis, parameters(basis), maxiter, opt, true, true)
+    Ξ1, iters_1 = sparse_regression(X, DX, basis, parameters(basis), maxiter, opt, true, true, eps())
     Ξ2 = similar(Ξ1)
     Ξ3 = similar(Ξ1)
-    sparse_regression!(Ξ2, X, DX, basis, parameters(basis), maxiter, opt, true, true)
-    sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true)
+    iters_2 = sparse_regression!(Ξ2, X, DX, basis, parameters(basis), maxiter, opt, true, true, eps())
+    iters_3 = sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true, eps())
 
+    @test iters_1 == iters_2 == iters_3
     @test Ξ1 ≈ Ξ2 ≈ Ξ3
-    @test isapprox(norm(Ξ1'*θ - DX,2), 25.18; atol = 1e-1)
+    @test isapprox(norm(Ξ1'*θ - DX,2), 10.18; atol = 1e-1)
 
 end

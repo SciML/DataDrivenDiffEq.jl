@@ -3,7 +3,7 @@
     @variables u[1:3]
     @parameters w[1:2]
     h = [u[1]; u[2]; cos(w[1]*u[2]+w[2]*u[3]); u[3]+u[2]]
-    h_not_unique = [1u[1]; u[1]; 1u[1]^1; h]
+    h_not_unique = [u[1]; u[1]; u[1]^1; h]
     basis = Basis(h_not_unique, u, parameters = w)
 
     @test isequal(variables(basis), u)
@@ -28,7 +28,7 @@
     merge!(basis_3, basis)
     @test basis_3 == basis_2
 
-    push!(basis, 1u[3]+1u[2])
+    push!(basis, u[3]+u[2])
     unique!(basis)
     @test size(basis) == size(h)
 
@@ -36,7 +36,7 @@
     g = [u[1]; u[3]; a]
     basis = Basis(g, [u; a])
     @test basis([1; 2; 3; 4]) == [1; 3; 4]
-    g = [1.0*u[1]; 1.0*u[3]; 1.0*u[2]]
+    g = [u[1]; u[3]; u[2]]
     basis = Basis(g, u, parameters = [])
     X = ones(Float64, 3, 10)
     X[1, :] .= 3*X[1, :]
