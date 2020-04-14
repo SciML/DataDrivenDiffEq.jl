@@ -5,12 +5,12 @@
 # Where M is diagonal!
 
 # TODO preallocation
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; weights::AbstractArray = [], f_target = (x, w) ->  norm(w .* x, 2), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; weights::AbstractArray = [], f_target = (x, w) ->  norm(w .* x, 2), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
     nb = length(Ψ.basis)
 
     # Compute the library and the corresponding nullspace
-    θ = Ψ(X, p = p)
+    θ = Ψ(X, p, t)
     # Init for sweep over the differential variables
     eqs = Operation[]
     ps = Operation[]
@@ -49,18 +49,18 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; weights::Abstra
     end
 
 
-    return ImplicitSparseIdentificationResult(Ξ, Ψ, maxiter, opt, true, Ẋ, X, p = p)
+    return ImplicitSparseIdentificationResult(Ξ, Ψ, maxiter, opt, true, Ẋ, X, p = p, t = t)
 end
 
 
-function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T, convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
+function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T, convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = [], t::AbstractVector = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
 
     sparsities = Int64.(norm.(eachcol(coeff), 0))
 
     b_, p_ = derive_implicit_parameterized_eqs(coeff, equations)
     ps = [p; p_]
 
-    Ŷ = b_(X, p = ps)
+    Ŷ = b_(X, ps, t)
     training_error = norm.(eachrow(Y-Ŷ), 2)
     aicc = similar(training_error)
 
