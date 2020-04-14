@@ -5,7 +5,7 @@ mutable struct ExtendedDMD{D,O,C} <: abstractKoopmanOperator
 end
 
 # Make the struct callable for transformations
-(m::ExtendedDMD)(u; p = []) = m.basis(u, p = p)
+(m::ExtendedDMD)(u, p = [], t = nothing) = m.basis(u, p, t)
 
 # Some nice functions
 LinearAlgebra.eigen(m::ExtendedDMD) = eigen(m.koopman)
@@ -27,8 +27,8 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::A
     N,M = size(X)
 
     # Compute the transformed data
-    Ψ₀ = Ψ(X, p = p)
-    Ψ₁ = Ψ(Y, p = p)
+    Ψ₀ = Ψ(X, p)
+    Ψ₁ = Ψ(Y, p)
 
     Op = ExactDMD(Ψ₀, Ψ₁, dt = dt) # Initial guess based upon the basis
 
@@ -42,8 +42,8 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::A
 end
 
 function update!(m::ExtendedDMD, x::AbstractArray, y::AbstractArray; p::AbstractArray = [], dt::T = 0.0, threshold::Float64 = 1e-3) where T <: Real
-    Ψ₀ = m.basis(x, p = p)
-    Ψ₁ = m.basis(y, p = p)
+    Ψ₀ = m.basis(x, p)
+    Ψ₁ = m.basis(y, p)
     update!(m.koopman, Ψ₀, Ψ₁, dt = dt, threshold = threshold)
     return
 end
@@ -54,7 +54,7 @@ function dynamics(m::ExtendedDMD)
     # Create a set of nonlinear eqs
     p_ = m.output*m.koopman.Ã
     function dudt_(du, u, p, t)
-        mul!(du,p_,m.basis(u, p = p))
+        mul!(du,p_,m.basis(u, p, t))
     end
 end
 
