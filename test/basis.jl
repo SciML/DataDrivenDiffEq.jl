@@ -53,9 +53,14 @@
     @test_nowarn [xi for xi in basis]
     @test_nowarn basis[2:end]; basis[2]; first(basis); last(basis); basis[:]
 
-    @variables u[1:2] t
+    @variables u[1:3] t
 
-    g = [u[2]; -sin(u[1])*exp(-t)]
+    g = [u[2]; -sin(u[1])*exp(-t); u[2]+u[3]]
     basis = Basis(g, u, iv = t)
     @test_nowarn ODESystem(basis)
+
+    f(u, p, t) = [u[3]; u[2]*u[1]; p[1]*sin(u[1])*u[2]; p[2]*t]
+    b = Basis(f, u, parameters = w, iv = t)
+    @test f([1; 2; 3], [2; 0], 3.0) ≈ b([1; 2; 3], [2; 0], 3.0)
+    @test_throws AssertionError ODESystem(b)
 end
