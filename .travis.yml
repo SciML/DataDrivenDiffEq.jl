@@ -5,7 +5,7 @@ os:
   - linux
 
 julia:
-  - 1.2
+  - 1
   - nightly
 
 matrix:
