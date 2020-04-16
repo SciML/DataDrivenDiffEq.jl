@@ -15,3 +15,4 @@ inputmap(k::AbstractKoopmanOperator) = k.input
 outputmap(k::AbstractKoopmanOperator) = k.output
 
 updateable(k::AbstractKoopmanOperator) = !isempty(k.Q) && !isempty(k.P)
+isstable(k::AbstractKoopmanOperator) = is_discrete(k) ? all(abs.(eigvals(k)) .< one(eltype(k.operator))) : all(real.(eigvals(k)) < zero(eltype(k.operator)))

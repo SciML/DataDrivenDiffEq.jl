@@ -29,7 +29,7 @@ export eigen, eigvals, eigvecs
 export modes, frequencies
 export is_discrete, is_continouos
 export operator, generator
-export inputmap, outputmap, updateable
+export inputmap, outputmap, updateable, isstable
 
 include("./koopman/linearkoopman.jl")
 export LinearKoopman, update!
