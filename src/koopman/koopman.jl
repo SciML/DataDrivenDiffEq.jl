@@ -12,6 +12,6 @@ operator(k::AbstractKoopmanOperator) = is_discrete(k) ? k.operator : "Koopman is
 generator(k::AbstractKoopmanOperator) = is_continouos(k) ? k.operator : "Koopman is discrete."
 
 inputmap(k::AbstractKoopmanOperator) = k.input
-outputmap(k::AbstractKoopmanOperator) = k.outputmap
+outputmap(k::AbstractKoopmanOperator) = k.output
 
 updateable(k::AbstractKoopmanOperator) = !isempty(k.Q) && !isempty(k.P)
