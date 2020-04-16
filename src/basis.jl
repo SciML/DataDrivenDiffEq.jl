@@ -1,11 +1,12 @@
 import Base.==
 
 
-mutable struct Basis{O, V, P} <: abstractBasis
-    basis::O
+mutable struct Basis{B, V, P, T} <: abstractBasis
+    basis::B
     variables::V
     parameter::P
-    f_
+    iv::T
+    f_::Function
 end
 
 Base.show(io::IO, x::Basis) = print(io, "$(length(x.basis)) dimensional basis in ", "$(String.([v.op.name for v in x.variables]))")
@@ -26,23 +27,55 @@ end
 
 is_independent(o::Operation) = isempty(o.args)
 
-function Basis(basis::AbstractVector{Operation}, variables::AbstractVector{Operation};  parameters =  [])
-    @assert all(is_independent.(variables)) "Please provide independent variables for base."
+function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};  parameters::AbstractArray =  Operation[], iv = nothing)
+    @assert all(is_independent.(variables)) "Please provide independent variables for basis."
 
     bs = unique(basis)
+
+    if isnothing(iv)
+        @parameters t
+        iv = t
+    end
 
     vs = [ModelingToolkit.Variable(Symbol(i)) for i in variables]
     ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters]
 
-    f_ = ModelingToolkit.build_function(bs, vs, ps, (), simplified_expr, Val{false})[1]
-    return Basis(bs, variables, parameters, f_)
+    f_oop, f_iip = ModelingToolkit.build_function(bs, vs, ps, [iv], expression = Val{false})
+
+    f_(u, p, t) = f_oop(u, p, t)
+    f_(du, u, p, t) = f_iip(du, u, p, t)
+
+    return Basis(bs, variables, parameters, iv, f_)
+end
+
+
+function Basis(basis::Function, variables::AbstractArray{Operation};  parameters::AbstractArray =  Operation[], iv = nothing)
+    @assert all(is_independent.(variables)) "Please provide independent variables for basis."
+
+    if isnothing(iv)
+        @parameters t
+        iv = t
+    end
+
+    try
+        eqs = basis(variables, parameters, iv)
+        return Basis(eqs, variables, parameters = parameters, iv = iv)
+    catch e
+        rethrow(e)
+    end
 end
 
 function update!(basis::Basis)
-    vs = [ModelingToolkit.Variable(Symbol(i)) for i in variables(basis)]
+
+    vs = [ModelingToolkit.Variable(Symbol(i))(basis.iv) for i in variables(basis)]
     ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters(basis)]
 
-    basis.f_ = ModelingToolkit.build_function(basis.basis, vs, ps, (), simplified_expr, Val{false})[1]
+    f_oop, f_iip = ModelingToolkit.build_function(basis.basis, vs, ps, [basis.iv], expression = Val{false})
+
+    f_(u, p, t) = f_oop(u, p, t)
+    f_(du, u, p, t) = f_iip(du, u, p, t)
+
+    basis.f_ = f_
     return
 end
 
@@ -114,9 +147,12 @@ end
 
 free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
 
-(b::Basis)(x::AbstractArray{T, 1}; p::AbstractArray = []) where T <: Number = b.f_(x, isempty(p) ? parameters(b) : p)
+(b::Basis)(u::AbstractVector,  p::AbstractArray = [], t = nothing) = b.f_(u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
+(b::Basis)(du::AbstractVector, u::AbstractVector, p::AbstractArray = [], t = nothing) = b.f_(du, u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
 
-function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Number
+function (b::Basis)(x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray = [])
+    isempty(t) ? nothing : @assert size(x, 2) == length(t)
+
     if (isempty(p) || eltype(p) <: Expression) && !isempty(parameters(b))
         pi = isempty(p) ? parameters(b) : p
         res = zeros(eltype(pi), length(b), size(x)[2])
@@ -124,24 +160,44 @@ function (b::Basis)(x::AbstractArray{T, 2}; p::AbstractArray = []) where T <: Nu
         pi = p
         res = zeros(eltype(x), length(b), size(x)[2])
     end
+
     @inbounds for i in 1:size(x)[2]
-        res[:, i] .= b.f_(x[:, i], pi)
+        res[:, i] .= b.f_(x[:, i], isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
     end
+
     return res
+end
+
+function (b::Basis)(y::AbstractMatrix, x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray = [])
+    @assert size(x, 2) == size(y, 2) "Provide consistent arrays."
+    @assert size(y, 1) == length(b) "Provide consistent arrays."
+    isempty(t) ? nothing : @assert size(x, 2) == length(t)
+
+    @inbounds for i in 1:size(x, 2)
+        b.f_(view(y, :, i), view(x, :, i), isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
+    end
+
 end
 
 Base.size(b::Basis) = size(b.basis)
 Base.length(b::Basis) = length(b.basis)
 ModelingToolkit.parameters(b::Basis) = b.parameter
 variables(b::Basis) = b.variables
+ModelingToolkit.independent_variable(b::Basis) = b.iv
 
 function jacobian(basis::Basis)
 
-    vs = [ModelingToolkit.Variable(Symbol(i)) for i in variables(basis)]
+    vs = [ModelingToolkit.Variable(Symbol(i))(independent_variable(basis)) for i in variables(basis)]
     ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters(basis)]
 
     j = calculate_jacobian(basis.basis, variables(basis))
-    return ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, (), simplified_expr, Val{false})[1]
+
+    f_oop, f_iip = ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, [basis.iv], expression = Val{false})
+
+    f_(u, p, t) = f_oop(u, p, t)
+    f_(du, u, p, t) = f_iip(du, u, p, t)
+
+    return f_
 end
 
 
@@ -185,7 +241,6 @@ function Base.unique!(b::AbstractArray{Operation})
     deleteat!(b, removes)
 end
 
-
 function dynamics(b::Basis)
     return b.f_
 end
@@ -193,35 +248,15 @@ end
 function ModelingToolkit.ODESystem(b::Basis)
     @assert length(b) == length(variables(b))
     # Define the time
-    @parameters t
-    @derivatives D'~t
+    @derivatives D'~independent_variable(b)
 
     vs = similar(b.variables)
     dvs = similar(b.variables)
 
     for (i, vi) in enumerate(b.variables)
-        vs[i] = ModelingToolkit.Operation(vi.op, [t])
+        vs[i] = ModelingToolkit.Operation(vi.op, [independent_variable(b)])
         dvs[i] = D(vs[i])
     end
-    eqs = dvs .~ b(vs, p = parameters(b))
-    return ODESystem(eqs, t, variables(b), parameters(b))
-end
-
-function ModelingToolkit.ODESystem(b::Basis, independent_variable::Operation)
-    @assert length(b) == length(variables(b))-1
-    @derivatives D'~independent_variable
-
-    vars = [vi for vi in variables(b) if ! isequal(vi, independent_variable)]
-
-    vs = similar(vars)
-    dvs = similar(vars)
-
-
-    for (i, vi) in enumerate(vars)
-        vs[i] = ModelingToolkit.Operation(vi.op, [independent_variable])
-        dvs[i] = D(vs[i])
-    end
-
-    eqs = dvs .~ b([vs..., independent_variable], p = b.parameter)
-    return ODESystem(eqs, independent_variable, vs, b.parameter)
+    eqs = dvs .~ b(vs, parameters(b), independent_variable(b))
+    return ODESystem(eqs, independent_variable(b), variables(b), parameters(b))
 end

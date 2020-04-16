@@ -51,8 +51,8 @@ function print_equations(r::SparseIdentificationResult; show_parameter::Bool = f
     end
 end
 
-function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T , convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
-    Ŷ = coeff'*equations(X, p = p)
+function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T , convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = [], t::AbstractVector = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
+    Ŷ = coeff'*equations(X, p, t)
     training_error = norm.(eachrow(Y-Ŷ), 2)
     sparsity = Int64.(norm.(eachcol(coeff), 0))
 
@@ -69,7 +69,7 @@ function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::I
     @parameters p[1:sparsity]
     p_ = zeros(eltype(Ξ), sparsity)
     cnt = 1
-    b_ = Basis(Operation[], variables(b), parameters = [parameters(b)...; p...])
+    b_ = Basis(Operation[], variables(b), parameters = [parameters(b)...; p...], iv = independent_variable(b))
 
     for i=1:size(Ξ, 2)
         eq = nothing
@@ -104,9 +104,3 @@ get_coefficients(r::SparseIdentificationResult) = r.coeff
 function ModelingToolkit.ODESystem(b::SparseIdentificationResult)
     return ODESystem(b.equations)
 end
-
-function ModelingToolkit.ODESystem(b::SparseIdentificationResult, independent_variable::Operation)
-    return ODESystem(b.equations, independent_variable)
-end
-
-(r::SparseIdentificationResult)(X::AbstractArray = []) = r.equations(X, p = r.parameters)
