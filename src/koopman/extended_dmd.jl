@@ -1,23 +1,9 @@
-mutable struct ExtendedDMD{D,O,C} <: abstractKoopmanOperator
-    koopman::D
-    output::O
-    basis::C
+
+function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = [])
+    return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B)
 end
 
-# Make the struct callable for transformations
-(m::ExtendedDMD)(u, p = [], t = nothing) = m.basis(u, p, t)
-
-# Some nice functions
-LinearAlgebra.eigen(m::ExtendedDMD) = eigen(m.koopman)
-LinearAlgebra.eigvals(m::ExtendedDMD) = eigvals(m.koopman)
-LinearAlgebra.eigvecs(m::ExtendedDMD) = eigvecs(m.koopman)
-
-function ExtendedDMD(X::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [],  B::AbstractArray = reshape([], 0,0), dt::T = 0.0)  where T <: Real
-    return ExtendedDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, B = B, dt = dt)
-end
-
-function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = reshape([], 0,0), dt::T = 0.0) where T <: Real
-    @assert dt >= zero(typeof(dt)) "Provide positive dt"
+function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::AbstractArray = [], B::AbstractArray = [])
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
     @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
 
@@ -29,6 +15,7 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::A
     # Compute the transformed data
     Ψ₀ = Ψ(X, p)
     Ψ₁ = Ψ(Y, p)
+
 
     Op = ExactDMD(Ψ₀, Ψ₁, dt = dt) # Initial guess based upon the basis
 
