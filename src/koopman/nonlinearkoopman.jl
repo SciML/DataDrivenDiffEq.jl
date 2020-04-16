@@ -11,8 +11,8 @@ mutable struct NonlinearKoopman <: AbstractKoopmanOperator
     discrete::Bool
 end
 
-outputmap(k::NonlinearKoopman) = k.outputmap
-inputmap(k::NonlinearKoopman) = k.inputmap
+outputmap(k::NonlinearKoopman) = k.output
+inputmap(k::NonlinearKoopman) = k.input
 
 function (k::NonlinearKoopman)(u,  p::AbstractArray = [], t = nothing)
     return k.output*k.operator*k.basis(u, p, t)
@@ -36,7 +36,15 @@ function update!(k::NonlinearKoopman, X::AbstractArray, Y::AbstractArray; p::Abs
 
     k.Q += Ψ₁*Ψ₀'
     k.P += Ψ₀*Ψ₀'
-    k.operator .= k.Q*inv(k.P)
+    k.operator .= k.Q / k.P
+
+    if norm(Y - outputmap(k)*k.operator*Ψ₀) < threshold
+        return
+    end
+
+    # TODO Make this a proper rank 1 update
+    k.output .= X / Ψ₀
+
     return
 end
 
