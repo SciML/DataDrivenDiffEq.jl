@@ -8,7 +8,7 @@ mutable struct LinearKoopman <: AbstractKoopmanOperator
     discrete::Bool
 end
 
-outputmap(k::LinearKoopman) = AssertionError("Linear Koopman Operator has no output map.")
+outputmap(k::LinearKoopman) = throw(AssertionError("Linear Koopman Operator has no output map."))
 
 function (k::LinearKoopman)(u, p, t)
     return k.operator*u

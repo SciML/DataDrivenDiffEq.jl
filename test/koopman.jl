@@ -7,15 +7,19 @@
         push!(y, A*y[end])
     end
     X = hcat(y...)
-    @test_throws AssertionError ExactDMD(X[:, 1:end-2], dt = -1.0)
-    estimator = ExactDMD(X[:,1:end-2])
-    @test isstable(estimator)
-    @test estimator.Ã ≈ A
+
+    estimator = DMD(X)
+    # TODO export
+    #@test isstable(estimator)
+    @test operator(estimator) ≈ A
     @test eigvals(estimator) ≈ eigvals(A)
     @test eigvecs(estimator) ≈ eigvecs(A)
-    @test_nowarn dynamics(estimator)
-    @test_throws AssertionError dynamics(estimator, discrete = false)
+    @test is_discrete(estimator)
+    # TODO add Array{T,2}
+    #@test estimator(X[:, 1]) ≈ X[:, 2]
     @test_nowarn update!(estimator, X[:, end-1], X[:,end])
+    @test_throws AssertionError outputmap(estimator)
+
 end
 
 @testset "EDMD" begin
@@ -35,22 +39,22 @@ end
     h = [1u[1]; 1u[2]; sin(u[1]); cos(u[1]); u[1]*u[2]]
     basis = Basis(h, u)
 
-    @test_throws AssertionError ExtendedDMD(sol[:,:], basis, dt = -1.0)
-    estimator = ExtendedDMD(sol[:,:], basis)
+    estimator = EDMD(sol[:,:], basis, alg = DMDSVD())
     @test basis == estimator.basis
     basis_2 = reduce_basis(estimator, threshold = 1e-5)
     @test size(basis_2)[1] < size(basis)[1]
-    estimator_2 = ExtendedDMD(sol[:,:], basis_2)
-    p1 = DiscreteProblem(dynamics(estimator), u0, tspan, [])
+    estimator_2 = EDMD(sol[:,:], basis_2)
+    p1 = DiscreteProblem(estimator, u0, tspan, [])
     s1 = solve(p1,FunctionMap())
-    p2 = DiscreteProblem(dynamics(estimator_2), u0, tspan, [])
+    p2 = DiscreteProblem(estimator_2, u0, tspan, [])
     s2 = solve(p2,FunctionMap())
-    p3 = DiscreteProblem(linear_dynamics(estimator_2), estimator_2(u0), tspan, [])
-    s3 = solve(p3,FunctionMap())
+    # TODO add linear dynamics ?
+    #p3 = DiscreteProblem(linear_dynamics(estimator_2), estimator_2(u0), tspan, [])
+    #s3 = solve(p3,FunctionMap())
     @test sol[:,:] ≈ s1[:,:]
     @test sol[:,:] ≈ s2[:,:]
-    @test estimator_2.basis(sol[:,:])≈ s3[:,:]
     @test eigvals(estimator_2) ≈ [-0.9; -0.3]
+    @test isstable(estimator_2)
 
     # Test for nonlinear system
     function nonlinear_sys(du, u, p, t)
@@ -60,8 +64,8 @@ end
 
     prob = DiscreteProblem(nonlinear_sys, u0, tspan)
     sol = solve(prob,FunctionMap())
-    estimator = ExtendedDMD(sol[:,:], basis)
-    p4 = DiscreteProblem(dynamics(estimator), u0, tspan, [])
+    estimator = EDMD(sol[:,:], basis, alg = DMDPINV())
+    p4 = DiscreteProblem(estimator, u0, tspan, [])
     s4 = solve(p4,FunctionMap())
     @test sol[:,:] ≈ s4[:,:]
 end
@@ -75,21 +79,10 @@ end
 
     # But with a little more knowledge
     sys = DMDc(X, U, B = B)
-    @test isa(get_dynamics(sys), ExactDMD)
-    @test sys.koopman.Ã ≈[1.5 0; 0 0.1]
-    @test get_input_map(sys) ≈ [1.0; 0.0]
+    @test operator(sys) ≈[1.5 0; 0 0.1]
+    @test inputmap(sys) ≈ [1.0; 0.0]
     @test !isstable(sys)
     @test_nowarn eigen(sys)
-
-    # Check the solution of an unforced and forced system against each other
-    dudt_ = dynamics(sys)
-    prob = DiscreteProblem(dudt_, X[:, 1], (0., 10.))
-    sol_unforced = solve(prob,  FunctionMap())
-
-    dudt_ = dynamics(sys, control = (u, p, t) -> -0.5u[1])
-    prob = DiscreteProblem(dudt_, X[:, 1], (0., 10.))
-    sol = solve(prob, FunctionMap())
-
-    @test all(abs.(diff(sol[1,:])) .< 1e-5)
-    @test sol[2,:] ≈ sol_unforced[2,:]
+    sys2 = DMDc(X, U, B = B, alg = DMDSVD())
+    @test operator(sys2) ≈ operator(sys)
 end
