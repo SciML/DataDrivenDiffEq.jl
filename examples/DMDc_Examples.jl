@@ -13,22 +13,12 @@ sys = DMDc(X, U)
 # But with a little more knowledge
 sys = DMDc(X, U, B = B)
 
-# Extract the DMD from inside DMDc
-get_dynamics(sys)
 # Acess all the other stuff
 eigen(sys)
 eigvals(sys)
 eigvecs(sys)
-isstable(sys)
-# Get unforced dynamics
-dudt_ = dynamics(sys)
-prob = DiscreteProblem(dudt_, X[:, 1], (0., 10.))
+
+prob = DiscreteProblem(sys, X[:, 1], (0., 10.))
 sol_unforced = solve(prob,  FunctionMap())
 plot(sol_unforced)
 sol_unforced[:,:]
-# Create a system with cos control input to stabilize
-dudt_ = dynamics(sys, control = (u, p, t) -> -0.5u[1])
-prob = DiscreteProblem(dudt_, X[:, 1], (0., 10.))
-sol = solve(prob, FunctionMap())
-
-plot!(sol)

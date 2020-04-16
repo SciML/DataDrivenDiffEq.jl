@@ -25,14 +25,13 @@ approx_sol = solve(prob_approx, FunctionMap())
 # Show solutions
 plot(sol)
 plot!(approx_sol)
+
 # Show error
 plot((sol .- approx_sol)')
 norm(sol .- approx_sol) # ≈ 2.23e-14
 
 # Eigen Decomposition
 eigen(approx)
-# Stability?
-isstable(approx)
 # Eigenvalues
 scatter(eigvals(approx), xlim = (-1, 1), ylim = (-1,1))
 
@@ -54,7 +53,7 @@ y = sol2[:,2:21]
 update!(approx, x, y)
 
 # Lets have a look at the operator, which moves near the true value
-approx.operator
+operator(approx)
 
 # Add time continouos system
 function linear(du, u, p, t)
@@ -73,6 +72,7 @@ DX = sol_cont(sol_cont.t, Val{1})[:,:]
 # Giving the method a time step (which should be sequentially sampled)
 # Enables us to get the continouos representation
 approx_cont = gDMD(X, DX)
+generator(approx_cont)
 approx_sys = ODEProblem(approx_cont, u0, tspan)
 approx_sol = solve(approx_sys, Tsit5(),  saveat = sol_cont.t)
 # Lets have a look at the solution
@@ -81,10 +81,3 @@ plot!(approx_sol)
 # And the error
 plot(abs.(sol_cont .- approx_sol)')
 norm(sol_cont .- approx_sol) # ≈ 1e-13
-
-using DataInterpolations
-
-interp = QuadraticInterpolation(X ,sol_cont.t)
-interp(0.3)
-hcat(interp.(0:0.01:1.0)...)
-gDMD(interp, 0.1)
