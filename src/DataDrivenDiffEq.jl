@@ -21,6 +21,9 @@ export Basis
 export variables, jacobian, dynamics
 export free_parameters, parameters, variables
 
+include("./koopman/algorithms.jl")
+export DMDPINV, DMDSVD
+
 include("./koopman/koopman.jl")
 export eigen, eigvals, eigvecs
 export modes, frequencies
