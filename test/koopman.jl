@@ -41,11 +41,11 @@ end
     basis_2 = reduce_basis(estimator, threshold = 1e-5)
     @test size(basis_2)[1] < size(basis)[1]
     estimator_2 = ExtendedDMD(sol[:,:], basis_2)
-    p1 = DiscreteProblem(dynamics(estimator), u0, tspan, [])
+    p1 = DiscreteProblem(dynamics(estimator), u0, tspan)
     s1 = solve(p1,FunctionMap())
-    p2 = DiscreteProblem(dynamics(estimator_2), u0, tspan, [])
+    p2 = DiscreteProblem(dynamics(estimator_2), u0, tspan)
     s2 = solve(p2,FunctionMap())
-    p3 = DiscreteProblem(linear_dynamics(estimator_2), estimator_2(u0), tspan, [])
+    p3 = DiscreteProblem(linear_dynamics(estimator_2), estimator_2(u0), tspan)
     s3 = solve(p3,FunctionMap())
     @test sol[:,:] ≈ s1[:,:]
     @test sol[:,:] ≈ s2[:,:]
@@ -61,7 +61,7 @@ end
     prob = DiscreteProblem(nonlinear_sys, u0, tspan)
     sol = solve(prob,FunctionMap())
     estimator = ExtendedDMD(sol[:,:], basis)
-    p4 = DiscreteProblem(dynamics(estimator), u0, tspan, [])
+    p4 = DiscreteProblem(dynamics(estimator), u0, tspan)
     s4 = solve(p4,FunctionMap())
     @test sol[:,:] ≈ s4[:,:]
 end
