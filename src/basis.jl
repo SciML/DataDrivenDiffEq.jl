@@ -1,5 +1,5 @@
 import Base.==
-
+using DiffEqBase
 
 mutable struct Basis{B, V, P, T} <: AbstractBasis
     basis::B
@@ -145,6 +145,8 @@ end
 
 free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
 
+(b::Basis)(u, p::DiffEqBase.NullParameters, t) = b(u, [], t)
+(b::Basis)(du, u, p::DiffEqBase.NullParameters, t) = b(du, u, [], t)
 (b::Basis)(u::AbstractVector,  p::AbstractArray = [], t = nothing) = b.f_(u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
 (b::Basis)(du::AbstractVector, u::AbstractVector, p::AbstractArray = [], t = nothing) = b.f_(du, u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
 
