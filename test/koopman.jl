@@ -65,6 +65,7 @@ end
     @test basis == estimator.basis
     basis_2 = reduce_basis(estimator, threshold = 1e-5)
     @test size(basis_2)[1] < size(basis)[1]
+  
     estimator_2 = EDMD(sol[:,:], basis_2)
     p1 = DiscreteProblem(estimator, u0, tspan)
     s1 = solve(p1,FunctionMap())
@@ -73,6 +74,7 @@ end
     # TODO add linear dynamics ?
     #p3 = DiscreteProblem(linear_dynamics(estimator_2), estimator_2(u0), tspan, [])
     #s3 = solve(p3,FunctionMap())
+
     @test sol[:,:] ≈ s1[:,:]
     @test sol[:,:] ≈ s2[:,:]
     @test eigvals(estimator_2) ≈ [-0.9; -0.3]
@@ -91,6 +93,7 @@ end
     #@test isa(sys, ODESystem)
     dudt = ODEFunction(sys)
     p4 = DiscreteProblem(dudt, u0, tspan)
+
     s4 = solve(p4,FunctionMap())
     @test sol[:,:] ≈ s4[:,:]
 
