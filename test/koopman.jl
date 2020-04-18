@@ -93,6 +93,9 @@ end
     p4 = DiscreteProblem(dudt, u0, tspan)
     s4 = solve(p4,FunctionMap())
     @test sol[:,:] ≈ s4[:,:]
+
+    estimator2 = gEDMD(sol[:, 1:end-1], sol[:, 2:end], basis)
+    @test generator(estimator2) ≈ operator(estimator)
 end
 
 
