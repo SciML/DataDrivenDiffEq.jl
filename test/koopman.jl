@@ -112,4 +112,22 @@ end
     @test operator(sys2) ≈ operator(sys)
     sys3 = gDMDc(X[:, 1:end-1], X[:, 2:end], U, B = B)
     @test generator(sys3) ≈ [1.5 0; 0 0.1]
+
+    A = [0.9 0.3; -0.2 0.9]
+    B = [1.0 0;0 0.5]
+    X = zeros(Float64, 2, 11)
+    U = zeros(Float64, 2, 10)
+    X[:, 1] = [1.0; -3.0]
+    for i in 1:10
+        U[:, i] .= [sin(2.0/5.0*i); cos(5.0/7.0*i)]
+        X[:, i+1] .= A*X[:,i]+B*[sin(2.0/5.0*i); cos(5.0/7.0*i)]
+    end
+
+    sys4 = DMDc(X, U)
+    @test operator(sys4) ≈ A
+    @test inputmap(sys4) ≈ B
+    sys5 = gDMDc(X[:, 1:end-1], X[:, 2:end], U[:, 1:end])
+    @test_throws AssertionError operator(sys5)
+    @test generator(sys5) ≈ A
+    @test inputmap(sys5) ≈ B
 end

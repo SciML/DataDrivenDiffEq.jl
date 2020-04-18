@@ -1,15 +1,15 @@
 is_discrete(k::AbstractKoopmanOperator) = k.discrete
 is_continouos(k::AbstractKoopmanOperator) = !k.discrete
 
-LinearAlgebra.eigen(k::AbstractKoopmanOperator) = !isempty(k.operator) ? eigen(k.operator) : "No discrete operator available!"
-LinearAlgebra.eigvals(k::AbstractKoopmanOperator) = !isempty(k.operator) ? eigvals(k.operator) : "No discrete operator available!"
-LinearAlgebra.eigvecs(k::AbstractKoopmanOperator) = !isempty(k.operator) ? eigvecs(k.operator) : "No discrete operator available!"
+LinearAlgebra.eigen(k::AbstractKoopmanOperator) = eigen(k.operator)
+LinearAlgebra.eigvals(k::AbstractKoopmanOperator) = eigvals(k.operator)
+LinearAlgebra.eigvecs(k::AbstractKoopmanOperator) = eigvecs(k.operator)
 
-modes(k::AbstractKoopmanOperator) = is_continouos(k) ? eigenvecs(k) : "Koopman is discrete."
-frequencies(k::AbstractKoopmanOperator) = is_continouos(k) ? eigvals(k) : "Koopman is discrete."
+modes(k::AbstractKoopmanOperator) = is_continouos(k) ? eigenvecs(k) : throw(AssertionError("Koopman is discrete."))
+frequencies(k::AbstractKoopmanOperator) = is_continouos(k) ? eigvals(k) : throw(AssertionError("Koopman is discrete."))
 
-operator(k::AbstractKoopmanOperator) = is_discrete(k) ? k.operator : "Koopman is continouos."
-generator(k::AbstractKoopmanOperator) = is_continouos(k) ? k.operator : "Koopman is discrete."
+operator(k::AbstractKoopmanOperator) = is_discrete(k) ? k.operator : throw(AssertionError("Koopman is continouos."))
+generator(k::AbstractKoopmanOperator) = is_continouos(k) ? k.operator : throw(AssertionError("Koopman is discrete."))
 
 inputmap(k::AbstractKoopmanOperator) = k.input
 outputmap(k::AbstractKoopmanOperator) = k.output
