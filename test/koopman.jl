@@ -22,8 +22,8 @@
 
     @variables u[1:2]
     b = Basis(u, u)
-    sys = EDMD(X[:, 1:5], b)
-    @test_nowarn update!(sys, X[:, 6:end-1], X[:, 7:end])
+    sys = EDMD(X[:, 1:3], b)
+    @test_nowarn update!(sys, X[:, 3:end-1], X[:, 4:end], threshold = 1e-17)
     @test operator(sys) ≈ A
 
     # Test for a large system with reduced svd
