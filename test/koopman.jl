@@ -96,6 +96,10 @@ end
 
     estimator2 = gEDMD(sol[:, 1:end-1], sol[:, 2:end], basis)
     @test generator(estimator2) ≈ operator(estimator)
+    @test outputmap(estimator2) ≈ outputmap(estimator)
+    @test modes(estimator2) ≈ eigvecs(estimator)
+    @test frequencies(estimator2) ≈ eigvals(estimator)
+
 end
 
 

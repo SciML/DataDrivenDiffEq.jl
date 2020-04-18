@@ -5,7 +5,7 @@ LinearAlgebra.eigen(k::AbstractKoopmanOperator) = eigen(k.operator)
 LinearAlgebra.eigvals(k::AbstractKoopmanOperator) = eigvals(k.operator)
 LinearAlgebra.eigvecs(k::AbstractKoopmanOperator) = eigvecs(k.operator)
 
-modes(k::AbstractKoopmanOperator) = is_continouos(k) ? eigenvecs(k) : throw(AssertionError("Koopman is discrete."))
+modes(k::AbstractKoopmanOperator) = is_continouos(k) ? eigvecs(k) : throw(AssertionError("Koopman is discrete."))
 frequencies(k::AbstractKoopmanOperator) = is_continouos(k) ? eigvals(k) : throw(AssertionError("Koopman is discrete."))
 
 operator(k::AbstractKoopmanOperator) = is_discrete(k) ? k.operator : throw(AssertionError("Koopman is continouos."))
