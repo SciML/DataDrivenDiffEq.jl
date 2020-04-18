@@ -1,5 +1,4 @@
 import Base.==
-using DiffEqBase
 
 mutable struct Basis{B, V, P, T} <: AbstractBasis
     basis::B

@@ -30,12 +30,12 @@ end
     end
 
     u0 = [π; 1.0]
-    tspan = (0.0, 20.0)
+    tspan = (0.0, 50.0)
     prob = DiscreteProblem(linear_sys, u0, tspan)
     sol = solve(prob,FunctionMap())
 
     @variables u[1:2]
-    h = [1u[1]; 1u[2]; sin(u[1]); cos(u[1]); u[1]*u[2]]
+    h = [u[1]; u[2]; sin(u[1]); cos(u[1]); u[1]*u[2]; u[2]^2]
     basis = Basis(h, u)
 
     estimator = EDMD(sol[:,:], basis, alg = DMDSVD())
@@ -57,14 +57,17 @@ end
 
     # Test for nonlinear system
     function nonlinear_sys(du, u, p, t)
-        du[1] = sin(u[1])
-        du[2] = -0.3*u[2] -0.9*u[1]
+        du[1] = 0.9u[1] + 0.1u[2]^2
+        du[2] = sin(u[1]) - 0.1u[1]
     end
 
     prob = DiscreteProblem(nonlinear_sys, u0, tspan)
     sol = solve(prob,FunctionMap())
     estimator = EDMD(sol[:,:], basis, alg = DMDPINV())
-    p4 = DiscreteProblem(estimator, u0, tspan)
+    sys = ODESystem(estimator)
+    #@test isa(sys, ODESystem)
+    dudt = ODEFunction(sys)
+    p4 = DiscreteProblem(dudt, u0, tspan)
     s4 = solve(p4,FunctionMap())
     @test sol[:,:] ≈ s4[:,:]
 end

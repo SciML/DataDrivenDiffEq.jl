@@ -1,6 +1,7 @@
 module DataDrivenDiffEq
 
 using LinearAlgebra
+using DiffEqBase
 using ModelingToolkit
 using QuadGK
 using Statistics

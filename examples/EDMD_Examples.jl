@@ -21,7 +21,7 @@ end
 u0 = [1.0; 2.0]
 tspan = (0.0, 50.0)
 prob = DiscreteProblem(test_discrete, u0, tspan)
-sol = solve(prob, FunctionMap())
+sol = solve(prob, FunctionMap(), atol = 1e-8, rtol = 1e-8)
 # Plot the solution
 plot(sol)
 
@@ -33,13 +33,15 @@ approximator = EDMD(sol[:,:], basis)
 scatter(eigvals(approximator))
 
 # Solve the estimation problem
-prob_ = DiscreteProblem(approximator, u0, tspan, [])
-sol_ = solve(prob_, FunctionMap())
+sys = ODESystem(approximator, threshold = 1e-3)
+dudt = ODEFunction(sys)
+prob_ = DiscreteProblem(dudt, u0, tspan)
+sol_ = solve(prob_, FunctionMap(), atol = 1e-8, rtol = 1e-8)
 
 # Plot the error
 plot(sol_)
 plot(sol.t, abs.(sol - sol_)')
-norm(sol-sol_) # ≈ 4.33e-13
+norm(sol-sol_) # ≈ 2.52e-13
 
 # Get the linear dynamics in koopman space
 dψ(u, p, t) = operator(approximator)*u

@@ -14,6 +14,10 @@ end
 outputmap(k::NonlinearKoopman) = k.output
 inputmap(k::NonlinearKoopman) = k.input
 
+
+(k::NonlinearKoopman)(u, p::DiffEqBase.NullParameters, t) = k(u, [], t)
+(k::NonlinearKoopman)(du, u, p::DiffEqBase.NullParameters, t) = k(du, u, [], t)
+
 function (k::NonlinearKoopman)(u,  p::AbstractArray = [], t = nothing)
     return k.output*k.operator*k.basis(u, p, t)
 end
@@ -52,4 +56,27 @@ function reduce_basis(k::NonlinearKoopman; threshold = 1e-5)
     b = k.output*k.operator
     inds = vec(sum(abs, b, dims = 1) .> threshold)
     return Basis(k.basis[inds], variables(k.basis), parameters = parameters(k.basis), iv = independent_variable(k.basis))
+end
+
+function ModelingToolkit.ODESystem(k::NonlinearKoopman; threshold = eps())
+    @assert threshold > zero(threshold) "Threshold must be greater than zero"
+
+    eqs = Operation[]
+    A = outputmap(k)*operator(k)
+    A[abs.(A) .< threshold] .= zero(eltype(A))
+    @inbounds for i in 1:size(A, 1)
+        eq = nothing
+        for j in 1:size(A, 2)
+            if !iszero(A[i,j])
+                if isnothing(eq)
+                    eq = A[i,j]*k.basis[j]
+                else
+                    eq += A[i,j]*k.basis[j]
+                end
+            end
+        end
+        isnothing(eq) ? nothing : push!(eqs, eq)
+    end
+    b = Basis(eqs, variables(k.basis), parameters = parameters(k.basis), iv = independent_variable(k.basis))
+    return ODESystem(b)
 end
