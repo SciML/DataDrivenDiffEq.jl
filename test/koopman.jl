@@ -19,6 +19,29 @@
     #@test estimator(X[:, 1]) ≈ X[:, 2]
     @test_nowarn update!(estimator, X[:, end-1], X[:,end])
     @test_throws AssertionError outputmap(estimator)
+
+    @variables u[1:2]
+    b = Basis(u, u)
+    sys = EDMD(X[:, 1:5], b)
+    @test_nowarn update!(sys, X[:, 6:end-1], X[:, 7:end])
+    @test operator(sys) ≈ A
+
+    # Test for a large system with reduced svd
+    dd(u, p, t) = -0.9*ones(length(u))*u[1] - 0.05*u
+    u0 = randn(100)*100.0
+    u0[1] = 100.0
+    prob = ODEProblem(dd, u0, (0.0, 100.0))
+    sol = solve(prob, Tsit5(), saveat = 0.1)
+
+    X = sol[:,:]
+    DX = sol(sol.t, Val{1})[:,:]
+
+    t = DMDSVD(0.01)
+    d = gDMD(X, DX, alg = t)
+
+    test = ODEProblem(d, u0, (0.0, 100.0))
+    sol_ = solve(test, Tsit5(), saveat = 0.1)
+    @test norm(sol-sol_, Inf) < 2.0
 end
 
 @testset "EDMD" begin
@@ -87,4 +110,6 @@ end
     @test_nowarn eigen(sys)
     sys2 = DMDc(X, U, B = B, alg = DMDSVD())
     @test operator(sys2) ≈ operator(sys)
+    sys3 = gDMDc(X[:, 1:end-1], X[:, 2:end], U, B = B)
+    @test generator(sys3) ≈ [1.5 0; 0 0.1]
 end
