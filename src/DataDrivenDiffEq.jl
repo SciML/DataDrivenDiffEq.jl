@@ -1,14 +1,15 @@
 module DataDrivenDiffEq
 
 using LinearAlgebra
+using DiffEqBase
 using ModelingToolkit
 using QuadGK
 using Statistics
 using DSP
 using Compat
 
-abstract type abstractBasis end;
-abstract type abstractKoopmanOperator end;
+abstract type AbstractBasis end;
+abstract type AbstractKoopmanOperator end;
 
 include("./optimisers/Optimise.jl")
 using .Optimise
@@ -21,21 +22,47 @@ export Basis
 export variables, jacobian, dynamics
 export free_parameters, parameters, variables
 
-include("./exact_dmd.jl")
-export ExactDMD
-export eigen, eigvals, eigvecs
-export modes, frequencies, isstable
-export dynamics, update!
+include("./koopman/algorithms.jl")
+export DMDPINV, DMDSVD
 
-include("./extended_dmd.jl")
-export ExtendedDMD
-export dynamics, linear_dynamics
-export reduce_basis, update!
-
-include("./dmdc.jl")
-export DMDc
+include("./koopman/koopman.jl")
 export eigen, eigvals, eigvecs
-export get_dynamics, get_input_map, dynamics
+export modes, frequencies
+export is_discrete, is_continouos
+export operator, generator
+export inputmap, outputmap, updateable, isstable
+
+include("./koopman/linearkoopman.jl")
+export LinearKoopman, update!
+
+include("./koopman/nonlinearkoopman.jl")
+export NonlinearKoopman, reduce_basis
+
+include("./koopman/exact_dmd.jl")
+export DMD, gDMD
+
+include("./koopman/dmdc.jl")
+export DMDc, gDMDc
+
+include("./koopman/extended_dmd.jl")
+export EDMD, gEDMD
+
+
+#include("./exact_dmd.jl")
+#export ExactDMD
+#export eigen, eigvals, eigvecs
+#export modes, frequencies, isstable
+#export dynamics, update!
+#
+#include("./extended_dmd.jl")
+#export ExtendedDMD
+#export dynamics, linear_dynamics
+#export reduce_basis, update!
+
+#include("./dmdc.jl")
+#export DMDc
+#export eigen, eigvals, eigvecs
+#export get_dynamics, get_input_map, dynamics
 
 include("./sindy/results.jl")
 export SparseIdentificationResult

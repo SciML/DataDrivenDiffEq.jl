@@ -1,7 +1,7 @@
 import Base.==
-using DiffEqBase
 
-mutable struct Basis{B, V, P, T} <: abstractBasis
+
+mutable struct Basis{B, V, P, T} <: AbstractBasis
     basis::B
     variables::V
     parameter::P
@@ -118,13 +118,11 @@ function Base.merge!(basis_a::Basis, basis_b::Basis)
     return
 end
 
-Base.getindex(b::Basis, idx::Int64) = b.basis[idx]
-Base.getindex(b::Basis, ids::UnitRange{Int64}) = b.basis[ids]
-Base.getindex(b::Basis, ::Colon) = b.basis
+Base.getindex(b::Basis, idx) = b.basis[idx]
 Base.firstindex(b::Basis) = firstindex(b.basis)
 Base.lastindex(b::Basis) = lastindex(b.basis)
 Base.iterate(b::Basis) = iterate(b.basis)
-Base.iterate(b::Basis, id::Int64) = iterate(b.basis, id)
+Base.iterate(b::Basis, id) = iterate(b.basis, id)
 
 function (==)(x::Basis, y::Basis)
     n = zeros(Bool, length(x.basis))
