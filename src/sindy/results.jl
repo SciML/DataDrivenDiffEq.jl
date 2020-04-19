@@ -84,7 +84,9 @@ function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::I
                 cnt += 1
             end
         end
-        push!(b_, eq)
+        if !isnothing(eq)
+            push!(b_, eq)
+        end
     end
     b_, p_
 end
