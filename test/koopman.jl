@@ -44,7 +44,9 @@
     @test norm(sol-sol_, Inf) < 2.0
 
     d2 = gDMD(sol.t, X)
+    d3 = gDMD(sol.t, X, dt = 0.2)
     @test generator(d) ≈ generator(d2) atol = 1e-1
+    @test generator(d) ≈ generator(d3) atol = 1e-1
 
 end
 
@@ -124,7 +126,9 @@ end
     @test outputmap(estimator3) ≈ I(2)
 
     d2 = gEDMD(sol_nl.t, X, basis)
+    d3 = gEDMD(sol_nl.t, X, basis, dt = 0.1)
     @test generator(estimator3) ≈ generator(d2) atol = 1e-1
+    @test generator(estimator3) ≈ generator(d3) atol = 1e-1
 
 end
 
