@@ -1,6 +1,6 @@
 # DataDrivenDiffEq.jl
 
-DataDrivenDiffEq.jl is a package for estimating equationfree and equationbased models for discrete and continouos differential equations.
+DataDrivenDiffEq.jl is a package for estimating equation-free and equation-based models for discrete and continuous differential equations.
 
 Oppose to parameter identification, these methods aim to find the governing equations of motion automatically from a given set of data. These techniques do not require giving as input a known model. Instead, these methods take in data and return the differential equation model which generated the data.
 
