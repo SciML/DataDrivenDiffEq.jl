@@ -1,7 +1,7 @@
 language: julia
 
 os:
-  - osx
+  #- osx
   - linux
 
 julia:
@@ -12,8 +12,7 @@ julia:
 jobs:
   allow_failures:
     - julia: nightly
-  fast_finish: true
-
+  
 notifications:
   email: false
 
