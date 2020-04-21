@@ -23,7 +23,12 @@ function rescale_theta!(θ::AbstractArray, scales::AbstractArray)
     return
 end
 
+"""
+    sparse_regression(X::AbstractArray, Y::AbstractArray, Ψ::Basis, p::AbstractArray, t::AbstractVector, maxiter::Int64, opt::AbstractOptimiser, denoise::Bool, normalize::Bool, convergence_error::Real)
 
+    Sparsifying regression over the candidate library represented by the basis such that
+
+"""
 function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray, t::AbstractVector , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimise.AbstractOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)

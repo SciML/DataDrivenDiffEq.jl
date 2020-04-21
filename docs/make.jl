@@ -10,7 +10,8 @@ makedocs(
                              canonical="https://docs.sciml.ai/stable/"),
     pages=[
         "Home" => "index.md",
-        "basis.md",
+        "Getting Started" => "quickstart.md",
+        "Basis" => "basis.md",
         "Equation Free Systems" => Any[
             "koopman/dmd.md",
         ],
@@ -31,7 +32,7 @@ makedocs(
     ]
 )
 
-#deploydocs(
-#   repo = "github.com/SciML/DataDrivenDiffEq.jl.git";
-#   push_preview = true
-#)
+deploydocs(
+   repo = "github.com/SciML/DataDrivenDiffEq.jl.git";
+   push_preview = true
+)
