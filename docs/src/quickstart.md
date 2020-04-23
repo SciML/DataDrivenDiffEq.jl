@@ -2,7 +2,7 @@
 
 In the following, we will use some of the techniques provide by `DataDrivenDiffEq` to infer some models.
 
-## Linear Damped Oscillator
+## Linear Damped Oscillator - Dynamic Mode Decomposition
 
 To begin, lets create our own data for the linear oscillator with damping.
 
@@ -114,3 +114,115 @@ Since we have a continuous estimation, lets look at the `generator` of the estim
 G = generator(generator_approximation)
 norm(G-[0.0 1.0; -1.0 -0.1], 2)
 ```
+
+## Nonlinear Systems - Extended Dynamic Mode Decomposition
+
+But what about nonlinear systems? Even though Dynamic Mode Decomposition will help us
+to figure out the *best linear fit*, we are interested in figuring out all the nonlinear parts of the equations.
+Luckily, Koopman theory covers this! To put it very (very very) simple : If you spread out your information in many **observeable functions**, you will end up with a linear system in those observeables. So you might end up with a trade off between a huge system which is linear in the observeables vs. a small, nonlinear system.
+
+But how can we leverage this? We use the [Extended Dynamic Mode Decomposition](https://arxiv.org/abs/1408.4408), or `EDMD` for short.
+`EDMD` does more or less the exact same thing like `DMD`, but in the new `Basis` of nonlinear observeables.
+We will investigate now a fairly standard system, with a slow and fast manifold, for which there exists an [analytical solution of this problem](https://arxiv.org/abs/1510.03007).
+
+```@example 2
+using OrdinaryDiffEq
+using Plots
+gr()
+
+using DataDrivenDiffEq
+using LinearAlgebra
+using ModelingToolkit
+
+function slow_manifold(du, u, p, t)
+  du[1] = p[1]*u[1]
+  du[2] = p[2]*(u[2]-u[1]^2)
+end
+
+u0 = [3.0; -2.0]
+tspan = (0.0, 10.0)
+p = [-0.05, -1.0]
+
+problem = ODEProblem(slow_manifold, u0, tspan, p)
+solution = solve(problem, Tsit5(), saveat = 0.2)
+
+X = Array(solution)
+DX = solution(solution.t, Val{1})
+
+plot(solution) # hide
+savefig("slow_manifold.png") # hide
+```
+![](slow_manifold.png)
+
+Since we want to estimate the continuous system, we capture also the trajectory of the differential states.
+Now we will create our nonlinear observeables, which is represented as a `Basis` in `DataDrivenDiffEq.jl`.
+
+```@example 2
+@variables u[1:2]
+
+observeables = [u; u[1]^2]
+
+basis = Basis(observeables, u)
+```
+
+A `Basis` captures a bunch of functions defined over some variables provided via [ModelingToolkit.jl]().
+Here, we included the state and `u[1]^2`. Now, we simply call `gEDMD`, which
+will compute the generator of the Koopman operator associated with the model.
+
+```@example 2
+approximation = gEDMD(X, DX, basis)
+
+approximation_problem = ODEProblem(approximation, u0, tspan)
+generator_sol = solve(approximation_problem, Tsit5(), saveat = solution.t)
+
+plot(generator_sol, label = ["u[1]" "u[2]"]) #hide
+scatter!(solution, label = ["True u[1]" "True u[2]"]) #hide
+savefig("slow_approximation_cont.png") #hide
+scatter(eigvals(approximation), label = "Estimate") # hide
+scatter!(eigvals([p[1] 0 0; 0 p[2] -p[2]; 0 0 2*p[1]]), label = "True", legend = :bottomright) #hide
+savefig("eigenvalue_slowmanifold.png") #hide
+
+```
+![](slow_approximation_cont.png)
+
+Looking at the eigenvalues of the system, we see that the estimated eigenvalues of the linear system are close to the true values.
+
+![](eigenvalue_slowmanifold.png)
+
+## Nonlinear Systems - Sparse Identification of Nonlinear Dynamics
+
+Okay, so far we can fit linear models via DMD and nonlinear models via EDMD. But what if we want to find a model of a nonliear system *without moving to koopman space*? Simple, we use [Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) or `SInDy`.
+
+As the name suggests, `SInDy` finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system
+
+```@example 3
+using DataDrivenDiffEq
+using ModelingToolkit
+using OrdinaryDiffEq
+using LinearAlgebra
+using Plots
+gr()
+
+
+
+# Create a
+function pendulum(u, p, t)
+    x = u[2]
+    y = -9.81sin(u[1]) - 0.1u[2]^3 -0.2*cos(u[1])
+    return [x;y]
+end
+
+u0 = [0.99π; -1.0]
+tspan = (0.0, 20.0)
+problem = ODEProblem(pendulum, u0, tspan)
+solution = solve(problem, Tsit5(), saveat = 0.3)
+
+X = Array(solution)
+DX = solution(solution.t, Val{1})
+
+plot(solution) # hide
+savefig("nonlinear_pendulum.png") # hide
+```
+![](nonlinear_pendulum.png)
+
+## Linear Systems with Inputs

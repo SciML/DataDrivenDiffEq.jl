@@ -1,6 +1,7 @@
 [deps]
 DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
 
 [compat]
 Documenter = "0.24.2"
