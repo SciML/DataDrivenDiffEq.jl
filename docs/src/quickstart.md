@@ -91,10 +91,13 @@ For more information on the `LinearKoopman` have a look at the corresponding doc
 But wait! We want a continuous model. There is also a corresponding algorithm for this : `gDMD` !
 Opposed to `DMD` which provides a discrete model based on the direct measurements `X`, `gDMD` estimates the generator of the dynamical system given `X` and the differential states `DX`. Since we did not measure any differential states, we can just provide a vector of time measurements. `gDMD` will automatically interpolate using [DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl) and perform numerical differentiation using [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl).
 
+Here, we will provide `gDMD` with the measurement data and use a new sample time of `0.1`
+
 ```@example 1
 t = solution.t
+X = Array(solution)
 
-generator_approximation = gDMD(t, X)
+generator_approximation = gDMD(t[1:20], X[:, 1:20], dt = 0.1)
 
 generator_prob = ODEProblem(generator_approximation, u0 , tspan)
 generator_sol = solve(generator_prob, Tsit5())
@@ -104,3 +107,10 @@ scatter!(solution, label = ["True u[1]" "True u[2]"]) #hide
 savefig("linear_approximation_cont.png") #hide
 ```
 ![](linear_approximation_cont.png)
+
+Since we have a continuous estimation, lets look at the `generator` of the estimation
+
+```@example 1
+G = generator(generator_approximation)
+norm(G-[0.0 1.0; -1.0 -0.1], 2)
+```
