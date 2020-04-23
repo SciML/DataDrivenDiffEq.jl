@@ -6,6 +6,7 @@ using ModelingToolkit
 using QuadGK
 using Statistics
 using DSP
+using FiniteDifferences, DataInterpolations
 using Compat
 
 abstract type AbstractBasis end;

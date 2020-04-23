@@ -42,6 +42,12 @@
     test = ODEProblem(d, u0, (0.0, 100.0))
     sol_ = solve(test, Tsit5(), saveat = 0.1)
     @test norm(sol-sol_, Inf) < 2.0
+
+    d2 = gDMD(sol.t, X)
+    d3 = gDMD(sol.t, X, dt = 0.2)
+    @test generator(d) ≈ generator(d2) atol = 1e-1
+    @test generator(d) ≈ generator(d3) atol = 1e-1
+
 end
 
 @testset "EDMD" begin
@@ -65,7 +71,7 @@ end
     @test basis == estimator.basis
     basis_2 = reduce_basis(estimator, threshold = 1e-5)
     @test size(basis_2)[1] < size(basis)[1]
-  
+
     estimator_2 = EDMD(sol[:,:], basis_2)
     p1 = DiscreteProblem(estimator, u0, tspan)
     s1 = solve(p1,FunctionMap())
@@ -102,6 +108,27 @@ end
     @test outputmap(estimator2) ≈ outputmap(estimator)
     @test modes(estimator2) ≈ eigvecs(estimator)
     @test frequencies(estimator2) ≈ eigvals(estimator)
+
+    function nonlinear_sys2(du, u, p, t)
+        du[1] = u[2]
+        du[2] = -0.9u[1]
+    end
+
+    prob_nl = ODEProblem(nonlinear_sys2, u0, (0.0, 10.0))
+    sol_nl = solve(prob_nl, Tsit5())
+
+    DX = sol_nl(sol_nl.t, Val{1})[:,:]
+    X = Array(sol_nl)
+
+    basis = Basis(u, u)
+    estimator3 = gEDMD(X, DX, basis)
+    @test generator(estimator3) ≈ [0  1.0; -0.9 0]
+    @test outputmap(estimator3) ≈ I(2)
+
+    d2 = gEDMD(sol_nl.t, X, basis)
+    d3 = gEDMD(sol_nl.t, X, basis, dt = 0.1)
+    @test generator(estimator3) ≈ generator(d2) atol = 1e-1
+    @test generator(estimator3) ≈ generator(d3) atol = 1e-1
 
 end
 
@@ -140,4 +167,9 @@ end
     @test_throws AssertionError operator(sys5)
     @test generator(sys5) ≈ A
     @test inputmap(sys5) ≈ B
+
+    sys6 = gDMDc(collect(0.0:9.0), X[:, 1:end-1], U, B = B)
+    @test exp(generator(sys6)) ≈ A atol = 1e-1
+    @test inputmap(sys6) ≈ B
+
 end
