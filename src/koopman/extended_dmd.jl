@@ -51,3 +51,28 @@ function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::AbstractBasis; p::Abstra
     # TODO Maybe reduce the observable space here
     return NonlinearKoopman(A, [], C , Ψ, Ψ₁*Ψ₀', Ψ₀*Ψ₀', false)
 end
+
+function gEDMD(t::AbstractVector, X::AbstractArray, Ψ::DataDrivenDiffEq.AbstractBasis; dt::Real = 0.0, p::AbstractArray = [], C::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline)
+    @assert size(X, 2) == length(t) "Sample size must match."
+    @assert test_comp = begin
+
+        if itp ∈ [LinearInterpolation, QuadraticInterpolation, QuadraticSpline] && !isa(fdm, FiniteDifferences.Backward{typeof(fdm.grid), typeof(fdm.coefs)})
+            false
+        else
+            true
+        end
+    end "LinearInterpolation and QuadraticInterpolation need to a backward finite difference method."
+
+    Δt = iszero(dt) ? mean(diff(t)) : dt
+    t̂ = t[1]:Δt:t[end]
+
+    X̂ = zeros(eltype(X), size(X, 1), length(t̂))
+    Y = similar(X̂)
+    for (i, xi) in enumerate(eachrow(X))
+        itp_ = itp(xi, t)
+        dx(t) = FiniteDifferences.fdm(fdm, itp_, t)
+        X̂[i, :] .= itp_.(t̂)
+        Y[i, :] .= dx.(t̂)
+    end
+    return gEDMD(X̂, Y, Ψ, alg = alg, p = p, t = collect(t̂), C = C)
+end

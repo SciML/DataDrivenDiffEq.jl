@@ -48,3 +48,37 @@ function gDMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::Abstract
 
     return LinearKoopman(A, B, Y*Ω', Ω*Ω', false)
 end
+
+
+function gDMDc(t::AbstractVector, X::AbstractArray, U::AbstractArray; dt::Real = 0.0, B::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline, itp_u = LinearInterpolation)
+    @assert size(X, 2) == length(t) "Sample size must match."
+    @assert test_comp = begin
+
+        if itp ∈ [LinearInterpolation, QuadraticInterpolation] && !isa(fdm, FiniteDifferences.Backward{typeof(fdm.grid), typeof(fdm.coefs)})
+            false
+        else
+            true
+        end
+    end "LinearInterpolation and QuadraticInterpolation need to a backward finite difference method."
+
+    Δt = iszero(dt) ? mean(diff(t)) : dt
+    t̂ = t[1]:Δt:t[end]
+
+    X̂ = zeros(eltype(X), size(X, 1), length(t̂))
+    Y = similar(X̂)
+    for (i, xi) in enumerate(eachrow(X))
+        itp_ = itp(xi, t)
+        dx(t) = FiniteDifferences.fdm(fdm, itp_, t)
+        X̂[i, :] .= itp_.(t̂)
+        Y[i, :] .= dx.(t̂)
+    end
+
+    Û = zeros(eltype(U), size(U, 1), length(t̂))
+
+    for (i, ui) in enumerate(eachrow(U))
+        uitp_ = itp_u(ui, t)
+        Û[i, :] .= uitp_.(t̂)
+    end
+
+    return gDMDc(X̂, Y, Û; B = B, alg = alg)
+end

@@ -62,7 +62,7 @@ function ModelingToolkit.ODESystem(k::NonlinearKoopman; threshold = eps())
     @assert threshold > zero(threshold) "Threshold must be greater than zero"
 
     eqs = Operation[]
-    A = outputmap(k)*operator(k)
+    A = outputmap(k)*k.operator
     A[abs.(A) .< threshold] .= zero(eltype(A))
     @inbounds for i in 1:size(A, 1)
         eq = nothing
