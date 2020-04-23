@@ -167,4 +167,9 @@ end
     @test_throws AssertionError operator(sys5)
     @test generator(sys5) ≈ A
     @test inputmap(sys5) ≈ B
+
+    sys6 = gDMDc(collect(0.0:9.0), X[:, 1:end-1], U, B = B)
+    @test exp(generator(sys6)) ≈ A atol = 1e-1
+    @test inputmap(sys6) ≈ B
+
 end
