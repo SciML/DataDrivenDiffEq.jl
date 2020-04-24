@@ -1,4 +1,8 @@
+using Pkg
+Pkg.activate("..")
+
 using Documenter, DataDrivenDiffEq
+#include("../src/DataDrivenDiffEq.jl")
 
 makedocs(
     sitename="DataDrivenDiffEq.jl",
@@ -12,23 +16,13 @@ makedocs(
         "Home" => "index.md",
         "Getting Started" => "quickstart.md",
         "Basis" => "basis.md",
-        "Equation Free Systems" => Any[
-            "koopman/dmd.md",
-        ],
-        "Equation Driven Systems" => Any[
-            "sparse_identification/sindy.md",
-        ]
-        #"highlevel.md",
-        #"Systems" => Any[
-        #    "systems/AbstractSystem.md",
-        #    "systems/ODESystem.md",
-        #    "systems/SDESystem.md",
-        #    "systems/NonlinearSystem.md",
-        #    "systems/OptimizationSystem.md",
-        #    "systems/ReactionSystem.md",
-        #    "systems/PDESystem.md"
+        "Koopman Operators" => "koopman/koopman.md"
+        #"Equation Free Systems" => Any[
+        #    "koopman/dmd.md",
         #],
-        #"IR.md"
+        #"Equation Driven Systems" => Any[
+        #    "sparse_identification/sindy.md",
+        #]
     ]
 )
 
