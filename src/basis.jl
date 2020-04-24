@@ -1,22 +1,5 @@
 import Base.==
 
-"""
-    A basis over the variables `u` with parameters `p` and indepent variable `iv`.
-    It can be called with the typical DiffEq signature, meaning out of place with `f(u,p,t)`
-    or in place with `f(du, u, p, t)`.
-
-    # Example
-
-    ```
-    using ModelingToolkit
-    using DataDrivenDiffEq
-
-    @parameters w[1:2] t
-    @variables u[1:2](t)
-
-    Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)
-    ```
-"""
 mutable struct Basis{B, V, P, T} <: AbstractBasis
     """The equations of the basis"""
     basis::B
@@ -48,6 +31,29 @@ end
 
 is_independent(o::Operation) = isempty(o.args)
 
+
+
+"""
+    Basis(f, u; p, iv)
+
+A basis over the variables `u` with parameters `p` and indepent variable `iv`.
+`f` can either be a julia function which is able to use ModelingToolkit variables or
+a vector of `Operation`.
+It can be called with the typical DiffEq signature, meaning out of place with `f(u,p,t)`
+or in place with `f(du, u, p, t)`.
+
+# Example
+
+```julia
+using ModelingToolkit
+using DataDrivenDiffEq
+
+@parameters w[1:2] t
+@variables u[1:2](t)
+
+Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)
+```
+"""
 function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};  parameters::AbstractArray =  Operation[], iv = nothing)
     @assert all(is_independent.(variables)) "Please provide independent variables for basis."
 
@@ -106,11 +112,7 @@ end
     push!(basis, op)
 
     Push the operation(s) in `op` into the basis and updates all internal fields accordingly.
-
-    Arguments:
-
-    - `basis` : A `Basis`
-    - `op` : A single `Operation` or an Array of `Operations`
+    `op` can either be a single `Operation` or an Array of `Operation`s.
 """
 function Base.push!(b::Basis, ops::AbstractArray{Operation})
     @inbounds for o in ops
