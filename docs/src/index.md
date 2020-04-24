@@ -8,6 +8,15 @@ There are various different avenues in which structural estimation can occur. Ho
 
 ## Package Overview
 
+DataDrivenDiffEq currently implements the following algorithms for
+structural estimation
+
++ Dynamic Mode Decomposition
++ Extended Dynamic Mode Decomposition
++ Sparse Identification of Nonlinear Dynamics
++ Implicit Sparse Identification of Nonlinear Dynamics
+
+
 ## Installation
 
 To use 'DataDrivenDiffEq.jl' simply install it via:

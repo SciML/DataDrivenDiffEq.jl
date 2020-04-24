@@ -203,19 +203,16 @@ using LinearAlgebra
 using Plots
 gr()
 
-
-
-# Create a
 function pendulum(u, p, t)
     x = u[2]
-    y = -9.81sin(u[1]) - 0.1u[2]^3 -0.2*cos(u[1])
+    y = -9.81sin(u[1]) - 0.1u[2]
     return [x;y]
 end
 
-u0 = [0.99π; -1.0]
+u0 = [0.4π; 1.0]
 tspan = (0.0, 20.0)
 problem = ODEProblem(pendulum, u0, tspan)
-solution = solve(problem, Tsit5(), saveat = 0.3)
+solution = solve(problem, Tsit5(), atol = 1e-8, rtol = 1e-8, saveat = 0.001)
 
 X = Array(solution)
 DX = solution(solution.t, Val{1})
@@ -225,4 +222,51 @@ savefig("nonlinear_pendulum.png") # hide
 ```
 ![](nonlinear_pendulum.png)
 
-## Linear Systems with Inputs
+Which is the simple nonlinear pendulum with damping.
+
+Suppose we are like John and know nothing about the system, we have just the data in front of us. To apply `SInDy`, we need three ingredients:
+
++ A `Basis` containing all possible candidate functions which might be in the model
++ An optimiser which is able to produce a sparse output
++ A threshold for the optimiser
+
+**It might seem to you that the third point is more a parameter of the optimiser (which it is), but nevertheless it is a crucial decision where to cutoff parameters.**
+
+So, lets create a bunch of basis functions for our problem first
+
+```@example 3
+
+@variables u[1:2]
+
+h = Operation[u; u.^2; u.^3; sin.(u); cos.(u); 1]
+
+basis = Basis(h, u)
+nothing # hide
+```
+
+`DataDrivenDiffEq` comes with some optimisers to tackle sparse regression problems. Here we will use `SR3`, used [here]() and introduced [here](). We choose a threshold of `3.5e-1` and start the optimiser.
+
+```@example 3
+opt = SR3(3e-1, 1.0)
+Ψ = SInDy(X[:, 1:1000], DX[:, 1:1000], basis, maxiter = 10000, opt = opt, normalize = true)
+print_equations(Ψ) # hide
+```
+
+We recovered the equations! Lets transform the `SInDyResult` into an performant piece of
+Julia Code using `ODESystem`
+
+```@example 3
+sys = ODESystem(Ψ)
+p = parameters(Ψ)
+
+dudt = ODEFunction(sys)
+
+estimator = ODEProblem(dudt, u0, tspan, p)
+estimation = solve(estimator, Tsit5(), saveat = solution.t)
+
+plot(solution.t[1:1000], solution[:,1:1000]', color = :red, line = :dot, label = nothing) # hide
+plot!(solution.t[1000:end], solution[:,1000:end]', color = :blue, line = :dot,label = nothing) # hide
+plot!(estimation, color = :green, label = "Estimation") # hide
+savefig("sindy_estimation.png") # hide
+```
+![](sindy_estimation.png)
