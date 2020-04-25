@@ -1,39 +1,89 @@
-## Dynamic Mode Decomposition
+# Dynamic Mode Decomposition
 
+The (Exact) [Dynamic Mode Decomposition](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/dynamic-mode-decomposition-of-numerical-and-experimental-data/AA4C763B525515AD4521A6CC5E10DBD4) is a method for
+generating an approximating linear differential equation directly from the observed data.
+If `X` and `Y` are data matrices containing points of the same trajectory, than `DMD` approximates
 
-#### (Exact) Dynamic Mode Decomposition (DMD)
-
-Dynamic Mode Decomposition, or Exact Dynamic Mode Decomposition, is a method for
-generating an approximating linear differential equation (the Koopman operator)
-from the observed data.
-
-To construct the approximation, use:
-
-```julia
-ExactDMD(X; dt = 0.0)
+```math
+K = Y~X^{\dagger}
 ```
 
--  `X` is a data matrix of the observations over time, where each column is
-  all observables at a given time point.
-- `dt` is an optional value for the spacings
-  between the observation timepoints which is used in the construction of the
-  continuous dynamics.
+where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the Koopman operator.
 
-#### Extended Dynamic Mode Decomposition (eDMD)
+`DMD` approximates *discrete time systems* of the form
 
-Extended Dynamic Mode Decomposition (eDMD), is a method for
-generating an approximating linear differential equation (the Koopman operator)
-for the observed data in a chosen basis of observables. Thus the signature is:
-
-```julia
-ExtendedDMD(X,basis; dt = 1.0)
+```math
+u_{i+1} = K ~ u_{i}
 ```
 
--  `X` is a data matrix of the observations over time, where each column is
-  all observables at a given time point.
-- `dt` is an optional value for the spacings
-  between the observation timepoints which is used in the construction of the
-  continuous dynamics.
+`gDMD` approximates *continuous time systems* of the form
+
+```math
+\frac{d}{dt}u =  K_{G} ~ u
+```
+
+where ``K_{G}`` is the generator of the Koopman operator.
+
+```@docs
+DMD
+gDMD
+```
+
+
+# Extended Dynamic Mode Decomposition
+
+[Extended Dynamic Mode Decomposition](https://link.springer.com/article/10.1007/s00332-015-9258-5) is a method for
+generating an approximating linear differential equation in a chosen basis of observables.
+If `X` and `Y` are data matrices containing points of the same trajectory and `Ψ` is a basis, than `EDMD` approximates
+
+```math
+K = Ψ(Y)~Ψ(X)^{\dagger}
+```
+
+where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the Koopman operator.
+
+`EDMD` approximates *discrete time systems* of the form
+
+```math
+\Psi(u_{i+1}) = K ~ \Psi(u_{i})
+```
+
+`gEDMD` approximates *continuous time systems* of the form
+
+```math
+\frac{d}{dt}\Psi(u) =  K_{G} ~ \Psi(u)
+```
+
+where ``K_{G}`` is the generator of the Koopman operator.
+
+# Dynamic Mode Decomposition with control
+
+[Dynamic Mode Decomposition with Control](https://epubs.siam.org/doi/abs/10.1137/15M1013857) is a method for
+generating an approximating linear differential equation in a chosen basis of observables.
+If `X` and `Y` are data matrices containing points of the same trajectory and `U` containing the exogenuos inputs
+acting on that trajectory, `DMDc` approximates
+
+```math
+G = Y~\left[ \begin{array}{c} X \\ U \end{array} \right]^{\dagger} = \left[K ~B \right]
+```
+
+where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the Koopman operator and `B` the linear input map.
+
+`DMDc` approximates *discrete time systems* with inputs ``y`` of the form
+
+```math
+u_{i+1} = K ~ u_{i} ~+ ~B ~ y_{i}
+```
+
+`gDMDc` approximates *continuous time systems* with inputs ``y`` of the form
+
+```math
+\frac{d}{dt}u =  K_{G} ~ u + B ~ y
+```
+
+where ``K_{G}`` is the generator of the Koopman operator.
+
+
 
 #### Shared DMD Features
 
