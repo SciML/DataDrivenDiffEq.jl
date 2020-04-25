@@ -16,7 +16,12 @@ makedocs(
         "Home" => "index.md",
         "Getting Started" => "quickstart.md",
         "Basis" => "basis.md",
-        "Koopman Operators" => "koopman/koopman.md"
+        "Koopman Operators" => Any[
+            "koopman/koopman.md",
+            "koopman/dmd.md",
+            "koopman/edmd.md",
+            "koopman/dmdc.md"
+        ],
         #"Equation Free Systems" => Any[
         #    "koopman/dmd.md",
         #],
