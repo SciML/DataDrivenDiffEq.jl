@@ -56,6 +56,11 @@ where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approx
 
 where ``K_{G}`` is the generator of the Koopman operator.
 
+```@docs
+EDMD
+gEDMD
+```
+
 # Dynamic Mode Decomposition with control
 
 [Dynamic Mode Decomposition with Control](https://epubs.siam.org/doi/abs/10.1137/15M1013857) is a method for
