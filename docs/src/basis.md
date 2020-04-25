@@ -12,16 +12,18 @@ forms or a general function with the typical DiffEq signature `h(u,p,t)` which c
 `parameters` are the optional ModelingToolkit `Variable`s used to describe the
 parameters in the basis elements. `iv` represents the independent variable of the system, the time.
 
+```@docs
+Basis
+```
+
 ## Functions
 
 ```@docs
-Basis
 parameters
 variables
-independent_variable
+DataDrivenDiffEq.independent_variable
 jacobian
 dynamics
-ODESystem
 ```
 
 ## Adaptation

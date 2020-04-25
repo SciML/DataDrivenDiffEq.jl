@@ -1,15 +1,19 @@
 # Koopman Operators
 
-## Shared Functions
+```@docs
+LinearKoopman
+NonlinearKoopman
+```
 
-Common function for all `AbstractKoopmanOperator`s.
+## Functions
 
 ```@docs
 operator
 generator
 inputmap
 outputmap
-is_discete
+update!
+is_discrete
 is_continouos
 updateable
 isstable
@@ -18,19 +22,4 @@ eigvals
 eigvecs
 modes
 frequencies
-```
-
-## Linear Koopman Operators
-
-```@docs
-LinearKoopman
-update!
-```
-
-## Nonlinear Koopman Operatos
-
-```@docs
-NonlinearKoopman
-reduce_basis
-update!
 ```

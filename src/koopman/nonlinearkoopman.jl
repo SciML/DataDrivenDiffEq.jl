@@ -36,21 +36,6 @@ mutable struct NonlinearKoopman <: AbstractKoopmanOperator
     discrete::Bool
 end
 
-"""
-    outputmap(k)
-
-    Return the array `C`, mapping the koopman space back onto the state space.
-"""
-outputmap(k::NonlinearKoopman) = k.output
-
-"""
-    inputmap(k)
-
-    Return the array `B`, mapping the exogenuos inputs to the koopman space.
-"""
-inputmap(k::NonlinearKoopman) = k.input
-
-
 (k::NonlinearKoopman)(u, p::DiffEqBase.NullParameters, t) = k(u, [], t)
 (k::NonlinearKoopman)(du, u, p::DiffEqBase.NullParameters, t) = k(du, u, [], t)
 
@@ -109,6 +94,12 @@ function reduce_basis(k::NonlinearKoopman; threshold = 1e-5)
 end
 
 
+"""
+    ODESystem(k; threshold = eps())
+
+Convert a `NonlinearKoopman` into an `ODESystem`. `threshold` determines the cutoff
+for the entries of the matrix representing the state space evolution of the system.
+"""
 function ModelingToolkit.ODESystem(k::NonlinearKoopman; threshold = eps())
     @assert threshold > zero(threshold) "Threshold must be greater than zero"
 
