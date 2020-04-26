@@ -25,6 +25,8 @@ u_{i+1} = K ~ u_{i} ~+ ~B ~ y_{i}
 
 where ``K_{G}`` is the generator of the Koopman operator.
 
+## Functions
+
 ```@docs
 DMDc
 gDMDc

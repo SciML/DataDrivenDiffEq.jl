@@ -20,7 +20,8 @@ makedocs(
             "koopman/koopman.md",
             "koopman/dmd.md",
             "koopman/edmd.md",
-            "koopman/dmdc.md"
+            "koopman/dmdc.md",
+            "koopman/algorithms.md"
         ],
         #"Equation Free Systems" => Any[
         #    "koopman/dmd.md",

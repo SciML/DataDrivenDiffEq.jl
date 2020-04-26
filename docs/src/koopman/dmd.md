@@ -24,7 +24,68 @@ u_{i+1} = K ~ u_{i}
 
 where ``K_{G}`` is the generator of the Koopman operator.
 
+## Functions
+
 ```@docs
 DMD
 gDMD
 ```
+
+## Examples
+
+```@example dmd_1
+using DataDrivenDiffEq
+using OrdinaryDiffEq
+using LinearAlgebra
+using Plots
+gr()
+
+function linear_discrete(du, u, p, t)
+    du[1] = 0.9u[1]
+    du[2] = 0.05u[2] + 0.1u[1]
+end
+
+u0 = [10.0; -2.0]
+tspan = (0.0, 20.0)
+problem = DiscreteProblem(linear_discrete, u0, tspan)
+solution = solve(problem, FunctionMap())
+```
+
+```@example dmd_1
+X = Array(solution)
+
+approx = DMD(X[:,1:3])
+
+prob_approx = DiscreteProblem(approx, u0, tspan)
+approx_sol = solve(prob_approx, FunctionMap())
+
+plot(approx_sol, label = ["u[1]" "u[2]"]) #hide
+plot!(solution, label = ["True u[1]" "True u[2]"]) #hide
+savefig("dmd_example_1.png") #hide
+```
+
+![](dmd_example_1.png)
+
+```@example dmd_1
+
+function linear_discrete_2(du, u, p, t)
+    du[1] = 0.9u[1] + 0.05u[2]
+    du[2] = 0.1u[1]
+end
+
+problem = DiscreteProblem(linear_discrete_2, u0, tspan)
+solution = solve(problem, FunctionMap())
+
+X = Array(solution)
+
+update!(approx, X[:, 4:end-1], X[:, 5:end])
+
+prob_approx = DiscreteProblem(approx, u0, tspan)
+approx_sol = solve(prob_approx, FunctionMap())
+
+# Show solutions
+plot(approx_sol, label = ["u[1]" "u[2]"]) #hide
+plot!(solution, label = ["True u[1]" "True u[2]"]) #hide
+savefig("dmd_example_2.png") #hide
+```
+![](dmd_example_2.png)

@@ -22,4 +22,5 @@ eigvals
 eigvecs
 modes
 frequencies
+reduce_basis
 ```
