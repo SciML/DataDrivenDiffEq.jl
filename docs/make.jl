@@ -23,6 +23,9 @@ makedocs(
             "koopman/dmdc.md",
             "koopman/algorithms.md"
         ],
+        "Sparse Identification" => Any[
+            "sparse_identification/sindy.md"
+        ]
         #"Equation Free Systems" => Any[
         #    "koopman/dmd.md",
         #],

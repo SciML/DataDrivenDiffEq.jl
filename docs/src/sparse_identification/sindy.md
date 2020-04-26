@@ -1,7 +1,10 @@
-## Sparse Identification of Nonlinear Dynamics
+# Sparse Identification of Nonlinear Dynamics
 
-`SInDy` is the [method for generating sparse sets of equations](https://www.pnas.org/content/113/15/3932)
-from a chosen basis. The function call is:
+[Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) - or SINDy - identifies the equations of motion of a system as the result of a sparse regression over a chosen basis. In particular, it tries to find coefficients ``\Xi`` such that
+
+```math
+\Xi = min ~ \norm{\dot{X}^{T} - \Theta(X, p, t)^{T} \Xi^{T}}_2 + \lambda ~ \norm{\Xi}_1
+```
 
 ```julia
 dudt = SInDy(data, dx, basis)
