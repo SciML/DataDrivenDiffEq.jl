@@ -11,16 +11,16 @@ G = Y~\left[ \begin{array}{c} X \\ U \end{array} \right]^{\dagger} = \left[K ~B 
 
 where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the Koopman operator and `B` the linear input map.
 
-`DMDc` approximates *discrete time systems* with inputs ``y`` of the form
+`DMDc` approximates *discrete time systems* with inputs ``z`` of the form
 
 ```math
-u_{i+1} = K ~ u_{i} ~+ ~B ~ y_{i}
+u_{i+1} = K ~ u_{i} ~+ ~B ~ z_{i}
 ```
 
-`gDMDc` approximates *continuous time systems* with inputs ``y`` of the form
+`gDMDc` approximates *continuous time systems* with inputs ``z`` of the form
 
 ```math
-\frac{d}{dt}u =  K_{G} ~ u + B ~ y
+\frac{d}{dt}u =  K_{G} ~ u + B ~ z
 ```
 
 where ``K_{G}`` is the generator of the Koopman operator.
