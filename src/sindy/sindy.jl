@@ -24,10 +24,35 @@ function rescale_theta!(θ::AbstractArray, scales::AbstractArray)
 end
 
 """
-    sparse_regression(X::AbstractArray, Y::AbstractArray, Ψ::Basis, p::AbstractArray, t::AbstractVector, maxiter::Int64, opt::AbstractOptimiser, denoise::Bool, normalize::Bool, convergence_error::Real)
+    sparse_regression(X, Y, basis, p, t, maxiter, opt, denoise, normalize, convergence_error)
+    sparse_regression!(Xi, X, Y, basis, p, t, maxiter, opt, denoise, normalize, convergence_error)
+    spares_regression!(Xi, Theta, Y, maxiter, opt, denoise, normalize, convergence_error)
 
-    Sparsifying regression over the candidate library represented by the basis such that
+Performs a sparse regression via the algorithm `opt <: AbstractOptimiser`. `maxiter` specifies the upper bound of the iterations
+of the optimiser, `convergence_error` the breaking condition due to convergence.
+`denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
+`normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
+If the data matrices `X`, `Y` are given with a `Basis` `basis` and the additional information for parameters `p` and time points of the
+measurements `t`, it returns the coefficient matrix `Xi` and the iterations taken.
+This function is also available inplace, which returns just the iterations.
+
+If `Xi`, `Theta` and `Y` are given, the sparse regression will find the coefficients `Xi` which minimise the objective and return the iterations needed.
+
+# Example
+
+```julia
+opt = STRRidge()
+maxiter = 10
+c_error = 1e-3
+
+Xi, iters = sparse_regression(X, Y, basis, [], [], maxiter, opt, false, false, c_error)
+
+iters = sparse_regression!(Xi,X, Y, basis, [], [], maxiter, opt, false, false, c_error)
+
+Xi2 = zeros(size(Y, 1), size(X, 1))
+iters = sparse_regression!(Xi2, X, Y, maxiter, opt, false, false, c_error)
+```
 """
 function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray, t::AbstractVector , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimise.AbstractOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
@@ -98,6 +123,25 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis; kwar
 end
 
 # General
+"""
+    SInDy(X, Y, basis; p, t, opt, maxiter, convergence_error, denoise, normalize)
+    SInDy(X, Y, basis, lambdas; weights, f_target, p, t, opt, maxiter, convergence_error, denoise, normalize)
+
+Performs Sparse Identification of Nonlinear Dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
+Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t` which are passed in optionally.
+`opt` is an `AbstractOptimiser` useable for sparse regression, `maxiter` the maximum iterations to perform and `convergence_error` the
+bound which causes the optimiser to stop.
+`denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
+`normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
+
+
+If `SInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a pareto optimisation over all thresholds.
+The target of the pareto is given by the function `f_target` with signature `f(weigths,x)`.
+`weights` can be specified in the arguments.
+`x` contains the L0 Norm of the columns of the coefficients at index 1 and the L2-Norm error at index 2.
+
+Returns a `SInDyResult`. If the pareto optimisation is used, the result combines the best candidate for each row of `Y`.
+"""
 function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(), denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimise.AbstractOptimiser, S <: Number}
     Ξ, iters = sparse_regression(X, Ẋ, Ψ, p, t, maxiter, opt, denoise, normalize, convergence_error)
     convergence = iters < maxiter
