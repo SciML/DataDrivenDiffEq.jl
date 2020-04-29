@@ -42,7 +42,7 @@ end
 
 function print_equations(r::SparseIdentificationResult; show_parameter::Bool = false)
     if show_parameter
-        eqs = r.equations(variables(r.equations), p = parameters(r))
+        eqs = r.equations(variables(r.equations), parameters(r), independent_variable(r.equations))
         for (i, eq) in enumerate(eqs)
             println("f_$i = ", eq)
         end
