@@ -140,16 +140,3 @@ Which resembles the papers results. Next, we could use [classical parameter esti
 SInDy
 sparse_regression
 ```
-
-## Optimiser
-
-`DataDrivenDiffEq` comes with some implementations for sparse regression included. All of these are stored inside the
-`DataDrivenDiffEq.Optimise` package and extend the `AbstractOptimiser`.
-
-
-
-```@docs
-STRRidge
-ADMM
-SR3
-```
