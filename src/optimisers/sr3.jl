@@ -8,6 +8,22 @@ mutable struct SR3{U,T} <: AbstractOptimiser
     R::T
 end
 
+
+"""
+    SR3(λ, ν, R)
+    SR3(λ = 1e-1, ν = 1.0)
+
+`SR3` is an optimizer framework introduced [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778) and used within
+[Champion et. al., 2019](https://arxiv.org/abs/1906.10612). `SR3` contains a sparsification parameter `λ`, a relaxation `ν`
+and a corresponding penalty function `R`, which should be taken from [ProximalOperators.jl](https://github.com/kul-forbes/ProximalOperators.jl)
+
+# Examples
+```julia
+opt = SR3()
+opt = SR3(1e-2)
+opt = SR3(1e-3, 1.0)
+```
+"""
 function SR3(λ = 1e-1, ν = 1.0)
     R = NormL1
     return SR3(λ, ν, R)
