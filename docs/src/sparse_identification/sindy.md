@@ -12,7 +12,7 @@ where in most cases ``Y``is the data matrix containing the derivatives of the st
 
 ## Example
 
-As in the original paper, we will estimate the [Lorenz System]().
+As in the original paper, we will estimate the [Lorenz System](https://en.wikipedia.org/wiki/Lorenz_system).
 First, lets create the necessary data and have a look at the trajectory.
 
 ```@example sindy_1
@@ -44,6 +44,7 @@ plot(solution,vars=(1,2,3), legend = false) #hide
 savefig("lorenz.png") #hide
 ```
 ![](lorenz.png)
+
 Additionally, we generate the *ideal* derivative data.
 
 ```@example sindy_1
@@ -76,15 +77,34 @@ nothing #hide
 
 *A `Basis` consists of unique functions, so duplicates will be included just once*
 
-To perform the sparse identification on our data, we need to define an `Optimiser`. Here we will use `STRRidge` which is described in the original paper. The threshold of the optimiser is set to `0.1`.
+To perform the sparse identification on our data, we need to define an `Optimiser`. Here we will use `STRRidge` which is described in the original paper. The threshold of the optimiser is set to `0.1`. An overview of the different optimisers can be found below.
 
 ```@example sindy_1
 opt = STRRidge(0.1)
 Ψ = SInDy(X, DX, basis, maxiter = 100, opt = opt, normalize = true)
-print(Ψ, show_parameter = true)
 ```
 
-The last command prints the equations from the `SInDyResult` with its numerical values. To generate a numerical model usable in `DifferentialEquations`, we simply use the `ODESystem` function from `ModelingToolkit`.
+`Ψ` is a `SInDyResult`, which stores some about the regression. As we can see, we have 7 active terms inside the model.
+To look at the equations, simply type
+
+```@example sindy_1
+print_equations(Ψ)
+```
+
+First, lets have a look at the ``L2``-Error and Akaikes Information Criterion of the result
+
+```@example sindy_1
+get_error(Ψ)
+```
+
+```@example sindy_1
+get_aicc(Ψ)
+```
+
+We can also access the coefficient matrix ``\Xi`` directly via `get_coefficients(Ψ)`.
+
+To generate a numerical model usable in `DifferentialEquations`, we simply use the `ODESystem` function from `ModelingToolkit`.
+The resulting parameters used for the identification can be accessed via `parameters(Ψ)`. The returned vector also includes the parameters of the original `Basis` used to generate the result.
 
 ```@example sindy_1
 ps = parameters(Ψ)
@@ -99,10 +119,20 @@ plot(solution.t, ϵ .+ eps(), yaxis = :log, legend = false) # hide
 xlabel!("Time [s]") # hide
 ylabel!("L2 Error") # hide
 savefig("lorenz_error.png") # hide
+plot(solution, vars = (0, 1), label = "True") # hide
+plot!(sol, vars = (0,1), label = "Estimation") # hide
+savefig("lorenz_trajectory_estimate.png") # hide
 ```
+
+Lets have a look at the trajectory of ``u_{1}(t)``.
+
+![](lorenz_trajectory_estimate.png)
+
 Finally, lets investigate the error of the chaotic equations:
 
 ![](lorenz_error.png)
+
+Which resembles the papers results. Next, we could use [classical parameter estimation methods](https://docs.sciml.ai/stable/analysis/parameter_estimation/) or use [DiffEqFlux](https://github.com/SciML/DiffEqFlux.jl) to fine tune our result (if needed ).
 
 ## Functions
 
@@ -113,13 +143,12 @@ sparse_regression
 
 ## Optimiser
 
+`DataDrivenDiffEq` comes with some implementations for sparse regression included. All of these are stored inside the
+`DataDrivenDiffEq.Optimise` package and extend the `AbstractOptimiser`.
 
-where `data` is a matrix of observed values (each column is a timepoint,
-each row is an observable), `dx` is the matrix of derivatives of the observables,
-`basis` is a `Basis`. This function will return a `Basis` constructed via a
-sparse regression over initial `basis`.
 
-`DataDrivenDiffEq` comes with some sparsifying regression algorithms (of the
+
+sparsifying regression algorithms (of the
 abstract type `AbstractOptimiser`). Currently these are `STRRidge(threshold)`
 from the [original paper](https://www.pnas.org/content/113/15/3932), a custom lasso
 implementation via the alternating direction method of multipliers `ADMM(threshold, weight)`
