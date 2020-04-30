@@ -40,6 +40,13 @@ Base.show(io::IO, x::SparseIdentificationResult) = print(io, "Sparse Identificat
     end
 end
 
+
+"""
+    print_equations(res; show_parameter)
+
+Print the equations stored inside the `SparseIdentificationResult` `res`. If `show_parameter` is set
+to true, the numerical values will be used. Otherwise the symbolic form will appear.
+"""
 function print_equations(r::SparseIdentificationResult; show_parameter::Bool = false)
     if show_parameter
         eqs = r.equations(variables(r.equations), p = parameters(r))
@@ -51,6 +58,16 @@ function print_equations(r::SparseIdentificationResult; show_parameter::Bool = f
     end
 end
 
+"""
+    SparseIdentificationResult()
+
+Contains the result of a sparse identification. Contains the coefficient matrix `Ξ`,
+the equations of motion and its associated parameters. It stores also the optimiser, iteration counter and convergence status
+is stored.
+
+Additionally, the model is evaluated over the training data and the ``L_2``-error, Akaikes Information Criterion and the ``L_0``-Norm of the coefficients
+is stored.
+"""
 function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T , convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = [], t::AbstractVector = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
     Ŷ = coeff'*equations(X, p, t)
     training_error = norm.(eachrow(Y-Ŷ), 2)
@@ -63,7 +80,6 @@ function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iter
     b_, p_ = derive_parameterized_eqs(coeff, equations, sum(sparsity))
     return SparseIdentificationResult(coeff, [p...;p_...], b_ , opt, iters, convergence,  training_error, aicc,  sparsity)
 end
-
 
 function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::Int64) where T <: Real
     @parameters p[1:sparsity]
@@ -98,9 +114,32 @@ ModelingToolkit.parameters(r::SparseIdentificationResult) = r.parameters
 
 dynamics(b::SparseIdentificationResult) = dynamics(b.equations)
 
+"""
+    get_sparsity(res)
+
+Return the ``L_0``-Norm of the `SparseIdentificationResult`
+"""
 get_sparsity(r::SparseIdentificationResult) = r.sparsity
+
+"""
+    get_error(res)
+
+Return the ``L_2``-Error of the `SparseIdentificationResult` over the training data.
+"""
 get_error(r::SparseIdentificationResult) = r.error
+
+"""
+    get_aicc(res)
+
+Return Akaikakes Information Criterion  of the `SparseIdentificationResult` over the training data.
+"""
 get_aicc(r::SparseIdentificationResult) = r.aicc
+
+"""
+    get_coefficients(res)
+
+Return the coefficient matrix `Ξ` of the `SparseIdentificationResult`.
+"""
 get_coefficients(r::SparseIdentificationResult) = r.coeff
 
 function ModelingToolkit.ODESystem(b::SparseIdentificationResult)

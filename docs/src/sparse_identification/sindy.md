@@ -140,3 +140,11 @@ Which resembles the papers results. Next, we could use [classical parameter esti
 SInDy
 sparse_regression
 ```
+
+```@docs
+SparseIdentificationResult
+get_sparsity
+get_error
+get_aicc
+get_coefficients
+```
