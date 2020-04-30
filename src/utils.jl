@@ -3,11 +3,24 @@ import StatsBase: sample
 # Model selection
 
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
+"""
+	AIC(k, X, Y; likelyhood = (X, Y) = sum(abs2, X-Y))
+
+Computes the Akaike Information Criterion (AIC) given the free parameters `k` for the data `X` and its
+estimate `Y` of the model. `likelyhood` can be any function of `X` and `Y`.
+"""
 function AIC(k::Int64, X::AbstractArray, Y::AbstractArray; likelyhood = (X,Y) -> sum(abs2, X-Y))
     @assert size(X) == size(Y) "Dimensions of trajectories should be equal !"
     return 2*k - 2*log(likelyhood(X, Y))
 end
+
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
+"""
+	AICC(k, X, Y; likelyhood = (X, Y) = sum(abs2, X-Y))
+
+Computes the Akaike Information Criterion compensated for finite samples (AICC) given the free parameters `k` for the data `X` and its
+estimate `Y` of the model. `likelyhood` can be any function of `X` and `Y`.
+"""
 function AICC(k::Int64, X::AbstractMatrix, Y::AbstractMatrix; likelyhood = (X,Y) -> sum(abs2, X-Y))
     @assert size(X) == size(Y) "Dimensions of trajectories should be equal !"
     return AIC(k, X, Y, likelyhood = likelyhood)+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
@@ -20,6 +33,12 @@ end
 
 # Double check on that
 # Taken from https://www.immagic.com/eLibrary/ARCHIVES/GENERAL/WIKIPEDI/W120607B.pdf
+"""
+	BIC(k, X, Y; likelyhood = (X, Y) = sum(abs2, X-Y))
+
+Computes Bayes Information Criterion (BIC) given the free parameters `k` for the data `X` and its
+estimate `Y` of the model. `likelyhood` can be any function of `X` and `Y`.
+"""
 function BIC(k::Int64, X::AbstractMatrix, Y::AbstractMatrix; likelyhood = (X,Y) -> sum(abs2, X-Y))
     @assert size(X) == size(Y) "Dimensions of trajectories should be equal !"
     return - 2*log(likelyhood(X, Y)) + k*log(size(X)[2])
@@ -95,6 +114,13 @@ function median_marcenko_pastur(beta)
     return (lower+upper)/2
 end
 
+"""
+	optimal_shrinkage(X)
+	optimal_shrinkage!(X)
+
+Compute a feature reduced version of the data array `X` via tresholding the
+singular values by computing the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
+"""
 function optimal_shrinkage(X::AbstractArray{T, 2}) where T <: Number
     m,n = minimum(size(X)), maximum(size(X))
     U, S, V = svd(X)
@@ -112,6 +138,13 @@ function optimal_shrinkage!(X::AbstractArray{T, 2}) where T <: Number
     return
 end
 
+"""
+	savitzky_golay(X, windowSize, polyOrder; deriv, dt, crop)
+
+Estimate the time derivative via the savitzky_golay filter. `X` is the data matrix containing the trajectories, which is interpolated
+via polynomials of order `polyOrder` over `windowSize` points repeatedly. `deriv` defines the order of the derivative, `dt`
+the timestepsize. `crop` indicates if the original data should be returned cropped along the derivative approximation.
+"""
 function savitzky_golay(x::AbstractVector{T}, windowSize::Integer, polyOrder::Integer; deriv::Integer=0, dt::Real=1.0, crop::Bool = true) where T <: Number
 	# Polynomial smoothing with the Savitzky Golay filters
 	# Adapted from: https://github.com/BBN-Q/Qlab.jl/blob/master/src/SavitskyGolay.jl
@@ -195,6 +228,12 @@ function calculate_filterCoeffs(windowSize::Integer, polyOrder::Integer, deriv::
 	return A*inv_col * factorial(deriv) ./(dt^deriv)
 end
 
+
+"""
+	burst_sampling(X, samplesize, n)
+
+Randomly selects `n` bursts of data with size `samplesize` from the data `X`.
+"""
 @inline function burst_sampling(x::AbstractArray, samplesize::Int64, bursts::Int64)
     @assert size(x)[end] >= samplesize*bursts "Bursting impossible. Please provide more data or reduce bursts or samplesize."
     inds = sample(1:size(x)[end]-samplesize, bursts, replace = false)
@@ -202,7 +241,11 @@ end
     return resample(x, inds)
 end
 
+"""
+	burst_sampling(X, Y, samplesize, n)
 
+Randomly selects `n` bursts of data with size `samplesize` from the data `X` and `Y`.
+"""
 @inline function burst_sampling(x::AbstractArray, y::AbstractArray, samplesize::Int64, bursts::Int64)
     @assert size(x)[end] >= samplesize*bursts "Bursting impossible. Please provide more data or reduce bursts or samplesize"
     @assert size(x)[end] == size(y)[end]
@@ -211,7 +254,12 @@ end
     return resample(x, inds), resample(y, inds)
 end
 
+"""
+	burst_sampling(X, t, period, n)
 
+Randomly selects `n` bursts of data within a time window `period` from the data `X`. The time information
+has to be provided in `t`.
+"""
 @inline function burst_sampling(x::AbstractArray, t::AbstractVector, period::T, bursts::Int64) where T <: AbstractFloat
     @assert period > zero(typeof(period)) "Sampling period has to be positive."
     @assert size(x)[end] == size(t)[end] "Provide consistent data."
@@ -225,6 +273,11 @@ end
 end
 
 
+"""
+	subsample(X, n)
+
+Returns the subsampled `X` with only every `n`-th entry.
+"""
 @inline function subsample(x::AbstractVector, frequency::Int64)
     @assert frequency > 0 "Sampling frequency has to be positive."
     return x[1:frequency:end]
@@ -236,6 +289,13 @@ end
     return x[:, 1:frequency:end]
 end
 
+
+"""
+	subsample(X, t, dt)
+
+Returns the subsampled `X` with a a minimum period of `dt` between two data points. `t` provides the
+time information.
+"""
 @inline function subsample(x::AbstractArray, t::AbstractVector, period::T) where T <: AbstractFloat
     @assert period > zero(typeof(period)) "Sampling period has to be positive."
     @assert size(x)[end] == size(t)[end] "Provide consistent data."
