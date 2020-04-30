@@ -4,6 +4,12 @@ mutable struct ADM{U, O} <: AbstractSubspaceOptimiser
     R::O
 end
 
+"""
+    ADM(λ = 0.1)
+
+Optimiser for finding a sparse basis vector in a subspace based on [this paper](https://arxiv.org/pdf/1412.4659.pdf).
+`λ` is the weight for the soft-thresholding operation.
+"""
 function ADM(λ::T = 0.1) where T <: Real
     f = NormL1(λ)
     return ADM(λ, f)
@@ -23,25 +29,3 @@ function fit!(q::AbstractArray{T, 2}, Y::AbstractArray, opt::ADM; maxiter::Int64
         fit!(view(q, :, i), Y, opt, maxiter = maxiter)
     end
 end
-
-
-# Test
-
-#using LinearAlgebra
-#using SparseArrays
-#using ProximalOperators
-
-#opt = ADM(1e-2)
-#A = Matrix(sprandn(20, 40, 0.1))
-#U, S, V = svd(A, full = true)
-#
-#
-#N = nullspace(A, rtol = 0.99)
-#X, Y = qr(randn(40,40))
-#M = X*N
-#rank(M)
-#Q = M[:,3]
-#norm(Q, 0)
-#fit!(Q, N', opt, maxiter = 10000)
-#norm(Q, 0)
-#fit!(M, N', opt, maxiter = 10000)

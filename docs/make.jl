@@ -25,7 +25,8 @@ makedocs(
         ],
         "Sparse Identification" => Any[
             "sparse_identification/sindy.md",
-            "sparse_identification/optimisers.md"
+            "sparse_identification/optimisers.md",
+            "sparse_identification/isindy.md"
         ]
         #"Equation Free Systems" => Any[
         #    "koopman/dmd.md",
