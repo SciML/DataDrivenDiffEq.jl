@@ -28,7 +28,8 @@ makedocs(
             "sparse_identification/optimisers.md",
             "sparse_identification/isindy.md"
         ],
-        "Utilities" => "utils.md"
+        "Utilities" => "utils.md",
+        "Contributing" => "contributions.md"
     ]
 )
 
