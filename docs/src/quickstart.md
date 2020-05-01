@@ -53,7 +53,7 @@ savefig("pendulum_approximation.png") #hide
 
 Yeah! The model fits! But what exactly did we do?
 
-`DMD` is short for [Dynamic Mode Decomposition](), a technique which generates a linear model from data. So given the data matrix `X` we simply divided it up into two data sets and performed a linear fitting between those.
+`DMD` is short for [Dynamic Mode Decomposition](@ref), a technique which generates a linear model from data. So given the data matrix `X` we simply divided it up into two data sets and performed a linear fitting between those.
 
 Note that we fitted a **discrete** model which fits our **continuous** data. This is possible because
 
@@ -68,7 +68,7 @@ K = operator(approximation)
 norm(K - exp(dt*[0.0 1.0; -1.0 -0.1]), 2)
 ```
 
-The reason for using `operator` as a function to get the corresponding matrix of the approximation is the connection of Dynamic Mode Decomposition to the [Koopman Operator](). You might have noticed that the return value of `DMD` is a `LinearKoopman`.
+The reason for using `operator` as a function to get the corresponding matrix of the approximation is the connection of Dynamic Mode Decomposition to the [Koopman Operator](@ref koopman_operator). You might have noticed that the return value of `DMD` is a `LinearKoopman`.
 
 The `LinearKoopman` overloads some useful functions from `LinearAlgebra` to perform analysis. Lets have a look at the eigenvalues of the operator
 
