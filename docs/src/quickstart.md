@@ -165,7 +165,7 @@ observeables = [u; u[1]^2]
 basis = Basis(observeables, u)
 ```
 
-A `Basis` captures a bunch of functions defined over some variables provided via [ModelingToolkit.jl]().
+A `Basis` captures a bunch of functions defined over some variables provided via [ModelingToolkit.jl](https://github.com/SciML/ModelingToolkit.jl).
 Here, we included the state and `u[1]^2`. Now, we simply call `gEDMD`, which
 will compute the generator of the Koopman operator associated with the model.
 
@@ -244,7 +244,7 @@ basis = Basis(h, u)
 nothing # hide
 ```
 
-`DataDrivenDiffEq` comes with some optimisers to tackle sparse regression problems. Here we will use `SR3`, used [here]() and introduced [here](). We choose a threshold of `3.5e-1` and start the optimiser.
+`DataDrivenDiffEq` comes with some optimisers to tackle sparse regression problems. Here we will use `SR3`, used [here](https://arxiv.org/abs/1906.10612) and introduced [here](https://ieeexplore.ieee.org/document/8573778). We choose a threshold of `3.5e-1` and start the optimiser.
 
 ```@example 3
 opt = SR3(3e-1, 1.0)

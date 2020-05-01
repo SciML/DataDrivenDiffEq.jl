@@ -1,6 +1,6 @@
 # Algorithms for Estimation
 
-There are different different variants of estimation of the Koopman operator, see e.g. [here](), [here]() or []().
+There are different different variants of estimation of the [Koopman Operator](@ref koopman_operator), see e.g. [here](http://www.aimsciences.org/journals/displayArticlesnew.jsp?paperID=10631), [here](https://link.springer.com/article/10.1007/s00332-015-9258-5) or [here](https://arxiv.org/abs/1611.06664).
 
 Currently, `DataDrivenDiffEq` implements the following `AbstractKoopmanAlgorithms` to use with `DMD`, `EDMD` and `DMDc`.
 
@@ -14,7 +14,7 @@ DMDSVD
 
 ## Implementing New Algorithms
 
-Is pretty straightforward. The implementation of `DMDMPINV` looks like
+Is pretty straightforward. The implementation of `DMDPINV` looks like
 
 ```julia
 

@@ -1,4 +1,4 @@
-# Koopman Operators
+# [Koopman Operators](@id koopman_operator)
 
 ```@docs
 LinearKoopman
