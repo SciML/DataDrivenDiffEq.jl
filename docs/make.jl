@@ -1,5 +1,4 @@
 using Documenter, DataDrivenDiffEq
-#include("../src/DataDrivenDiffEq.jl")
 
 makedocs(
     sitename="DataDrivenDiffEq.jl",
