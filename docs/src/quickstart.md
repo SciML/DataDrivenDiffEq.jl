@@ -167,7 +167,7 @@ basis = Basis(observeables, u)
 
 A `Basis` captures a bunch of functions defined over some variables provided via [ModelingToolkit.jl](https://github.com/SciML/ModelingToolkit.jl).
 Here, we included the state and `u[1]^2`. Now, we simply call `gEDMD`, which
-will compute the generator of the Koopman operator associated with the model.
+will compute the generator of the [Koopman Operator](@ref koopman_operator) associated with the model.
 
 ```@example 2
 approximation = gEDMD(X, DX, basis)

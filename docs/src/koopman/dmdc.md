@@ -9,7 +9,7 @@ acting on that trajectory, `DMDc` approximates
 G = Y~\left[ \begin{array}{c} X \\ U \end{array} \right]^{\dagger} = \left[K ~B \right]
 ```
 
-where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the Koopman operator and `B` the linear input map.
+where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the [Koopman Operator](@ref koopman_operator) and `B` the linear input map.
 
 `DMDc` approximates *discrete time systems* with inputs ``z`` of the form
 
@@ -23,7 +23,7 @@ u_{i+1} = K ~ u_{i} ~+ ~B ~ z_{i}
 \frac{d}{dt}u =  K_{G} ~ u + B ~ z
 ```
 
-where ``K_{G}`` is the generator of the Koopman operator.
+where ``K_{G}`` is the generator of the [Koopman Operator](@ref koopman_operator).
 
 ## Functions
 

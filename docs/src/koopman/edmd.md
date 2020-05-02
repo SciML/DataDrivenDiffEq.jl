@@ -8,7 +8,7 @@ If `X` and `Y` are data matrices containing points of the same trajectory and `�
 K = Ψ(Y)~Ψ(X)^{\dagger}
 ```
 
-where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the Koopman operator.
+where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the [Koopman Operator](@ref).
 
 `EDMD` approximates *discrete time systems* of the form
 
@@ -24,7 +24,7 @@ u_{i+1} = C~\Psi(u_{i})
 \frac{d}{dt}u = C~\frac{d}{dt}\Psi(u)
 ```
 
-where ``K_{G}`` is the generator of the Koopman operator.
+where ``K_{G}`` is the generator of the [Koopman Operator](@ref koopman_operator).
 `C` is a matrix mapping from the observations back onto the states or differential states.
 
 ## Functions
