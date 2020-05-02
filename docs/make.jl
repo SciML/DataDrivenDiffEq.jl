@@ -1,6 +1,3 @@
-using Pkg
-Pkg.activate("..")
-
 using Documenter, DataDrivenDiffEq
 #include("../src/DataDrivenDiffEq.jl")
 
