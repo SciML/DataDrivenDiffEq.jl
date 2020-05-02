@@ -1,3 +1,19 @@
+"""
+    DMD(X; alg)
+    DMD(X, Y; alg)
+
+Approximates a 'LinearKoopman' with the `AbstractKoopmanAlgorithm` 'alg' from the data matrices `X` or `X` and `Y` respectively.
+If only `X` is given, the data is split into `X[:, 1:end-1]` and `X[:, 2:end]`.
+
+# Example
+
+```julia
+alg = DMDPINV()
+koopman = DMD(X, alg = alg)
+
+koopman = DMD(X[:, 1:end-1], X[:, 2:end], alg = alg)
+```
+"""
 function DMD(X::AbstractArray; alg::AbstractKoopmanAlgorithm = DMDPINV())
     return DMD(X[:, 1:end-1], X[:, 2:end], alg = alg)
 end
@@ -12,6 +28,28 @@ function DMD(X::AbstractArray, Y::AbstractArray; alg::AbstractKoopmanAlgorithm =
     return LinearKoopman(A, zero(eltype(A))*I(size(A,1)), Y*X', X*X', true)
 end
 
+"""
+    gDMD(X, Y; alg)
+    gDMD(t, X ; dt, alg, fdm, itp)
+
+Approximates a 'LinearKoopman' with the `AbstractKoopmanAlgorithm` 'alg' from the data matrices `X` and `Y`.
+`X` should contain the state trajectory and `Y` the differential state trajectory.
+
+If no measurements of the differential state is available, `gDMD` can be called with measurement time points `t` as a first argument.
+It will then create an interpolation using the interpolation method from `DataInterpolations.jl` defined in `itp`. The trajectory will then be resample
+to equidistant measurements over time corresponding to the mean of `diff(t)` or `dt` if given.
+The differential state measurements will be computed via 'FiniteDifferences.jl', given a `FiniteDifferenceMethod` in `fdm`.
+
+# Example
+
+```julia
+koopman = gDMD(X, Y)
+
+fdm = backward_fdm(5,1)
+itp = CubicSpline
+koopman = gDMD(t, X, fdm = fdm, itp = itp)
+```
+"""
 function gDMD(X::AbstractArray, Y::AbstractArray; alg::AbstractKoopmanAlgorithm = DMDPINV())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
     @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"

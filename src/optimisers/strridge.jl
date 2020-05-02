@@ -6,6 +6,19 @@ mutable struct STRRidge{T} <: AbstractOptimiser
     λ::T
 end
 
+"""
+    STRRidge(λ = 0.1)
+
+`STRRidge` is taken from the [original paper on SINDY](https://www.pnas.org/content/113/15/3932) and implements a
+sequentially thresholded least squares iteration. `λ` is the threshold of the iteration.
+It is based upon [this matlab implementation](https://github.com/eurika-kaiser/SINDY-MPC/utils/sparsifyDynamics.m).
+
+# Example
+```julia
+opt = STRRidge()
+opt = STRRidge(1e-1)
+```
+"""
 STRRidge() = STRRidge(0.1)
 
 function set_threshold!(opt::STRRidge, threshold)

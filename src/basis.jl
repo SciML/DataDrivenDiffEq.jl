@@ -1,11 +1,15 @@
 import Base.==
 
-
 mutable struct Basis{B, V, P, T} <: AbstractBasis
+    """The equations of the basis"""
     basis::B
+    """Dependent (state) variables"""
     variables::V
+    """Parameter variables"""
     parameter::P
+    """Independent variable"""
     iv::T
+    """Internal function representation of the basis field"""
     f_::Function
 end
 
@@ -27,6 +31,29 @@ end
 
 is_independent(o::Operation) = isempty(o.args)
 
+
+
+"""
+    Basis(f, u; p, iv)
+
+A basis over the variables `u` with parameters `p` and indepent variable `iv`.
+`f` can either be a julia function which is able to use ModelingToolkit variables or
+a vector of `Operation`.
+It can be called with the typical DiffEq signature, meaning out of place with `f(u,p,t)`
+or in place with `f(du, u, p, t)`.
+
+# Example
+
+```julia
+using ModelingToolkit
+using DataDrivenDiffEq
+
+@parameters w[1:2] t
+@variables u[1:2](t)
+
+Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)
+```
+"""
 function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};  parameters::AbstractArray =  Operation[], iv = nothing)
     @assert all(is_independent.(variables)) "Please provide independent variables for basis."
 
@@ -65,6 +92,7 @@ function Basis(basis::Function, variables::AbstractArray{Operation};  parameters
     end
 end
 
+
 function update!(basis::Basis)
 
     vs = [ModelingToolkit.Variable(Symbol(i))(basis.iv) for i in variables(basis)]
@@ -79,6 +107,13 @@ function update!(basis::Basis)
     return
 end
 
+
+"""
+    push!(basis, op)
+
+    Push the operation(s) in `op` into the basis and updates all internal fields accordingly.
+    `op` can either be a single `Operation` or an Array of `Operation`s.
+"""
 function Base.push!(b::Basis, ops::AbstractArray{Operation})
     @inbounds for o in ops
         push!(b.basis, o)
@@ -97,12 +132,22 @@ function Base.push!(b::Basis, op₀::Operation)
     return
 end
 
+"""
+    deleteat!(basis, inds)
+
+    Delete the entries specified by `inds` and updates the `Basis` accordingly.
+"""
 function Base.deleteat!(b::Basis, inds)
     deleteat!(b.basis, inds)
     update!(b)
     return
 end
 
+"""
+    merge(basis_a, basis_b)
+
+    Return a new `Basis` which is defined via the union of both basis.
+"""
 function Base.merge(basis_a::Basis, basis_b::Basis)
     b =  unique(vcat(basis_a.basis, basis_b.basis))
     vs = unique(vcat(basis_a.variables, basis_b.variables))
@@ -110,6 +155,11 @@ function Base.merge(basis_a::Basis, basis_b::Basis)
     return Basis(b, vs, parameters = ps)
 end
 
+"""
+    merge!(basis_a, basis_b)
+
+    Updates the `Basis` to include the union of both basis.
+"""
 function Base.merge!(basis_a::Basis, basis_b::Basis)
     push!(basis_a, basis_b.basis)
     basis_a.variables = unique(vcat(basis_a.variables, basis_b.variables))
@@ -181,10 +231,35 @@ end
 
 Base.size(b::Basis) = size(b.basis)
 Base.length(b::Basis) = length(b.basis)
+
+"""
+    parameters(basis)
+
+    Returns the parameters of the basis.
+"""
 ModelingToolkit.parameters(b::Basis) = b.parameter
+
+"""
+    variables(basis)
+
+    Returns the dependent variables of the basis.
+"""
 variables(b::Basis) = b.variables
+
+"""
+    independent_variable(basis)
+
+    Returns the independent_variable of the basis.
+"""
 ModelingToolkit.independent_variable(b::Basis) = b.iv
 
+
+"""
+    jacobian(basis)
+
+    Returns a function representing the jacobian matrix / gradient of the `Basis` with respect to the
+    dependent variables as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
+"""
 function jacobian(basis::Basis)
 
     vs = [ModelingToolkit.Variable(Symbol(i))(independent_variable(basis)) for i in variables(basis)]
@@ -241,10 +316,20 @@ function Base.unique!(b::AbstractArray{Operation})
     deleteat!(b, removes)
 end
 
+"""
+    dynamics(basis)
+
+    Returns the internal function representing the dynamics of the `Basis`.
+"""
 function dynamics(b::Basis)
     return b.f_
 end
 
+"""
+    ODESystem(basis)
+
+    Converts the `Basis` into an `ODESystem` defined via `ModelingToolkit.jl`.
+"""
 function ModelingToolkit.ODESystem(b::Basis)
     @assert length(b) == length(variables(b))
     # Define the time

@@ -5,6 +5,23 @@
 # Where M is diagonal!
 
 # TODO preallocation
+
+"""
+    ISInDy(X, Y, Ψ; weights, f_target, maxiter, rtol, p, t, opt)
+
+Performs an implicit sparse identification of nonlinear dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
+Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t` which are passed in optionally.
+`opt` is an `AbstractSubspaceOptimiser` useable for sparse regression within the nullspace, `maxiter` the maximum iterations to perform and `convergence_error` the
+bound which causes the optimiser to stop.
+
+The target of the pareto is given by the function `f_target` with signature `f(weigths,x)`.
+`weights` can be specified in the arguments.
+`x` contains the L0 Norm of the columns of the coefficients at index 1 and the L2 error at index 2.
+
+`rtol` gets directly passed into the computation of the nullspace.
+
+Returns a `SInDyResult`.
+"""
 function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; weights::AbstractArray = [], f_target = (x, w) ->  norm(w .* x, 2), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
     nb = length(Ψ.basis)
