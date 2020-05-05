@@ -17,7 +17,7 @@ tspan = (0.0, 40.0)
 problem = ODEProblem(linear!, u0, tspan)
 solution = solve(problem, Tsit5(), saveat = 1.0)
 
-plot(solution)</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/yMV3y/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
+plot(solution)</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/cRdXQ/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
 connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
@@ -27,7 +27,7 @@ GKS: GKS not in proper state. GKS must be either in the state WSOP or WSAC in ro
 approximation = DMD(X[:, 1:20])
 
 approx_prob = DiscreteProblem(approximation, u0, tspan)
-approx_sol = solve(approx_prob, FunctionMap())</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/yMV3y/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
+approx_sol = solve(approx_prob, FunctionMap())</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/cRdXQ/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
 connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
@@ -41,7 +41,7 @@ norm(K - exp(dt*[0.0 1.0; -1.0 -0.1]), 2)</code></pre><pre><code class="language
 plot!(cos.(ϕ), sin.(ϕ),
   color = :red, linestyle = :dot,
   label = &quot;Stability Margin&quot;,
-  xlim = (-1,1), ylim = (-1,1), legend = :bottomleft)</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/yMV3y/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
+  xlim = (-1,1), ylim = (-1,1), legend = :bottomleft)</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/cRdXQ/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
 connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
@@ -52,7 +52,7 @@ X = Array(solution)
 generator_approximation = gDMD(t[1:20], X[:, 1:20], dt = 0.1)
 
 generator_prob = ODEProblem(generator_approximation, u0 , tspan)
-generator_sol = solve(generator_prob, Tsit5())</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/yMV3y/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
+generator_sol = solve(generator_prob, Tsit5())</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/cRdXQ/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
 connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
@@ -79,7 +79,7 @@ problem = ODEProblem(slow_manifold, u0, tspan, p)
 solution = solve(problem, Tsit5(), saveat = 0.2)
 
 X = Array(solution)
-DX = solution(solution.t, Val{1})</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/yMV3y/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
+DX = solution(solution.t, Val{1})</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/cRdXQ/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
 connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
@@ -91,13 +91,13 @@ observeables = [u; u[1]^2]
 basis = Basis(observeables, u)</code></pre><pre><code class="language-none">3 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;]</code></pre><p>A <code>Basis</code> captures a bunch of functions defined over some variables provided via <a href="https://github.com/SciML/ModelingToolkit.jl">ModelingToolkit.jl</a>. Here, we included the state and <code>u[1]^2</code>. Now, we simply call <code>gEDMD</code>, which will compute the generator of the <a href="../koopman/koopman/#koopman_operator-1">Koopman Operator</a> associated with the model.</p><pre><code class="language-julia">approximation = gEDMD(X, DX, basis)
 
 approximation_problem = ODEProblem(approximation, u0, tspan)
-generator_sol = solve(approximation_problem, Tsit5(), saveat = solution.t)</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/yMV3y/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
+generator_sol = solve(approximation_problem, Tsit5(), saveat = solution.t)</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/cRdXQ/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
 connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
 GKS: Open failed in routine OPEN_WS
 GKS: GKS not in proper state. GKS must be either in the state WSOP or WSAC in routine ACTIVATE_WS
-/home/runner/.julia/packages/GR/yMV3y/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
+/home/runner/.julia/packages/GR/cRdXQ/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
 connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
@@ -121,7 +121,7 @@ problem = ODEProblem(pendulum, u0, tspan)
 solution = solve(problem, Tsit5(), atol = 1e-8, rtol = 1e-8, saveat = 0.001)
 
 X = Array(solution)
-DX = solution(solution.t, Val{1})</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/yMV3y/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
+DX = solution(solution.t, Val{1})</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/cRdXQ/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
 connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
@@ -139,9 +139,9 @@ p = parameters(Ψ)
 dudt = ODEFunction(sys)
 
 estimator = ODEProblem(dudt, u0, tspan, p)
-estimation = solve(estimator, Tsit5(), saveat = solution.t)</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/yMV3y/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
+estimation = solve(estimator, Tsit5(), saveat = solution.t)</code></pre><pre><code class="language-none">/home/runner/.julia/packages/GR/cRdXQ/src/../deps/gr/bin/gksqt: error while loading shared libraries: libQt5Widgets.so.5: cannot open shared object file: No such file or directory
 connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
 GKS: Open failed in routine OPEN_WS
-GKS: GKS not in proper state. GKS must be either in the state WSOP or WSAC in routine ACTIVATE_WS</code></pre><p><img src="../sindy_estimation.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../basis/">Basis »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 2 May 2020 14:14">Saturday 2 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+GKS: GKS not in proper state. GKS must be either in the state WSOP or WSAC in routine ACTIVATE_WS</code></pre><p><img src="../sindy_estimation.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../basis/">Basis »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 5 May 2020 15:44">Tuesday 5 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
