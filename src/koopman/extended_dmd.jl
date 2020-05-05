@@ -57,7 +57,12 @@ function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::AbstractBasis; p::Abstra
 
     # Compute the transformed data
     Ψ₀ = Ψ(X, p, t)
-    Ψ₁ = Ψ(DX, p, t)
+    
+    # The jacobian to get d/dt(Ψ) = d/dx(Ψ) dx/dt
+    ∇ = jacobian(Ψ)
+
+    Ψ₁ = hcat([∇(X[:,i], p, isempty(t) ? independent_variable(Ψ) : t[i])*DX[:, i] for i in 1:size(X, 2)]...)
+    #return Ψ₁
 
     A = alg(Ψ₀, Ψ₁)
 
