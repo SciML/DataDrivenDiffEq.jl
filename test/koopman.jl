@@ -103,11 +103,35 @@ end
     s4 = solve(p4,FunctionMap())
     @test sol[:,:] ≈ s4[:,:]
 
-    estimator2 = gEDMD(sol[:, 1:end-1], sol[:, 2:end], basis)
-    @test generator(estimator2) ≈ operator(estimator)
-    @test outputmap(estimator2) ≈ outputmap(estimator)
-    @test modes(estimator2) ≈ eigvecs(estimator)
-    @test frequencies(estimator2) ≈ eigvals(estimator)
+
+    function slow_manifold(du, u, p, t)
+      du[1] = p[1]*u[1]
+      du[2] = p[2]*(u[2]-u[1]^2)
+    end
+
+    u0 = [3.0; -2.0]
+    tspan = (0.0, 10.0)
+    p = [-0.05, -0.9]
+
+    problem = ODEProblem(slow_manifold, u0, tspan, p)
+    sol_slow = solve(problem, Tsit5(), saveat = 0.2)
+
+    X = Array(sol_slow)
+    # This enforces more accurate results
+    DX = similar(X)
+    for (i,dx) in enumerate(eachcol(DX))
+        slow_manifold(dx, X[:, i], p, sol_slow.t[i])
+    end
+    basis = Basis([u; u[1]^2], u)
+    estimator2 = gEDMD(X, DX, basis)
+    A_analytical = [p[1] 0 0; 0 p[2] -p[2]; 0 0 2*p[1]]
+    outputmap(estimator2)
+    generator(estimator2)
+    @test generator(estimator2) ≈ [p[1] 0 0; 0 p[2] -p[2]; 0 0 2*p[1]] atol =  1e-3
+    @test outputmap(estimator2) ≈ [1 0 0 ; 0 1 0] atol = 1e-3
+    @test abs.(modes(estimator2)) ≈ abs.(eigvecs(A_analytical)) atol = 1e-3
+    @test frequencies(estimator2) ≈ eigvals(A_analytical) atol = 1e-3
+
 
     function nonlinear_sys2(du, u, p, t)
         du[1] = u[2]
