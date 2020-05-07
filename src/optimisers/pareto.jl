@@ -10,19 +10,23 @@ function dominates(x::ParetoCandidate, y::AbstractArray{ParetoCandidate})
     all(objective(x) .<= objective.(y)) #&& any(objective(x) .< objective.(y))
 end
 
-
-
 abstract type AbstractSortingMethod end;
 
 mutable struct ParetoFront{S}
     candidates::AbstractArray{ParetoCandidate}
     objective::Function
     sorting::S
-    best::AbstractArray{Int64}
+    best::Int64
 end
 
+ParetoFront(; objective = (x)->norm(x, 2), sorting = Domination()) = ParetoFront(ParetoCandidate[], objective, sorting, Int64[])
 
-ParetoFront(; objective = x->norm(x, 2)) = ParetoFront(ParetoCandidate[], objective, Domination(), Int64[])
+function Base.empty!(x::ParetoFront)
+    x.candidates = ParetoCandidate[]
+    x.best = Int64[]
+    return
+end
+
 
 function ParetoFront(X::AbstractArray; objective = (x)->norm(x,2))
     candidates = ParetoCandidate[]
@@ -32,6 +36,10 @@ function ParetoFront(X::AbstractArray; objective = (x)->norm(x,2))
     return ParetoFront(candidates, objective, Domination(), Int64[])
 end
 
+function add_candidate!(x::ParetoFront, p::AbstractArray)
+    push!(x.candidates, ParetoCandidate(x.objective(p), p))
+    return
+end
 
 candidates(x::ParetoFront) = x.candidates
 objective(x::ParetoFront) = x.objective
@@ -42,7 +50,6 @@ scores(x::ParetoFront) = objective.(candidates(x))
 function Base.sort!(x::ParetoFront)
     apply!(x, x.sorting)
 end
-
 
 struct Domination <: AbstractSortingMethod end;
 
@@ -71,7 +78,7 @@ function weights!(x::WeightedSum, w::AbstractArray)
     return
 end
 
-(w::WeightedSum)(x) = sum(w.*f(x))
+(w::WeightedSum)(x) = sum(w.w.*w.f(x))
 
 function apply!(x::ParetoFront, y::WeightedSum)
     fs = zeros(eltype(y.w), length(x.candidates))
@@ -80,7 +87,7 @@ function apply!(x::ParetoFront, y::WeightedSum)
     end
 
     _, idxs = findmin(fs)
-    x.best = [idxs]
+    x.best = idxs
     return
 end
 
@@ -89,16 +96,17 @@ struct GoalProgramming <: AbstractSortingMethod
     n::Function
 end
 
-(g::GoalProgramming)(x) = n(f(x))
+(g::GoalProgramming)(x) = g.n(g.f(x))
 
 function apply!(x::ParetoFront, g::GoalProgramming)
     fs = zeros(eltype(point(x.candidates[1])), length(x.candidates))
-    for (i, c) in enumerate(candidates(x))
-        fs[i] = y(point(c))
+
+    @inbounds for (i, c) in enumerate(candidates(x))
+        fs[i] = g(point(c))
     end
 
     _, idxs = findmin(fs)
-    x.best = [idxs]
+    x.best = idxs
     return
 end
 
@@ -118,3 +126,15 @@ function weights!(x::WeigthedExponentialSum, w::AbstractArray)
 end
 
 (w::WeigthedExponentialSum)(x) = sum(w.*f(x).^p)
+
+function apply!(x::ParetoFront, y::WeigthedExponentialSum)
+    fs = zeros(eltype(y.w), length(x.candidates))
+
+    @inbounds for (i, c) in enumerate(candidates(x))
+        fs[i] = y(point(c))
+    end
+
+    _, idxs = findmin(fs)
+    x.best = idxs
+    return
+end
