@@ -80,13 +80,11 @@ function bla(X, DX, Ψ::Basis, thresholds::AbstractArray ; pf::ParetoFront = Par
             set_threshold!(opt, threshold)
             iters[j] = sparse_regression!(ξ, θ, DX[i, :]', maxiter, opt, false, false, convergence_error)
             normalize ? DataDrivenDiffEq.rescale_xi!(ξ, scales) : nothing
-
-            Ξ[j, :] .= ξ
-            add_candidate!(pf, [norm(ξ, 0); norm(DX[i, :] .- θ'*ξ)])
+            pc = ParetoCandidate([norm(ξ, 0); norm(DX[i, :] .- θ'*ξ)], ξ)
+            add_candidate!(pf, pc)
         end
-        sort!(pf)
-        idx = best(pf)[1]
-        Ξ_opt[:, i] .= Ξ[idx, :]
+        idx = sort!(pf)
+        Ξ_opt[:, i] .= parameter(best(pf))
         iters[idx] <  _iter ? _iter = iters[idx] : nothing
         thresholds[idx] < _thresh ? _thresh = thresholds[idx] : nothing
         empty!(pf)
@@ -107,18 +105,20 @@ function bla(X, DX, Ψ::Basis, thresholds::AbstractArray ; pf::ParetoFront = Par
     return SparseIdentificationResult(Ξ_opt, Ψ, _iter, opt, _iter < maxiter, DX, X, p = p)
 end
 
-ParetoFront()
 λs = exp10.(-5:0.1:-1)
 # Use SR3 with high relaxation (allows the solution to diverge from LTSQ) and high iterations
 opt = STRRidge()
-wf = GoalProgramming(identity, (x)->norm(x, 2))
+wf = WeigthedExponentialSum()
 pf = ParetoFront(sorting = wf)
-opt = SR3(1e-3, 10.0)
+opt = SR3(1e-3, 5.0)
+Ψ = bla(sol[:,1:10], DX[:, 1:10], basis, λs, pf = pf, p = [1.0; 1.0], maxiter = 15000, opt = opt)
+print_equations(Ψ)
+
+
 using BenchmarkTools
 
-@benchmark Ψ = bla(sol[:,1:10], DX[:, 1:10], basis, λs, pf = pf, p = [1.0; 1.0], maxiter = 15000, opt = opt)
-
-@benchmark Ψ = SInDy(sol[:,1:10], DX[:, 1:10], basis, λs, p = [1.0; 1.0], maxiter = 15000, opt = opt)
+Juno.@profiler Ψ = bla(sol[:,:], DX[:, :], basis, λs, pf = pf, p = [1.0; 1.0], maxiter = 10, opt = opt)
+@btime Ψ = SInDy($sol[:,:], $DX[:, :], $basis, $λs, p = [1.0; 1.0], maxiter = 100, opt = $opt)
 
 println(Ψ)
 print_equations(Ψ)
