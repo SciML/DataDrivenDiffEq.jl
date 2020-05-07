@@ -59,9 +59,16 @@ function apply!(x::ParetoFront, y::Domination)
     return
 end
 
-struct WeightedSum <: AbstractSortingMethod
+mutable struct WeightedSum <: AbstractSortingMethod
     w::AbstractArray
     f::Function
+end
+
+weights(x::WeightedSum) = x.w
+
+function weights!(x::WeightedSum, w::AbstractArray)
+    x.w = w
+    return
 end
 
 (w::WeightedSum)(x) = sum(w.*f(x))
@@ -77,4 +84,37 @@ function apply!(x::ParetoFront, y::WeightedSum)
     return
 end
 
-f = 
+struct GoalProgramming <: AbstractSortingMethod
+    f::Function
+    n::Function
+end
+
+(g::GoalProgramming)(x) = n(f(x))
+
+function apply!(x::ParetoFront, g::GoalProgramming)
+    fs = zeros(eltype(point(x.candidates[1])), length(x.candidates))
+    for (i, c) in enumerate(candidates(x))
+        fs[i] = y(point(c))
+    end
+
+    _, idxs = findmin(fs)
+    x.best = [idxs]
+    return
+end
+
+
+mutable struct WeigthedExponentialSum <: AbstractSortingMethod
+    w::AbstractArray
+    f::Function
+    p::Int64
+end
+
+
+weights(x::WeigthedExponentialSum) = x.w
+
+function weights!(x::WeigthedExponentialSum, w::AbstractArray)
+    x.w = w
+    return
+end
+
+(w::WeigthedExponentialSum)(x) = sum(w.*f(x).^p)
