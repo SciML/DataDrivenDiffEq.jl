@@ -158,7 +158,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thre
     return SInDy(X, Ẋ', Ψ, thresholds; kwargs...)
 end
 
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; alg::AbstractScalarizationMethod = WeightedSum(), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: DataDrivenDiffEq.Optimise.AbstractOptimiser}
+function SInDy(X::AbstractArray{S, 2}, DX::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; alg::Optimise.AbstractScalarizationMethod = WeightedSum(), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimise.AbstractOptimiser, S <: Number}
     @assert size(X)[end] == size(DX)[end]
     nx, nm = size(X)
     ny, nm = size(DX)
@@ -176,8 +176,8 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thre
     normalize ? DataDrivenDiffEq.normalize_theta!(scales, θ) : nothing
 
     # Set two paretofronts
-    opt_front = ParetoFront(ny, sorting = alg)
-    tmp_front = ParetoFront(ny, sorting = alg)
+    opt_front = ParetoFront(ny, scalarization = alg)
+    tmp_front = ParetoFront(ny, scalarization = alg)
 
     for (j, threshold) in enumerate(thresholds)
         set_threshold!(opt, threshold)

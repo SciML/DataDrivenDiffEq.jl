@@ -14,9 +14,14 @@ abstract type AbstractKoopmanOperator end;
 
 include("./optimisers/Optimise.jl")
 using .Optimise
+
 export set_threshold!, set_threshold
 export STRRidge, ADMM, SR3
+
 export ADM
+
+export WeightedSum, WeightedExponentialSum, GoalProgramming
+export weights
 
 include("./basis.jl")
 export Basis

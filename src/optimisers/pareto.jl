@@ -26,9 +26,8 @@ function update!(p::ParetoCandidate, y::ParetoCandidate)
     return
 end
 
-abstract type AbstractSortingMethod end;
 
-mutable struct WeightedSum <: AbstractSortingMethod
+mutable struct WeightedSum <: AbstractScalarizationMethod
     w::Union{UniformScaling, AbstractArray}
     f::Function
 end
@@ -44,7 +43,7 @@ end
 
 (w::WeightedSum)(x::ParetoCandidate) = sum(w.w*w.f(point(x)))
 
-struct GoalProgramming <: AbstractSortingMethod
+struct GoalProgramming <: AbstractScalarizationMethod
     f::Function
     n::Function
 end
@@ -53,7 +52,7 @@ GoalProgramming() = GoalProgramming(x->norm(x, 2), x->identity(x))
 
 (g::GoalProgramming)(x::ParetoCandidate) = g.n(g.f(point(x)))
 
-mutable struct WeigthedExponentialSum <: AbstractSortingMethod
+mutable struct WeigthedExponentialSum <: AbstractScalarizationMethod
     w::Union{UniformScaling, AbstractArray}
     f::Function
     p::Real
@@ -73,14 +72,14 @@ end
 
 mutable struct ParetoFront{S}
     candidates::AbstractArray{ParetoCandidate}
-    sorting::S
+    scalarization::S
 end
 
 candidates(x::ParetoFront) = x.candidates
 
-function ParetoFront(n::Int64; sorting::AbstractSortingMethod = WeightedSum())
+function ParetoFront(n::Int64; scalarization::AbstractScalarizationMethod = WeightedSum())
     candidates = Array{ParetoCandidate}(undef, n)
-    return ParetoFront(candidates, sorting)
+    return ParetoFront(candidates, scalarization)
 end
 
 function Base.empty!(x::ParetoFront)
@@ -88,7 +87,7 @@ function Base.empty!(x::ParetoFront)
     return
 end
 
-(x::ParetoFront)(y::ParetoCandidate) = x.sorting(y)
+(x::ParetoFront)(y::ParetoCandidate) = x.scalarization(y)
 
 function assert_dominance(x::ParetoFront, y::ParetoFront)
     [x(cx) < y(cy) for (cx, cy) in zip(candidates(x), candidates(y))]
