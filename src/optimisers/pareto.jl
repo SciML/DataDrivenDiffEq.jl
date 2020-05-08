@@ -1,57 +1,32 @@
-struct ParetoCandidate
-    point
-    parameter
+mutable struct ParetoCandidate{U, V, W}
+    point::AbstractArray{U}
+    parameter::AbstractArray{U}
+    iter::V
+    threshold::W
 end
 
 point(x::ParetoCandidate) = x.point
 parameter(x::ParetoCandidate) = x.parameter
+iter(x::ParetoCandidate) = x.iter
+threshold(x::ParetoCandidate) = x.threshold
+
+function update!(p::ParetoCandidate, point, parameter, iter, threshold)
+    p.point .= point
+    p.parameter .= parameter
+    p.iter = iter
+    p.threshold = threshold
+    return
+end
+
+function update!(p::ParetoCandidate, y::ParetoCandidate)
+    p.point .= point(y)
+    p.parameter .= parameter(y)
+    p.iter = iter(y)
+    p.threshold = threshold(y)
+    return
+end
 
 abstract type AbstractSortingMethod end;
-
-mutable struct ParetoFront{S}
-    candidates::AbstractArray{ParetoCandidate}
-    sorting::S
-end
-
-
-function apply!(x::ParetoFront, y::AbstractSortingMethod)
-    p = sortperm(candidates(x), by = x->y(x))
-    x.candidates .= candidates(x)[p]
-    return p[1]
-end
-
-function Base.empty!(x::ParetoFront)
-    x.candidates = ParetoCandidate[]
-    return
-end
-
-function add_candidate!(x::ParetoFront, point, parameter)
-    push!(x.candidates, ParetoCandidate(point, paremeter))
-    return
-end
-
-function add_candidate!(x::ParetoFront, y::ParetoCandidate)
-    push!(x.candidates, y)
-end
-
-candidates(x::ParetoFront) = x.candidates
-sorting(x::ParetoFront) = x.sorting
-best(x::ParetoFront) = x.candidates[1]
-
-function Base.sort!(x::ParetoFront)
-    apply!(x, x.sorting)
-end
-
-struct Domination <: AbstractSortingMethod
-    f::Function
-end
-
-Domination() = Domination((x)->norm(x, 2))
-
-(d::Domination)(x::ParetoCandidate) = d.f(point(x))
-
-
-ParetoFront(; sorting = Domination()) = ParetoFront(ParetoCandidate[], sorting)
 
 mutable struct WeightedSum <: AbstractSortingMethod
     w::Union{UniformScaling, AbstractArray}
@@ -94,3 +69,42 @@ function weights!(x::WeigthedExponentialSum, w::AbstractArray)
 end
 
 (w::WeigthedExponentialSum)(x::ParetoCandidate) = sum(w.w*w.f(point(x)).^w.p)
+
+
+mutable struct ParetoFront{S}
+    candidates::AbstractArray{ParetoCandidate}
+    sorting::S
+end
+
+candidates(x::ParetoFront) = x.candidates
+
+function ParetoFront(n::Int64; sorting::AbstractSortingMethod = WeightedSum())
+    candidates = Array{ParetoCandidate}(undef, n)
+    return ParetoFront(candidates, sorting)
+end
+
+function Base.empty!(x::ParetoFront)
+    x.candidates .= Array{ParetoCandidate}(undef, size(candidates(x))...)
+    return
+end
+
+(x::ParetoFront)(y::ParetoCandidate) = x.sorting(y)
+
+function assert_dominance(x::ParetoFront, y::ParetoFront)
+    [x(cx) < y(cy) for (cx, cy) in zip(candidates(x), candidates(y))]
+end
+
+function conditional_add!(x::ParetoFront, y::ParetoFront)
+    for (i, c) in enumerate(assert_dominance(y, x))
+        c ? update!(x.candidates[i], y.candidates[i]) : nothing
+    end
+end
+
+function set_candidate!(x::ParetoFront, idx, point, parameter, iter, threshold)
+    x.candidates[idx] = ParetoCandidate(point, parameter, iter, threshold)
+    return
+end
+
+Base.getindex(x::ParetoFront, idx) = getindex(x.candidates, idx)
+iter(x::ParetoFront) =  maximum(iter.(candidates(x)))
+threshold(x::ParetoFront) = minimum(threshold.(candidates(x)))

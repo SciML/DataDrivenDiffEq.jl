@@ -5,13 +5,13 @@ mutable struct SparseIdentificationResult <: AbstractSparseIdentificationResult
     parameters::AbstractArray
     equations::Union{Function, Basis}
 
-    opt
+    opt::Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
     iterations::Int64
     converged::Bool
 
-    error
-    aicc
-    sparsity
+    error::AbstractArray
+    aicc::AbstractArray
+    sparsity::AbstractArray
 end
 
 Base.show(io::IO, x::SparseIdentificationResult) = print(io, "Sparse Identification Result with $(sum(x.sparsity)) active terms.")
