@@ -26,8 +26,6 @@ function fit!(q::AbstractArray{T, 1}, Y::AbstractArray, opt::ADM; maxiter::Int64
         mul!(q, Y', x/norm(Y'*x, 2))
     end
 
-    q[abs.(q) .< get_threshold(opt)] .= zero(eltype(q))
-    normalize!(q, 2)
     return
 end
 
