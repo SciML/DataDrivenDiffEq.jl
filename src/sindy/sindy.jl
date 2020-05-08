@@ -184,7 +184,7 @@ function SInDy(X::AbstractArray{S, 2}, DX::AbstractArray{S, 2}, Ψ::Basis, thres
         iters = sparse_regression!(ξ, θ, DX, maxiter, opt, false, false, convergence_error)
         normalize ? DataDrivenDiffEq.rescale_xi!(ξ, scales) : nothing
 
-        if j == 1
+        if j < 2
             for (i, ξi) in enumerate(eachcol(ξ))
                 set_candidate!(tmp_front, i, [norm(ξi, 0); norm(DX[i, :] .- θ'*ξi)], ξi, iters, threshold)
                 set_candidate!(opt_front, i, [norm(ξi, 0); norm(DX[i, :] .- θ'*ξi)], ξi, iters, threshold)

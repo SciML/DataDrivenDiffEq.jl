@@ -27,7 +27,7 @@ function update!(p::ParetoCandidate, y::ParetoCandidate)
 end
 
 
-mutable struct WeightedSum <: AbstractScalarizationMethod
+struct WeightedSum <: AbstractScalarizationMethod
     w::Union{UniformScaling, AbstractArray}
     f::Function
 end
@@ -40,13 +40,6 @@ Scalarize the multi-objective optimization via a weighted sum such that the
 objective becomes ``\sum w_i ~f_i(x)``.
 """
 WeightedSum() = WeightedSum(I, x->identity(x))
-
-weights(x::WeightedSum) = x.w
-
-function weights!(x::WeightedSum, w::AbstractArray)
-    x.w = w
-    return
-end
 
 (w::WeightedSum)(x::ParetoCandidate) = sum(w.w*w.f(point(x)))
 
@@ -73,20 +66,13 @@ GoalProgramming() = GoalProgramming(x->norm(x, 2), x->identity(x))
 Scalarize the multi-objective optimization via a goal programming such that the
 objective becomes ``\sum (w_i ~f(x)_i)^p``.
 """
-mutable struct WeightedExponentialSum <: AbstractScalarizationMethod
+struct WeightedExponentialSum <: AbstractScalarizationMethod
     w::Union{UniformScaling, AbstractArray}
     f::Function
     p::Real
 end
 
 WeightedExponentialSum() = WeightedExponentialSum(I, identity, 2)
-
-weights(x::WeightedExponentialSum) = x.w
-
-function weights!(x::WeightedExponentialSum, w::AbstractArray)
-    x.w = w
-    return
-end
 
 (w::WeightedExponentialSum)(x::ParetoCandidate) = sum(w.w*w.f(point(x)).^w.p)
 
@@ -101,11 +87,6 @@ candidates(x::ParetoFront) = x.candidates
 function ParetoFront(n::Int64; scalarization::AbstractScalarizationMethod = WeightedSum())
     candidates = Array{ParetoCandidate}(undef, n)
     return ParetoFront(candidates, scalarization)
-end
-
-function Base.empty!(x::ParetoFront)
-    x.candidates .= Array{ParetoCandidate}(undef, size(candidates(x))...)
-    return
 end
 
 (x::ParetoFront)(y::ParetoCandidate) = x.scalarization(y)
