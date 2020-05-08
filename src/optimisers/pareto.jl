@@ -52,22 +52,22 @@ GoalProgramming() = GoalProgramming(x->norm(x, 2), x->identity(x))
 
 (g::GoalProgramming)(x::ParetoCandidate) = g.n(g.f(point(x)))
 
-mutable struct WeigthedExponentialSum <: AbstractScalarizationMethod
+mutable struct WeightedExponentialSum <: AbstractScalarizationMethod
     w::Union{UniformScaling, AbstractArray}
     f::Function
     p::Real
 end
 
-WeigthedExponentialSum() = WeigthedExponentialSum(I, identity, 2)
+WeightedExponentialSum() = WeightedExponentialSum(I, identity, 2)
 
-weights(x::WeigthedExponentialSum) = x.w
+weights(x::WeightedExponentialSum) = x.w
 
-function weights!(x::WeigthedExponentialSum, w::AbstractArray)
+function weights!(x::WeightedExponentialSum, w::AbstractArray)
     x.w = w
     return
 end
 
-(w::WeigthedExponentialSum)(x::ParetoCandidate) = sum(w.w*w.f(point(x)).^w.p)
+(w::WeightedExponentialSum)(x::ParetoCandidate) = sum(w.w*w.f(point(x)).^w.p)
 
 
 mutable struct ParetoFront{S}
