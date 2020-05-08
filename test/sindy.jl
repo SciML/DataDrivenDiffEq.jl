@@ -73,13 +73,14 @@
     @test norm(sol[:,:] - sol_3[:,:], 2) < 1e-1
 
     # Now use the threshold adaptation
-    opt = SR3(1e-2, 20.0)
-    λs = exp10.(-5:0.1:-1)
-    Ψ = SInDy(sol[:,:], DX[:, :], basis, λs,  maxiter = 20, opt = opt)
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_4 = solve(estimator,Tsit5(), saveat = dt)
-    @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
-
+    opt = STRRidge(1e-2)
+    λs = exp10.(-7:0.1:-1)
+    for alg in [WeightedSum(), WeightedExponentialSum(), GoalProgramming()]
+        Ψ = SInDy(sol[:,:], DX[:, :], basis, λs, alg = alg, maxiter = 100, opt = opt)
+        estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
+        sol_4 = solve(estimator, Tsit5(), saveat = dt)
+        @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
+    end
 
     # Check for errors
     @test_nowarn SInDy(sol[:,:], DX[1,:], basis, λs, maxiter = 1, opt = opt)
@@ -87,11 +88,12 @@
 
     # Check with noise
     X = sol[:, :] + 1e-3*randn(size(sol[:,:])...)
+    opt = SR3(1e-1, 10.0)
     Ψ = SInDy(X, DX, basis, λs, maxiter = 10000, opt = opt, denoise = true, normalize = true)
 
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_4 = solve(estimator,Tsit5(), saveat = dt)
-    @test norm(sol[:,:] - sol_4[:,:], 2) < 5e-1
+    sol_5 = solve(estimator,Tsit5(), saveat = dt)
+    @test norm(sol[:,:] - sol_5[:,:], 2) < 5e-1
 
     # Check sparse_regression
     X .= Array(sol)
