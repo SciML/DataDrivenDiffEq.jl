@@ -32,6 +32,13 @@ mutable struct WeightedSum <: AbstractScalarizationMethod
     f::Function
 end
 
+"""
+    WeightedSum()
+    WeightedSum(weights, function)
+
+Scalarize the multi-objective optimization via a weighted sum such that the
+objective becomes ``\sum w_i ~f_i(x)``.
+"""
 WeightedSum() = WeightedSum(I, x->identity(x))
 
 weights(x::WeightedSum) = x.w
@@ -44,14 +51,28 @@ end
 (w::WeightedSum)(x::ParetoCandidate) = sum(w.w*w.f(point(x)))
 
 struct GoalProgramming <: AbstractScalarizationMethod
-    f::Function
     n::Function
+    f::Function
 end
 
+"""
+    GoalProgramming()
+    GoalProgramming(norm, function)
+
+Scalarize the multi-objective optimization via a goal programming such that the
+objective becomes ``\left\lVert f \right\rVert^p``.
+"""
 GoalProgramming() = GoalProgramming(x->norm(x, 2), x->identity(x))
 
 (g::GoalProgramming)(x::ParetoCandidate) = g.n(g.f(point(x)))
 
+"""
+    WeightedExponentialSum()
+    WeightedExponentialSum(weights, function, p)
+
+Scalarize the multi-objective optimization via a goal programming such that the
+objective becomes ``\sum (w_i ~f(x)_i)^p``.
+"""
 mutable struct WeightedExponentialSum <: AbstractScalarizationMethod
     w::Union{UniformScaling, AbstractArray}
     f::Function
