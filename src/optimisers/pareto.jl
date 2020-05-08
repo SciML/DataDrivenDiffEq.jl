@@ -100,7 +100,11 @@ function conditional_add!(x::ParetoFront, y::ParetoFront)
 end
 
 function set_candidate!(x::ParetoFront, idx, point, parameter, iter, threshold)
-    x.candidates[idx] = ParetoCandidate(point, parameter, iter, threshold)
+    if isdefined(candidates(x), idx)
+        update!(x.candidates[idx], point, parameter, iter, threshold)
+    else
+        x.candidates[idx] = ParetoCandidate(point, parameter, iter, threshold)
+    end
     return
 end
 
