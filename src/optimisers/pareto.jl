@@ -37,7 +37,7 @@ end
     WeightedSum(weights, function)
 
 Scalarize the multi-objective optimization via a weighted sum such that the
-objective becomes ``\sum w_i ~f_i(x)``.
+objective becomes `sum(w_i ~f_i(x))`.
 """
 WeightedSum() = WeightedSum(I, x->identity(x))
 
@@ -53,7 +53,7 @@ end
     GoalProgramming(norm, function)
 
 Scalarize the multi-objective optimization via a goal programming such that the
-objective becomes ``\left\lVert f \right\rVert^p``.
+objective becomes `norm(f(x), p)`.
 """
 GoalProgramming() = GoalProgramming(x->norm(x, 2), x->identity(x))
 
@@ -64,7 +64,7 @@ GoalProgramming() = GoalProgramming(x->norm(x, 2), x->identity(x))
     WeightedExponentialSum(weights, function, p)
 
 Scalarize the multi-objective optimization via a goal programming such that the
-objective becomes ``\sum (w_i ~f(x)_i)^p``.
+objective becomes `sum(w_i*f(x)_i)^p`.
 """
 struct WeightedExponentialSum <: AbstractScalarizationMethod
     w::Union{UniformScaling, AbstractArray}
