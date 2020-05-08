@@ -135,10 +135,8 @@ bound which causes the optimiser to stop.
 `normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
 
-If `SInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a pareto optimisation over all thresholds.
-The target of the pareto is given by the function `f_target` with signature `f(weigths,x)`.
-`weights` can be specified in the arguments.
-`x` contains the L0 Norm of the columns of the coefficients at index 1 and the L2-Norm error at index 2.
+If `SInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimisation over all thresholds.
+The best candidate is determined via the `AbstractScalarizationMethod` given in `alg`. The evaluation has two fields, the sparsity of the coefficients and the L2-Norm error at index 1 and 2 respectively.
 
 Returns a `SInDyResult`. If the pareto optimisation is used, the result combines the best candidate for each row of `Y`.
 """

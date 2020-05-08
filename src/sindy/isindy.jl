@@ -14,9 +14,8 @@ Keyworded arguments include the parameter (values) of the basis `p` and the time
 `opt` is an `AbstractSubspaceOptimiser` useable for sparse regression within the nullspace, `maxiter` the maximum iterations to perform and `convergence_error` the
 bound which causes the optimiser to stop.
 
-The target of the pareto is given by the function `f_target` with signature `f(weigths,x)`.
-`weights` can be specified in the arguments.
-`x` contains the L0 Norm of the columns of the coefficients at index 1 and the L2 error at index 2.
+The best vectors of the sparse nullspace are selected via multi objective optimisation.
+The best candidate is determined via the `AbstractScalarizationMethod` given in `alg`. The evaluation has two fields, the sparsity of the coefficients and the L2-Norm error at index 1 and 2 respectively.
 
 `rtol` gets directly passed into the computation of the nullspace.
 
