@@ -48,6 +48,23 @@
     @test generator(d) ≈ generator(d2) atol = 1e-1
     @test generator(d) ≈ generator(d3) atol = 1e-1
 
+    K = -0.5*I + [0 0 -0.2; 0.1 0 -0.1; 0. -0.2 0]
+    F = qr(randn(20, 3))
+    Q = F.Q[:, 1:3]
+    dudt(u, p, t) = K*u
+    prob = ODEProblem(dudt, [10.0; 0.3; -5.0], (0.0, 10.0))
+    sol_ = solve(prob, Tsit5(), saveat = 0.01)
+    alg = TOTALDMD(3, DMDPINV())
+    X = Q*sol_[:,:] + 1e-3*randn(20, 1001)
+    DX = Q*sol_(sol_.t, Val{1})[:,:] + 1e-3*randn(20, 1001)
+    approx = gDMD(X, DX, alg = alg)
+    @test Q'*generator(approx)*Q ≈ K atol = 1e-1
+    @test Q*K*Q' ≈ generator(approx) atol = 1e-1
+    alg = TOTALDMD(0.01, DMDSVD())
+    approx = gDMD(X, DX, alg = alg)
+    @test Q'*generator(approx)*Q ≈ K atol = 1e-1
+    @test Q*K*Q' ≈ generator(approx) atol = 1e-1
+
 end
 
 @testset "EDMD" begin
