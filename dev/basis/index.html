@@ -5,7 +5,7 @@ using DataDrivenDiffEq
 @parameters w[1:2] t
 @variables u[1:2](t)
 
-Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L36-L56">source</a></section></article><h2 id="Example-1"><a class="docs-heading-anchor" href="#Example-1">Example</a><a class="docs-heading-anchor-permalink" href="#Example-1" title="Permalink"></a></h2><p>We start by crearting some <code>Variables</code> and <code>Parameters</code> using <code>ModelingToolkit</code>.</p><pre><code class="language-julia">using LinearAlgebra
+Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L36-L56">source</a></section></article><h2 id="Example-1"><a class="docs-heading-anchor" href="#Example-1">Example</a><a class="docs-heading-anchor-permalink" href="#Example-1" title="Permalink"></a></h2><p>We start by crearting some <code>Variables</code> and <code>Parameters</code> using <code>ModelingToolkit</code>.</p><pre><code class="language-julia">using LinearAlgebra
 using DataDrivenDiffEq
 using Plots
 using ModelingToolkit
@@ -21,39 +21,60 @@ Y = b(X, [2;4], 0:39)</code></pre><p>Suppose we want to add another equation, sa
 size(b)</code></pre><pre><code class="language-none">(4,)</code></pre><p>To ensure that a basis is well behaved, functions already present are not included again.</p><pre><code class="language-julia">push!(b, sin(u[1]))
 size(b)</code></pre><pre><code class="language-none">(4,)</code></pre><p>We can also define functions of time and add them</p><pre><code class="language-julia">t = independent_variable(b)
 push!(b, cos(t*π))
-println(b)</code></pre><pre><code class="language-none">5 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;]
+println(b)</code></pre><pre><code class="language-none">┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
+│   caller = push!(::Basis{Array{ModelingToolkit.Operation,1},Array{ModelingToolkit.Operation,1},Array{ModelingToolkit.Operation,1},ModelingToolkit.Operation}, ::ModelingToolkit.Operation) at basis.jl:127
+└ @ DataDrivenDiffEq ~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/src/basis.jl:127
+5 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;]
 f_1 = u₁
 f_2 = u₂
 f_3 = cos(w₁ * u₂ + w₂ * u₃)
 f_4 = sin(u₁)
-f_5 = cos(t * π)</code></pre><p>Additionally, we can iterate over a <code>Basis</code> using <code>[eq for eq in basis]</code> or index specific equations like <code>basis[2]</code>.</p><p>We can also chain <code>Basis</code> via just using it in the constructor</p><pre><code class="language-julia">@variables x[1:2]
+f_5 = cos(πt)</code></pre><p>Additionally, we can iterate over a <code>Basis</code> using <code>[eq for eq in basis]</code> or index specific equations like <code>basis[2]</code>.</p><p>We can also chain <code>Basis</code> via just using it in the constructor</p><pre><code class="language-julia">@variables x[1:2]
 y = [sin(x[1]); cos(x[1]); x[2]]
 t = independent_variable(b)
 b2 = Basis(b(y, parameters(b), t), x, parameters = w, iv = t)
-println(b2)</code></pre><pre><code class="language-none">5 dimensional basis in [&quot;x₁&quot;, &quot;x₂&quot;]
+println(b2)</code></pre><pre><code class="language-none">┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
+│   caller = _broadcast_getindex_evalf at broadcast.jl:631 [inlined]
+└ @ Core ./broadcast.jl:631
+┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
+│   caller = _broadcast_getindex_evalf at broadcast.jl:631 [inlined]
+└ @ Core ./broadcast.jl:631
+5 dimensional basis in [&quot;x₁&quot;, &quot;x₂&quot;]
 f_1 = sin(x₁)
 f_2 = cos(x₁)
-f_3 = cos(w₁ * cos(x₁) + w₂ * x₂)
+f_3 = cos(cos(x₁) * w₁ + w₂ * x₂)
 f_4 = sin(sin(x₁))
-f_5 = cos(getindex(t, 1) * π)</code></pre><p>You can also use <code>merge</code> to create the union of two <code>Basis</code>:</p><pre><code class="language-julia">b3 = merge(b, b2)
-println(b3)</code></pre><pre><code class="language-none">10 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;, &quot;x₁&quot;, &quot;x₂&quot;]
+f_5 = cos(π * getindex(t, 1))</code></pre><p>You can also use <code>merge</code> to create the union of two <code>Basis</code>:</p><pre><code class="language-julia">b3 = merge(b, b2)
+println(b3)</code></pre><pre><code class="language-none">┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
+│   caller = _broadcast_getindex_evalf at broadcast.jl:631 [inlined]
+└ @ Core ./broadcast.jl:631
+┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
+│   caller = _broadcast_getindex_evalf at broadcast.jl:631 [inlined]
+└ @ Core ./broadcast.jl:631
+10 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;, &quot;x₁&quot;, &quot;x₂&quot;]
 f_1 = u₁
 f_2 = u₂
 f_3 = cos(w₁ * u₂ + w₂ * u₃)
 f_4 = sin(u₁)
-f_5 = cos(t * π)
+f_5 = cos(πt)
 f_6 = sin(x₁)
 f_7 = cos(x₁)
-f_8 = cos(w₁ * cos(x₁) + w₂ * x₂)
+f_8 = cos(cos(x₁) * w₁ + w₂ * x₂)
 f_9 = sin(sin(x₁))
-f_10 = cos(getindex(t, 1) * π)</code></pre><p>Which combines all the used variables and parameters ( and assume the same independent_variable ):</p><pre><code class="language-julia">variables(b)</code></pre><pre><code class="language-none">3-element Array{ModelingToolkit.Operation,1}:
+f_10 = cos(π * getindex(t, 1))</code></pre><p>Which combines all the used variables and parameters ( and assume the same independent_variable ):</p><pre><code class="language-julia">variables(b)</code></pre><pre><code class="language-none">3-element Array{ModelingToolkit.Operation,1}:
  u₁
  u₂
  u₃</code></pre><pre><code class="language-julia">parameters(b)</code></pre><pre><code class="language-none">2-element Array{ModelingToolkit.Operation,1}:
  w₁
  w₂</code></pre><p>If you have a function already defined as pure code, you can use this also to create a <code>Basis</code>. Only the signature has to be consistent, so use <code>f(u,p,t)</code>.</p><pre><code class="language-julia">f(u, p, t) = [u[1]; u[2]; cos(p[1]*u[2]+p[2]*u[3])]
 b_f = Basis(f, u, parameters = w)
-println(b_f)</code></pre><pre><code class="language-none">3 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;]
+println(b_f)</code></pre><pre><code class="language-none">┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
+│   caller = _broadcast_getindex_evalf at broadcast.jl:631 [inlined]
+└ @ Core ./broadcast.jl:631
+┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
+│   caller = _broadcast_getindex_evalf at broadcast.jl:631 [inlined]
+└ @ Core ./broadcast.jl:631
+3 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;]
 du₁ = u₁
 du₂ = u₂
 du₃ = cos(w₁ * u₂ + w₂ * u₃)</code></pre><p>This works for every function defined over <code>Operation</code>s. So to create a <code>Basis</code> from a <code>Flux</code> model, simply extend the activations used :</p><pre><code class="language-julia">using Flux
@@ -67,22 +88,22 @@ ps, re = Flux.destructure(c)
 g(u, p, t) = re(p)(u)
 b = Basis(g, u, parameters = p)</code></pre><h2 id="Functions-1"><a class="docs-heading-anchor" href="#Functions-1">Functions</a><a class="docs-heading-anchor-permalink" href="#Functions-1" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="ModelingToolkit.parameters" href="#ModelingToolkit.parameters"><code>ModelingToolkit.parameters</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">parameters(basis)
 
-Returns the parameters of the basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L235-L239">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DataDrivenDiffEq.variables" href="#DataDrivenDiffEq.variables"><code>DataDrivenDiffEq.variables</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">variables(basis)
+Returns the parameters of the basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L235-L239">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DataDrivenDiffEq.variables" href="#DataDrivenDiffEq.variables"><code>DataDrivenDiffEq.variables</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">variables(basis)
 
-Returns the dependent variables of the basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L242-L246">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ModelingToolkit.independent_variable" href="#ModelingToolkit.independent_variable"><code>ModelingToolkit.independent_variable</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">independent_variable(basis)
+Returns the dependent variables of the basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L242-L246">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ModelingToolkit.independent_variable" href="#ModelingToolkit.independent_variable"><code>ModelingToolkit.independent_variable</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">independent_variable(basis)
 
-Returns the independent_variable of the basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L249-L253">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DataDrivenDiffEq.jacobian" href="#DataDrivenDiffEq.jacobian"><code>DataDrivenDiffEq.jacobian</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">jacobian(basis)
+Returns the independent_variable of the basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L249-L253">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DataDrivenDiffEq.jacobian" href="#DataDrivenDiffEq.jacobian"><code>DataDrivenDiffEq.jacobian</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">jacobian(basis)
 
 Returns a function representing the jacobian matrix / gradient of the `Basis` with respect to the
-dependent variables as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L257-L262">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DataDrivenDiffEq.dynamics" href="#DataDrivenDiffEq.dynamics"><code>DataDrivenDiffEq.dynamics</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">dynamics(basis)
+dependent variables as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L257-L262">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DataDrivenDiffEq.dynamics" href="#DataDrivenDiffEq.dynamics"><code>DataDrivenDiffEq.dynamics</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">dynamics(basis)
 
-Returns the internal function representing the dynamics of the `Basis`.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L319-L323">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.push!" href="#Base.push!"><code>Base.push!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">push!(basis, op)
+Returns the internal function representing the dynamics of the `Basis`.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L319-L323">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.push!" href="#Base.push!"><code>Base.push!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">push!(basis, op)
 
 Push the operation(s) in `op` into the basis and updates all internal fields accordingly.
-`op` can either be a single `Operation` or an Array of `Operation`s.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L111-L116">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.deleteat!" href="#Base.deleteat!"><code>Base.deleteat!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">deleteat!(basis, inds)
+`op` can either be a single `Operation` or an Array of `Operation`s.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L111-L116">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.deleteat!" href="#Base.deleteat!"><code>Base.deleteat!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">deleteat!(basis, inds)
 
-Delete the entries specified by `inds` and updates the `Basis` accordingly.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L135-L139">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.merge" href="#Base.merge"><code>Base.merge</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">merge(basis_a, basis_b)
+Delete the entries specified by `inds` and updates the `Basis` accordingly.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L135-L139">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.merge" href="#Base.merge"><code>Base.merge</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">merge(basis_a, basis_b)
 
-Return a new `Basis` which is defined via the union of both basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L146-L150">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.merge!" href="#Base.merge!"><code>Base.merge!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">merge!(basis_a, basis_b)
+Return a new `Basis` which is defined via the union of both basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L146-L150">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.merge!" href="#Base.merge!"><code>Base.merge!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">merge!(basis_a, basis_b)
 
-Updates the `Basis` to include the union of both basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/4224467305d5c7d90d785bfb162c85133698a9c8/src/basis.jl#L158-L162">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../quickstart/">« Getting Started</a><a class="docs-footer-nextpage" href="../koopman/koopman/">Koopman Operators »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 5 May 2020 19:54">Tuesday 5 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Updates the `Basis` to include the union of both basis.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/76073d84fa06eb12edab4a28068668059abf69d2/src/basis.jl#L158-L162">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../quickstart/">« Getting Started</a><a class="docs-footer-nextpage" href="../koopman/koopman/">Koopman Operators »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 9 May 2020 06:45">Saturday 9 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
