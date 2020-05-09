@@ -58,8 +58,8 @@ end
 
 
 @testset "ADM" begin
-    x = randn(3, 100)
-    A = 10.0*Float64[1 0 3; 0 1 0; 0 2 1]
+    x = 10.0*randn(3, 100)
+    A = Float64[1 0 3; 0 1 0; 0 2 1]
     @testset "Linear" begin
         Z = A*x # Measurements
         Z[1, :] = Z[1,:] ./ (1 .+ x[2,:])
@@ -69,7 +69,7 @@ end
         opt = ADM(1e-2)
         fit!(M, L', opt, maxiter = 10000)
         @test all(norm.(eachcol(M)) .≈ 1)
-        @test norm(θ'*L) ≈ norm(θ'*M) atol = 1e-1
+        @test norm(θ'*L) ≈ norm(θ'*M) rtol = 1e-1
         pareto = map(q->norm([norm(q, 0) ;norm(θ'*q, 2)], 2), eachcol(M))
         score, posmin = findmin(pareto)
         # Get the corresponding eqs
@@ -86,7 +86,7 @@ end
         opt = ADM(1e-2)
         fit!(M, L', opt, maxiter = 10000)
         @test all(norm.(eachcol(M)) .≈ 1)
-        @test norm(θ'*L) ≈ norm(θ'*M) atol = 1e-1
+        @test norm(θ'*L) ≈ norm(θ'*M) rtol = 1e-1
         pareto = map(q->norm([norm(q, 0) ;norm(θ'*q, 2)], 2), eachcol(M))
         score, posmin = findmin(pareto)
         # Get the corresponding eqs
@@ -103,7 +103,7 @@ end
         opt = ADM(1e-2)
         fit!(M, L', opt, maxiter = 10000)
         @test all(norm.(eachcol(M)) .≈ 1)
-        @test norm(θ'*L) ≈ norm(θ'*M) atol = 1e-1
+        @test norm(θ'*L) ≈ norm(θ'*M) rtol = 1e-1
         pareto = map(q->norm([norm(q, 0) ;norm(θ'*q, 2)], 2), eachcol(M))
         score, posmin = findmin(pareto)
         # Get the corresponding eqs
