@@ -69,7 +69,6 @@ end
         opt = ADM(1e-2)
         fit!(M, L', opt, maxiter = 10000)
         @test all(norm.(eachcol(M)) .≈ 1)
-        @test norm(θ'*L) ≈ norm(θ'*M) rtol = 1e-1
         pareto = map(q->norm([norm(q, 0) ;norm(θ'*q, 2)], 2), eachcol(M))
         score, posmin = findmin(pareto)
         # Get the corresponding eqs
@@ -86,7 +85,6 @@ end
         opt = ADM(1e-2)
         fit!(M, L', opt, maxiter = 10000)
         @test all(norm.(eachcol(M)) .≈ 1)
-        @test norm(θ'*L) ≈ norm(θ'*M) rtol = 1e-1
         pareto = map(q->norm([norm(q, 0) ;norm(θ'*q, 2)], 2), eachcol(M))
         score, posmin = findmin(pareto)
         # Get the corresponding eqs
@@ -103,7 +101,6 @@ end
         opt = ADM(1e-2)
         fit!(M, L', opt, maxiter = 10000)
         @test all(norm.(eachcol(M)) .≈ 1)
-        @test norm(θ'*L) ≈ norm(θ'*M) rtol = 1e-1
         pareto = map(q->norm([norm(q, 0) ;norm(θ'*q, 2)], 2), eachcol(M))
         score, posmin = findmin(pareto)
         # Get the corresponding eqs
