@@ -58,7 +58,7 @@ end
 
 Approximates the koopman operator `K` with the algorithm `alg` over the rank reduced data
 matrices `Xᵣ = X Qᵣ` and `Yᵣ = Y Qᵣ` where `Qᵣ` originates from the singular value decomposition of
-the joint data `Z = [X; Y]`.
+the joint data `Z = [X; Y]`. Based on [this paper](http://cwrowley.princeton.edu/papers/Hemati-2017a.pdf).
 """
 mutable struct TOTALDMD{R, A} <: AbstractKoopmanAlgorithm
     rtol::R

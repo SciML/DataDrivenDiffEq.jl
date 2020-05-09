@@ -10,6 +10,7 @@ Currently, `DataDrivenDiffEq` implements the following `AbstractKoopmanAlgorithm
 ```@docs
 DMDPINV
 DMDSVD
+TOTALDMD
 ```
 
 ## Implementing New Algorithms
