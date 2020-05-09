@@ -41,7 +41,9 @@ DMDSVD() = DMDSVD(0.0)
 # Slower but less allocations
 function (x::DMDSVD)(X::AbstractArray, Y::AbstractArray)
     U, S, V = svd(X)
-    if zero(x.rtol) < x.rtol < one(x.rtol)
+    if typeof(x.rtol) <: Int
+        V = V[:, x.rtol]
+    elseif zero(x.rtol) < x.rtol < one(x.rtol)
         r = vec(S .> x.rtol*maximum(S))
         U = U[:, r]
         S = S[r]
@@ -49,4 +51,30 @@ function (x::DMDSVD)(X::AbstractArray, Y::AbstractArray)
     end
 
     return Y*V*Diagonal(one(eltype(X)) ./ S)*U'
+end
+
+"""
+    TOTALDMD(rtol, alg)
+
+Approximates the koopman operator `K` with the algorithm `alg` over the rank reduced data
+matrices `Xᵣ = X Qᵣ` and `Yᵣ = Y Qᵣ` where `Qᵣ` originates from the singular value decomposition of
+the joint data `Z = [X; Y]`.
+"""
+mutable struct TOTALDMD{R, A} <: AbstractKoopmanAlgorithm
+    rtol::R
+    alg::A
+end
+
+TOTALDMD() = TOTALDMD(0.0, DMDPINV())
+
+function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray)
+    _ , S, Q = svd([X; Y])
+    if typeof(x.rtol) <: Int
+        Q = Q[:, 1:x.rtol]
+    elseif zero(x.rtol) < x.rtol < one(x.rtol)
+        r = vec(S .> x.rtol*maximum(S))
+        Q = Q[:, r]
+    end
+
+    return x.alg(X*Q, Y*Q)
 end

@@ -90,4 +90,4 @@ updateable(k::AbstractKoopmanOperator) = !isempty(k.Q) && !isempty(k.P)
     + the koopman operator has just eigenvalues with magnitude less than one or
     + the koopman generator has just eigenvalues with a negative real part
 """
-isstable(k::AbstractKoopmanOperator) = is_discrete(k) ? all(abs.(eigvals(k)) .< one(eltype(k.operator))) : all(real.(eigvals(k)) < zero(eltype(k.operator)))
+isstable(k::AbstractKoopmanOperator) = is_discrete(k) ? all(abs.(eigvals(k)) .< one(eltype(k.operator))) : all(real.(eigvals(k)) .< zero(eltype(k.operator)))
