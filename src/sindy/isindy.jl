@@ -14,27 +14,25 @@ Keyworded arguments include the parameter (values) of the basis `p` and the time
 `opt` is an `AbstractSubspaceOptimiser` useable for sparse regression within the nullspace, `maxiter` the maximum iterations to perform and `convergence_error` the
 bound which causes the optimiser to stop.
 
-The target of the pareto is given by the function `f_target` with signature `f(weigths,x)`.
-`weights` can be specified in the arguments.
-`x` contains the L0 Norm of the columns of the coefficients at index 1 and the L2 error at index 2.
+The best vectors of the sparse nullspace are selected via multi objective optimisation.
+The best candidate is determined via the `AbstractScalarizationMethod` given in `alg`. The evaluation has two fields, the sparsity of the coefficients and the L2-Norm error at index 1 and 2 respectively.
 
 `rtol` gets directly passed into the computation of the nullspace.
 
 Returns a `SInDyResult`.
 """
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; weights::AbstractArray = [], f_target = (x, w) ->  norm(w .* x, 2), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimise.AbstractScalarizationMethod = WeightedSum(), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
     @assert size(X)[end] == size(Ẋ)[end]
-    nb = length(Ψ.basis)
 
     # Compute the library and the corresponding nullspace
     θ = Ψ(X, p, t)
+
     # Init for sweep over the differential variables
-    eqs = Operation[]
-    ps = Operation[]
     Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
 
-    isempty(weights) ? weights = ones(eltype(θ), 2)/2 : nothing
-    f_t(x) = f_target(x, weights)
+    opt_front = ParetoFront(1, scalarization = alg)
+    tmp_front = ParetoFront(1, scalarization = alg)
+
 
     @inbounds for i in 1:size(Ẋ, 1)
         dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
@@ -48,21 +46,17 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; weights::Abstra
 
 
         # Compute pareto front
-        pareto = map(q->[norm(q, 0) ;norm(Θ'*q, 2)], eachcol(Q))
-        score, posmin = findmin(f_t.(pareto))
-        # Get the corresponding eqs
-        q_best = Q[:, posmin]
-        # Remove small entries
-        q_best[abs.(q_best) .< opt.λ] .= zero(eltype(q_best))
-        rmul!(q_best ,one(eltype(q_best))/maximum(abs.(q_best)))
-
-        # Numerator and Denominator
-        # Maybe there is a better way of doing this
-        #Fn, pn = derive_parameterized_eqs(q_best[nb+1:end], Ψ)
-        #Fd, pd = derive_parameterized_eqs(q_best[1:nb], Ψ)
-        Ξ[:, i] .= q_best[:]
-        #push!(eqs, -Fn/Fd)
-        #push!(ps, [pn; pd])
+        @inbounds for (i, qi) in enumerate(eachcol(Q))
+            if i == 1
+                set_candidate!(opt_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
+                set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
+            else
+                set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
+                conditional_add!(opt_front, tmp_front)
+            end
+        end
+        Ξ[:, i] .= Optimise.parameter(opt_front[1])
+        Ξ[:, i] .= Ξ[:, i] ./ maximum(abs.(Ξ[:, i]))
     end
 
 

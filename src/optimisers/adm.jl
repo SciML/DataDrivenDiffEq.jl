@@ -4,6 +4,9 @@ mutable struct ADM{U, O} <: AbstractSubspaceOptimiser
     R::O
 end
 
+get_threshold(opt::ADM) = opt.λ
+set_threshold!(opt::ADM, λ) = (opt.λ = λ; return)
+
 """
     ADM(λ = 0.1)
 
@@ -22,10 +25,16 @@ function fit!(q::AbstractArray{T, 1}, Y::AbstractArray, opt::ADM; maxiter::Int64
         prox!(x, opt.R, Y*q)
         mul!(q, Y', x/norm(Y'*x, 2))
     end
+
+    q[abs.(q) .< get_threshold(opt)] .= zero(eltype(q))
+    normalize!(q, 2)
+    return
 end
 
 function fit!(q::AbstractArray{T, 2}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10) where T <: Real
     @inbounds for i in 1:size(q, 2)
         fit!(view(q, :, i), Y, opt, maxiter = maxiter)
     end
+
+    return
 end

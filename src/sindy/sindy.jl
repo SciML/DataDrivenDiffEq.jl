@@ -135,10 +135,8 @@ bound which causes the optimiser to stop.
 `normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
 
-If `SInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a pareto optimisation over all thresholds.
-The target of the pareto is given by the function `f_target` with signature `f(weigths,x)`.
-`weights` can be specified in the arguments.
-`x` contains the L0 Norm of the columns of the coefficients at index 1 and the L2-Norm error at index 2.
+If `SInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimisation over all thresholds.
+The best candidate is determined via the `AbstractScalarizationMethod` given in `alg`. The evaluation has two fields, the sparsity of the coefficients and the L2-Norm error at index 1 and 2 respectively.
 
 Returns a `SInDyResult`. If the pareto optimisation is used, the result combines the best candidate for each row of `Y`.
 """
@@ -158,50 +156,50 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thre
     return SInDy(X, Ẋ', Ψ, thresholds; kwargs...)
 end
 
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; weights::AbstractArray = [], f_target = (x, w) ->  norm(w .* x, 2),  p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimise.AbstractOptimiser, S <: Number}
-    @assert size(X)[end] == size(Ẋ)[end]
+function SInDy(X::AbstractArray{S, 2}, DX::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; alg::Optimise.AbstractScalarizationMethod = WeightedSum(), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimise.AbstractOptimiser, S <: Number}
+    @assert size(X)[end] == size(DX)[end]
     nx, nm = size(X)
-    ny, nm = size(Ẋ)
+    ny, nm = size(DX)
 
     θ = Ψ(X, p, t)
 
     scales = ones(eltype(X), length(Ψ))
+
     ξ = zeros(eltype(X), length(Ψ), ny)
-    Ξ_opt = zeros(eltype(X), length(Ψ), ny)
-    Ξ = zeros(eltype(X), length(thresholds), ny, length(Ψ))
-    x = zeros(eltype(X), length(thresholds), ny, 2)
-    iters = zeros(Int64, length(thresholds))
+    Ξ = zeros(eltype(X), length(Ψ), ny)
+
+    iters = 0
 
     denoise ? optimal_shrinkage!(θ') : nothing
-    normalize ? normalize_theta!(scales, θ) : nothing
+    normalize ? DataDrivenDiffEq.normalize_theta!(scales, θ) : nothing
 
-    @inbounds for (j, threshold) in enumerate(thresholds)
+    # Set two paretofronts
+    opt_front = ParetoFront(ny, scalarization = alg)
+    tmp_front = ParetoFront(ny, scalarization = alg)
+
+    for (j, threshold) in enumerate(thresholds)
         set_threshold!(opt, threshold)
+        iters = sparse_regression!(ξ, θ, DX, maxiter, opt, false, false, convergence_error)
+        normalize ? DataDrivenDiffEq.rescale_xi!(ξ, scales) : nothing
 
-        iters[j] = sparse_regression!(ξ, θ, Ẋ, maxiter, opt, false, false, convergence_error)
-
-        normalize ? rescale_xi!(ξ, scales) : nothing
-
-        [x[j, i, :] = [norm(xi, 0); norm(view(Ẋ , i, :) - θ'*xi, 2)] for (i, xi) in enumerate(eachcol(ξ))]
-
-        Ξ[j, :, :] = ξ[:, :]'
+        if j < 2
+            for (i, ξi) in enumerate(eachcol(ξ))
+                set_candidate!(tmp_front, i, [norm(ξi, 0); norm(DX[i, :] .- θ'*ξi)], ξi, iters, threshold)
+                set_candidate!(opt_front, i, [norm(ξi, 0); norm(DX[i, :] .- θ'*ξi)], ξi, iters, threshold)
+            end
+        else
+            @inbounds for (i, ξi) in enumerate(eachcol(ξ))
+                set_candidate!(tmp_front, i, [norm(ξi, 0); norm(DX[i, :] .- θ'*ξi)], ξi, iters, threshold)
+            end
+            conditional_add!(opt_front, tmp_front)
+        end
     end
 
-    # Closure
-    isempty(weights) ? weights = ones(eltype(x), 2)/2 : nothing
-    f_t(x) = f_target(x, weights)
-
-    _iter = Inf
-    _thresh = Inf
-    # Create the evaluation
-    @inbounds for i in 1:ny
-        _, idx = findmin(f_t.(eachrow(x[:, i, :])))
-        iters[idx] <  _iter ? _iter = iters[idx] : nothing
-        thresholds[idx] < _thresh ? _thresh = thresholds[idx] : nothing
-        Ξ_opt[:, i] = Ξ[idx, i, :]
+    for i in 1:ny
+        Ξ[:, i] .= parameter(opt_front[i])
     end
 
-    set_threshold!(opt, _thresh)
+    set_threshold!(opt, threshold(opt_front))
 
-    return SparseIdentificationResult(Ξ_opt, Ψ, _iter, opt, _iter < maxiter, Ẋ, X, p = p)
+    return SparseIdentificationResult(Ξ, Ψ, iter(opt_front), opt, iter(opt_front) < maxiter, DX, X, p = p)
 end
