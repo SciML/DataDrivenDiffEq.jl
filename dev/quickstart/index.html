@@ -130,16 +130,8 @@ GKS: GKS not in proper state. GKS must be either in the state WSOP or WSAC in ro
 
 h = Operation[u; u.^2; u.^3; sin.(u); cos.(u); 1]
 
-basis = Basis(h, u)</code></pre><pre><code class="language-none">┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
-│   caller = _broadcast_getindex_evalf at broadcast.jl:631 [inlined]
-└ @ Core ./broadcast.jl:631
-┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
-│   caller = _broadcast_getindex_evalf at broadcast.jl:631 [inlined]
-└ @ Core ./broadcast.jl:631</code></pre><p><code>DataDrivenDiffEq</code> comes with some optimisers to tackle sparse regression problems. Here we will use <code>SR3</code>, used <a href="https://arxiv.org/abs/1906.10612">here</a> and introduced <a href="https://ieeexplore.ieee.org/document/8573778">here</a>. We choose a threshold of <code>3.5e-1</code> and start the optimiser.</p><pre><code class="language-julia">opt = SR3(3e-1, 1.0)
-Ψ = SInDy(X[:, 1:1000], DX[:, 1:1000], basis, maxiter = 10000, opt = opt, normalize = true)</code></pre><pre><code class="language-none">┌ Warning: `simplify_constants(ex)` is deprecated, use `simplify(ex)` instead.
-│   caller = push!(::Basis{Array{Any,1},Array{ModelingToolkit.Operation,1},Array{ModelingToolkit.Operation,1},ModelingToolkit.Operation}, ::ModelingToolkit.Operation) at basis.jl:127
-└ @ DataDrivenDiffEq ~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/src/basis.jl:127
-2 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;]
+basis = Basis(h, u)</code></pre><p><code>DataDrivenDiffEq</code> comes with some optimisers to tackle sparse regression problems. Here we will use <code>SR3</code>, used <a href="https://arxiv.org/abs/1906.10612">here</a> and introduced <a href="https://ieeexplore.ieee.org/document/8573778">here</a>. We choose a threshold of <code>3.5e-1</code> and start the optimiser.</p><pre><code class="language-julia">opt = SR3(3e-1, 1.0)
+Ψ = SInDy(X[:, 1:1000], DX[:, 1:1000], basis, maxiter = 10000, opt = opt, normalize = true)</code></pre><pre><code class="language-none">2 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;]
 du₁ = p₁ * u₂
 du₂ = sin(u₁) * p₃ + p₂ * u₂</code></pre><p>We recovered the equations! Lets transform the <code>SInDyResult</code> into an performant piece of Julia Code using <code>ODESystem</code></p><pre><code class="language-julia">sys = ODESystem(Ψ)
 p = parameters(Ψ)
@@ -152,4 +144,4 @@ connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
 GKS: Open failed in routine OPEN_WS
-GKS: GKS not in proper state. GKS must be either in the state WSOP or WSAC in routine ACTIVATE_WS</code></pre><p><img src="../sindy_estimation.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../basis/">Basis »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 9 May 2020 17:03">Saturday 9 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+GKS: GKS not in proper state. GKS must be either in the state WSOP or WSAC in routine ACTIVATE_WS</code></pre><p><img src="../sindy_estimation.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../basis/">Basis »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Sunday 10 May 2020 06:18">Sunday 10 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
