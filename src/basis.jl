@@ -124,7 +124,7 @@ function Base.push!(b::Basis, ops::AbstractArray{Operation})
 end
 
 function Base.push!(b::Basis, op₀::Operation)
-    op = simplify_constants(op₀)
+    op = simplify(op₀)
     push!(b.basis, op)
     # Check for uniqueness
     unique!(b)
@@ -297,7 +297,7 @@ function Base.unique(b::Basis)
 end
 
 function Base.unique(b₀::AbstractVector{Operation})
-    b = simplify_constants.(b₀)
+    b = simplify.(b₀)
     N = length(b)
     returns = Vector{Bool}()
     for i ∈ 1:N
