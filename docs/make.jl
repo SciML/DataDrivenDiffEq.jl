@@ -1,5 +1,7 @@
 using Documenter, DataDrivenDiffEq
 
+ENV["GKSwstype"] = "100"
+
 makedocs(
     sitename="DataDrivenDiffEq.jl",
     authors="Julius Martensen, Chris Rackauckas",
