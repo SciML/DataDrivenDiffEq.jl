@@ -29,7 +29,7 @@ export variables, jacobian, dynamics
 export free_parameters, parameters, variables
 
 include("./koopman/algorithms.jl")
-export DMDPINV, DMDSVD
+export DMDPINV, DMDSVD, TOTALDMD
 
 include("./koopman/koopman.jl")
 export eigen, eigvals, eigvecs
