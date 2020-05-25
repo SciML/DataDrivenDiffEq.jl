@@ -203,3 +203,155 @@ function SInDy(X::AbstractArray{S, 2}, DX::AbstractArray{S, 2}, Ψ::Basis, thres
 
     return SparseIdentificationResult(Ξ, Ψ, iter(opt_front), opt, iter(opt_front) < maxiter, DX, X, p = p)
 end
+
+# Dual optimiser
+
+
+function generate_evaluator(X::AbstractArray, DX::AbstractArray, t, opt::DualOptimiser)
+    # Generate the cost function and its partial derivatives
+    @variables xi[1:size(DX, 1), 1:length(opt.basis)]
+    @variables dx_[1:size(DX, 1)]
+
+    # Cost function
+    f_t = sum((xi*opt.basis.basis-dx_).^2)
+    osys = OptimizationSystem(f_t, parameters(opt.basis), [[xi...]; variables(opt.basis); dx_; independent_variable(opt.basis)])
+    f_ = generate_function(osys,  expression = Val{false})
+    g_ = generate_gradient(osys, expression = Val{false})[1]
+    h_ = generate_hessian(osys, expression = Val{false})[1]
+
+    c = Optimise.Evaluator(f_, g_, h_)
+end
+
+
+function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray, t::AbstractVector , maxiter::Int64 , opt::Optimise.DualOptimiser, denoise::Bool, normalize::Bool, convergence_error)
+    @assert size(X)[end] == size(Ẋ)[end]
+    nx, nm = size(X)
+    ny, nm = size(Ẋ)
+
+    Ξ = zeros(eltype(X), length(Ψ), ny)
+    ξ = similar(Ξ)
+
+    p = similar(opt.ps)
+
+    scales = ones(eltype(X), length(Ψ))
+    θ = Ψ(X, p, t)
+
+    denoise ? optimal_shrinkage!(θ') : nothing
+    normalize ? normalize_theta!(scales, θ) : nothing
+
+	Optimise.init!(Ξ, opt, θ', Ẋ')
+
+    osys = generate_evaluator(X, Ẋ, t, opt)
+
+    iters = 0
+
+    for i in 1:maxiter
+        iters = i
+		_ = DataDrivenDiffEq.Optimise.fit!(Ξ, θ', Ẋ', opt.sparse_opt, maxiter = 1, convergence_error = convergence_error)
+		res = Optim.optimize(osys(Ξ', X, Ẋ, t), p, opt.param_opt, Optim.Options(iterations = 1))
+
+        if norm(ξ - Ξ, 2) + norm(p - res.minimizer, 2) < convergence_error
+            opt.ps .= res.minimizer
+            break
+        else
+            ξ .= Ξ
+            p .= res.minimizer
+        end
+
+        #update_theta!(θ, X, p, t, opt)
+        Ψ(θ, X, p, t)
+        normalize ? normalize_theta!(scales, θ) : nothing
+
+	end
+
+    normalize ? rescale_xi!(Ξ, scales) : nothing
+
+    return Ξ, iters
+end
+
+
+function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray , t::AbstractVector, maxiter::Int64 , opt::Optimise.DualOptimiser, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimise.AbstractOptimiser
+    @assert size(X)[end] == size(Ẋ)[end]
+
+    ξ = similar(Ξ)
+
+    p = similar(opt.ps)
+
+    scales = ones(eltype(X), length(Ψ))
+    θ = Ψ(X, p, t)
+
+    denoise ? optimal_shrinkage!(θ') : nothing
+    normalize ? normalize_theta!(scales, θ) : nothing
+
+	Optimise.init!(Ξ, opt, θ', Ẋ')
+
+    osys = generate_evaluator(X, Ẋ, t, opt)
+
+    iters = 0
+
+    for i in 1:maxiter
+        iters = i
+		_ = DataDrivenDiffEq.Optimise.fit!(Ξ, θ', Ẋ', opt.sparse_opt, maxiter = 1, convergence_error = convergence_error)
+		res = Optim.optimize(osys(Ξ', X, Ẋ, t), p, opt.param_opt, Optim.Options(iterations = 1))
+
+        if norm(ξ - Ξ, 2) + norm(p - res.minimizer, 2) < convergence_error
+            opt.ps .= res.minimizer
+            break
+        else
+            ξ .= Ξ
+            p .= res.minimizer
+        end
+
+        #update_theta!(θ, X, p, t, opt)
+        Ψ(θ, X, p, t)
+        normalize ? normalize_theta!(scales, θ) : nothing
+
+	end
+
+    normalize ? rescale_xi!(Ξ, scales) : nothing
+
+    return iters
+end
+
+function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractArray, maxiter::Int64 , opt::Optimise.DualOptimiser, denoise::Bool, normalize::Bool, convergence_error)
+    @assert size(X)[end] == size(Ẋ)[end]
+
+    ξ = similar(Ξ)
+
+    p = similar(opt.ps)
+
+    Ψ = opt.basis
+    scales = ones(eltype(X), length(Ψ))
+
+    denoise ? optimal_shrinkage!(θ') : nothing
+    normalize ? normalize_theta!(scales, θ) : nothing
+
+	Optimise.init!(Ξ, opt, θ', Ẋ')
+
+    osys = generate_evaluator(X, Ẋ, t, opt)
+
+    iters = 0
+
+    for i in 1:maxiter
+        iters = i
+		_ = DataDrivenDiffEq.Optimise.fit!(Ξ, θ', Ẋ', opt.sparse_opt, maxiter = 1, convergence_error = convergence_error)
+		res = Optim.optimize(osys(Ξ', X, Ẋ, t), p, opt.param_opt, Optim.Options(iterations = 1))
+
+        if norm(ξ - Ξ, 2) + norm(p - res.minimizer, 2) < convergence_error
+            opt.ps .= res.minimizer
+            break
+        else
+            ξ .= Ξ
+            p .= res.minimizer
+        end
+
+        #update_theta!(θ, X, p, t, opt)
+        Ψ(θ, X, p, t)
+        normalize ? normalize_theta!(scales, θ) : nothing
+
+	end
+
+    normalize ? rescale_xi!(Ξ, scales) : nothing
+
+    return iters
+end

@@ -3,7 +3,7 @@ module Optimise
 using LinearAlgebra
 using ProximalOperators
 using ModelingToolkit
-
+using Optim
 
 abstract type AbstractOptimiser end;
 abstract type AbstractSubspaceOptimiser end;

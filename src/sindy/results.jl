@@ -81,6 +81,20 @@ function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iter
     return SparseIdentificationResult(coeff, [p...;p_...], b_ , opt, iters, convergence,  training_error, aicc,  sparsity)
 end
 
+function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::Optimise.DualOptimiser, convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = [], t::AbstractVector = [])
+    p = opt.ps
+    Ŷ = coeff'*equations(X, p, t)
+    training_error = norm.(eachrow(Y-Ŷ), 2)
+    sparsity = Int64.(norm.(eachcol(coeff), 0))
+
+    aicc = similar(training_error)
+    for i in 1:length(aicc)
+        aicc[i] = AICC(sparsity[i], view(Ŷ, i, :) , view(Y, i, :))
+    end
+    b_, p_ = derive_parameterized_eqs(coeff, equations, sum(sparsity))
+    return SparseIdentificationResult(coeff, [p...;p_...], b_ , opt, iters, convergence,  training_error, aicc,  sparsity)
+end
+
 function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::Int64) where T <: Real
     @parameters p[1:sparsity]
     p_ = zeros(eltype(Ξ), sparsity)

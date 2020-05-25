@@ -7,6 +7,7 @@ using QuadGK
 using Statistics
 using DSP
 using FiniteDifferences, DataInterpolations
+using Optim
 using Compat
 
 abstract type AbstractBasis end;
