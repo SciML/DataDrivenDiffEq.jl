@@ -231,9 +231,9 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
     Ξ = zeros(eltype(X), length(Ψ), ny)
     ξ = similar(Ξ)
 
-    p = similar(opt.ps)
+	p = opt.ps
 
-    scales = ones(eltype(X), length(Ψ))
+	scales = ones(eltype(X), length(Ψ))
     θ = Ψ(X, p, t)
 
     denoise ? optimal_shrinkage!(θ') : nothing
@@ -256,6 +256,7 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
         else
             ξ .= Ξ
             p .= res.minimizer
+			opt.ps .= p
         end
 
         #update_theta!(θ, X, p, t, opt)
@@ -275,7 +276,7 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
 
     ξ = similar(Ξ)
 
-    p = similar(opt.ps)
+    p = opt.ps
 
     scales = ones(eltype(X), length(Ψ))
     θ = Ψ(X, p, t)
@@ -300,6 +301,7 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
         else
             ξ .= Ξ
             p .= res.minimizer
+			opt.ps .= p
         end
 
         #update_theta!(θ, X, p, t, opt)
@@ -318,9 +320,9 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
 
     ξ = similar(Ξ)
 
-    p = similar(opt.ps)
+	p = opt.ps
 
-    Ψ = opt.basis
+	Ψ = opt.basis
     scales = ones(eltype(X), length(Ψ))
 
     denoise ? optimal_shrinkage!(θ') : nothing
