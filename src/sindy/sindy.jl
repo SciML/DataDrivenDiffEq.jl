@@ -248,7 +248,7 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
     for i in 1:maxiter
         iters = i
 		_ = DataDrivenDiffEq.Optimise.fit!(Ξ, θ', Ẋ', opt.sparse_opt, maxiter = 1, convergence_error = convergence_error)
-		res = Optim.optimize(osys(Ξ', X, Ẋ, t), p, opt.param_opt, Optim.Options(iterations = 1))
+		res = Optim.optimize(osys(Ξ', X, Ẋ, t)..., p, opt.param_opt, Optim.Options(iterations = 1))
 
         if norm(ξ - Ξ, 2) + norm(p - res.minimizer, 2) < convergence_error
             opt.ps .= res.minimizer
@@ -293,7 +293,7 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     for i in 1:maxiter
         iters = i
 		_ = DataDrivenDiffEq.Optimise.fit!(Ξ, θ', Ẋ', opt.sparse_opt, maxiter = 1, convergence_error = convergence_error)
-		res = Optim.optimize(osys(Ξ', X, Ẋ, t), p, opt.param_opt, Optim.Options(iterations = 1))
+		res = Optim.optimize(osys(Ξ', X, Ẋ, t)..., p, opt.param_opt, Optim.Options(iterations = 1))
 
         if norm(ξ - Ξ, 2) + norm(p - res.minimizer, 2) < convergence_error
             opt.ps .= res.minimizer
@@ -337,7 +337,7 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
     for i in 1:maxiter
         iters = i
 		_ = DataDrivenDiffEq.Optimise.fit!(Ξ, θ', Ẋ', opt.sparse_opt, maxiter = 1, convergence_error = convergence_error)
-		res = Optim.optimize(osys(Ξ', X, Ẋ, t), p, opt.param_opt, Optim.Options(iterations = 1))
+		res = Optim.optimize(osys(Ξ', X, Ẋ, t)..., p, opt.param_opt, Optim.Options(iterations = 1))
 
         if norm(ξ - Ξ, 2) + norm(p - res.minimizer, 2) < convergence_error
             opt.ps .= res.minimizer

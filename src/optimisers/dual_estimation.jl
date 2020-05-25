@@ -65,5 +65,5 @@ function (c::Evaluator)(Ξ, X , DX, t)
         nothing
     end
 
-    return Optim.only_fgh!(fgh!)
+    return f, g!, h!#Optim.only_fgh!(fgh!)
 end
