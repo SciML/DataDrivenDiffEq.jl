@@ -18,7 +18,7 @@ using .Optimise
 export set_threshold!, set_threshold
 export STRRidge, ADMM, SR3
 
-export ADM
+export ADM, ParallelImplicit
 
 export WeightedSum, WeightedExponentialSum, GoalProgramming
 export weights

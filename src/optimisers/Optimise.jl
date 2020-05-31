@@ -30,7 +30,7 @@ include("./sindy_pi.jl")
 
 export init, init!, fit!, set_threshold!, get_threshold
 export STRRidge, ADMM, SR3
-export ADM
+export ADM, ParallelImplicit
 
 
 end
