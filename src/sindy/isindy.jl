@@ -26,39 +26,9 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimise.A
 
     # Compute the library and the corresponding nullspace
     θ = Ψ(X, p, t)
-
-    # Init for sweep over the differential variables
     Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
 
-    opt_front = ParetoFront(1, scalarization = alg)
-    tmp_front = ParetoFront(1, scalarization = alg)
-
-
-    @inbounds for i in 1:size(Ẋ, 1)
-        dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
-        Θ = vcat(dθ, θ)
-        N = nullspace(Θ', rtol = rtol)
-        Q = deepcopy(N) # Deepcopy for inplace
-
-        # Find sparse vectors in nullspace
-        # Calls effectively the ADM algorithm with varying initial conditions
-        DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
-
-
-        # Compute pareto front
-        @inbounds for (i, qi) in enumerate(eachcol(Q))
-            if i == 1
-                set_candidate!(opt_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
-                set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
-            else
-                set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
-                conditional_add!(opt_front, tmp_front)
-            end
-        end
-        Ξ[:, i] .= Optimise.parameter(opt_front[1])
-        Ξ[:, i] .= Ξ[:, i] ./ maximum(abs.(Ξ[:, i]))
-    end
-
+    Optimise.fit!(Ξ, θ, Ẋ, opt, maxiter = maxiter, alg = alg, rtol = rtol)
 
     return ImplicitSparseIdentificationResult(Ξ, Ψ, maxiter, opt, true, Ẋ, X, p = p, t = t)
 end
@@ -121,7 +91,9 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
             end
         end
 
-        push!(b_, -eq_n ./ eq_d)
+        if !(eq_n === nothing && eq_d === nothing)
+            push!(b_, -eq_n ./ eq_d)
+        end
     end
     b_, p_
 end
