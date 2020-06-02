@@ -3,7 +3,7 @@ using ModelingToolkit
 using LinearAlgebra
 using OrdinaryDiffEq
 using Test
-using DataDrivenDiffEq.Optimise
+using DataDrivenDiffEq.Optimize
 
 include("./basis.jl")
 include("./koopman.jl")
