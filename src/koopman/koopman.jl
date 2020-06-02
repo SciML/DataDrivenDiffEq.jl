@@ -38,14 +38,14 @@ LinearAlgebra.eigvecs(k::AbstractKoopmanOperator) = eigvecs(k.operator)
 
     Return the eigenvectors of a continuous `AbstractKoopmanOperator`.
 """
-modes(k::AbstractKoopmanOperator) = is_continouos(k) ? eigvecs(k) : throw(AssertionError("Koopman is discrete."))
+modes(k::AbstractKoopmanOperator) = is_continuous(k) ? eigvecs(k) : throw(AssertionError("Koopman is discrete."))
 
 """
     frequencies(k)
 
     Return the eigenvalues of a continuous `AbstractKoopmanOperator`.
 """
-frequencies(k::AbstractKoopmanOperator) = is_continouos(k) ? eigvals(k) : throw(AssertionError("Koopman is discrete."))
+frequencies(k::AbstractKoopmanOperator) = is_continuous(k) ? eigvals(k) : throw(AssertionError("Koopman is discrete."))
 
 """
     operator(k)
@@ -59,7 +59,7 @@ operator(k::AbstractKoopmanOperator) = is_discrete(k) ? k.operator : throw(Asser
 
     Return the approximation of the continuous Koopman generator stored in `k`.
 """
-generator(k::AbstractKoopmanOperator) = is_continouos(k) ? k.operator : throw(AssertionError("Koopman is discrete."))
+generator(k::AbstractKoopmanOperator) = is_continuous(k) ? k.operator : throw(AssertionError("Koopman is discrete."))
 
 """
     inputmap(k)
