@@ -83,5 +83,5 @@ The parameters are off a little, but, as before, we can use `DiffEqFlux` to tune
 
 ```@docs
 ISInDy
-DataDrivenDiffEq.Optimise.ADM
+DataDrivenDiffEq.Optimize.ADM
 ```

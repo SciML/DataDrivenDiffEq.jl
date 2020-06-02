@@ -3,7 +3,7 @@ abstract type AbstractKoopmanAlgorithm end;
 """
     DMDPINV()
 
-Approximates the koopman operator `K` based on
+Approximates the Koopman operator `K` based on
 
 ```julia
 K = Y / X
@@ -21,8 +21,8 @@ mutable struct DMDPINV <: AbstractKoopmanAlgorithm end;
 """
     DMDSVD(rtol)
 
-Approximates the koopman operator `K` based on the singular value decomposition
-of `X` such that
+Approximates the Koopman operator `K` based on the singular value decomposition
+of `X` such that:
 
 ```julia
 K = Y*V*Σ*U'
@@ -39,7 +39,7 @@ end;
 
 DMDSVD() = DMDSVD(0.0)
 
-# Slower but less allocations
+# Slower but fewer allocations
 function (x::DMDSVD)(X::AbstractArray, Y::AbstractArray)
     U, S, V = svd(X)
     if typeof(x.rtol) <: Int && x.rtol < size(X, 1)
@@ -57,8 +57,8 @@ end
 """
     TOTALDMD(rtol, alg)
 
-Approximates the koopman operator `K` with the algorithm `alg` over the rank reduced data
-matrices `Xᵣ = X Qᵣ` and `Yᵣ = Y Qᵣ` where `Qᵣ` originates from the singular value decomposition of
+Approximates the Koopman operator `K` with the algorithm `alg` over the rank-reduced data
+matrices `Xᵣ = X Qᵣ` and `Yᵣ = Y Qᵣ`, where `Qᵣ` originates from the singular value decomposition of
 the joint data `Z = [X; Y]`. Based on [this paper](http://cwrowley.princeton.edu/papers/Hemati-2017a.pdf).
 
 If `rtol` ∈ (0, 1) is given, the singular value decomposition is reduced to include only

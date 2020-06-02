@@ -4,7 +4,7 @@ using LinearAlgebra
 using Plots
 gr()
 
-# Create a linear , time discrete system
+# Create a linear, time-discrete system
 function linear_discrete(du, u, p, t)
     du[1] = 0.9u[1]
     du[2] = 0.9u[2] + 0.1u[1]
@@ -52,10 +52,10 @@ y = sol2[:,2:21]
 # Update our approximation with new measurements
 update!(approx, x, y)
 
-# Lets have a look at the operator, which moves near the true value
+# Let's have a look at the operator, which moves near the true value
 operator(approx)
 
-# Add time continouos system
+# Add time-continuous system
 function linear(du, u, p, t)
     du[1] = -0.9*u[1] + 0.1*u[2]
     du[2] = -0.8*u[2]
@@ -70,12 +70,12 @@ X = sol_cont[:,:]
 DX = sol_cont(sol_cont.t, Val{1})[:,:]
 
 # Giving the method a time step (which should be sequentially sampled)
-# Enables us to get the continouos representation
+# Enables us to get the continuous representation
 approx_cont = gDMD(X, DX)
 generator(approx_cont)
 approx_sys = ODEProblem(approx_cont, u0, tspan)
 approx_sol = solve(approx_sys, Tsit5(),  saveat = sol_cont.t)
-# Lets have a look at the solution
+# Let's have a look at the solution
 plot(sol_cont)
 plot!(approx_sol)
 # And the error

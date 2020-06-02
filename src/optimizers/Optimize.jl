@@ -1,11 +1,11 @@
-module Optimise
+module Optimize
 
 using LinearAlgebra
 using ProximalOperators
 
 
-abstract type AbstractOptimiser end;
-abstract type AbstractSubspaceOptimiser end;
+abstract type AbstractOptimizer end;
+abstract type AbstractSubspaceOptimizer end;
 abstract type AbstractScalarizationMethod end;
 
 include("./strridge.jl")

@@ -2,7 +2,7 @@
 # repository, see https://arxiv.org/abs/1711.05501
 # and https://github.com/eurika-kaiser/SINDY-MPC/blob/master/LICENSE
 
-mutable struct STRRidge{T} <: AbstractOptimiser
+mutable struct STRRidge{T} <: AbstractOptimizer
     λ::T
 end
 

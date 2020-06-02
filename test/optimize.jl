@@ -12,7 +12,7 @@ atols = Float64[1e-10, 1e-4, 1e-7]
 
     @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
         set_threshold!(opt, threshold)
-        Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
+        Ξ = DataDrivenDiffEq.Optimize.init(opt, x', y')
         _iters = fit!(Ξ, x', y', opt, maxiter = maxiter)
         @debug println("$opt $_iters $(norm(A-Ξ', 2))")
         @test _iters <= maxiter
@@ -27,7 +27,7 @@ end
     threshold = 1e-2
     @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
         set_threshold!(opt, threshold)
-        Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
+        Ξ = DataDrivenDiffEq.Optimize.init(opt, x', y')
         _iters = fit!(Ξ, x', y', opt, maxiter = maxiter)
         @debug println("$opt $_iters $(norm(A-Ξ', 2))")
         @test _iters <= maxiter
@@ -48,7 +48,7 @@ end
     threshold =1e-2
     @testset for (opt, maxiter, a_tol) in zip(opts, iters, atols)
         set_threshold!(opt, threshold)
-        Ξ = DataDrivenDiffEq.Optimise.init(opt, x', y')
+        Ξ = DataDrivenDiffEq.Optimize.init(opt, x', y')
         _iters = fit!(Ξ, x', y', opt, maxiter = maxiter)
         @debug println("$opt $_iters $(norm(A-Ξ', 2))")
         @test _iters <= maxiter

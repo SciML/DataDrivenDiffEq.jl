@@ -28,16 +28,16 @@ end
     sparse_regression!(Xi, X, Y, basis, p, t, maxiter, opt, denoise, normalize, convergence_error)
     spares_regression!(Xi, Theta, Y, maxiter, opt, denoise, normalize, convergence_error)
 
-Performs a sparse regression via the algorithm `opt <: AbstractOptimiser`. `maxiter` specifies the upper bound of the iterations
-of the optimiser, `convergence_error` the breaking condition due to convergence.
+Performs a sparse regression via the algorithm `opt <: AbstractOptimizer`. `maxiter` specifies the upper bound of the iterations
+of the optimizer, `convergence_error` the breaking condition due to convergence.
 `denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
 `normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
 If the data matrices `X`, `Y` are given with a `Basis` `basis` and the additional information for parameters `p` and time points of the
 measurements `t`, it returns the coefficient matrix `Xi` and the iterations taken.
-This function is also available inplace, which returns just the iterations.
+This function is also available in place, which returns just the iterations.
 
-If `Xi`, `Theta` and `Y` are given, the sparse regression will find the coefficients `Xi` which minimise the objective and return the iterations needed.
+If `Xi`, `Theta` and `Y` are given, the sparse regression will find the coefficients `Xi`, which minimize the objective and return the iterations needed.
 
 # Example
 
@@ -54,7 +54,7 @@ Xi2 = zeros(size(Y, 1), size(X, 1))
 iters = sparse_regression!(Xi2, X, Y, maxiter, opt, false, false, c_error)
 ```
 """
-function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray, t::AbstractVector , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimise.AbstractOptimiser
+function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray, t::AbstractVector , maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimize.AbstractOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
@@ -66,15 +66,15 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
     denoise ? optimal_shrinkage!(θ') : nothing
     normalize ? normalize_theta!(scales, θ) : nothing
 
-    Optimise.init!(Ξ, opt, θ', Ẋ')
-    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
+    Optimize.init!(Ξ, opt, θ', Ẋ')
+    iters = Optimize.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
 
     return Ξ, iters
 end
 
-function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray , t::AbstractVector, maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimise.AbstractOptimiser
+function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::AbstractArray , t::AbstractVector, maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimize.AbstractOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
     nx, nm = size(X)
     ny, nm = size(Ẋ)
@@ -86,8 +86,8 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     denoise ? optimal_shrinkage!(θ') : nothing
     normalize ? normalize_theta!(scales, θ) : nothing
 
-    Optimise.init!(Ξ, opt, θ', Ẋ')
-    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
+    Optimize.init!(Ξ, opt, θ', Ẋ')
+    iters = Optimize.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
 
@@ -95,15 +95,15 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
 end
 
 # For pareto
-function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractArray, maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimise.AbstractOptimiser
+function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractArray, maxiter::Int64 , opt::T, denoise::Bool, normalize::Bool, convergence_error) where T <: Optimize.AbstractOptimizer
 
     scales = ones(eltype(Ξ), size(θ, 1))
 
     denoise ? optimal_shrinkage!(θ') : nothing
     normalize ? normalize_theta!(scales, θ) : nothing
 
-    Optimise.init!(Ξ, opt, θ', Ẋ')'
-    iters = Optimise.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
+    Optimize.init!(Ξ, opt, θ', Ẋ')'
+    iters = Optimize.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
     normalize ? rescale_theta!(θ, scales) : nothing
@@ -129,18 +129,18 @@ end
 
 Performs Sparse Identification of Nonlinear Dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t` which are passed in optionally.
-`opt` is an `AbstractOptimiser` useable for sparse regression, `maxiter` the maximum iterations to perform and `convergence_error` the
-bound which causes the optimiser to stop.
+`opt` is an `AbstractOptimizer` useable for sparse regression, `maxiter` the maximum iterations to perform and `convergence_error` the
+bound which causes the optimizer to stop.
 `denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
 `normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
 
-If `SInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimisation over all thresholds.
+If `SInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimization over all thresholds.
 The best candidate is determined via the `AbstractScalarizationMethod` given in `alg`. The evaluation has two fields, the sparsity of the coefficients and the L2-Norm error at index 1 and 2 respectively.
 
-Returns a `SInDyResult`. If the pareto optimisation is used, the result combines the best candidate for each row of `Y`.
+Returns a `SInDyResult`. If the pareto optimization is used, the result combines the best candidate for each row of `Y`.
 """
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(), denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimise.AbstractOptimiser, S <: Number}
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimize.STRRidge(), denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer, S <: Number}
     Ξ, iters = sparse_regression(X, Ẋ, Ψ, p, t, maxiter, opt, denoise, normalize, convergence_error)
     convergence = iters < maxiter
     SparseIdentificationResult(Ξ, Ψ, iters, opt, convergence, Ẋ, X, p = p)
@@ -156,7 +156,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thre
     return SInDy(X, Ẋ', Ψ, thresholds; kwargs...)
 end
 
-function SInDy(X::AbstractArray{S, 2}, DX::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; alg::Optimise.AbstractScalarizationMethod = WeightedSum(), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimise.AbstractOptimiser, S <: Number}
+function SInDy(X::AbstractArray{S, 2}, DX::AbstractArray{S, 2}, Ψ::Basis, thresholds::AbstractArray ; alg::Optimize.AbstractScalarizationMethod = WeightedSum(), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimize.STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer, S <: Number}
     @assert size(X)[end] == size(DX)[end]
     nx, nm = size(X)
     ny, nm = size(DX)

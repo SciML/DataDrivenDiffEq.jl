@@ -5,7 +5,7 @@ mutable struct SparseIdentificationResult <: AbstractSparseIdentificationResult
     parameters::AbstractArray
     equations::Union{Function, Basis}
 
-    opt::Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
+    opt::Union{Optimize.AbstractOptimizer, Optimize.AbstractSubspaceOptimizer}
     iterations::Int64
     converged::Bool
 
@@ -45,7 +45,7 @@ end
     print_equations(res; show_parameter)
 
 Print the equations stored inside the `SparseIdentificationResult` `res`. If `show_parameter` is set
-to true, the numerical values will be used. Otherwise the symbolic form will appear.
+to true, the numerical values will be used. Otherwise, the symbolic form will appear.
 """
 function print_equations(r::SparseIdentificationResult; show_parameter::Bool = false)
     if show_parameter
@@ -62,13 +62,12 @@ end
     SparseIdentificationResult()
 
 Contains the result of a sparse identification. Contains the coefficient matrix `Ξ`,
-the equations of motion and its associated parameters. It stores also the optimiser, iteration counter and convergence status
-is stored.
+the equations of motion, and its associated parameters. It also stores the optimizer, iteration counter, and convergence status.
 
-Additionally, the model is evaluated over the training data and the ``L_2``-error, Akaikes Information Criterion and the ``L_0``-Norm of the coefficients
+Additionally, the model is evaluated over the training data and the ``L_2``-error, Akaikes Information Criterion, and the ``L_0``-Norm of the coefficients
 is stored.
 """
-function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T , convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = [], t::AbstractVector = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
+function SparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T , convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = [], t::AbstractVector = []) where T <: Union{Optimize.AbstractOptimizer, Optimize.AbstractSubspaceOptimizer}
     Ŷ = coeff'*equations(X, p, t)
     training_error = norm.(eachrow(Y-Ŷ), 2)
     sparsity = Int64.(norm.(eachcol(coeff), 0))
@@ -131,7 +130,7 @@ get_error(r::SparseIdentificationResult) = r.error
 """
     get_aicc(res)
 
-Return Akaikakes Information Criterion  of the `SparseIdentificationResult` over the training data.
+Return Akaikakes Information Criterion of the `SparseIdentificationResult` over the training data.
 """
 get_aicc(r::SparseIdentificationResult) = r.aicc
 

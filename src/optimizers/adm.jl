@@ -1,5 +1,5 @@
 
-mutable struct ADM{U, O} <: AbstractSubspaceOptimiser
+mutable struct ADM{U, O} <: AbstractSubspaceOptimizer
     λ::U
     R::O
 end
@@ -10,7 +10,7 @@ set_threshold!(opt::ADM, λ) = (opt.λ = λ; return)
 """
     ADM(λ = 0.1)
 
-Optimiser for finding a sparse basis vector in a subspace based on [this paper](https://arxiv.org/pdf/1412.4659.pdf).
+Optimizer for finding a sparse basis vector in a subspace based on [this paper](https://arxiv.org/pdf/1412.4659.pdf).
 `λ` is the weight for the soft-thresholding operation.
 """
 function ADM(λ::T = 0.1) where T <: Real

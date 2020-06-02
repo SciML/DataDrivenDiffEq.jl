@@ -1,4 +1,4 @@
-mutable struct ADMM{U} <: AbstractOptimiser
+mutable struct ADMM{U} <: AbstractOptimizer
     λ::U
     ρ::U
 end
@@ -9,7 +9,7 @@ end
 
 `ADMM` is an implementation of Lasso using the alternating direction methods of multipliers and loosely based on [this implementation](https://web.stanford.edu/~boyd/papers/admm/lasso/lasso.html).
 
-`λ` is the sparsification parameter, `ρ` the augmented lagrangian parameter.
+`λ` is the sparsification parameter, `ρ` the augmented Lagrangian parameter.
 
 # Example
 ```julia

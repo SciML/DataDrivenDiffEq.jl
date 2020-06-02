@@ -4,49 +4,49 @@ import StatsBase: sample
 
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
 """
-	AIC(k, X, Y; likelyhood = (X, Y) = sum(abs2, X-Y))
+	AIC(k, X, Y; likelihood = (X, Y) = sum(abs2, X-Y))
 
 Computes the Akaike Information Criterion (AIC) given the free parameters `k` for the data `X` and its
-estimate `Y` of the model. `likelyhood` can be any function of `X` and `Y`.
+estimate `Y` of the model. `likelihood` can be any function of `X` and `Y`.
 """
-function AIC(k::Int64, X::AbstractArray, Y::AbstractArray; likelyhood = (X,Y) -> sum(abs2, X-Y))
+function AIC(k::Int64, X::AbstractArray, Y::AbstractArray; likelihood = (X,Y) -> sum(abs2, X-Y))
     @assert size(X) == size(Y) "Dimensions of trajectories should be equal !"
-    return 2*k - 2*log(likelyhood(X, Y))
+    return 2*k - 2*log(likelihood(X, Y))
 end
 
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
 """
-	AICC(k, X, Y; likelyhood = (X, Y) = sum(abs2, X-Y))
+	AICC(k, X, Y; likelihood = (X, Y) = sum(abs2, X-Y))
 
 Computes the Akaike Information Criterion compensated for finite samples (AICC) given the free parameters `k` for the data `X` and its
-estimate `Y` of the model. `likelyhood` can be any function of `X` and `Y`.
+estimate `Y` of the model. `likelihood` can be any function of `X` and `Y`.
 """
-function AICC(k::Int64, X::AbstractMatrix, Y::AbstractMatrix; likelyhood = (X,Y) -> sum(abs2, X-Y))
+function AICC(k::Int64, X::AbstractMatrix, Y::AbstractMatrix; likelihood = (X,Y) -> sum(abs2, X-Y))
     @assert size(X) == size(Y) "Dimensions of trajectories should be equal !"
-    return AIC(k, X, Y, likelyhood = likelyhood)+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
+    return AIC(k, X, Y, likelihood = likelihood)+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
 end
 
-function AICC(k::Int64, X::AbstractVector, Y::AbstractVector; likelyhood = (X,Y) -> sum(abs2, X-Y))
+function AICC(k::Int64, X::AbstractVector, Y::AbstractVector; likelihood = (X,Y) -> sum(abs2, X-Y))
     @assert size(X) == size(Y) "Dimensions of trajectories should be equal !"
-    return AIC(k, X, Y, likelyhood = likelyhood)+ 2*(k+1)*(k+2)/(length(X)-k-2)
+    return AIC(k, X, Y, likelihood = likelihood)+ 2*(k+1)*(k+2)/(length(X)-k-2)
 end
 
 # Double check on that
 # Taken from https://www.immagic.com/eLibrary/ARCHIVES/GENERAL/WIKIPEDI/W120607B.pdf
 """
-	BIC(k, X, Y; likelyhood = (X, Y) = sum(abs2, X-Y))
+	BIC(k, X, Y; likelihood = (X, Y) = sum(abs2, X-Y))
 
 Computes Bayes Information Criterion (BIC) given the free parameters `k` for the data `X` and its
-estimate `Y` of the model. `likelyhood` can be any function of `X` and `Y`.
+estimate `Y` of the model. `likelihood` can be any function of `X` and `Y`.
 """
-function BIC(k::Int64, X::AbstractMatrix, Y::AbstractMatrix; likelyhood = (X,Y) -> sum(abs2, X-Y))
+function BIC(k::Int64, X::AbstractMatrix, Y::AbstractMatrix; likelihood = (X,Y) -> sum(abs2, X-Y))
     @assert size(X) == size(Y) "Dimensions of trajectories should be equal !"
-    return - 2*log(likelyhood(X, Y)) + k*log(size(X)[2])
+    return - 2*log(likelihood(X, Y)) + k*log(size(X)[2])
 end
 
-function BIC(k::Int64, X::AbstractVector, Y::AbstractVector; likelyhood = (X,Y) -> sum(abs2, X-Y))
+function BIC(k::Int64, X::AbstractVector, Y::AbstractVector; likelihood = (X,Y) -> sum(abs2, X-Y))
     @assert size(X) == size(Y) "Dimensions of trajectories should be equal !"
-    return - 2*log(likelyhood(X, Y)) + k*log(length(X))
+    return - 2*log(likelihood(X, Y)) + k*log(length(X))
 end
 
 # Optimal Shrinkage for data in presence of white noise
@@ -118,7 +118,7 @@ end
 	optimal_shrinkage(X)
 	optimal_shrinkage!(X)
 
-Compute a feature reduced version of the data array `X` via tresholding the
+Compute a feature reduced version of the data array `X` via thresholding the
 singular values by computing the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
 """
 function optimal_shrinkage(X::AbstractArray{T, 2}) where T <: Number
@@ -143,7 +143,7 @@ end
 
 Estimate the time derivative via the savitzky_golay filter. `X` is the data matrix containing the trajectories, which is interpolated
 via polynomials of order `polyOrder` over `windowSize` points repeatedly. `deriv` defines the order of the derivative, `dt`
-the timestepsize. `crop` indicates if the original data should be returned cropped along the derivative approximation.
+the time step size. `crop` indicates if the original data should be returned cropped along the derivative approximation.
 """
 function savitzky_golay(x::AbstractVector{T}, windowSize::Integer, polyOrder::Integer; deriv::Integer=0, dt::Real=1.0, crop::Bool = true) where T <: Number
 	# Polynomial smoothing with the Savitzky Golay filters

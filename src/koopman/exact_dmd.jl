@@ -2,7 +2,7 @@
     DMD(X; alg)
     DMD(X, Y; alg)
 
-Approximates a 'LinearKoopman' with the `AbstractKoopmanAlgorithm` 'alg' from the data matrices `X` or `X` and `Y` respectively.
+Approximates a 'LinearKoopman' with the `AbstractKoopmanAlgorithm` 'alg' from the data matrices `X` or `X` and `Y`, respectively.
 If only `X` is given, the data is split into `X[:, 1:end-1]` and `X[:, 2:end]`.
 
 # Example
@@ -35,9 +35,9 @@ end
 Approximates a 'LinearKoopman' with the `AbstractKoopmanAlgorithm` 'alg' from the data matrices `X` and `Y`.
 `X` should contain the state trajectory and `Y` the differential state trajectory.
 
-If no measurements of the differential state is available, `gDMD` can be called with measurement time points `t` as a first argument.
-It will then create an interpolation using the interpolation method from `DataInterpolations.jl` defined in `itp`. The trajectory will then be resample
-to equidistant measurements over time corresponding to the mean of `diff(t)` or `dt` if given.
+If no measurements of the differential state are available, `gDMD` can be called with measurement time points `t` as the first argument.
+It will then create an interpolation using the interpolation method from `DataInterpolations.jl` defined in `itp`. The trajectory will then be resampled
+to equidistant measurements over time corresponding to the mean of `diff(t)` or `dt`, if given.
 The differential state measurements will be computed via 'FiniteDifferences.jl', given a `FiniteDifferenceMethod` in `fdm`.
 
 # Example
