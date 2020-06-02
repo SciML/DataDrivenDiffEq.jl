@@ -6,11 +6,11 @@ While `SInDy` works well for ODEs, some systems take the form of rational functi
 \Xi = \min ~ \left\lVert \Theta(X, p, t)^{T} \Xi \right\rVert_{2} + \lambda ~ \left\lVert \Xi \right\rVert_{1}
 ```
 
-Where ``\Xi`` lies in the nullspace of ``\Theta``.
+where ``\Xi`` lies in the nullspace of ``\Theta``.
 
 ## Example
 
-Lets try to infer the [Michaelis-Menten Kinetics](https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics), like in the corresponding paper. We start by generating the
+Let's try to infer the [Michaelis-Menten Kinetics](https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics), like in the corresponding paper. We start by generating the
 corresponding data.
 
 ```@example isindy_1
@@ -42,7 +42,7 @@ for (i, xi) in enumerate(eachcol(X))
 end
 ```
 
-The signature of `ISInDy` is equal to `SInDy`, but requires an `AbstractSubspaceOptimser`. Currently `DataDrivenDiffEq` just implements `ADM()` based on [alternating directions](https://arxiv.org/pdf/1412.4659.pdf). `rtol` gets passed into the derivation of the `nullspace` via `LinearAlgebra`.
+The signature of `ISInDy` is equal to `SInDy`, but requires an `AbstractSubspaceOptimser`. Currently, `DataDrivenDiffEq` just implements `ADM()` based on [alternating directions](https://arxiv.org/pdf/1412.4659.pdf). `rtol` gets passed into the derivation of the `nullspace` via `LinearAlgebra`.
 
 ```@example isindy_1
 @variables u
@@ -54,7 +54,7 @@ nothing #hide
 ```
 
 The function call returns a `SparseIdentificationResult`.
-As in [Sparse Identification of Nonlinear Dynamics](@ref) we can transform the `SparseIdentificationResult` into an `ODESystem`.
+As in [Sparse Identification of Nonlinear Dynamics](@ref), we can transform the `SparseIdentificationResult` into an `ODESystem`.
 
 ```@example isindy_1
 # Transform into ODE System
@@ -77,7 +77,7 @@ The model recovered by `ISInDy` is  correct
 print_equations(Ψ)
 ```
 
-The parameters are off a little, but as before we can use `DiffEqFlux` to tune them.
+The parameters are off a little, but, as before, we can use `DiffEqFlux` to tune them.
 
 ## Functions
 

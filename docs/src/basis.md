@@ -8,9 +8,9 @@ Basis(h, u, parameters = [], iv = nothing)
 ```
 
 where `h` is either a vector of ModelingToolkit `Operation`s for the valid functional
-forms or a general function with the typical DiffEq signature `h(u,p,t)` which can be used with an  `Operation` or vector of `Operation`. `u` are the ModelingToolkit `Variable`s used to describe the Basis, and
+forms or a general function with the typical DiffEq signature `h(u,p,t)`, which can be used with an  `Operation` or vector of `Operation`. `u` are the ModelingToolkit `Variable`s used to describe the Basis, and
 `parameters` are the optional ModelingToolkit `Variable`s used to describe the
-parameters in the basis elements. `iv` represents the independent variable of the system, the time.
+parameters in the basis elements. `iv` represents the independent variable of the system - the time.
 
 ```@docs
 Basis
@@ -42,12 +42,12 @@ So, the function value at a single point looks like:
 ```@example basis
 x = b([1;2;3])
 ```
-Or in place
+Or, in place
 ```@example basis
 dx = similar(x)
 b(dx, [1;2;3])
 ```
-Notice that since we did not use any numerical values for the parameters. The basis than uses the symbolic values in the result.
+Notice that since we did not use any numerical values for the parameters, the basis uses the symbolic values in the result.
 
 To use numerical values, simply pass this on in the function call. Here, we evaluate over a trajectory with two parameters and 40 timestamps.
 
@@ -63,7 +63,7 @@ Suppose we want to add another equation, say `sin(u[1])`. A `Basis` behaves like
 push!(b, sin(u[1]))
 size(b)
 ```
-To ensure that a basis is well behaved, functions already present are not included again.
+To ensure that a basis is well-behaved, functions already present are not included again.
 
 ```@example basis
 push!(b, sin(u[1]))
@@ -78,7 +78,7 @@ push!(b, cos(t*π))
 println(b)
 ```
 
-Additionally, we can iterate over a `Basis` using `[eq for eq in basis]` or index specific equations like `basis[2]`.
+Additionally, we can iterate over a `Basis` using `[eq for eq in basis]` or index specific equations, like `basis[2]`.
 
 We can also chain `Basis` via just using it in the constructor
 
@@ -97,7 +97,7 @@ b3 = merge(b, b2)
 println(b3)
 ```
 
-Which combines all the used variables and parameters ( and assume the same independent_variable ):
+which combines all the used variables and parameters ( and assumes the same independent_variable ):
 
 ```@example basis
 variables(b)
@@ -116,7 +116,7 @@ b_f = Basis(f, u, parameters = w)
 println(b_f)
 ```
 
-This works for every function defined over `Operation`s. So to create a `Basis` from a `Flux` model, simply extend the activations used :
+This works for every function defined over `Operation`s. So to create a `Basis` from a `Flux` model, simply extend the activations used:
 
 ```julia
 using Flux

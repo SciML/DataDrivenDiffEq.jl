@@ -5,7 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/JuliaDiffEq/DataDrivenDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaDiffEq/DataDrivenDiffEq.jl?branch=master)
 [![codecov.io](http://codecov.io/github/JuliaDiffEq/DataDrivenDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaDiffEq/DataDrivenDiffEq.jl?branch=master)
 
-DataDrivenDiffEq.jl is a package in the SciML ecosystem for data-driven differential equation 
+DataDrivenDiffEq.jl is a package in the SciML ecosystem for data-driven differential equation
 structural estimation and identification. These tools include automatically discovering equations
 from data and using this to simulate perturbed dynamics.
 
@@ -75,7 +75,7 @@ get_error(Ψ)
 ```
 
 ```
-3 dimensional basis in ["x", "y", "z"]
+3-dimensional basis in ["x", "y", "z"]
 dx = p₁ * x + p₂ * y
 dy = p₃ * x + p₄ * y + z * x * p₅
 dz = p₆ * z + x * y * p₇

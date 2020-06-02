@@ -1,10 +1,10 @@
 # Quickstart
 
-In the following, we will use some of the techniques provide by `DataDrivenDiffEq` to infer some models.
+In the following, we will use some of the techniques provided by `DataDrivenDiffEq` to infer some models.
 
 ## Linear Damped Oscillator - Dynamic Mode Decomposition
 
-To begin, lets create our own data for the linear oscillator with damping.
+To begin, let's create our own data for the linear oscillator with damping.
 
 
 ```@example 1
@@ -31,9 +31,9 @@ savefig("linear_solution.png") #hide
 ```
 ![](linear_solution.png)
 
-Lets assume we have just the trajectory data and lets call it `X`.
-Since we gathered the data at at fixed interval of one time unit, we will try to fit
-a linear model. And of course, we use a subset of the data for training and the rest for
+Let's assume we have just the trajectory data and let's call it `X`.
+Since we gathered the data at a fixed interval of one time unit, we will try to fit
+a linear model. And, of course, we use a subset of the data for training and the rest for
 testing.
 
 ```@example 1
@@ -53,9 +53,9 @@ savefig("pendulum_approximation.png") #hide
 
 Yeah! The model fits! But what exactly did we do?
 
-`DMD` is short for [Dynamic Mode Decomposition](@ref), a technique which generates a linear model from data. So given the data matrix `X` we simply divided it up into two data sets and performed a linear fitting between those.
+`DMD` is short for [Dynamic Mode Decomposition](@ref), a technique which generates a linear model from data. So, given the data matrix `X`, we simply divided it up into two data sets and performed a linear fitting between those.
 
-Note that we fitted a **discrete** model which fits our **continuous** data. This is possible because
+Note that we fitted a **discrete** model, which fits our **continuous** data. This is possible because:
 
 + The measurements were taken at an interval of `1.0`
 + The original, unknown model has a discrete, linear solution
@@ -70,7 +70,7 @@ norm(K - exp(dt*[0.0 1.0; -1.0 -0.1]), 2)
 
 The reason for using `operator` as a function to get the corresponding matrix of the approximation is the connection of Dynamic Mode Decomposition to the [Koopman Operator](@ref koopman_operator). You might have noticed that the return value of `DMD` is a `LinearKoopman`.
 
-The `LinearKoopman` overloads some useful functions from `LinearAlgebra` to perform analysis. Lets have a look at the eigenvalues of the operator
+The `LinearKoopman` overloads some useful functions from `LinearAlgebra` to perform analysis. Let's have a look at the eigenvalues of the operator:
 
 ```@example 1
 scatter(eigvals(approximation))
@@ -86,10 +86,10 @@ savefig("eigenvalue_lineardamped.png") #hide
 ```
 ![](eigenvalue_lineardamped.png)
 
-For more information on the `LinearKoopman` have a look at the corresponding documentation.
+For more information on the `LinearKoopman`, have a look at the corresponding documentation.
 
 But wait! We want a continuous model. There is also a corresponding algorithm for this : `gDMD` !
-Opposed to `DMD` which provides a discrete model based on the direct measurements `X`, `gDMD` estimates the generator of the dynamical system given `X` and the differential states `DX`. Since we did not measure any differential states, we can just provide a vector of time measurements. `gDMD` will automatically interpolate using [DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl) and perform numerical differentiation using [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl).
+As opposed to `DMD`, which provides a discrete model based on the direct measurements `X`, `gDMD` estimates the generator of the dynamical system given `X` and the differential states `DX`. Since we did not measure any differential states, we can just provide a vector of time measurements. `gDMD` will automatically interpolate using [DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl) and perform numerical differentiation using [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl).
 
 Here, we will provide `gDMD` with the measurement data and use a new sample time of `0.1`
 
@@ -108,7 +108,7 @@ savefig("linear_approximation_cont.png") #hide
 ```
 ![](linear_approximation_cont.png)
 
-Since we have a continuous estimation, lets look at the `generator` of the estimation
+Since we have a continuous estimation, let's look at the `generator` of the estimation
 
 ```@example 1
 G = generator(generator_approximation)
@@ -119,10 +119,10 @@ norm(G-[0.0 1.0; -1.0 -0.1], 2)
 
 But what about nonlinear systems? Even though Dynamic Mode Decomposition will help us
 to figure out the *best linear fit*, we are interested in figuring out all the nonlinear parts of the equations.
-Luckily, Koopman theory covers this! To put it very (very very) simple : If you spread out your information in many **observeable functions**, you will end up with a linear system in those observeables. So you might end up with a trade off between a huge system which is linear in the observeables vs. a small, nonlinear system.
+Luckily, Koopman theory covers this! To put it very (very very) simply : If you spread out your information in many **observable functions**, you will end up with a linear system in those observables. So you might end up with a trade-off between a huge system which is linear in the observables vs a small, nonlinear system.
 
 But how can we leverage this? We use the [Extended Dynamic Mode Decomposition](https://arxiv.org/abs/1408.4408), or `EDMD` for short.
-`EDMD` does more or less the exact same thing like `DMD`, but in the new `Basis` of nonlinear observeables.
+`EDMD` does more or less the exact same thing like `DMD`, but in the new `Basis` of nonlinear observables.
 We will investigate now a fairly standard system, with a slow and fast manifold, for which there exists an [analytical solution of this problem](https://arxiv.org/abs/1510.03007).
 
 ```@example 2
@@ -154,15 +154,15 @@ savefig("slow_manifold.png") # hide
 ```
 ![](slow_manifold.png)
 
-Since we want to estimate the continuous system, we capture also the trajectory of the differential states.
-Now we will create our nonlinear observeables, which is represented as a `Basis` in `DataDrivenDiffEq.jl`.
+Since we want to estimate the continuous system, we also capture the trajectory of the differential states.
+Now, we will create our nonlinear observables, which is represented as a `Basis` in `DataDrivenDiffEq.jl`.
 
 ```@example 2
 @variables u[1:2]
 
-observeables = [u; u[1]^2]
+observables = [u; u[1]^2]
 
-basis = Basis(observeables, u)
+basis = Basis(observables, u)
 ```
 
 A `Basis` captures a bunch of functions defined over some variables provided via [ModelingToolkit.jl](https://github.com/SciML/ModelingToolkit.jl).
@@ -191,7 +191,7 @@ Looking at the eigenvalues of the system, we see that the estimated eigenvalues 
 
 ## Nonlinear Systems - Sparse Identification of Nonlinear Dynamics
 
-Okay, so far we can fit linear models via DMD and nonlinear models via EDMD. But what if we want to find a model of a nonliear system *without moving to koopman space*? Simple, we use [Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) or `SInDy`.
+Okay, so far we can fit linear models via DMD and nonlinear models via EDMD. But what if we want to find a model of a nonlinear system *without moving to Koopman space*? Simple, we use [Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) or `SInDy`.
 
 As the name suggests, `SInDy` finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system
 
@@ -222,17 +222,17 @@ savefig("nonlinear_pendulum.png") # hide
 ```
 ![](nonlinear_pendulum.png)
 
-Which is the simple nonlinear pendulum with damping.
+which is the simple nonlinear pendulum with damping.
 
 Suppose we are like John and know nothing about the system, we have just the data in front of us. To apply `SInDy`, we need three ingredients:
 
 + A `Basis` containing all possible candidate functions which might be in the model
-+ An optimiser which is able to produce a sparse output
-+ A threshold for the optimiser
++ An optimizer which is able to produce a sparse output
++ A threshold for the optimizer
 
-**It might seem to you that the third point is more a parameter of the optimiser (which it is), but nevertheless it is a crucial decision where to cutoff parameters.**
+**It might seem to you that the third point is more a parameter of the optimizer (which it is), but, nevertheless, it is a crucial decision where to cut off parameters.**
 
-So, lets create a bunch of basis functions for our problem first
+So, let's create a bunch of basis functions for our problem first
 
 ```@example 3
 
@@ -244,7 +244,7 @@ basis = Basis(h, u)
 nothing # hide
 ```
 
-`DataDrivenDiffEq` comes with some optimisers to tackle sparse regression problems. Here we will use `SR3`, used [here](https://arxiv.org/abs/1906.10612) and introduced [here](https://ieeexplore.ieee.org/document/8573778). We choose a threshold of `3.5e-1` and start the optimiser.
+`DataDrivenDiffEq` comes with some optimizers to tackle sparse regression problems. Here, we will use `SR3`, used [here](https://arxiv.org/abs/1906.10612) and introduced [here](https://ieeexplore.ieee.org/document/8573778). We choose a threshold of `3.5e-1` and start the optimizer.
 
 ```@example 3
 opt = SR3(3e-1, 1.0)
@@ -252,7 +252,7 @@ opt = SR3(3e-1, 1.0)
 print_equations(Ψ) # hide
 ```
 
-We recovered the equations! Lets transform the `SInDyResult` into an performant piece of
+We recovered the equations! Let's transform the `SInDyResult` into a performant piece of
 Julia Code using `ODESystem`
 
 ```@example 3

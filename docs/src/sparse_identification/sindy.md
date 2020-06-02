@@ -1,19 +1,19 @@
 # Sparse Identification of Nonlinear Dynamics
 
-[Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) - or SINDy - identifies the equations of motion of a system as the result of a sparse regression over a chosen basis. In particular, it tries to find coefficients ``\Xi`` such that
+[Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) - or SINDy - identifies the equations of motion of a system as the result of a sparse regression over a chosen basis. In particular, it tries to find coefficients ``\Xi`` such that:
 
 ```math
 \Xi = \min ~ \left\lVert Y^{T} - \Theta(X, p, t)^{T} \Xi \right\rVert_{2} + \lambda ~ \left\lVert \Xi \right\rVert_{1}
 ```
 
-where in most cases ``Y``is the data matrix containing the derivatives of the state data stored in ``X``. ``\Theta`` is a matrix containing candidate functions ``\xi`` over the measurements in ``X``.
+where, in most cases, ``Y``is the data matrix containing the derivatives of the state data stored in ``X``. ``\Theta`` is a matrix containing candidate functions ``\xi`` over the measurements in ``X``.
 
 
 
 ## Example
 
 As in the original paper, we will estimate the [Lorenz System](https://en.wikipedia.org/wiki/Lorenz_system).
-First, lets create the necessary data and have a look at the trajectory.
+First, let's create the necessary data and have a look at the trajectory.
 
 ```@example sindy_1
 using DataDrivenDiffEq
@@ -77,7 +77,7 @@ nothing #hide
 
 *A `Basis` consists of unique functions, so duplicates will be included just once*
 
-To perform the sparse identification on our data, we need to define an `Optimiser`. Here we will use `STRRidge` which is described in the original paper. The threshold of the optimiser is set to `0.1`. An overview of the different optimisers can be found below.
+To perform the sparse identification on our data, we need to define an `Optimizer`. Here, we will use `STRRidge`, which is described in the original paper. The threshold of the optimizer is set to `0.1`. An overview of the different optimizers can be found below.
 
 ```@example sindy_1
 opt = STRRidge(0.1)
@@ -91,7 +91,7 @@ To look at the equations, simply type
 print_equations(Ψ)
 ```
 
-First, lets have a look at the ``L2``-Error and Akaikes Information Criterion of the result
+First, let's have a look at the ``L2``-Error and Akaikes Information Criterion of the result
 
 ```@example sindy_1
 get_error(Ψ)
@@ -124,15 +124,15 @@ plot!(sol, vars = (0,1), label = "Estimation") # hide
 savefig("lorenz_trajectory_estimate.png") # hide
 ```
 
-Lets have a look at the trajectory of ``u_{1}(t)``.
+Let's have a look at the trajectory of ``u_{1}(t)``.
 
 ![](lorenz_trajectory_estimate.png)
 
-Finally, lets investigate the error of the chaotic equations:
+Finally, let's investigate the error of the chaotic equations:
 
 ![](lorenz_error.png)
 
-Which resembles the papers results. Next, we could use [classical parameter estimation methods](https://docs.sciml.ai/stable/analysis/parameter_estimation/) or use [DiffEqFlux](https://github.com/SciML/DiffEqFlux.jl) to fine tune our result (if needed ).
+which resembles the papers results. Next, we could use [classical parameter estimation methods](https://docs.sciml.ai/stable/analysis/parameter_estimation/) or use [DiffEqFlux](https://github.com/SciML/DiffEqFlux.jl) to fine-tune our result (if needed).
 
 ## Functions
 

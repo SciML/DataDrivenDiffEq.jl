@@ -2,13 +2,13 @@
 
 [Extended Dynamic Mode Decomposition](https://link.springer.com/article/10.1007/s00332-015-9258-5) is a method for
 generating an approximating linear differential equation in a chosen basis of observables.
-If `X` and `Y` are data matrices containing points of the same trajectory and `Ψ` is a basis, than `EDMD` approximates
+If `X` and `Y` are data matrices containing points of the same trajectory and `Ψ` is a basis, then `EDMD` approximates
 
 ```math
 K = Ψ(Y)~Ψ(X)^{\dagger}
 ```
 
-where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the [Koopman Operator](@ref).
+where ``\dagger`` denotes the Moore-Penrose pseudoinverse and `K` is the approximation of the [Koopman Operator](@ref).
 
 `EDMD` approximates *discrete time systems* of the form
 
