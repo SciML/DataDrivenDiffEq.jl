@@ -8,7 +8,7 @@ If `X` and `Y` are data matrices containing points of the same trajectory, than 
 K = Y~X^{\dagger}
 ```
 
-where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the [Koopman Operator](@ref koopman_operator).
+where ``\dagger`` denotes the Moore-Penrose pseudoinverse and `K` is the approximation of the [Koopman Operator](@ref koopman_operator).
 
 `DMD` approximates *discrete time systems* of the form
 

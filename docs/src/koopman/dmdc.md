@@ -2,14 +2,14 @@
 
 [Dynamic Mode Decomposition with Control](https://epubs.siam.org/doi/abs/10.1137/15M1013857) is a method for
 generating an approximating linear differential equation in a chosen basis of observables.
-If `X` and `Y` are data matrices containing points of the same trajectory and `U` containing the exogenuos inputs
-acting on that trajectory, `DMDc` approximates
+If `X` and `Y` are data matrices containing points of the same trajectory and `U` containing the exogenous inputs
+acting on that trajectory, then `DMDc` approximates
 
 ```math
 G = Y~\left[ \begin{array}{c} X \\ U \end{array} \right]^{\dagger} = \left[K ~B \right]
 ```
 
-where ``\dagger`` denotes the Moore-Penrose pseudo inverse and `K` is the approximation of the [Koopman Operator](@ref koopman_operator) and `B` the linear input map.
+where ``\dagger`` denotes the Moore-Penrose pseudoinverse and `K` is the approximation of the [Koopman Operator](@ref koopman_operator) and `B` the linear input map.
 
 `DMDc` approximates *discrete time systems* with inputs ``z`` of the form
 
