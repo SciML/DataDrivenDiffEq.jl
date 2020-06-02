@@ -20,7 +20,7 @@
     @test AIC(k, X, Y) == 2*k-2*log(sum(abs2, X- Y))
     @test AICC(k, X, Y) == AIC(k, X, Y)+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
     @test BIC(k, X, Y) == -2*log(sum(abs2, X -Y)) + k*log(size(X)[2])
-    @test AICC(k, X, Y, likelyhood = (X,Y)->sum(abs, X-Y)) == AIC(k, X, Y, likelyhood = (X,Y)->sum(abs, X-Y))+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
+    @test AICC(k, X, Y, likelihood = (X,Y)->sum(abs, X-Y)) == AIC(k, X, Y, likelihood = (X,Y)->sum(abs, X-Y))+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
 
     # Numerical derivatives
     function lorenz(u,p,t)
@@ -90,7 +90,7 @@
     @test size(xs)[end] == size(ts)[end]
     @test size(xs)[1] == size(X)[1]
     @test all(diff(ts) .≈ 0.5)
-    # Loop this a few times to be sure its right
+    # Loop this a few times to make sure it's right
     @test_nowarn for i in 1:20
         xs, ts = burst_sampling(X, t, 2.0, 1)
         xs, ts = subsample(X, t, 0.5)

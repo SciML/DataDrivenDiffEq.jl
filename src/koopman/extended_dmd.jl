@@ -2,11 +2,11 @@
     EDMD(X, basis; alg, p, t, C)
     EDMD(X, Y, basis; alg, p, t, C)
 
-Approximates a 'NonlinearKoopman' with the `AbstractKoopmanAlgorithm` 'alg' from the data matrices `X` or `X` and `Y` respectively.
+Approximates a 'NonlinearKoopman' with the `AbstractKoopmanAlgorithm` 'alg' from the data matrices `X` or `X` and `Y`, respectively.
 If only `X` is given, the data is split into `X[:, 1:end-1]` and `X[:, 2:end]`.
 
 Additional keyworded arguments include `p` for the parameter of the basis and `t` for an array of time points.
-`C` is the matrix representing the mapping from koopman space into state space.
+`C` is the matrix representing the mapping from the Koopman space into the state space.
 
 # Example
 
@@ -26,7 +26,7 @@ function EDMD(X::AbstractArray, Y::AbstractArray, Ψ::AbstractBasis; p::Abstract
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
     @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
 
-    # Based upon William et.al. , A Data-Driven Approximation of the Koopman operator
+    # Based upon William et.al., A Data-Driven Approximation of the Koopman operator
 
     # Number of states and measurements
     N,M = size(X)
@@ -50,7 +50,7 @@ function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::AbstractBasis; p::Abstra
     @assert size(X)[2] .== size(DX)[2] "Provide consistent dimensions for data"
     @assert size(DX)[1] .<= size(DX)[2] "Provide consistent dimensions for data"
 
-    # Based upon William et.al. , A Data-Driven Approximation of the Koopman operator
+    # Based upon William et.al., A Data-Driven Approximation of the Koopman operator
 
     # Number of states and measurements
     N,M = size(X)
@@ -83,9 +83,9 @@ end
 Approximates a 'NonlinearKoopman' with the `AbstractKoopmanAlgorithm` 'alg' from the data matrices `X` and `Y`.
 `X` should contain the state trajectory and `Y` the differential state trajectory.
 
-If no measurements of the differential state is available, `gEDMD` can be called with measurement time points `t` as a first argument.
-It will then create an interpolation using the interpolation method from `DataInterpolations.jl` defined in `itp`. The trajectory will then be resample
-to equidistant measurements over time corresponding to the mean of `diff(t)` or `dt` if given.
+If no measurements of the differential state are available, `gEDMD` can be called with measurement time points `t` as the first argument.
+It will then create an interpolation using the interpolation method from `DataInterpolations.jl` defined in `itp`. The trajectory will then be resampled
+to equidistant measurements over time corresponding to the mean of `diff(t)` or `dt`, if given.
 The differential state measurements will be computed via 'FiniteDifferences.jl', given a `FiniteDifferenceMethod` in `fdm`.
 
 # Example

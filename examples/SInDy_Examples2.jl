@@ -31,13 +31,13 @@ for (i, xi) in enumerate(eachcol(X))
     DX[:,i] = lorenz(xi, [], 0.0)
 end
 
-# Estimate differential data from state variables via a Savitzky-Golay filter
+# Estimate differential data from state variables via the Savitzky-Golay filter
 # Test on a single variable
 windowSize, polyOrder = 9, 4
 DX1_cropped, DX1_sg = savitzky_golay(X[1,:], windowSize, polyOrder, deriv=1, dt=dt)
 
-# By default savitzky_golay function crop the borders, where the estimation
-# is less accurate. Optionally this can be turn off by passing the
+# By default, the savitzky_golay function crops the borders, where the estimation
+# is less accurate. Optionally, this can be turned off by passing the
 # argument `crop = false` to savitzky_golay function.
 
 # Check if the estimated derivatives are approximate to the "ground truth"
@@ -49,7 +49,7 @@ plot(DX1_sg, label = "Estimated with Savitzky-Golay filter")
 plot!(DX[1,:],label="Ground truth")
 
 
-# Now let's estimate the derivatives for all variables and use them infer the equations
+# Now let's estimate the derivatives for all variables and use them to infer the equations
 X_cropped, DX_sg = savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt)
 
 # Create a basis

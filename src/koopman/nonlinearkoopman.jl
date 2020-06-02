@@ -1,17 +1,17 @@
 """
     NonlinearKoopman(K, B, C, basis, Q, P, discrete)
 
-An approximation of the koopman operator which is nonlinear in the states.
+An approximation of the Koopman operator which is nonlinear in the states.
 
 `K` is the array representing the operator, `B` is the (possible present) array
-representing the influence of exogenuos inputs on the evolution.
-`C` is the array mapping from the koopman space to the original state space. `basis` is a
-[Basis]@ref(Basis), mapping the state space to the koopman space.
+representing the influence of exogenous inputs on the evolution.
+`C` is the array mapping from the Koopman space to the original state space. `basis` is a
+[Basis]@ref(Basis), mapping the state space to the Koopman space.
 
 `Q` and `P` are matrices used for updating the operator with new measurements.
 `discrete` indicates if the operator is discrete or continuous.
 
-The koopman operator is callable with the typical signature of `f(u,p,t)` and `f(du,u,p,t)` respectively.
+The Koopman operator is callable with the typical signature of `f(u,p,t)` and `f(du,u,p,t)`, respectively.
 
 # Example
 
@@ -19,7 +19,7 @@ The koopman operator is callable with the typical signature of `f(u,p,t)` and `f
 k = EDMD(X, basis)
 
 u = k([2.0; 0.5], nothing, nothing)
-du = similiar(u)
+du = similar(u)
 k(du, u, nothing, nothing)
 ```
 """
@@ -50,13 +50,13 @@ end
 """
     update!(k, X, Y; p = [], t = [], threshold = eps())
 
-Update the Koopman `k` given new data `X` and `Y`. The operator is updated in place, if
+Update the Koopman `k` given new data `X` and `Y`. The operator is updated in place if
 the L2 error of the prediction exceeds the `threshold`.
 
-`p` and `t` are the parameters of the basis and the vector of timepoints if necessary.
+`p` and `t` are the parameters of the basis and the vector of timepoints, if necessary.
 """
 function update!(k::NonlinearKoopman, X::AbstractArray, Y::AbstractArray; p::AbstractArray = [], t::AbstractVector = [], threshold::T = eps()) where {T <: Real}
-    @assert updateable(k) "Linear Koopman is not updateable."
+    @assert updatable(k) "Linear Koopman is not updatable."
 
     Ψ₀ = k.basis(X, p, t)
     Ψ₁ = k.basis(Y, p, t)
@@ -84,8 +84,8 @@ end
 """
     reduce_basis(k; threshold)
 
-Reduces the `basis` of the nonlinear koopman using the 1-norm of each row
-of the matrix `C*K`. Rows where the threshold is not reached, are deleted.
+Reduces the `basis` of the nonlinear Koopman using the 1-norm of each row
+of the matrix `C*K`. Rows where the threshold is not reached are deleted.
 """
 function reduce_basis(k::NonlinearKoopman; threshold = 1e-5)
     b = k.output*k.operator

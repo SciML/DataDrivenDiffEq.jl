@@ -10,18 +10,18 @@
     ISInDy(X, Y, Ψ; weights, f_target, maxiter, rtol, p, t, opt)
 
 Performs an implicit sparse identification of nonlinear dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
-Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t` which are passed in optionally.
-`opt` is an `AbstractSubspaceOptimiser` useable for sparse regression within the nullspace, `maxiter` the maximum iterations to perform and `convergence_error` the
-bound which causes the optimiser to stop.
+Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t`, which are passed in optionally.
+`opt` is an `AbstractSubspaceOptimizer` useable for sparse regression within the nullspace, `maxiter` the maximum iterations to perform, and `convergence_error` the
+bound which causes the optimizer to stop.
 
-The best vectors of the sparse nullspace are selected via multi objective optimisation.
-The best candidate is determined via the `AbstractScalarizationMethod` given in `alg`. The evaluation has two fields, the sparsity of the coefficients and the L2-Norm error at index 1 and 2 respectively.
+The best vectors of the sparse nullspace are selected via multi-objective optimization.
+The best candidate is determined via the `AbstractScalarizationMethod` given in `alg`. The evaluation has two fields, the sparsity of the coefficients and the L2-Norm error at index 1 and 2, respectively.
 
 `rtol` gets directly passed into the computation of the nullspace.
 
 Returns a `SInDyResult`.
 """
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimise.AbstractScalarizationMethod = WeightedSum(), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimise.AbstractSubspaceOptimiser
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimize.AbstractScalarizationMethod = WeightedSum(), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
@@ -55,7 +55,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimise.A
                 conditional_add!(opt_front, tmp_front)
             end
         end
-        Ξ[:, i] .= Optimise.parameter(opt_front[1])
+        Ξ[:, i] .= Optimize.parameter(opt_front[1])
         Ξ[:, i] .= Ξ[:, i] ./ maximum(abs.(Ξ[:, i]))
     end
 
@@ -64,7 +64,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimise.A
 end
 
 
-function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T, convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = [], t::AbstractVector = []) where T <: Union{Optimise.AbstractOptimiser, Optimise.AbstractSubspaceOptimiser}
+function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T, convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = [], t::AbstractVector = []) where T <: Union{Optimize.AbstractOptimizer, Optimize.AbstractSubspaceOptimizer}
 
     sparsities = Int64.(norm.(eachcol(coeff), 0))
 

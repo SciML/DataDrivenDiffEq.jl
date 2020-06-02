@@ -14,8 +14,8 @@ inputmap
 outputmap
 update!
 is_discrete
-is_continouos
-updateable
+is_continuous
+updatable
 isstable
 eigen
 eigvals

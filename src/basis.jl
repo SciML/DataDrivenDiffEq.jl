@@ -36,8 +36,8 @@ is_independent(o::Operation) = isempty(o.args)
 """
     Basis(f, u; p, iv)
 
-A basis over the variables `u` with parameters `p` and indepent variable `iv`.
-`f` can either be a julia function which is able to use ModelingToolkit variables or
+A basis over the variables `u` with parameters `p` and independent variable `iv`.
+`f` can either be a Julia function which is able to use ModelingToolkit variables or
 a vector of `Operation`.
 It can be called with the typical DiffEq signature, meaning out of place with `f(u,p,t)`
 or in place with `f(du, u, p, t)`.
@@ -111,7 +111,7 @@ end
 """
     push!(basis, op)
 
-    Push the operation(s) in `op` into the basis and updates all internal fields accordingly.
+    Push the operation(s) in `op` into the basis and update all internal fields accordingly.
     `op` can either be a single `Operation` or an Array of `Operation`s.
 """
 function Base.push!(b::Basis, ops::AbstractArray{Operation})
@@ -135,7 +135,7 @@ end
 """
     deleteat!(basis, inds)
 
-    Delete the entries specified by `inds` and updates the `Basis` accordingly.
+    Delete the entries specified by `inds` and update the `Basis` accordingly.
 """
 function Base.deleteat!(b::Basis, inds)
     deleteat!(b.basis, inds)
@@ -146,7 +146,7 @@ end
 """
     merge(basis_a, basis_b)
 
-    Return a new `Basis` which is defined via the union of both basis.
+    Return a new `Basis`, which is defined via the union of both bases.
 """
 function Base.merge(basis_a::Basis, basis_b::Basis)
     b =  unique(vcat(basis_a.basis, basis_b.basis))
@@ -158,7 +158,7 @@ end
 """
     merge!(basis_a, basis_b)
 
-    Updates the `Basis` to include the union of both basis.
+    Updates the `Basis` to include the union of both bases.
 """
 function Base.merge!(basis_a::Basis, basis_b::Basis)
     push!(basis_a, basis_b.basis)

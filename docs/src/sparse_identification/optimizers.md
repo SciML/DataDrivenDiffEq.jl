@@ -1,7 +1,7 @@
 # Optimizer
 
 `DataDrivenDiffEq` comes with some implementations for sparse regression included. All of these are stored inside the
-`DataDrivenDiffEq.Optimise` package and extend the `AbstractOptimiser`, if an explicit optimization is needed or the `AbstractSubspaceOptimiser` for an implicit problem (where the solution is within the nullspace).
+`DataDrivenDiffEq.Optimize` package and extend the `AbstractOptimizer`, if an explicit optimization is needed or the `AbstractSubspaceOptimizer` for an implicit problem (where the solution is within the nullspace).
 
 Additionally, basic strategies for multi-objective optimization within the scope of this package are given. These include `AbstractScalarizationMethod`s.
 
@@ -23,7 +23,7 @@ Similarly to [Algorithms for Estimation](@ref), the extension of optimizers is m
 Suppose you want to define a new optimizer `MyOpt`, which should solve ``A~X = Y`` for a sparse ``X``.
 
 ```julia
-mutable struct MyOpt <: DataDrivenDiffEq.Optimise.AbstractOptimiser
+mutable struct MyOpt <: DataDrivenDiffEq.Optimize.AbstractOptimizer
     threshold
 end
 ```

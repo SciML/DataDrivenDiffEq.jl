@@ -12,8 +12,8 @@ using Compat
 abstract type AbstractBasis end;
 abstract type AbstractKoopmanOperator end;
 
-include("./optimisers/Optimise.jl")
-using .Optimise
+include("./optimizers/Optimize.jl")
+using .Optimize
 
 export set_threshold!, set_threshold
 export STRRidge, ADMM, SR3

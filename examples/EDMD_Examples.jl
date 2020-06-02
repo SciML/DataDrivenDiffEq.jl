@@ -26,10 +26,10 @@ sol = solve(prob, FunctionMap(), atol = 1e-8, rtol = 1e-8)
 plot(sol)
 
 
-# Build the edmd with subset of measurements
+# Build the edmd with a subset of measurements
 approximator = EDMD(sol[:,:], basis)
 
-# Lets look at the eigenvalues
+# Let's look at the eigenvalues
 scatter(eigvals(approximator))
 
 # Solve the estimation problem
@@ -43,7 +43,7 @@ plot(sol_)
 plot(sol.t, abs.(sol - sol_)')
 norm(sol-sol_) # ≈ 2.52e-13
 
-# Get the linear dynamics in koopman space
+# Get the linear dynamics in the Koopman space
 dψ(u, p, t) = operator(approximator)*u
 dψ(du, u, p, t) = du .= operator(approximator)*u
 ψ0 = basis(u0)

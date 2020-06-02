@@ -3,14 +3,14 @@ using DataDrivenDiffEq
 using Plots
 using ModelingToolkit
 
-# Frist we define a set of variables and parameters
+# First, we define a set of variables and parameters
 @variables u[1:3]
 @parameters t w[1:2]
 
-# Now the equations which form our basis
+# Now, the equations which form our basis
 h = [u[1]; u[2]; cos(w[1]*u[2]+w[2]*u[3])]
 
-# Then we simply create a basis
+# Then, we simply create a basis
 b= Basis(h, u, parameters = w)
 ODESystem(b)
 
@@ -28,7 +28,7 @@ println(b)
 push!(b, sin(u[1]))
 size(b) # (4)
 
-# Adding an equation which is already present, does not change the basis
+# Adding an equation which is already present does not change the basis
 push!(b, sin(u[1]))
 size(b) # Still 4
 
@@ -37,10 +37,10 @@ for bi in b
     println(bi)
 end
 
-# Index specific eqs
+# Index-specific eqs
 b[3]
 
-# And of course evaluate over trajectories
+# And, of course, evaluate over trajectories
 X = randn(3, 40)
 Y_p = b(X)
 # With parameter and time

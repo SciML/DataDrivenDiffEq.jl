@@ -54,7 +54,7 @@ res = SparseIdentificationResult[]
 λs = exp10.(-5:0.1:-1)
 
 
-function bla(X, DX, Ψ::Basis, thresholds::AbstractArray ; pf::ParetoFront = ParetoFront(), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimise.STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: DataDrivenDiffEq.Optimise.AbstractOptimiser, S <: AbstractSortingMethod}
+function bla(X, DX, Ψ::Basis, thresholds::AbstractArray ; pf::ParetoFront = ParetoFront(), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimize.STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: DataDrivenDiffEq.Optimize.AbstractOptimizer, S <: AbstractSortingMethod}
     @assert size(X)[end] == size(DX)[end]
     nx, nm = size(X)
     ny, nm = size(DX)
