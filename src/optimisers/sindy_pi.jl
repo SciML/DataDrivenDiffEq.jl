@@ -44,14 +44,14 @@ function fit!(A::AbstractArray, opt::ParallelImplicit; maxiter::Int64 = 1, conve
     idx = trues(length(qi))
 
     # Now tryout all columns of Theta as lhs
-    for j in 1:size(A, 1)-1
+    for j in 1:size(A, 1)
         qi .= zero(eltype(qi))
         qi[j] = one(eltype(qi))
         idx .= true
         idx[j] = false
 
-        qi[idx] = init(opt.opt, A[idx, :]', A[j, :])
-        iters = fit!(qi[idx], A[idx, :]', A[j, :], opt.opt,  maxiter = maxiter, convergence_error = convergence_error)
+        qi[idx] = init(opt.opt, A[idx, :]', -A[j, :])
+        iters = fit!(qi[idx], A[idx, :]', -A[j, :], opt.opt,  maxiter = maxiter, convergence_error = convergence_error)
 
         if j == 1
             set_candidate!(opt_front, 1, [norm(qi[idx], 0); norm(A[j,:] - A[idx, :]'*qi[idx], 2)], deepcopy(qi), iters, get_threshold(opt))
