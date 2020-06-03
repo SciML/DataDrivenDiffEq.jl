@@ -29,7 +29,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimise.A
     Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
 
     Optimise.fit!(Ξ, θ, Ẋ, opt, maxiter = maxiter, alg = alg, rtol = rtol)
-    return Ξ
+
     return ImplicitSparseIdentificationResult(Ξ, Ψ, maxiter, opt, true, Ẋ, X, p = p, t = t)
 end
 
@@ -91,7 +91,7 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
             end
         end
 
-        if !(eq_n === nothing && eq_d === nothing)
+        if eq_n != nothing && eq_d != nothing
             push!(b_, -eq_n ./ eq_d)
         end
     end
