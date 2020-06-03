@@ -22,7 +22,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::Paralle
     θ = zeros(eltype(A), size(X, 1), size(A, 2))
     θ[size(A, 1)+1:end, :] .= A
 
-
+    # TODO maybe add normalization here
     @inbounds for i in 1:size(Y, 1)
         for j in 1:size(A, 2)
             θ[1:size(A, 1), j] .= Y[i, j]*A[:, j]
