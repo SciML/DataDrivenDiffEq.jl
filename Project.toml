@@ -20,7 +20,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [compat]
 Compat = "2.2, 3.0"
 DSP = "0.6"
-DataInterpolations = "2.0"
+DataInterpolations = "2.0, 3.0"
 DiffEqBase = "6.29"
 FiniteDifferences = "0.9.6, 0.10"
 ModelingToolkit = "3.2"
