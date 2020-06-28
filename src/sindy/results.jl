@@ -17,44 +17,47 @@ end
 Base.show(io::IO, x::SparseIdentificationResult) = print(io, "Sparse Identification Result with $(sum(x.sparsity)) active terms.")
 
 @inline function Base.print(io::IO, x::SparseIdentificationResult)
-    println("Sparse Identification Result")
-    println("No. of Parameters : $(length(x.parameters))")
-    println("Active terms : $(sum(x.sparsity))")
+    println(io,"Sparse Identification Result")
+    println(io,"No. of Parameters : $(length(x.parameters))")
+    println(io,"Active terms : $(sum(x.sparsity))")
     for (i, si) in enumerate(x.sparsity)
-        println("   Equation $i : $si")
+        println(io,"   Equation $i : $si")
     end
-    println("Overall error (L2-Norm) : $(sum(x.error))")
+    println(io,"Overall error (L2-Norm) : $(sum(x.error))")
     for (i, ei) in enumerate(x.error)
-        println("   Equation $i : $ei")
+        println(io,"   Equation $i : $ei")
     end
-    println("AICC :")
+    println(io,"AICC :")
     for (i, ai) in enumerate(x.aicc)
-        println("   Equation $i : $ai")
+        println(io,"   Equation $i : $ai")
     end
 
-    print("\n$(x.opt)")
+    print(io,"\n$(x.opt)")
     if x.converged
-        println(" converged after $(x.iterations) iterations.")
+        println(io," converged after $(x.iterations) iterations.")
     else
-        println(" did not converge after $(x.iterations) iterations.")
+        println(io," did not converge after $(x.iterations) iterations.")
     end
 end
 
 
 """
-    print_equations(res; show_parameter)
+    print_equations([io,] res; show_parameter)
 
 Print the equations stored inside the `SparseIdentificationResult` `res`. If `show_parameter` is set
 to true, the numerical values will be used. Otherwise, the symbolic form will appear.
 """
-function print_equations(r::SparseIdentificationResult; show_parameter::Bool = false)
+print_equations(r::SparseIdentificationResult;kwargs...) = print_equations(stdout,r;kwargs...)
+function print_equations(io::IO, r::SparseIdentificationResult;
+                         show_parameter::Bool = false)
+
     if show_parameter
         eqs = r.equations(variables(r.equations), parameters(r), independent_variable(r.equations))
         for (i, eq) in enumerate(eqs)
-            println("f_$i = ", eq)
+            println(io,"f_$i = ", eq)
         end
     else
-        print(r.equations)
+        println(io,r.equations)
     end
 end
 
