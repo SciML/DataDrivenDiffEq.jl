@@ -34,7 +34,7 @@ is_independent(o::Operation) = isempty(o.args)
 
 
 """
-    Basis(f, u; p, iv)
+    Basis(f, u; p, iv, eval_expression)
 
 A basis over the variables `u` with parameters `p` and independent variable `iv`.
 `f` can either be a Julia function which is able to use ModelingToolkit variables or
@@ -53,8 +53,20 @@ using DataDrivenDiffEq
 
 Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)
 ```
+
+## Note
+
+The keyword argument `eval_expression` controls the function creation
+behavior. `eval_expression=true` means that `eval` is used, so normal
+world-age behavior applies (i.e. the functions cannot be called from
+the function that generates them). If `eval_expression=false`,
+then construction via GeneralizedGenerated.jl is utilized to allow for
+same world-age evaluation. However, this can cause Julia to segfault
+on sufficiently large basis functions. By default eval_expression=false.
+
 """
-function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};  parameters::AbstractArray =  Operation[], iv = nothing)
+function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};
+               parameters::AbstractArray =  Operation[], iv = nothing, eval_expression = false)
     @assert all(is_independent.(variables)) "Please provide independent variables for basis."
 
     bs = unique(basis)
@@ -67,7 +79,11 @@ function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operati
     vs = [ModelingToolkit.Variable(Symbol(i)) for i in variables]
     ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters]
 
-    f_oop, f_iip = ModelingToolkit.build_function(bs, vs, ps, [iv], expression = Val{false})
+    if eval_expression
+        f_oop, f_iip = eval.(ModelingToolkit.build_function(bs, vs, ps, [iv], expression = Val{true}))
+    else
+        f_oop, f_iip = ModelingToolkit.build_function(bs, vs, ps, [iv], expression = Val{false})
+    end
 
     f_(u, p, t) = f_oop(u, p, t)
     f_(du, u, p, t) = f_iip(du, u, p, t)
@@ -93,12 +109,16 @@ function Basis(basis::Function, variables::AbstractArray{Operation};  parameters
 end
 
 
-function update!(basis::Basis)
+function update!(basis::Basis,eval_expression = false)
 
     vs = [ModelingToolkit.Variable(Symbol(i))(basis.iv) for i in variables(basis)]
     ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters(basis)]
 
-    f_oop, f_iip = ModelingToolkit.build_function(basis.basis, vs, ps, [basis.iv], expression = Val{false})
+    if eval_expression
+        f_oop, f_iip = eval.(ModelingToolkit.build_function(basis.basis, vs, ps, [basis.iv], expression = Val{false}))
+    else
+        f_oop, f_iip = ModelingToolkit.build_function(basis.basis, vs, ps, [basis.iv], expression = Val{false})
+    end
 
     f_(u, p, t) = f_oop(u, p, t)
     f_(du, u, p, t) = f_iip(du, u, p, t)
@@ -260,14 +280,18 @@ ModelingToolkit.independent_variable(b::Basis) = b.iv
     Returns a function representing the jacobian matrix / gradient of the `Basis` with respect to the
     dependent variables as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
 """
-function jacobian(basis::Basis)
+function jacobian(basis::Basis, eval_expression = false)
 
     vs = [ModelingToolkit.Variable(Symbol(i))(independent_variable(basis)) for i in variables(basis)]
     ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters(basis)]
 
     j = calculate_jacobian(basis.basis, variables(basis))
 
-    f_oop, f_iip = ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, [basis.iv], expression = Val{false})
+    if eval_expression
+        f_oop, f_iip = eval.(ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, [basis.iv], expression = Val{true}))
+    else
+        f_oop, f_iip = ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, [basis.iv], expression = Val{false})
+    end
 
     f_(u, p, t) = f_oop(u, p, t)
     f_(du, u, p, t) = f_iip(du, u, p, t)
