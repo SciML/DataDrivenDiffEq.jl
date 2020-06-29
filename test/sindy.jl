@@ -48,6 +48,7 @@
     @test_nowarn get_aicc(Ψ)
     @test sum(get_sparsity(Ψ)) == 4
     @test sum(get_error(Ψ)) < 1e-10
+    Ψ([1.0,2.0],0.0)
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
