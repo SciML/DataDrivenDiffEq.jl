@@ -13,6 +13,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
         end
         X = hcat(y...)
         for alg_ in algorithms
+            @info "Testing $alg_"
             estimator = DMD(X, alg = alg_)
             @test operator(estimator) ≈ A
             @test isstable(estimator)
@@ -35,6 +36,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
         DX = sol(sol.t, Val{1})[:,:]
 
         for alg_ in algorithms
+            @info "Testing $alg_"
             estimator = gDMD(X, DX, alg = alg_)
             @test isapprox(generator(estimator), A, atol = 1e-3)
             @test isstable(estimator)
@@ -54,6 +56,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
         DX = sol(sol.t, Val{1})[:,:]
 
         for alg_ in algorithms
+            @info "Testing $alg_"
             d = gDMD(X, DX, alg = alg_)
             d2 = gDMD(sol.t, X, alg = alg_)
             d3 = gDMD(sol.t, X, alg = alg_, dt = 0.01)
@@ -121,6 +124,7 @@ end
 
         # Check EDMD
         for alg_ in algorithms
+            @info "Testing $alg_"
             estimator_ = EDMD(sol[:,:], basis_2)
             p_ = DiscreteProblem(estimator_, u0, tspan)
             s_ = solve(p_,FunctionMap())
@@ -150,6 +154,7 @@ end
         basis = Basis(u, u)
 
         for alg_ in algorithms
+            @info "Testing $alg_"
             estimator = gEDMD(X, DX, basis, alg = alg_)
             #estimator_derivative = gEDMD(sol_nl.t, X, basis, alg = alg_)
             #estimator_interpolation = gEDMD(sol_nl.t, X, basis, dt = 0.1, alg = alg_)
@@ -185,6 +190,7 @@ end
         @test sol[:,:] ≈ s_[:,:]
 
         for alg_ in algorithms
+            @info "Testing $alg_"
             estimator_ = EDMD(sol[:,:], basis, alg = alg_)
             p_ = DiscreteProblem(estimator_, u0, tspan)
             s_ = solve(p_,FunctionMap())
@@ -218,6 +224,7 @@ end
             basis = Basis([u; u[1]^2], u)
 
             for alg_ in algorithms
+                @info "Testing $alg_"
                 estimator2 = gEDMD(X, DX, basis, alg = alg_)
                 A_analytical = [p[1] 0 0; 0 p[2] -p[2]; 0 0 2*p[1]]
                 outputmap(estimator2)
@@ -241,6 +248,7 @@ end
 
     # But with a little more knowledge
     for alg_ in algorithms
+        @info "Testing $alg_"
         sys = DMDc(X, U, B = B, alg = alg_)
         @test operator(sys) ≈[1.5 0; 0 0.1]
         @test inputmap(sys) ≈ [1.0; 0.0]
@@ -266,6 +274,7 @@ end
     end
 
     for alg_ in algorithms
+        @info "Testing $alg_"
         sys4 = DMDc(X, U, alg = alg_)
         @test operator(sys4) ≈ A
         @test inputmap(sys4) ≈ B
@@ -276,6 +285,7 @@ end
     end
 
     for alg_ in algorithms
+        @info "Testing $alg_"
         sys6 = gDMDc(collect(0.0:9.0), X[:, 1:end-1], U, B = B, alg = alg_)
         @test exp(generator(sys6)) ≈ A atol = 1e-1
         @test inputmap(sys6) ≈ B
