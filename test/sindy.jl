@@ -1,4 +1,5 @@
 
+@info "Starting SINDy tests"
 @testset "SInDy" begin
     # Create a nonlinear pendulum
     function pendulum(u, p, t)
