@@ -1,4 +1,4 @@
-
+@info "Starting utilities tests"
 @testset "Utilities" begin
     t = collect(-2:0.01:2)
     U = [cos.(t).*exp.(-t.^2) sin.(2*t)]

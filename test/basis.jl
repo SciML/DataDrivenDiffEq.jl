@@ -1,4 +1,4 @@
-
+@info "Starting standard basis tests"
 @testset "Basis" begin
     @variables u[1:3]
     @parameters w[1:2] t
