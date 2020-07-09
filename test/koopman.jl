@@ -1,7 +1,9 @@
 algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,DMDSVD(1e-2))]
 
+@info "Starting Dynamic Mode Decomposition tests"
 @testset "Dynamic Mode Decomposition" begin
 
+    @info "Starting linear discrete system tests"
     @testset "Linear Discrete System" begin
         # Create some linear data
         A = [0.9 -0.2; 0.0 0.2]
@@ -22,6 +24,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
         end
     end
 
+    @info "Starting linear continuous system tests"
     @testset "Linear Continuous System" begin
         A = [-0.9 0.1; 0.0 -0.2]
         f(u, p, t) = A*u
@@ -40,6 +43,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
         end
     end
 
+    @info "Starting big continuous system tests"
     @testset "Big System" begin
         dd(u, p, t) = -0.9*ones(length(u))*u[1] - 0.05*u
         u0 = randn(100)*100.0
@@ -62,7 +66,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
         end
     end
 
-
+    @info "Starting low rank linear system tests"
     @testset "Rank Reduction" begin
         K = -0.5*I + [0 0 -0.2; 0.1 0 -0.1; 0. -0.2 0]
         F = qr(randn(20, 3))
@@ -85,8 +89,11 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
     end
 end
 
+
+@info "Starting Extended Dynamic Mode Decomposition tests"
 @testset "Extended Dynamic Mode Decomposition" begin
 
+    @info "Starting linear discrete system tests"
     @testset "Linear Discrete System" begin
         # Test for linear system
         function linear_sys(u, p, t)
@@ -123,6 +130,7 @@ end
         end
     end
 
+    @info "Starting linear continuous system tests"
     @testset "Linear Continuous System" begin
 
         function nonlinear_sys2(du, u, p, t)
@@ -152,6 +160,7 @@ end
         end
     end
 
+    @info "Starting nonlinear discrete system tests"
     @testset "Nonlinear Discrete System" begin
         function nonlinear_sys(du, u, p, t)
             du[1] = 0.9u[1] + 0.1u[2]^2
@@ -183,6 +192,7 @@ end
         end
     end
 
+    @info "Starting nonlinear continuous system tests"
     @testset "Nonlinear Continuous System" begin
 
             function slow_manifold(du, u, p, t)
@@ -221,6 +231,7 @@ end
     end
 end
 
+@info "Starting Dynamic Mode Decomposition with Control tests"
 @testset "Dynamic Mode Decomposition with Control" begin
 
     # Define measurements from unstable system with known control input

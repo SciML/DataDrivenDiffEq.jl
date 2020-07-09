@@ -1,4 +1,5 @@
 
+@info "Starting implicit SINDy tests"
 @testset "ISInDy" begin
 
     # Create a test problem
