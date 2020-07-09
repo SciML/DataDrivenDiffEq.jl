@@ -1,14 +1,19 @@
 using DataDrivenDiffEq
+using DataDrivenDiffEq.Optimize
 using ModelingToolkit
 using LinearAlgebra
+@info "Loading OrdinaryDiffEq"
 using OrdinaryDiffEq
-using Test
-using DataDrivenDiffEq.Optimize
-
+@info "Loading DiffEqSensitivity"
 using DiffEqSensitivity
+@info "Loading Optim"
 using Optim
-using DiffEqFlux, Flux
-
+@info "Loading DiffEqFlux"
+using DiffEqFlux
+@info "Loading Flux"
+using Flux
+using Test
+@info "Finished loading packages"
 
 include("./basis.jl")
 include("./koopman.jl")
