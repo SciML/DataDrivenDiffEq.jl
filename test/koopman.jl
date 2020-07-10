@@ -38,10 +38,14 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
         for alg_ in algorithms
             @info "Testing $alg_"
             estimator = gDMD(X, DX, alg = alg_)
+            d2 = gDMD(sol.t, X, alg = alg_)
+            d3 = gDMD(sol.t, X, alg = alg_, dt = 0.01)
             @test isapprox(generator(estimator), A, atol = 1e-3)
             @test isstable(estimator)
             @test isapprox(eigvals(estimator), eigvals(A), atol = 1e-3)
             @test isapprox(abs.(eigvecs(estimator)), abs.(eigvecs(A)), atol = 1e-3)
+            @test isapprox(generator(estimator), generator(d2), atol = 1e-1)
+            @test isapprox(generator(estimator), generator(d3), atol = 5e-1)
         end
     end
 
@@ -58,14 +62,9 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
         for alg_ in algorithms
             @info "Testing $alg_"
             d = gDMD(X, DX, alg = alg_)
-            d2 = gDMD(sol.t, X, alg = alg_)
-            d3 = gDMD(sol.t, X, alg = alg_, dt = 0.01)
             test = ODEProblem(d, u0, (0.0, 10.0))
             sol_ = solve(test, Tsit5(), saveat = 0.001)
-
             @test norm(sol-sol_, Inf) < 2.0
-            @test isapprox(generator(d), generator(d2), atol = 1e-1)
-            @test isapprox(generator(d), generator(d3), atol = 5e-1)
         end
     end
 
