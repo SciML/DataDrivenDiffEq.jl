@@ -64,6 +64,9 @@ end
 
 callback(θ,l,pred) = begin
     push!(losses, l)
+    if length(losses)%10 == 0
+        println("Loss after $(length(losses)) iterations $(losses[end])")
+    end
     false
 end
 @info "Train neural network"
