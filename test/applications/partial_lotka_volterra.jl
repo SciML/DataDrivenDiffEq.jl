@@ -1,6 +1,4 @@
-
 using DataDrivenDiffEq
-using DataDrivenDiffEq.Optimize
 using ModelingToolkit
 using LinearAlgebra
 @info "Loading DiffEqSensitivity"
@@ -40,7 +38,7 @@ tsdata = Array(solution)
 noisy_data = tsdata + Float32(1e-5)*randn(eltype(tsdata), size(tsdata))
 
 @info "Setup neural network and auxillary functions"
-ann = FastChain(FastDense(2, 32, tanh),FastDense(32, 32, tanh),FastDense(32, 32, tanh), FastDense(32, 2))
+ann = FastChain(FastDense(2, 32, tanh),FastDense(32, 64, tanh),FastDense(64, 32, tanh), FastDense(32, 2))
 p = initial_params(ann)
 
 function dudt_(u, p,t)
@@ -73,6 +71,9 @@ res1 = DiffEqFlux.sciml_train(loss, p, ADAM(0.01), cb=callback, maxiters = 100)
 @info "Finished initial training with loss $(losses[end])"
 res2 = DiffEqFlux.sciml_train(loss, res1.minimizer, BFGS(initial_stepnorm=0.01), cb=callback, maxiters = 10000)
 @info "Finished extended training with loss $(losses[end])"
+
+# Necessary for result
+@test losses[end] <= 1e-3
 
 # Plot the data and the approximation
 NNsolution = predict(res2.minimizer)
