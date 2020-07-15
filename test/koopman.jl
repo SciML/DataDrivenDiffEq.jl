@@ -113,7 +113,8 @@ end
         h = [u[1]; u[2]; sin(u[1]); cos(u[1]); u[1] * u[2]; u[2]^2]
         basis = Basis(h, u)
 
-        estimator = EDMD(sol[:, :], basis, alg = DMDSVD())
+        estimator = EDMD(sol[:, 1:15], basis, alg = DMDPINV())
+        update!(estimator, sol[:, 15:end-1], sol[:, 16:end])
         p1 = DiscreteProblem(estimator, u0, tspan)
         s1 = solve(p1,FunctionMap())
         basis_2 = reduce_basis(estimator, threshold = 1e-5)
