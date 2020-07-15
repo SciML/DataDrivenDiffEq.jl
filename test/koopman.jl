@@ -39,7 +39,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
             @info "Testing $alg_"
             estimator = gDMD(X, DX, alg = alg_)
             d2 = gDMD(sol.t, X, alg = alg_)
-            d3 = gDMD(sol.t, X, alg = alg_, dt = 0.01)
+            d3 = gDMD(sol.t, X, alg = alg_, dt = 0.005)
             @test isapprox(generator(estimator), A, atol = 1e-3)
             @test isstable(estimator)
             @test isapprox(eigvals(estimator), eigvals(A), atol = 1e-3)
