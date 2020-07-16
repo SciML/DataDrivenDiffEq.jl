@@ -12,8 +12,8 @@ using Flux
 @info "Loading OrdinaryDiffEq"
 using OrdinaryDiffEq
 using Test
+using JLD2
 @info "Finished loading packages"
-
 
 const losses = []
 
@@ -69,23 +69,30 @@ callback(θ,l,pred) = begin
     end
     false
 end
-@info "Initial loss $(loss(p)[1])"
-@info "Train neural network until converged"
-res1 = DiffEqFlux.sciml_train(loss, p, ADAM(0.01), cb=callback, maxiters = 100)
-@info "Finished initial training with loss $(losses[end])"
-res2 = DiffEqFlux.sciml_train(loss, res1.minimizer, BFGS(initial_stepnorm=0.01), cb=callback, maxiters = 10000)
-@info "Finished extended training with loss $(losses[end])"
 
-# Check for the convergence of loss
-# Necessary for result
-@test losses[end] <= 1e-2
+if !isfile(joinpath(dirname(@__FILE__), "partial_lotka_volterra.jld2"))
+    @info "Initial loss $(loss(p)[1])"
+    @info "Train neural network until converged"
+    res1 = DiffEqFlux.sciml_train(loss, p, ADAM(0.01), cb=callback, maxiters = 100)
+    @info "Finished initial training with loss $(losses[end])"
+    res2 = DiffEqFlux.sciml_train(loss, res1.minimizer, BFGS(initial_stepnorm=0.01), cb=callback, maxiters = 10000)
+    @info "Finished extended training with loss $(losses[end])"
+    p_trained = res2.minimizer
+    @save "$(joinpath(dirname(@__FILE__), "partial_lotka_volterra.jld2"))" p_trained
 
+    # Check for the convergence of loss
+    # Necessary for result
+    @test losses[end] <= 1e-2
+else
+    @load "$(joinpath(dirname(@__FILE__), "partial_lotka_volterra.jld2"))" p_trained
+    @info "Load parameter"
+end
 # Plot the data and the approximation
-NNsolution = predict(res2.minimizer)
+NNsolution = predict(p_trained)
 
 @test norm(NNsolution .- solution, 2) < 0.1
 
-Y = ann(noisy_data, res2.minimizer)
+Y = ann(noisy_data, p_trained)
 X = noisy_data
 # Create a Basis
 @variables u[1:2]
@@ -136,8 +143,8 @@ b = Basis((u, p, t)->unknown_eq(u, ones(size(p̂)), t), u)
 @info "Refine the guess"
 Ψ = SInDy(X[:, 2:end], Y[:, 2:end],b, opt = SR3(0.1), maxiter = 1000) # Succeed
 p̂ = parameters(Ψ)
-
-
+found_basis = Ψ.equations
+@test all(isequal.(Ψ.equations.basis, parameters(found_basis) .* u[1]*u[2]))
 @test isapprox(abs.(p̂), p_[2:3], atol = 9e-2)
 
 # The parameters are a bit off, so we reiterate another sindy term to get closer to the ground truth
