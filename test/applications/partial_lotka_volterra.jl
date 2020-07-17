@@ -17,9 +17,9 @@ using JLD2
 
 const losses = []
 
-
 @info "Started Lotka Volterra UODE Testset"
 @info "Generate data"
+
 function lotka_volterra(du, u, p, t)
     α, β, γ, δ = p
     du[1] = α*u[1] - β*u[2]*u[1]
@@ -84,9 +84,10 @@ if !isfile(joinpath(dirname(@__FILE__), "partial_lotka_volterra.jld2"))
     # Necessary for result
     @test losses[end] <= 1e-2
 else
+    @info "Loading pretrained parameters"
     @load "$(joinpath(dirname(@__FILE__), "partial_lotka_volterra.jld2"))" p_trained
-    @info "Load parameter"
 end
+
 # Plot the data and the approximation
 NNsolution = predict(p_trained)
 
@@ -143,8 +144,17 @@ b = Basis((u, p, t)->unknown_eq(u, ones(size(p̂)), t), u)
 @info "Refine the guess"
 Ψ = SInDy(X[:, 2:end], Y[:, 2:end],b, opt = SR3(0.1), maxiter = 1000) # Succeed
 p̂ = parameters(Ψ)
-found_basis = Ψ.equations
-@test all(isequal.(Ψ.equations.basis, parameters(found_basis) .* u[1]*u[2]))
+
+@info "Checking equations"
+found_basis = Ψ.equations.basis
+pps = parameters(Ψ.equations)
+
+expected_eqs = Vector{Any}()
+for _p in pps
+    push!(expected_eqs, simplify(_p*u[2]*u[1]))
+end
+
+@test all(isequal.(found_basis, expected_eqs))
 @test isapprox(abs.(p̂), p_[2:3], atol = 9e-2)
 
 # The parameters are a bit off, so we reiterate another sindy term to get closer to the ground truth
