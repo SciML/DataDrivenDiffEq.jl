@@ -132,7 +132,7 @@ Finally, let's investigate the error of the chaotic equations:
 
 ![](lorenz_error.png)
 
-which resembles the papers results. Next, we could use [classical parameter estimation methods](https://docs.sciml.ai/stable/analysis/parameter_estimation/) or use [DiffEqFlux](https://github.com/SciML/DiffEqFlux.jl) to fine-tune our result (if needed).
+which resembles the papers results. Next, we could use [classical parameter estimation methods](https://diffeq.sciml.ai/stable/analysis/parameter_estimation/) or use [DiffEqFlux](https://github.com/SciML/DiffEqFlux.jl) to fine-tune our result (if needed).
 
 ## Functions
 
