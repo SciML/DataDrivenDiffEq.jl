@@ -39,7 +39,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
             @info "Testing $alg_"
             estimator = gDMD(X, DX, alg = alg_)
             d2 = gDMD(sol.t, X, alg = alg_)
-            d3 = gDMD(sol.t, X, alg = alg_, dt = 0.005)
+            d3 = gDMD(sol.t, X, alg = alg_, dt = 0.007)
             @test isapprox(generator(estimator), A, atol = 1e-3)
             @test isstable(estimator)
             @test isapprox(eigvals(estimator), eigvals(A), atol = 1e-3)
@@ -156,12 +156,12 @@ end
         for alg_ in algorithms
             @info "Testing $alg_"
             estimator = gEDMD(X, DX, basis, alg = alg_)
-            #estimator_derivative = gEDMD(sol_nl.t, X, basis, alg = alg_)
-            #estimator_interpolation = gEDMD(sol_nl.t, X, basis, dt = 0.1, alg = alg_)
+            estimator_derivative = gEDMD(sol_nl.t, X, basis, alg = alg_)
+            estimator_interpolation = gEDMD(sol_nl.t, X, basis, dt = 0.1, alg = alg_)
             @test generator(estimator) ≈ [0  1.0; -0.9 0]
             @test outputmap(estimator) ≈ I(2)
-            #@test generator(estimator) ≈ generator(estimator_derivative) atol = 1e-1
-            #@test generator(estimator) ≈ generator(estimator_interpolation) atol = 1e-1
+            @test generator(estimator) ≈ generator(estimator_derivative) atol = 1e-1
+            @test generator(estimator) ≈ generator(estimator_interpolation) atol = 1e-1
         end
     end
 
