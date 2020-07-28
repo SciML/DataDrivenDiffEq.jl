@@ -22,7 +22,8 @@ const GROUP = get(ENV, "GROUP", "All")
         include("./optimize.jl")
     end
 
-    if GROUP == "All" || GROUP == "Integration"
+    # These are excluded right now, until the deps are figured out
+    if GROUP == "Integration"
         @safetestset "Partial Lotka Volterra Discovery " begin include("./applications/partial_lotka_volterra.jl") end
     end
 end
