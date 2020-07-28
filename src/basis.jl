@@ -17,14 +17,14 @@ Base.show(io::IO, x::Basis) = print(io, "$(length(x.basis)) dimensional basis in
 
 @inline function Base.print(io::IO, x::Basis)
     show(io, x)
-    println()
+    println(io)
     if length(x.variables) == length(x.basis)
         for (i, bi) in enumerate(x.basis)
-            println("d$(x.variables[i]) = $bi")
+            println(io,"d$(x.variables[i]) = $bi")
         end
     else
         for (i, bi) in enumerate(x.basis)
-            println("f_$i = $bi")
+            println(io,"f_$i = $bi")
         end
     end
 end
