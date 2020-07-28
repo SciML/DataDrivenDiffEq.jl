@@ -40,7 +40,7 @@
     opt = STRRidge(1e-2)
     Ψ = SInDy(sol[:,:], DX, basis, opt = opt, maxiter = 2000)
     @test_nowarn set_threshold!(opt, 1e-2)
-
+    
     @test length(Ψ) == 2
     @test size(Ψ) == (2, )
     @test parameters(Ψ) ≈ [1.0; -0.2; -9.81; -0.1]
@@ -49,6 +49,7 @@
     @test_nowarn get_aicc(Ψ)
     @test sum(get_sparsity(Ψ)) == 4
     @test sum(get_error(Ψ)) < 1e-10
+    @test Ψ(u0) ≈ pendulum(u0, nothing, nothing)
 
     # Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
