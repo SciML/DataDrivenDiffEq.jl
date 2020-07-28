@@ -14,8 +14,8 @@ mutable struct SparseIdentificationResult <: AbstractSparseIdentificationResult
     sparsity::AbstractArray
 end
 
-(Ψ::SparseIdentificationResult)(u,t)
-    Ψ.equations.f_(u,Ψ.parameters,t)
+function (Ψ::SparseIdentificationResult)(u, p = [], t = nothing)
+    Ψ.equations.f_(u, isempty(p) ? Ψ.parameters : p, isnothing(t) ? zero(eltype(u)) : t)
 end
 
 Base.show(io::IO, x::SparseIdentificationResult) = print(io, "Sparse Identification Result with $(sum(x.sparsity)) active terms.")
