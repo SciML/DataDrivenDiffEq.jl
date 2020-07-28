@@ -265,7 +265,7 @@ function jacobian(basis::Basis)
     vs = [ModelingToolkit.Variable(Symbol(i))(independent_variable(basis)) for i in variables(basis)]
     ps = [ModelingToolkit.Variable(Symbol(i)) for i in parameters(basis)]
 
-    j = calculate_jacobian(basis.basis, variables(basis))
+    j = ModelingToolkit.jacobian(basis.basis, variables(basis))
 
     f_oop, f_iip = ModelingToolkit.build_function(expand_derivatives.(j), vs, ps, [basis.iv], expression = Val{false})
 
