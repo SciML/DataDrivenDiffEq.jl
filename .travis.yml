@@ -12,7 +12,11 @@ julia:
 jobs:
   allow_failures:
     - julia: nightly
-  
+
+env:
+  - GROUP=Standard
+  #- GROUP=Integration
+
 notifications:
   email: false
 
