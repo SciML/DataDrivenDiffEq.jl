@@ -40,16 +40,25 @@ DX = similar(X)
 for (i, xi) in enumerate(eachcol(X))
     DX[:, i] = michaelis_menten(xi, [], 0.0)
 end
+
+@variables u
+basis= Basis([u^i for i in 0:4], [u])
 ```
 
 The signature of `ISInDy` is equal to `SInDy`, but requires an `AbstractSubspaceOptimser`. Currently, `DataDrivenDiffEq` just implements `ADM()` based on [alternating directions](https://arxiv.org/pdf/1412.4659.pdf). `rtol` gets passed into the derivation of the `nullspace` via `LinearAlgebra`.
 
-```@example isindy_1
-@variables u
-basis= Basis([u^i for i in 0:4], [u])
 
+```@example isindy_1
 opt = ADM(1e-1)
-Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.9)
+```
+
+Since `ADM()` returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide an `AbstractScalarizationMethod` to `ISInDy`. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of ``\Theta^T \xi`` (nullspace). Here, we want to set the focus on the the magnitude of the deviation from the nullspace using `WeightedSum`.
+
+```@example isindy_1
+
+f_target = WeightedSum([0.01 1.0], x->identity(x))
+
+Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.9, alg = f_target)
 nothing #hide
 ```
 

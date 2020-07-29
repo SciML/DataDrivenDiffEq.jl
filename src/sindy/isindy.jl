@@ -44,10 +44,9 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimize.A
         # Calls effectively the ADM algorithm with varying initial conditions
         DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
 
-
         # Compute pareto front
-        @inbounds for (i, qi) in enumerate(eachcol(Q))
-            if i == 1
+        @inbounds for (j, qi) in enumerate(eachcol(Q))
+            if j < 2
                 set_candidate!(opt_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
                 set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
             else
@@ -58,7 +57,6 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimize.A
         Ξ[:, i] .= Optimize.parameter(opt_front[1])
         Ξ[:, i] .= Ξ[:, i] ./ maximum(abs.(Ξ[:, i]))
     end
-
 
     return ImplicitSparseIdentificationResult(Ξ, Ψ, maxiter, opt, true, Ẋ, X, p = p, t = t)
 end

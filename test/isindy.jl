@@ -53,4 +53,37 @@
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test sol[:,:] ≈ sol_[:,:]
+
+    
+    # michaelis_menten
+    function michaelis_menten(u, p, t)
+        [0.6 - 1.5u[1]/(0.3+u[1])]
+    end
+
+    u0 = [0.5]
+    tspan = (0.0, 4.0)
+    problem = ODEProblem(michaelis_menten, u0, tspan)
+    solution = solve(problem, Tsit5(), saveat = 0.1)
+
+    X = solution[:,:] 
+    DX = similar(X)
+    for (i, xi) in enumerate(eachcol(X))
+        DX[:, i] = michaelis_menten(xi, [], 0.0)
+    end
+
+    @variables u
+    basis= Basis([u^i for i in 0:4], [u])
+    opt = ADM(1e-1)
+    f_target = WeightedSum([0.01 1.0], x->identity(x))
+    Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.9, alg = f_target)
+    
+    sys = ODESystem(Ψ)
+    dudt = ODEFunction(sys)
+    ps = parameters(Ψ)
+    # Simulate
+    estimator = ODEProblem(dudt, u0, tspan, ps)
+    sol_ = solve(estimator, Tsit5(), saveat = 0.1)
+
+    @test isapprox(sol_[:,:], solution[:,:], atol = 3e-1) 
+
 end
