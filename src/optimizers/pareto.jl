@@ -50,10 +50,10 @@ end
 
 """
     GoalProgramming()
-    GoalProgramming(norm, function)
+    GoalProgramming(norm, f)
 
 Scalarize the multi-objective optimization via a goal programming such that the
-objective becomes `norm(f(x), p)`.
+objective becomes `norm(f(x), p)`. Both `norm` and `f` are functions.
 """
 GoalProgramming() = GoalProgramming(x->norm(x, 2), x->identity(x))
 
