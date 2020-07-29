@@ -62,7 +62,7 @@
     end
 
     u0 = [0.5]
-    tspan = (0.0, 5.0)
+    tspan = (0.0, 4.0)
     problem = ODEProblem(michaelis_menten, u0, tspan)
     solution = solve(problem, Tsit5(), saveat = 0.1)
 
@@ -85,6 +85,6 @@
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
 
-    @test isapprox(sol_[:,:], solution[:,:], atol = 2e-1) 
+    @test isapprox(sol_[:,:], solution[:,:], atol = 3e-1) 
 
 end
