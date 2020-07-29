@@ -65,7 +65,7 @@
     problem = ODEProblem(michaelis_menten, u0, tspan)
     solution = solve(problem, Tsit5(), saveat = 0.1)
 
-    X = solution[:,:] #+ 1e-4*randn(size(X)...)
+    X = solution[:,:] 
     DX = similar(X)
     for (i, xi) in enumerate(eachcol(X))
         DX[:, i] = michaelis_menten(xi, [], 0.0)
@@ -76,16 +76,16 @@
     opt = ADM(1e-1)
     f_target = WeightedSum([0.01 1.0], x->identity(x))
     Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.9, alg = f_target)
-    print_equations(Ψ, show_parameter = true)
-    parameters(Ψ)
-
+    
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
     ps = parameters(Ψ)
 
+    @test ps ≈ [-0.3; -1.0; 0.18; -0.92] atol = 1e-1
     # Simulate
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
 
-    @test norm(sol_ .- solution, 2) < 1e-2
+    @test isapprox(sol_[:,:], solution[:,:], atol = 1e-1) 
+
 end
