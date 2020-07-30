@@ -58,7 +58,7 @@ Since `ADM()` returns sparsified columns of the nullspace we need to find a pare
 
 f_target = WeightedSum([0.01 1.0], x->identity(x))
 
-Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.9, alg = f_target)
+Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.1, alg = f_target)
 nothing #hide
 ```
 

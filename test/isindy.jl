@@ -1,7 +1,8 @@
 
 @info "Starting implicit SINDy tests"
 @testset "ISInDy" begin
-
+    
+    @info "Nonlinear Implicit System"
     # Create a test problem
     function simple(u, p, t)
         return [(2.0u[2]^2 - 3.0)/(1.0 + u[1]^2); -u[1]^2/(2.0 + u[2]^2); (1-u[2])/(1+u[3]^2)]
@@ -54,7 +55,7 @@
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test sol[:,:] ≈ sol_[:,:]
 
-    
+    @info "Michaelis-Menten-Kinetics"
     # michaelis_menten
     function michaelis_menten(u, p, t)
         [0.6 - 1.5u[1]/(0.3+u[1])]
@@ -75,8 +76,8 @@
     basis= Basis([u^i for i in 0:4], [u])
     opt = ADM(1e-1)
     f_target = WeightedSum([0.01 1.0], x->identity(x))
-    Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.9, alg = f_target)
-    
+    Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.1, alg = f_target)
+    print_equations(Ψ)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
     ps = parameters(Ψ)
