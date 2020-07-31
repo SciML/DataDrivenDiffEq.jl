@@ -28,7 +28,9 @@ end
 u0 = [0.5]
 tspan = (0.0, 5.0)
 problem = ODEProblem(michaelis_menten, u0, tspan)
+
 solution = solve(problem, Tsit5(), saveat = 0.1, atol = 1e-7, rtol = 1e-7)
+    
 plot(solution) # hide
 savefig("isindy_example.png")
 ```
@@ -55,7 +57,7 @@ opt = ADM(1e-1)
 Since `ADM()` returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide a sufficient cost function `g` to `ISInDy`. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of ``\Theta^T \xi`` (nullspace). This is a default setting which can be changed by providing a function `f` which maps the coefficients and the library onto a feature space. Here, we want to set the focus on the the magnitude of the deviation from the nullspace.
 
 ```@example isindy_1
-Ψ = ISInDy(X, DX, basis, g = x->sum(1e-3*x[1]+x[2]), opt = opt, maxiter = 100, rtol = 0.1)
+Ψ = ISInDy(X, DX, basis, g = x->sum(1e-3*x[1]+x[2]), opt = opt, maxiter = 1000)
 nothing #hide
 ```
 

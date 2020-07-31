@@ -62,11 +62,12 @@
     end
 
     u0 = [0.5]
-    tspan = (0.0, 4.0)
+    tspan = (0.0, 5.0)
     problem = ODEProblem(michaelis_menten, u0, tspan)
+    
     solution = solve(problem, Tsit5(), saveat = 0.1, atol = 1e-7, rtol = 1e-7)
+    X = Array(solution)
 
-    X = solution[:,:] 
     DX = similar(X)
     for (i, xi) in enumerate(eachcol(X))
         DX[:, i] = michaelis_menten(xi, [], 0.0)
@@ -75,7 +76,7 @@
     @variables u
     basis= Basis([u^i for i in 0:4], [u])
     opt = ADM(1e-1)
-    Ψ = ISInDy(X, DX, basis, g = x->sum(1e-3*x[1]+x[2]), opt = opt, maxiter = 100, rtol = 0.1)
+    Ψ = ISInDy(X, DX, basis, g = x->sum(0.001x[1]+x[2]), opt = opt, maxiter = 1000)
     print_equations(Ψ)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
