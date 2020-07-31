@@ -83,11 +83,5 @@
     # Simulate
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
-<<<<<<< HEAD
-
-    @test isapprox(sol_[:,:], solution[:,:], atol = 3e-1) 
-
-=======
-    @test isapprox(sol_[:,:], solution[:,:], atol = 3e-1) 
->>>>>>> 61a8cc3... New, simpler pareto front optimization
+    @test isapprox(sol_[:,:], solution[:,:], atol = 3e-1)
 end
