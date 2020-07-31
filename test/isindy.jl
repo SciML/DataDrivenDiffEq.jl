@@ -64,7 +64,7 @@
     u0 = [0.5]
     tspan = (0.0, 4.0)
     problem = ODEProblem(michaelis_menten, u0, tspan)
-    solution = solve(problem, Tsit5(), saveat = 0.1)
+    solution = solve(problem, Tsit5(), saveat = 0.1, atol = 1e-7, rtol = 1e-7)
 
     X = solution[:,:] 
     DX = similar(X)
