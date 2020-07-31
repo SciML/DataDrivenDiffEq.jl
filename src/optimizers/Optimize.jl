@@ -19,16 +19,27 @@ export init, init!, fit!, set_threshold!, get_threshold
 export STRRidge, ADMM, SR3
 export ADM
 
-include("./pareto.jl")
-export ParetoCandidate
-export point, parameter, iter, threshold
+# Pareto
+function evaluate_pareto!(current_parameter, tmp_parameter, fg::Function, args...)
+    if fg(tmp_parameter, args...) < fg(current_parameter, args...)
+        current_parameter .= tmp_parameter
+        return true
+    else
+        return false
+    end
+end
 
-export WeightedSum, WeightedExponentialSum, GoalProgramming
-export weights
+# Pareto
+export evaluate_pareto!
 
-export ParetoFront
-export assert_dominance, conditional_add!, set_candidate!
-
-
+#include("./pareto.jl")
+#export ParetoCandidate
+#export point, parameter, iter, threshold
+#
+#export WeightedSum, WeightedExponentialSum, GoalProgramming
+#export weights
+#
+#export ParetoFront
+#export assert_dominance, conditional_add!, set_candidate!
 
 end

@@ -7,7 +7,7 @@
 # TODO preallocation
 
 """
-    ISInDy(X, Y, Ψ; weights, f_target, maxiter, rtol, p, t, opt)
+    ISInDy(X, Y, Ψ; f, g, maxiter, rtol, p, t, opt)
 
 Performs an implicit sparse identification of nonlinear dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t`, which are passed in optionally.
@@ -15,13 +15,13 @@ Keyworded arguments include the parameter (values) of the basis `p` and the time
 bound which causes the optimizer to stop.
 
 The best vectors of the sparse nullspace are selected via multi-objective optimization.
-The best candidate is determined via the `AbstractScalarizationMethod` given in `alg`. The evaluation has two fields, the sparsity of the coefficients and the L2-Norm error at index 1 and 2, respectively.
-
+The best candidate is determined via the mapping onto a feature space `f` and an (scalar, positive definite) evaluation `g`.
+The signature of should be `f(xi, theta)` where `xi` are the coefficients of the sparse optimization and `theta` is the evaluated candidate library.
 `rtol` gets directly passed into the computation of the nullspace.
 
 Returns a `SInDyResult`.
 """
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimize.AbstractScalarizationMethod = WeightedSum(), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
@@ -30,11 +30,10 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimize.A
     # Init for sweep over the differential variables
     Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
 
-    opt_front = ParetoFront(1, scalarization = alg)
-    tmp_front = ParetoFront(1, scalarization = alg)
 
+    fg(xi, theta) = (g∘f)(xi, theta)
 
-    @inbounds for i in 1:size(Ẋ, 1)
+    @simd for i in 1:size(Ẋ, 1)
         dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
         Θ = vcat(dθ, θ)
         N = nullspace(Θ', rtol = rtol)
@@ -45,16 +44,23 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; alg::Optimize.A
         DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
 
         # Compute pareto front
-        @inbounds for (j, qi) in enumerate(eachcol(Q))
-            if j < 2
-                set_candidate!(opt_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
-                set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
+        @inbounds for (j, ξ) in enumerate(eachcol(Q))
+            if j == 1
+                Ξ[:, i] .= ξ
             else
-                set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
-                conditional_add!(opt_front, tmp_front)
+                evaluate_pareto!(view(Ξ, :, i), view(Q, :, j), fg, view(Θ, :, :))
             end
         end
-        Ξ[:, i] .= Optimize.parameter(opt_front[1])
+        #@inbounds for (j, qi) in enumerate(eachcol(Q))
+        #    if j < 2
+        #        set_candidate!(opt_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
+        #        set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
+        #    else
+        #        set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
+        #        conditional_add!(opt_front, tmp_front)
+        #    end
+        #end
+        #Ξ[:, i] .= Optimize.parameter(opt_front[1])
         Ξ[:, i] .= Ξ[:, i] ./ maximum(abs.(Ξ[:, i]))
     end
 

@@ -75,8 +75,7 @@
     @variables u
     basis= Basis([u^i for i in 0:4], [u])
     opt = ADM(1e-1)
-    f_target = WeightedSum([0.01 1.0], x->identity(x))
-    Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.1, alg = f_target)
+    Ψ = ISInDy(X, DX, basis, g = x->sum(1e-3*x[1]+x[2]), opt = opt, maxiter = 100, rtol = 0.1)
     print_equations(Ψ)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
@@ -84,7 +83,11 @@
     # Simulate
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
+<<<<<<< HEAD
 
     @test isapprox(sol_[:,:], solution[:,:], atol = 3e-1) 
 
+=======
+    @test isapprox(sol_[:,:], solution[:,:], atol = 3e-1) 
+>>>>>>> 61a8cc3... New, simpler pareto front optimization
 end

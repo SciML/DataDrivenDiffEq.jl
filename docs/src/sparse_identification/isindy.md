@@ -52,13 +52,10 @@ The signature of `ISInDy` is equal to `SInDy`, but requires an `AbstractSubspace
 opt = ADM(1e-1)
 ```
 
-Since `ADM()` returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide an `AbstractScalarizationMethod` to `ISInDy`. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of ``\Theta^T \xi`` (nullspace). Here, we want to set the focus on the the magnitude of the deviation from the nullspace using `WeightedSum`.
+Since `ADM()` returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide a sufficient cost function `g` to `ISInDy`. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of ``\Theta^T \xi`` (nullspace). This is a default setting which can be changed by providing a function `f` which maps the coefficients and the library onto a feature space. Here, we want to set the focus on the the magnitude of the deviation from the nullspace.
 
 ```@example isindy_1
-
-f_target = WeightedSum([0.01 1.0], x->identity(x))
-
-Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.1, alg = f_target)
+Ψ = ISInDy(X, DX, basis, g = x->sum(1e-3*x[1]+x[2]), opt = opt, maxiter = 100, rtol = 0.1)
 nothing #hide
 ```
 
