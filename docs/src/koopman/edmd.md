@@ -8,7 +8,7 @@ If `X` and `Y` are data matrices containing points of the same trajectory and `�
 K = Ψ(Y)~Ψ(X)^{\dagger}
 ```
 
-where ``\dagger`` denotes the Moore-Penrose pseudoinverse and `K` is the approximation of the [Koopman Operator](@ref).
+where ``\dagger`` denotes the Moore-Penrose pseudoinverse and `K` is the approximation of the [Koopman Operator](@ref koopman_operator).
 
 `EDMD` approximates *discrete time systems* of the form
 
