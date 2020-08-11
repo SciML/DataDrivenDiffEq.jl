@@ -51,8 +51,8 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
                 evaluate_pareto!(view(Ξ, :, i), view(ξ, :), fg, view(Θ, :, :))
             end
         end
-        rmul!(Ξ[:, i],one(eltype(Ξ[:, i]))/maximum(abs.(Ξ[:, i])))
         Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
+        rmul!(Ξ[:, i],one(eltype(Ξ[:, i]))/maximum(abs.(Ξ[:, i])))
     end
 
     return ImplicitSparseIdentificationResult(Ξ, Ψ, maxiter, opt, true, Ẋ, X, p = p, t = t)
