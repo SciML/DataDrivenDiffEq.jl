@@ -76,7 +76,7 @@
     @variables u
     basis= Basis([u^i for i in 0:4], [u])
     opt = ADM(1e-1)
-    Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100)
+    Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.9)
     print_equations(Ψ, show_parameter = true)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
