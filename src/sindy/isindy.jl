@@ -48,20 +48,12 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
             if j == 1
                 Ξ[:, i] .= ξ
             else
-                evaluate_pareto!(view(Ξ, :, i), view(Q, :, j), fg, view(Θ, :, :))
+                evaluate_pareto!(view(Ξ, :, i), view(ξ, :), fg, view(Θ, :, :))
             end
         end
-        #@inbounds for (j, qi) in enumerate(eachcol(Q))
-        #    if j < 2
-        #        set_candidate!(opt_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
-        #        set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
-        #    else
-        #        set_candidate!(tmp_front, 1, [norm(qi, 0); norm(Θ'*qi, 2)], qi, maxiter, get_threshold(opt))
-        #        conditional_add!(opt_front, tmp_front)
-        #    end
-        #end
-        #Ξ[:, i] .= Optimize.parameter(opt_front[1])
-        Ξ[:, i] .= Ξ[:, i] ./ maximum(abs.(Ξ[:, i]))
+        Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
+        rmul!(Ξ[:, i],one(eltype(Ξ[:, i]))/maximum(abs.(Ξ[:, i])))
+        #Ξ[:, i] .= Ξ[:, i] ./ maximum(abs.(Ξ[:, i]))
     end
 
     return ImplicitSparseIdentificationResult(Ξ, Ψ, maxiter, opt, true, Ẋ, X, p = p, t = t)

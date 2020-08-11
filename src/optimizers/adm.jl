@@ -19,21 +19,20 @@ function ADM(λ::T = 0.1) where T <: Real
 end
 
 function fit!(q::AbstractArray{T, 1}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10) where T <: Real
-    normalize!(q)
+    
     x = Y*q
+    
     for k in 1:maxiter
         prox!(x, opt.R, Y*q)
         mul!(q, Y', x/norm(Y'*x, 2))
     end
 
-    q[abs.(q) .< get_threshold(opt)] .= zero(eltype(q))
-    normalize!(q, 2)
     return
 end
 
 function fit!(q::AbstractArray{T, 2}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10) where T <: Real
     @inbounds for i in 1:size(q, 2)
-        fit!(view(q, :, i), Y, opt, maxiter = maxiter)
+        fit!(view(q, :, i), view(Y, :, :), opt, maxiter = maxiter)
     end
 
     return
