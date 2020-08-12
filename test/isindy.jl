@@ -91,5 +91,6 @@
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test isapprox(sol_[:,:], solution_1[:,:], atol = 1e-1)
-    @test abs.(ps) ≈ [0.0; 1/3; 1.0; 0.0; 0.0; 0.2; 0.92; 0.0; 0.0; 0.0] atol = 1e-1
+    println(ps)
+    @test abs.(ps) ≈ [1/3; 1.0; 0.2; 0.92] atol = 1e-1
 end
