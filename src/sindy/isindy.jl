@@ -7,7 +7,7 @@
 # TODO preallocation
 
 """
-    ISInDy(X, Y, Ψ; f, g, maxiter, rtol, p, t, opt)
+    ISInDy(X, Y, Ψ; f, g, maxiter, rtol, p, t, opt, convergence_error)
 
 Performs an implicit sparse identification of nonlinear dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t`, which are passed in optionally.
@@ -21,7 +21,7 @@ The signature of should be `f(xi, theta)` where `xi` are the coefficients of the
 
 Returns a `SInDyResult`.
 """
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM(), convergence_error = eps()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
@@ -43,7 +43,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
 
         # Find sparse vectors in nullspace
         # Calls effectively the ADM algorithm with varying initial conditions
-        iters = DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
+        iters = DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter, tol = convergence_error)
 
         # Compute pareto front
         for (j, ξ) in enumerate(eachcol(Q))
