@@ -44,8 +44,6 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
         # Find sparse vectors in nullspace
         # Calls effectively the ADM algorithm with varying initial conditions
         iters = DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
-        println(norm(Q, 0))
-        println(norm(N, 0))
 
         # Compute pareto front
         @inbounds for (j, ξ) in enumerate(eachcol(Q))
@@ -55,6 +53,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
                 evaluate_pareto!(view(Ξ, :, i), view(ξ, :), fg, view(Θ, :, :))
             end
         end
+        
         Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
         Ξ[:, i] .= Ξ[:, i] ./maximum(abs.(Ξ[:, i]))
     end
