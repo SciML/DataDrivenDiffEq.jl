@@ -44,11 +44,11 @@ function fit!(q::AbstractArray{T, 2}, Y::AbstractArray, opt::ADM; maxiter::Int64
     iters_ = Inf
     i_ = Inf
     @inbounds for i in 1:size(q, 2)
-        i_ = fit!(view(q, :, i), view(Y, :, :), opt, maxiter = maxiter, tol = tol)
-        if iters > i_ 
-            iters = i_
+        i_ = fit!(q[:, i], Y, opt, maxiter = maxiter, tol = tol)
+        if iters_ > i_ 
+            iters_ = i_
         end
     end
 
-    return iters
+    return iters_
 end

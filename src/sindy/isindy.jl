@@ -33,6 +33,8 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
 
     fg(xi, theta) = (g∘f)(xi, theta)
 
+    iters = 0
+
     @simd for i in 1:size(Ẋ, 1)
         dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
         Θ = vcat(dθ, θ)
@@ -41,7 +43,9 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
 
         # Find sparse vectors in nullspace
         # Calls effectively the ADM algorithm with varying initial conditions
-        DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
+        iters = DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
+        println(norm(Q, 0))
+        println(norm(N, 0))
 
         # Compute pareto front
         @inbounds for (j, ξ) in enumerate(eachcol(Q))
@@ -52,12 +56,10 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
             end
         end
         Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
-        println(Ξ[:, i])
         Ξ[:, i] .= Ξ[:, i] ./maximum(abs.(Ξ[:, i]))
-        println(Ξ[:, i])
     end
 
-    return ImplicitSparseIdentificationResult(Ξ, Ψ, maxiter, opt, true, Ẋ, X, p = p, t = t)
+    return ImplicitSparseIdentificationResult(Ξ, Ψ, iters , opt, iters <= maxiter, Ẋ, X, p = p, t = t)
 end
 
 
