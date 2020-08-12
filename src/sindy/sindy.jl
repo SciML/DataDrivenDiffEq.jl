@@ -181,7 +181,7 @@ function SInDy(X, DX, Ψ::Basis, thresholds::AbstractArray ; f::Function = (xi, 
         set_threshold!(opt, thresholds[j])
         iter_ = sparse_regression!(view(ξ_tmp, :, :), view(θ, :, :), view(DX, :, :), maxiter, opt, false, false, convergence_error)
         normalize ? rescale_xi!(ξ_tmp, scales) : nothing
-        @simd for i in 1:ny
+        for i in 1:ny
             if j == 1
                 Ξ_opt .= ξ_tmp
                 _iter = iter_
