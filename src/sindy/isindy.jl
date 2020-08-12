@@ -35,7 +35,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
 
     iters = 0
 
-    @simd for i in 1:size(Ẋ, 1)
+    @inbounds for i in 1:size(Ẋ, 1)
         dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
         Θ = vcat(dθ, θ)
         N = nullspace(Θ', rtol = rtol)
@@ -46,7 +46,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
         iters = DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter)
 
         # Compute pareto front
-        @inbounds for (j, ξ) in enumerate(eachcol(Q))
+        for (j, ξ) in enumerate(eachcol(Q))
             if j == 1
                 Ξ[:, i] .= ξ
             else
