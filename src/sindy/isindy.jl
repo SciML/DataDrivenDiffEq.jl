@@ -52,6 +52,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
             end
         end
         Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
+        println(Ξ[:, i])
         rmul!(Ξ[:, i],one(eltype(Ξ[:, i]))/maximum(abs.(Ξ[:, i])))
     end
 

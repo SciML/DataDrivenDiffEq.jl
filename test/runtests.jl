@@ -14,12 +14,12 @@ const GROUP = get(ENV, "GROUP", "All")
 
 @time begin
     if GROUP == "All" || GROUP == "DataDrivenDiffEq" || GROUP == "Standard"
-        include("./basis.jl")
-        include("./koopman.jl")
-        include("./sindy.jl")
+        #include("./basis.jl")
+        #include("./koopman.jl")
+        #include("./sindy.jl")
         include("./isindy.jl")
-        include("./utils.jl")
-        include("./optimize.jl")
+        #include("./utils.jl")
+        #include("./optimize.jl")
     end
 
     # These are excluded right now, until the deps are figured out
