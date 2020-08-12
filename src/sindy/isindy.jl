@@ -53,7 +53,8 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
         end
         Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
         println(Ξ[:, i])
-        rmul!(Ξ[:, i],one(eltype(Ξ[:, i]))/maximum(abs.(Ξ[:, i])))
+        Ξ[:, i] .= Ξ[:, i] ./maximum(abs.(Ξ[:, i]))
+        println(Ξ[:, i])
     end
 
     return ImplicitSparseIdentificationResult(Ξ, Ψ, maxiter, opt, true, Ẋ, X, p = p, t = t)
