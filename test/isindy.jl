@@ -44,7 +44,7 @@
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
     ps = parameters(Ψ)
-    print_equations(Ψ, show_parameter = true)
+    #print_equations(Ψ, show_parameter = true)
 
     @test all(get_error(Ψ) .< 1e-6)
     @test length(ps) == 11
@@ -83,7 +83,7 @@
     basis= Basis([u^i for i in 0:4], [u])
     opt = ADM(1.1e-1)
     Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 1000, rtol = 0.99)
-    print_equations(Ψ, show_parameter = true)
+    #print_equations(Ψ, show_parameter = true)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
     ps = parameters(Ψ)
@@ -91,6 +91,6 @@
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test isapprox(sol_[:,:], solution_1[:,:], atol = 1e-1)
-    println(ps)
+
     @test abs.(ps) ≈ [1/3; 1.0; 0.2; 0.92] atol = 1e-1
 end
