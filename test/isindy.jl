@@ -2,6 +2,9 @@
 @info "Starting implicit SINDy tests"
 @testset "ISInDy" begin
     
+    using Random
+    Random.seed!(1234);
+    
     @info "Nonlinear Implicit System"
     # Create a test problem
     function simple(u, p, t)
