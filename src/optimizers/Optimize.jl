@@ -32,14 +32,5 @@ end
 # Pareto
 export evaluate_pareto!
 
-#include("./pareto.jl")
-#export ParetoCandidate
-#export point, parameter, iter, threshold
-#
-#export WeightedSum, WeightedExponentialSum, GoalProgramming
-#export weights
-#
-#export ParetoFront
-#export assert_dominance, conditional_add!, set_candidate!
 
 end
