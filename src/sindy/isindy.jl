@@ -30,33 +30,34 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
     # Init for sweep over the differential variables
     Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
 
+    iters = Optimize.fit!(Ξ, θ, Ẋ, opt, maxiter = maxiter, rtol = rtol, convergence_error = convergence_error, f = f, g = g)
 
-    fg(xi, theta) = (g∘f)(xi, theta)
-
-    iters = 0
-
-    @inbounds for i in 1:size(Ẋ, 1)
-        dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
-        Θ = vcat(dθ, θ)
-        N = nullspace(Θ', rtol = rtol)
-        Q = deepcopy(N) # Deepcopy for inplace
-
-        # Find sparse vectors in nullspace
-        # Calls effectively the ADM algorithm with varying initial conditions
-        iters = DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter, tol = convergence_error)
-
-        # Compute pareto front
-        for (j, ξ) in enumerate(eachcol(Q))
-            if j == 1
-                Ξ[:, i] .= ξ
-            else
-                evaluate_pareto!(view(Ξ, :, i), view(ξ, :), fg, view(Θ, :, :))
-            end
-        end
-        
-        Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
-        Ξ[:, i] .= Ξ[:, i] ./maximum(abs.(Ξ[:, i]))
-    end
+    #fg(xi, theta) = (g∘f)(xi, theta)
+#
+    #iters = 0
+#
+    #@inbounds for i in 1:size(Ẋ, 1)
+    #    dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
+    #    Θ = vcat(dθ, θ)
+    #    N = nullspace(Θ', rtol = rtol)
+    #    Q = deepcopy(N) # Deepcopy for inplace
+#
+    #    # Find sparse vectors in nullspace
+    #    # Calls effectively the ADM algorithm with varying initial conditions
+    #    iters = DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter, tol = convergence_error)
+#
+    #    # Compute pareto front
+    #    for (j, ξ) in enumerate(eachcol(Q))
+    #        if j == 1
+    #            Ξ[:, i] .= ξ
+    #        else
+    #            evaluate_pareto!(view(Ξ, :, i), view(ξ, :), fg, view(Θ, :, :))
+    #        end
+    #    end
+    #    
+    #    Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
+    #    Ξ[:, i] .= Ξ[:, i] ./maximum(abs.(Ξ[:, i]))
+    #end
 
     return ImplicitSparseIdentificationResult(Ξ, Ψ, iters , opt, iters <= maxiter, Ẋ, X, p = p, t = t)
 end
