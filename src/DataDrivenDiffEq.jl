@@ -54,22 +54,6 @@ include("./koopman/extended_dmd.jl")
 export EDMD, gEDMD
 
 
-#include("./exact_dmd.jl")
-#export ExactDMD
-#export eigen, eigvals, eigvecs
-#export modes, frequencies, isstable
-#export dynamics, update!
-#
-#include("./extended_dmd.jl")
-#export ExtendedDMD
-#export dynamics, linear_dynamics
-#export reduce_basis, update!
-
-#include("./dmdc.jl")
-#export DMDc
-#export eigen, eigvals, eigvecs
-#export get_dynamics, get_input_map, dynamics
-
 include("./sindy/results.jl")
 export SparseIdentificationResult
 export print_equations
