@@ -9,8 +9,9 @@
 STRRidge
 ADMM
 SR3
-ADM
+DataDrivenDiffEq.Optimize.ADM
 ```
+
 
 ## Implementing New Optimizer
 
