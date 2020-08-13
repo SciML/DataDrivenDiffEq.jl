@@ -141,10 +141,6 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
             end
         end
 
-        if !isnothing(eq)
-            push!(b_, eq)
-        end
-
         if !isnothing(eq_d) && !isnothing(eq_n)
             push!(b_, ModelingToolkit.simplify(-eq_n ./ eq_d))
         end
