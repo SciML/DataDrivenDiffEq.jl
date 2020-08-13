@@ -21,7 +21,7 @@ The signature of should be `f(xi, theta)` where `xi` are the coefficients of the
 
 Returns a `SInDyResult`.
 """
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM(), convergence_error = eps()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = ADM(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
@@ -32,35 +32,53 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
 
     iters = Optimize.fit!(Ξ, θ, Ẋ, opt, maxiter = maxiter, rtol = rtol, convergence_error = convergence_error, f = f, g = g)
 
-    #fg(xi, theta) = (g∘f)(xi, theta)
-#
-    #iters = 0
-#
-    #@inbounds for i in 1:size(Ẋ, 1)
-    #    dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
-    #    Θ = vcat(dθ, θ)
-    #    N = nullspace(Θ', rtol = rtol)
-    #    Q = deepcopy(N) # Deepcopy for inplace
-#
-    #    # Find sparse vectors in nullspace
-    #    # Calls effectively the ADM algorithm with varying initial conditions
-    #    iters = DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter, tol = convergence_error)
-#
-    #    # Compute pareto front
-    #    for (j, ξ) in enumerate(eachcol(Q))
-    #        if j == 1
-    #            Ξ[:, i] .= ξ
-    #        else
-    #            evaluate_pareto!(view(Ξ, :, i), view(ξ, :), fg, view(Θ, :, :))
-    #        end
-    #    end
-    #    
-    #    Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
-    #    Ξ[:, i] .= Ξ[:, i] ./maximum(abs.(Ξ[:, i]))
-    #end
+    return ImplicitSparseIdentificationResult(Ξ, Ψ, iters , opt, iters <= maxiter, Ẋ, X, p = p, t = t)
+end
+
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = STRRidge(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
+    @assert size(X)[end] == size(Ẋ)[end]
+
+    # Compute the library and the corresponding nullspace
+    θ = Ψ(X, p, t)
+    dθ = zeros(eltype(θ), size(θ, 1)*2, size(θ, 2))
+    dθ[size(θ, 1)+1:end, :] .= θ
+
+    # Init for sweep over the differential variables
+    Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
+
+    # Closure
+    fg(xi, theta) = (g∘f)(xi, theta)
+
+    iters = Inf
+    iters_ = zeros(Int64, size(θ, 1)*2, size(Ẋ, 2))
+    q = zeros(eltype(θ), size(θ, 1)*2, size(θ, 1)*2)
+    
+
+    # TODO maybe add normalization here
+    for i in 1:size(Ẋ, 1)
+        for j in 1:size(θ, 2)
+            dθ[1:size(θ, 1), j] .= Ẋ[i, j]*θ[:, j]
+        end
+
+        Threads.@threads for j in 1:size(dθ, 1)
+            idx = [k != j for k in 1:size(dθ, 1)]
+            iters_[i, j] = sparse_regression!(view(q, idx, j), view(dθ, idx , :), -transpose(view(dθ, j, :)), maxiter , opt, denoise, normalize, convergence_error) 
+            q[j, j] = one(eltype(q))
+        end
+
+        # Find the best
+        for j in 1:size(dθ, 1)
+            if evaluate_pareto!(view(Ξ, :, i), view(q, :, j), fg, view(dθ, :, :)) || j == 1
+                Ξ[:, i] = q[:, j] ./ maximum(abs.(q[:, j]))
+                
+                iters_[i,j] < iters ? iters = iters_[i,j] : nothing
+            end
+        end
+    end
 
     return ImplicitSparseIdentificationResult(Ξ, Ψ, iters , opt, iters <= maxiter, Ẋ, X, p = p, t = t)
 end
+
 
 
 function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Basis, iters::Int64, opt::T, convergence::Bool, Y::AbstractVecOrMat, X::AbstractVecOrMat; p::AbstractArray = [], t::AbstractVector = []) where T <: Union{Optimize.AbstractOptimizer, Optimize.AbstractSubspaceOptimizer}
@@ -120,7 +138,7 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
             end
         end
 
-        push!(b_, -eq_n ./ eq_d)
+        push!(b_, ModelingToolkit.simplify(-eq_n ./ eq_d))
     end
     b_, p_
 end
