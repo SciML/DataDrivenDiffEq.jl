@@ -7,19 +7,22 @@
 # TODO preallocation
 
 """
-    ISInDy(X, Y, Ψ; f, g, maxiter, rtol, p, t, opt, convergence_error)
+    ISInDy(X, Y, Ψ, opt = ADM(); f, g, maxiter, rtol, p, t, convergence_error)
+    ISInDy(X, Y, Ψ, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
 
 Performs an implicit sparse identification of nonlinear dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t`, which are passed in optionally.
-`opt` is an `AbstractSubspaceOptimizer` useable for sparse regression within the nullspace, `maxiter` the maximum iterations to perform, and `convergence_error` the
-bound which causes the optimizer to stop.
-
+Tries to find a sparse vector inside the nullspace if `opt` is an `AbstractSubspaceOptimizer` or performs parallel implicit search if `opt` is a `AbstractOptimizer`.
+`maxiter` the maximum iterations to perform and `convergence_error` the
+bound which causes the optimizer to stop. `denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
+`normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
+    
 The best vectors of the sparse nullspace are selected via multi-objective optimization.
 The best candidate is determined via the mapping onto a feature space `f` and an (scalar, positive definite) evaluation `g`.
 The signature of should be `f(xi, theta)` where `xi` are the coefficients of the sparse optimization and `theta` is the evaluated candidate library.
 `rtol` gets directly passed into the computation of the nullspace.
 
-Returns a `SInDyResult`.
+Returns a `ImplicitSparseIdentificationResult`.
 """
 function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = ADM(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
@@ -99,7 +102,6 @@ function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Bas
 end
 
 
-
 function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) where T <: Real
 
     sparsity = Int64(norm(Ξ, 0))
@@ -125,6 +127,7 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
                 cnt += 1
             end
         end
+
         # Numerator
         for j = 1:length(b)
             if !iszero(Ξ[j+length(b),i])
@@ -138,7 +141,14 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
             end
         end
 
-        push!(b_, ModelingToolkit.simplify(-eq_n ./ eq_d))
+        if !isnothing(eq)
+            push!(b_, eq)
+        end
+
+        if !isnothing(eq_d) && !isnothing(eq_n)
+            push!(b_, ModelingToolkit.simplify(-eq_n ./ eq_d))
+        end
     end
+    
     b_, p_
 end
