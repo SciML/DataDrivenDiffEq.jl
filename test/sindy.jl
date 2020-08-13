@@ -77,13 +77,11 @@
     # Now use the threshold adaptation
     opt = STRRidge(1e-2)
     λs = exp10.(-7:0.1:-1)
-    for alg in [WeightedSum(), WeightedExponentialSum(), GoalProgramming()]
-        Ψ = SInDy(sol[:,:], DX[:, :], basis, λs, alg = alg, maxiter = 100, opt = opt)
-        estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-        sol_4 = solve(estimator, Tsit5(), saveat = dt)
-        @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
-    end
-
+    Ψ = SInDy(sol[:,:], DX[:, :], basis, λs, maxiter = 100, opt = opt)
+    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
+    sol_4 = solve(estimator, Tsit5(), saveat = dt)
+    @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
+    
     # Check for errors
     @test_nowarn SInDy(sol[:,:], DX[1,:], basis, λs, maxiter = 1, opt = opt)
     @test_nowarn SInDy(sol[:, :], DX[1, :], basis, λs, maxiter = 1, opt = opt, denoise = true, normalize = true)

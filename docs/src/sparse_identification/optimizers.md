@@ -3,19 +3,15 @@
 `DataDrivenDiffEq` comes with some implementations for sparse regression included. All of these are stored inside the
 `DataDrivenDiffEq.Optimize` package and extend the `AbstractOptimizer`, if an explicit optimization is needed or the `AbstractSubspaceOptimizer` for an implicit problem (where the solution is within the nullspace).
 
-Additionally, basic strategies for multi-objective optimization within the scope of this package are given. These include `AbstractScalarizationMethod`s.
-
 ## Functions
 
 ```@docs
 STRRidge
 ADMM
 SR3
-ADM
-WeightedSum
-WeightedExponentialSum
-GoalProgramming
+DataDrivenDiffEq.Optimize.ADM
 ```
+
 
 ## Implementing New Optimizer
 

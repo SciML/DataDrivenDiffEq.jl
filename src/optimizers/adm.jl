@@ -8,6 +8,7 @@ get_threshold(opt::ADM) = opt.λ
 set_threshold!(opt::ADM, λ) = (opt.λ = λ; return)
 
 """
+    ADM()
     ADM(λ = 0.1)
 
 Optimizer for finding a sparse basis vector in a subspace based on [this paper](https://arxiv.org/pdf/1412.4659.pdf).
@@ -18,23 +19,38 @@ function ADM(λ::T = 0.1) where T <: Real
     return ADM(λ, f)
 end
 
-function fit!(q::AbstractArray{T, 1}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10) where T <: Real
-    normalize!(q)
+function fit!(q::AbstractArray{T, 1}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10, tol::T = eps(eltype(q))) where T <: Real
+    
     x = Y*q
-    for k in 1:maxiter
+    q_ = deepcopy(q)
+    iters_ = 0
+    
+    while iters_ <= maxiter
+        iters_ += 1
         prox!(x, opt.R, Y*q)
-        mul!(q, Y', x/norm(Y'*x, 2))
+        mul!(q, Y', x)
+        normalize!(q, 2)
+
+        if norm(q - q_) < tol 
+            break
+        else
+            q_ .= q
+        end
     end
 
-    q[abs.(q) .< get_threshold(opt)] .= zero(eltype(q))
-    normalize!(q, 2)
-    return
+    return iters_
 end
 
-function fit!(q::AbstractArray{T, 2}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10) where T <: Real
+function fit!(q::AbstractArray{T, 2}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10, tol::T = eps(eltype(q))) where T <: Real
+    iters_ = Inf
+    i_ = Inf
+    
     @inbounds for i in 1:size(q, 2)
-        fit!(view(q, :, i), Y, opt, maxiter = maxiter)
+        i_ = fit!(q[:, i], Y, opt, maxiter = maxiter, tol = tol)
+        if iters_ > i_ 
+            iters_ = i_
+        end
     end
 
-    return
+    return iters_
 end

@@ -23,8 +23,8 @@ makedocs(
         ],
         "Sparse Identification" => Any[
             "sparse_identification/sindy.md",
-            "sparse_identification/optimizers.md",
-            "sparse_identification/isindy.md"
+            "sparse_identification/isindy.md",
+            "sparse_identification/optimizers.md"
         ],
         "Utilities" => "utils.md",
         "Contributing" => "contributions.md"

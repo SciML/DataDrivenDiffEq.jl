@@ -28,7 +28,9 @@ end
 u0 = [0.5]
 tspan = (0.0, 5.0)
 problem = ODEProblem(michaelis_menten, u0, tspan)
-solution = solve(problem, Tsit5(), saveat = 0.1)
+
+solution = solve(problem, Tsit5(), saveat = 0.1, atol = 1e-7, rtol = 1e-7)
+    
 plot(solution) # hide
 savefig("isindy_example.png")
 ```
@@ -49,16 +51,13 @@ The signature of `ISInDy` is equal to `SInDy`, but requires an `AbstractSubspace
 
 
 ```@example isindy_1
-opt = ADM(1e-1)
+opt = ADM(1.1e-1)
 ```
 
-Since `ADM()` returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide an `AbstractScalarizationMethod` to `ISInDy`. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of ``\Theta^T \xi`` (nullspace). Here, we want to set the focus on the the magnitude of the deviation from the nullspace using `WeightedSum`.
+Since `ADM()` returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide a sufficient cost function `g` to `ISInDy`. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of ``\Theta^T \xi`` (nullspace). This is a default setting which can be changed by providing a function `f` which maps the coefficients and the library onto a feature space. Here, we want to set the focus on the the magnitude of the deviation from the nullspace.
 
 ```@example isindy_1
-
-f_target = WeightedSum([0.01 1.0], x->identity(x))
-
-Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100, rtol = 0.1, alg = f_target)
+Ψ = ISInDy(X, DX, basis, g = x->norm([1e-1*x[1]; x[2]]), opt = opt, maxiter = 1000, rtol = 0.99)
 nothing #hide
 ```
 
@@ -92,5 +91,4 @@ The parameters are off a little, but, as before, we can use `DiffEqFlux` to tune
 
 ```@docs
 ISInDy
-DataDrivenDiffEq.Optimize.ADM
 ```
