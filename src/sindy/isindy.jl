@@ -22,7 +22,9 @@ The best candidate is determined via the mapping onto a feature space `f` and an
 The signature of should be `f(xi, theta)` where `xi` are the coefficients of the sparse optimization and `theta` is the evaluated candidate library.
 `rtol` gets directly passed into the computation of the nullspace.
 
-Returns a `ImplicitSparseIdentificationResult`.
+Currently ISInDy supports functions of the form `g(u, p, t)*du - f(u, p, t) = 0`.
+
+Returns a `SparseIdentificationResult`.
 """
 function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = ADM(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
@@ -37,6 +39,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = ADM();
 
     return ImplicitSparseIdentificationResult(Ξ, Ψ, iters , opt, iters <= maxiter, Ẋ, X, p = p, t = t)
 end
+
 
 function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = STRRidge(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
