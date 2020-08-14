@@ -37,14 +37,20 @@ plot(DX')
 @variables u[1:4] t
 polys = Operation[]
 # Lots of basis functions -> sindy pi can handle more than ADM()
-for i ∈ 0:2
+for i ∈ 0:4
     if i == 0
         push!(polys, u[1]^0)
     else
-        push!(polys, u.^i...)
+        if i < 2
+            push!(polys, u.^i...)
+        else
+            push!(polys, u[3:4].^i...)
+        end
+        
     end
 end
 push!(polys, sin.(u[1])...)
+push!(polys, cos.(u[1]))
 push!(polys, sin.(u[1]).*u[3:4]...)
 push!(polys, sin.(u[1]).*u[3:4].^2...)
 push!(polys, cos.(u[1]).^2...)
@@ -55,9 +61,9 @@ push!(polys, -0.2+0.5*sin(6*t))
 basis= Basis(polys, u, iv = t)
 
 # Simply use any optimizer you would use for sindy
-λ = exp10.(-4:0.5:-2)
+λ = exp10.(-4:0.1:-1)
 g(x) = norm([1e-3; 10.0] .* x, 2)
-Ψ = ISInDy(X[:,1:5000], DX[:, 1:5000], basis, λ, STRRidge(), maxiter = 1000, normalize = false, t = solution.t[1:5000], g = g)
+Ψ = ISInDy(X[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
 println(Ψ)
 print_equations(Ψ, show_parameter = true)
 
@@ -75,4 +81,4 @@ plot(solution.t[:], solution[:,:]', color = :red, label = nothing)
 plot!(sol_.t, sol_[:, :]', color = :green, label = "Estimation")
 
 plot(solution.t, abs.(solution-sol_)')
-norm(solution[:,:]-sol_[:,:], 2) # ≈ 0.04
+norm(solution[:,:]-sol_[:,:], 2) # ≈ 0.018
