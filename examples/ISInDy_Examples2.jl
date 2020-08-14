@@ -55,10 +55,10 @@ push!(polys, -0.2+0.5*sin(6*t))
 basis= Basis(polys, u, iv = t)
 
 # Simply use any optimizer you would use for sindy
-λ = exp10.(-4:0.1:-2)
+λ = exp10.(-4:0.1:0)
 Ψ = ISInDy(X[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 1000, normalize = false, t = solution.t)
 println(Ψ)
-print_equations(Ψ)
+print_equations(Ψ, show_parameter = true)
 
 # Transform into ODE System
 sys = ODESystem(Ψ)
