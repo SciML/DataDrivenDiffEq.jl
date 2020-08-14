@@ -6,18 +6,6 @@ using ProximalOperators
 
 abstract type AbstractOptimizer end;
 abstract type AbstractSubspaceOptimizer end;
-abstract type AbstractScalarizationMethod end;
-
-include("./strridge.jl")
-include("./admm.jl")
-include("./sr3.jl")
-
-#Nullspace for implicit sindy
-include("./adm.jl")
-
-export init, init!, fit!, set_threshold!, get_threshold
-export STRRidge, ADMM, SR3
-export ADM
 
 # Pareto
 function evaluate_pareto!(current_parameter, tmp_parameter, fg::Function, args...)
@@ -32,5 +20,16 @@ end
 # Pareto
 export evaluate_pareto!
 
+
+include("./strridge.jl")
+include("./admm.jl")
+include("./sr3.jl")
+
+#Nullspace for implicit sindy
+include("./adm.jl")
+
+export init, init!, fit!, set_threshold!, get_threshold
+export STRRidge, ADMM, SR3
+export ADM
 
 end

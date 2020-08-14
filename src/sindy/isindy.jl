@@ -7,21 +7,28 @@
 # TODO preallocation
 
 """
-    ISInDy(X, Y, Ψ; f, g, maxiter, rtol, p, t, opt, convergence_error)
+    ISInDy(X, Y, Ψ, opt = ADM(); f, g, maxiter, rtol, p, t, convergence_error)
+    ISInDy(X, Y, Ψ, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
+    ISInDy(X, Y, Ψ, lamdas, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
 
 Performs an implicit sparse identification of nonlinear dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t`, which are passed in optionally.
-`opt` is an `AbstractSubspaceOptimizer` useable for sparse regression within the nullspace, `maxiter` the maximum iterations to perform, and `convergence_error` the
-bound which causes the optimizer to stop.
+Tries to find a sparse vector inside the nullspace if `opt` is an `AbstractSubspaceOptimizer` or performs parallel implicit search if `opt` is a `AbstractOptimizer`.
+`maxiter` the maximum iterations to perform and `convergence_error` the
+bound which causes the optimizer to stop. `denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
+`normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
+If `ISInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimization over all thresholds.
 The best vectors of the sparse nullspace are selected via multi-objective optimization.
 The best candidate is determined via the mapping onto a feature space `f` and an (scalar, positive definite) evaluation `g`.
 The signature of should be `f(xi, theta)` where `xi` are the coefficients of the sparse optimization and `theta` is the evaluated candidate library.
 `rtol` gets directly passed into the computation of the nullspace.
 
-Returns a `SInDyResult`.
+Currently ISInDy supports functions of the form `g(u, p, t)*du - f(u, p, t) = 0`.
+
+Returns a `SparseIdentificationResult`.
 """
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], opt::T = ADM(), convergence_error = eps()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = ADM(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
@@ -30,35 +37,104 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; f::Function = (
     # Init for sweep over the differential variables
     Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
 
-
-    fg(xi, theta) = (g∘f)(xi, theta)
-
-    iters = 0
-
-    @inbounds for i in 1:size(Ẋ, 1)
-        dθ = hcat(map((dxi, ti)->dxi.*ti, Ẋ[i, :], eachcol(θ))...)
-        Θ = vcat(dθ, θ)
-        N = nullspace(Θ', rtol = rtol)
-        Q = deepcopy(N) # Deepcopy for inplace
-
-        # Find sparse vectors in nullspace
-        # Calls effectively the ADM algorithm with varying initial conditions
-        iters = DataDrivenDiffEq.fit!(Q, N', opt, maxiter = maxiter, tol = convergence_error)
-
-        # Compute pareto front
-        for (j, ξ) in enumerate(eachcol(Q))
-            if j == 1
-                Ξ[:, i] .= ξ
-            else
-                evaluate_pareto!(view(Ξ, :, i), view(ξ, :), fg, view(Θ, :, :))
-            end
-        end
-        
-        Ξ[abs.(Ξ[:, i]) .< get_threshold(opt), i] .= zero(eltype(Ξ))
-        Ξ[:, i] .= Ξ[:, i] ./maximum(abs.(Ξ[:, i]))
-    end
+    iters = Optimize.fit!(Ξ, θ, Ẋ, opt, maxiter = maxiter, rtol = rtol, convergence_error = convergence_error, f = f, g = g)
 
     return ImplicitSparseIdentificationResult(Ξ, Ψ, iters , opt, iters <= maxiter, Ẋ, X, p = p, t = t)
+end
+
+
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T; f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
+    @assert size(X)[end] == size(Ẋ)[end]
+
+    # Compute the library and the corresponding nullspace
+    θ = Ψ(X, p, t)
+    dθ = zeros(eltype(θ), size(θ, 1)*2, size(θ, 2))
+    dθ[size(θ, 1)+1:end, :] .= θ
+
+    # Init for sweep over the differential variables
+    Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
+    q = zeros(eltype(θ), size(θ, 1)*2, size(θ, 1)*2)
+    
+    # Closure
+    fg(xi, theta) = (g∘f)(xi, theta)
+
+    iters = zeros(Int64, size(Ẋ, 1))
+    
+
+    # TODO maybe add normalization here
+    for i in 1:size(Ẋ, 1)
+        for j in 1:size(θ, 2)
+            dθ[1:size(θ, 1), j] .= Ẋ[i, j]*θ[:, j]
+        end
+
+        iters[i] = parallel_implicit!(view(Ξ,:, i), view(dθ, :, :), opt, fg, maxiter, denoise, normalize, convergence_error)
+
+    end
+
+    return ImplicitSparseIdentificationResult(Ξ, Ψ, minimum(iters) , opt, minimum(iters) <= maxiter, Ẋ, X, p = p, t = t)
+end
+
+
+function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractVector, opt::T = STRRidge(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
+    @assert size(X)[end] == size(Ẋ)[end]
+
+    # Compute the library and the corresponding nullspace
+    θ = Ψ(X, p, t)
+    dθ = zeros(eltype(θ), size(θ, 1)*2, size(θ, 2))
+    dθ[size(θ, 1)+1:end, :] .= θ
+
+    # Init for sweep over the differential variables
+    Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
+
+    q = zeros(eltype(θ), size(θ, 1)*2, size(θ, 1)*2)
+    # Closure
+    fg(xi, theta) = (g∘f)(xi, theta)
+
+    iters = zeros(Int64, size(Ẋ, 1))
+    
+
+    # TODO maybe add normalization here
+    for i in 1:size(Ẋ, 1)
+        for j in 1:size(θ, 2)
+            dθ[1:size(θ, 1), j] .= Ẋ[i, j]*θ[:, j]
+        end
+
+        iters[i] = parallel_implicit!(view(Ξ,:, i), view(dθ, :, :), opt, fg, maxiter, denoise, normalize, convergence_error, thresholds)
+
+    end
+
+    return ImplicitSparseIdentificationResult(Ξ, Ψ, minimum(iters) , opt, minimum(iters) <= maxiter, Ẋ, X, p = p, t = t)
+end
+
+function parallel_implicit!(Ξ, X, opt, fg, maxiter, denoise, normalize, convergence_error, thresholds = [get_threshold(opt)])
+
+    q = zeros(eltype(X), size(X, 1), size(X, 1), length(thresholds))
+    iters_ = zeros(Int64, size(X,1), length(thresholds))
+    
+    Threads.@threads for j in 1:size(X, 1)
+        idx = [k_ != j for k_ in 1:size(X, 1)]
+        
+        for k in 1:length(thresholds)
+            set_threshold!(opt, thresholds[k])
+            iters_[j, k] = sparse_regression!(view(q, idx, j, k), view(X, idx , :), -transpose(view(X, j, :)), maxiter , opt, denoise, normalize, convergence_error) 
+            q[j, j, k] = one(eltype(q))
+        end
+    end
+        
+    iters = Inf
+    half_size = Int64(round(size(X, 1)/2))
+    
+    for j in 1:size(X, 1), k in 1:length(thresholds)
+        norm(view(q, 1:half_size , j, k), 0) <= 0 || norm(view(q, (half_size+1):size(X, 1),j, k), 0)<= 0 ? continue : nothing
+        
+        if evaluate_pareto!(view(Ξ, :), view(q, :, j, k), fg, view(X, :, :)) || j == 1
+            mul!(Ξ, q[:, j, k],  one(eltype(q))./maximum(abs.(q[:, j, k])))
+
+            iters_[j, k] < iters ? iters = iters_[j, k] : nothing
+        end
+    end
+
+    return iters
 end
 
 
@@ -69,6 +145,8 @@ function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Bas
     b_, p_ = derive_implicit_parameterized_eqs(coeff, equations)
     ps = [p; p_]
 
+    println(sparsities)
+    println(b_)
     Ŷ = b_(X, ps, t)
     training_error = norm.(eachrow(Y-Ŷ), 2)
     aicc = similar(training_error)
@@ -76,9 +154,9 @@ function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Bas
     for i in 1:length(aicc)
         aicc[i] = AICC(sum(sparsities[i]), view(Ŷ, i, :) , view(Y, i, :))
     end
+
     return SparseIdentificationResult(coeff, [p...;p_...], b_ , opt, iters, convergence,  training_error, aicc,  sparsities)
 end
-
 
 
 function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) where T <: Real
@@ -106,6 +184,7 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
                 cnt += 1
             end
         end
+
         # Numerator
         for j = 1:length(b)
             if !iszero(Ξ[j+length(b),i])
@@ -119,7 +198,11 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
             end
         end
 
-        push!(b_, -eq_n ./ eq_d)
+        if !(isnothing(eq_d) || isnothing(eq_n))
+            push!(b_, ModelingToolkit.simplify(-eq_n ./ eq_d))
+        end
+
     end
+    
     b_, p_
 end
