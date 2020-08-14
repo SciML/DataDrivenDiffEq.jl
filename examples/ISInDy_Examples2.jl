@@ -9,7 +9,7 @@ gr()
 
 function cart_pole(u, p, t)
     du = similar(u)
-    F = -0.2 + 0.5*sin(6*t) #no input for now
+    F = -0.2 + 0.5*sin(6*t) # the input
     du[1] = u[3]
     du[2] = u[4]
     du[3] = -(19.62*sin(u[1])+sin(u[1])*cos(u[1])*u[3]^2+F*cos(u[1]))/(2-cos(u[1])^2)

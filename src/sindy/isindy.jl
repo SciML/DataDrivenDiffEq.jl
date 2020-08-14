@@ -9,6 +9,7 @@
 """
     ISInDy(X, Y, Ψ, opt = ADM(); f, g, maxiter, rtol, p, t, convergence_error)
     ISInDy(X, Y, Ψ, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
+    ISInDy(X, Y, Ψ, lamdas, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
 
 Performs an implicit sparse identification of nonlinear dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t`, which are passed in optionally.
@@ -16,7 +17,8 @@ Tries to find a sparse vector inside the nullspace if `opt` is an `AbstractSubsp
 `maxiter` the maximum iterations to perform and `convergence_error` the
 bound which causes the optimizer to stop. `denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
 `normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
-    
+
+If `ISInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimization over all thresholds.
 The best vectors of the sparse nullspace are selected via multi-objective optimization.
 The best candidate is determined via the mapping onto a feature space `f` and an (scalar, positive definite) evaluation `g`.
 The signature of should be `f(xi, theta)` where `xi` are the coefficients of the sparse optimization and `theta` is the evaluated candidate library.
