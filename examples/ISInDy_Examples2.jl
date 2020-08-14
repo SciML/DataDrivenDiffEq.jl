@@ -17,7 +17,7 @@ function cart_pole(u, p, t)
     return du
 end
 
-u0 = [0.3; 0; 1; 0]
+u0 = [0.3; 0; 1.0; 0]
 tspan = (0.0, 16.0)
 dt = 0.001
 cart_pole_prob = ODEProblem(cart_pole, u0, tspan)
@@ -55,8 +55,9 @@ push!(polys, -0.2+0.5*sin(6*t))
 basis= Basis(polys, u, iv = t)
 
 # Simply use any optimizer you would use for sindy
-λ = exp10.(-4:0.1:0)
-Ψ = ISInDy(X[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 1000, normalize = false, t = solution.t)
+λ = exp10.(-4:0.5:-2)
+g(x) = norm([1e-3; 10.0] .* x, 2)
+Ψ = ISInDy(X[:,1:5000], DX[:, 1:5000], basis, λ, STRRidge(), maxiter = 1000, normalize = false, t = solution.t[1:5000], g = g)
 println(Ψ)
 print_equations(Ψ, show_parameter = true)
 
@@ -74,4 +75,4 @@ plot(solution.t[:], solution[:,:]', color = :red, label = nothing)
 plot!(sol_.t, sol_[:, :]', color = :green, label = "Estimation")
 
 plot(solution.t, abs.(solution-sol_)')
-norm(solution[:,:]-sol_[:,:], 2) # approx 0.025
+norm(solution[:,:]-sol_[:,:], 2) # ≈ 0.04
