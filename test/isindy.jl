@@ -38,7 +38,7 @@
     basis= Basis(polys, u)
 
     opt = ADM(1e-2)
-    Ψ = ISInDy(X, DX, basis, opt = opt, maxiter = 100)
+    Ψ = ISInDy(X, DX, basis, opt, maxiter = 100)
 
     # Transform into ODE System
     sys = ODESystem(Ψ)
