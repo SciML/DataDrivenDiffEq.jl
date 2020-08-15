@@ -1,6 +1,6 @@
 # Implicit Sparse Identification of Nonlinear Dynamics
 
-While `SInDy` works well for ODEs, some systems take the form of rational functions `dx = f(x) / g(x)`. These can be inferred via `ISInDy`, which extends `SInDy` [for Implicit problems](https://ieeexplore.ieee.org/abstract/document/7809160). In particular, it solves
+While `SInDy` works well for ODEs, some systems take the form of [DAE](https://diffeq.sciml.ai/stable/types/dae_types/)s. A common form is `f(x, p, t) - g(x, p, t)*dx = 0`. These can be inferred via `ISInDy`, which extends `SInDy` [for Implicit problems](https://ieeexplore.ieee.org/abstract/document/7809160). In particular, it solves
 
 ```math
 \Xi = \min ~ \left\lVert \Theta(X, p, t)^{T} \Xi \right\rVert_{2} + \lambda ~ \left\lVert \Xi \right\rVert_{1}
@@ -90,7 +90,7 @@ The parameters are off a little, but, as before, we can use `DiffEqFlux` to tune
 
 ## Example : Cart-Pole with Time-Dependent Control
 
-Implicit dynamics can also be reformulated as an explicit problem as stated in [this paper](https://arxiv.org/pdf/2004.02322.pdf). The algorithm tries to find the right equations by trying out all candidate functions as a right hand side and performing a sparse regression onto the remaining set of candidates. Let's start by defining the problem and generate the data:
+Implicit dynamics can also be reformulated as an explicit problem as stated in [this paper](https://arxiv.org/pdf/2004.02322.pdf). The algorithm searches the correct equations by trying out all candidate functions as a right hand side and performing a sparse regression onto the remaining set of candidates. Let's start by defining the problem and generate the data:
 
 ```@example isindy_2
 
@@ -130,7 +130,8 @@ savefig("isindy_cartpole_data.png") # hide
 ```
 ![](isindy_cartpole_data.png)
 
-As always, we will also need a `Basis` to derive our equations from:
+We see that we include a forcing term `F` inside the model which is depending on `t`.
+As before, we will also need a `Basis` to derive our equations from:
 
 ```@example isindy_2
 @variables u[1:4] t
@@ -161,7 +162,9 @@ basis= Basis(polys, u, iv = t)
 
 We added the time dependent input directly into the basis to account for its influence.
 
-Like for a normal sparse regression, we can use any `AbstractOptimizer` with a pareto front optimization over different thresholds. 
+*NOTE : Including input signals may change in future releases!*
+
+Like for a `SInDy`, we can use any `AbstractOptimizer` with a pareto front optimization over different thresholds. 
 
 ```@example isindy_2
 λ = exp10.(-4:0.1:-1)
@@ -177,14 +180,13 @@ ps = parameters(Ψ)
 estimator = ODEProblem(dudt, u0, tspan, ps)
 sol_ = solve(estimator, Tsit5(), saveat = dt)
 
-# Yeah! We got it right
 plot(solution.t[:], solution[:,:]', color = :red, label = nothing) # hide
 plot!(sol_.t, sol_[:, :]', color = :green, label = "Estimation") # hide
 savefig("isindy_cartpole_estimation.png") # hide
 ```
 ![](isindy_cartpole_estimation.png)
 
-Let's have a look at the equations recovered.
+Let's have a look at the equations recovered. They nearly match up.
 
 ```@example isindy_2
 print_equations(Ψ)
