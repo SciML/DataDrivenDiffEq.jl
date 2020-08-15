@@ -14,7 +14,7 @@
 Performs an implicit sparse identification of nonlinear dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t`, which are passed in optionally.
 Tries to find a sparse vector inside the nullspace if `opt` is an `AbstractSubspaceOptimizer` or performs parallel implicit search if `opt` is a `AbstractOptimizer`.
-`maxiter` the maximum iterations to perform and `convergence_error` the
+`maxiter` denote the maximum iterations to perform and `convergence_error` the
 bound which causes the optimizer to stop. `denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
 `normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
@@ -145,8 +145,6 @@ function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Bas
     b_, p_ = derive_implicit_parameterized_eqs(coeff, equations)
     ps = [p; p_]
 
-    println(sparsities)
-    println(b_)
     Ŷ = b_(X, ps, t)
     training_error = norm.(eachrow(Y-Ŷ), 2)
     aicc = similar(training_error)
