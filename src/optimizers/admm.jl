@@ -31,7 +31,7 @@ init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X,
 
 #soft_thresholding(x::AbstractArray, t::T) where T <: Real = sign.(x) .* max.(abs.(x) .- t, zero(eltype(x)))
 
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
+function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 1, convergence_error::T = eps(), progress::B = EmptyProgressMeter()) where {T <: Real, B <: ProgressMeter.AbstractProgress}
     n, m = size(A)
 
     g = NormL1(get_threshold(opt))
@@ -48,6 +48,9 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
 
     iters = 0
 
+    _error = zero(eltype(X))
+    _sparsity = 0
+
     @inbounds for i in 1:maxiter
         iters += 1
 
@@ -55,14 +58,22 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
         prox!(X, g, x̂ + ŷ/opt.ρ)
         ŷ .= ŷ + opt.ρ*(x̂ - X)
 
-        if norm(x_i - X, 2) < convergence_error
+
+        _error = norm(x_i - X, 2)
+        _sparsity = norm(X, 0)
+
+        if _error < convergence_error
             break
         else
             x_i .= X
         end
 
+        next!(progress; showvalues = [(:Iterations, iters),(:Convergence, _error), (:Sparsity, _sparsity)])
+        
     end
 
+    finish!(progress; showvalues = [(:Iterations, iters),(:Convergence, _error), (:Sparsity, _sparsity)])
+    
     X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
     return iters
 end

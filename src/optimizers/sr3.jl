@@ -39,7 +39,7 @@ get_threshold(opt::SR3) = sqrt(2*opt.λ/opt.ν)
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
+function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 1, convergence_error::T = eps(),  progress::B = EmptyProgressMeter()) where {T <: Real, B <: ProgressMeter.AbstractProgress}
     f = opt.R(get_threshold(opt))
 
     n, m = size(A)
@@ -53,6 +53,9 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
     w_i .= W
     iters = 0
 
+    _error = zero(eltype(X))
+    _sparsity = 0
+
     for i in 1:maxiter
         iters += 1
         # Solve ridge regression
@@ -60,14 +63,22 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
         # Add proximal iteration
         prox!(W, f, X, opt.ν*opt.λ)
 
-        if norm(w_i - W, 2)/opt.ν < convergence_error
+        _error = norm(w_i - W, 2)/opt.ν
+        _sparsity = norm(W, 0)
+
+        if _error < convergence_error
             break
         else
             w_i .= W
         end
 
+        next!(progress; showvalues = [(:Iterations, iters),(:Convergence, _error), (:Sparsity, _sparsity)])
+        
     end
 
+
+    finish!(progress; showvalues = [(:Iterations, iters),(:Convergence, _error), (:Sparsity, _sparsity)])
+    
     X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
     return iters
 end

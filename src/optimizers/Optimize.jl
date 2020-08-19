@@ -2,10 +2,17 @@ module Optimize
 
 using LinearAlgebra
 using ProximalOperators
-
+using ProgressMeter
 
 abstract type AbstractOptimizer end;
 abstract type AbstractSubspaceOptimizer end;
+
+# Empty ProgressMeter
+struct EmptyProgressMeter <: ProgressMeter.AbstractProgress end;
+
+ProgressMeter.update!(x::EmptyProgressMeter; kwargs...) = nothing
+ProgressMeter.next!(x::EmptyProgressMeter; kwargs...) = nothing
+ProgressMeter.finish!(x::EmptyProgressMeter; kwargs...) = nothing
 
 # Pareto
 function evaluate_pareto!(current_parameter, tmp_parameter, fg::Function, args...)
