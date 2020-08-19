@@ -248,7 +248,7 @@ nothing # hide
 
 ```@example 3
 opt = SR3(3e-1, 1.0)
-Ψ = SInDy(X[:, 1:1000], DX[:, 1:1000], basis, maxiter = 10000, opt = opt, normalize = true)
+Ψ = SInDy(X[:, 1:1000], DX[:, 1:1000], basis, opt, maxiter = 10000, normalize = true)
 print_equations(Ψ) # hide
 ```
 

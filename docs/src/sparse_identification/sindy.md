@@ -81,7 +81,7 @@ To perform the sparse identification on our data, we need to define an `Optimize
 
 ```@example sindy_1
 opt = STRRidge(0.1)
-Ψ = SInDy(X, DX, basis, maxiter = 100, opt = opt, normalize = true)
+Ψ = SInDy(X, DX, basis, opt, maxiter = 100, normalize = true)
 ```
 
 `Ψ` is a `SInDyResult`, which stores some about the regression. As we can see, we have 7 active terms inside the model.
