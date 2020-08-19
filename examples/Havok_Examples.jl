@@ -60,7 +60,7 @@ plot(plot(z[1, :]),plot(z[end, :].^2),  layout = (2, 1))
 
 basis = Basis(u, u)
 opt = SR3(1e-1)
-b = SInDy(z[:, 1:end], dz[1:end-1, 1:end], basis, maxiter = 1000, opt = opt, normalize = true)
+b = SINDy(z[:, 1:end], dz[1:end-1, 1:end], basis, opt, maxiter = 1000, normalize = true)
 
 # Coincides with the paper results
 println(b)

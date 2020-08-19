@@ -40,15 +40,15 @@ for i ∈ 0:6
 end
 
 basis= Basis(polys, u)
-Ψ = ISInDy(X, DX, basis, ADM(1e-2), maxiter = 10, rtol = 0.1)
+Ψ = ISINDy(X, DX, basis, ADM(1e-2), maxiter = 10, rtol = 0.1)
 println(Ψ)
 print_equations(Ψ)
 
-# Lets use sindy pi for a parallel implicit implementation
+# Lets use SINDy pi for a parallel implicit implementation
 # Create a basis 
 @variables u[1:3]
 polys = Operation[]
-# Lots of basis functions -> sindy pi can handle more than ADM()
+# Lots of basis functions -> SINDy pi can handle more than ADM()
 for i ∈ 0:10
     if i == 0
         push!(polys, u[1]^0)
@@ -62,8 +62,8 @@ end
 
 basis= Basis(polys, u)
 
-# Simply use any optimizer you would use for sindy
-Ψ = ISInDy(X[:, :], DX[:, :], basis, STRRidge(1e-1), maxiter = 100, normalize = true)
+# Simply use any optimizer you would use for SINDy
+Ψ = ISINDy(X[:, :], DX[:, :], basis, STRRidge(1e-1), maxiter = 100, normalize = true)
 
 
 # Transform into ODE System

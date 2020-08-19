@@ -15,7 +15,7 @@ where, in most cases, ``Y``is the data matrix containing the derivatives of the 
 As in the original paper, we will estimate the [Lorenz System](https://en.wikipedia.org/wiki/Lorenz_system).
 First, let's create the necessary data and have a look at the trajectory.
 
-```@example sindy_1
+```@example SINDy_1
 using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
@@ -47,7 +47,7 @@ savefig("lorenz.png") #hide
 
 Additionally, we generate the *ideal* derivative data.
 
-```@example sindy_1
+```@example SINDy_1
 X = Array(solution)
 DX = similar(X)
 for (i, xi) in enumerate(eachcol(X))
@@ -57,7 +57,7 @@ end
 
 To generate the symbolic equations, we need to define a ` Basis` over the variables `x y z`. In this example, we will use all monomials up to degree of 4 and their products:
 
-```@example sindy_1
+```@example SINDy_1
 @variables x y z
 u = Operation[x; y; z]
 polys = Operation[]
@@ -79,25 +79,25 @@ nothing #hide
 
 To perform the sparse identification on our data, we need to define an `Optimizer`. Here, we will use `STRRidge`, which is described in the original paper. The threshold of the optimizer is set to `0.1`. An overview of the different optimizers can be found below.
 
-```@example sindy_1
+```@example SINDy_1
 opt = STRRidge(0.1)
-Ψ = SInDy(X, DX, basis, opt, maxiter = 100, normalize = true)
+Ψ = SINDy(X, DX, basis, opt, maxiter = 100, normalize = true)
 ```
 
-`Ψ` is a `SInDyResult`, which stores some about the regression. As we can see, we have 7 active terms inside the model.
+`Ψ` is a `SINDyResult`, which stores some about the regression. As we can see, we have 7 active terms inside the model.
 To look at the equations, simply type
 
-```@example sindy_1
+```@example SINDy_1
 print_equations(Ψ)
 ```
 
 First, let's have a look at the ``L2``-Error and Akaikes Information Criterion of the result
 
-```@example sindy_1
+```@example SINDy_1
 get_error(Ψ)
 ```
 
-```@example sindy_1
+```@example SINDy_1
 get_aicc(Ψ)
 ```
 
@@ -106,7 +106,7 @@ We can also access the coefficient matrix ``\Xi`` directly via `get_coefficients
 To generate a numerical model usable in `DifferentialEquations`, we simply use the `ODESystem` function from `ModelingToolkit`.
 The resulting parameters used for the identification can be accessed via `parameters(Ψ)`. The returned vector also includes the parameters of the original `Basis` used to generate the result.
 
-```@example sindy_1
+```@example SINDy_1
 ps = parameters(Ψ)
 sys = ODESystem(Ψ)
 dudt = ODEFunction(sys)
@@ -137,7 +137,7 @@ which resembles the papers results. Next, we could use [classical parameter esti
 ## Functions
 
 ```@docs
-SInDy
+SINDy
 sparse_regression
 ```
 

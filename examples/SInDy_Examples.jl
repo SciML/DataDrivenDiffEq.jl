@@ -50,13 +50,13 @@ println(basis)
 # than assumptions, converges fast but fails sometimes with too much noise
 opt = STRRidge(1e-2)
 # Enforce all 100 iterations
-Ψ = SInDy(sol[:,1:25], DX[:, 1:25], basis, opt, p = [1.0; 1.0], maxiter = 100, convergence_error = 1e-5)
+Ψ = SINDy(sol[:,1:25], DX[:, 1:25], basis, opt, p = [1.0; 1.0], maxiter = 100, convergence_error = 1e-5)
 println(Ψ)
 print_equations(Ψ)
 
 # Lasso as ADMM, typically needs more information, more tuning
 opt = ADMM(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:50], DX[:, 1:50], basis, opt, p = [1.0; 1.0], maxiter = 5000, convergence_error = 1e-3)
+Ψ = SINDy(sol[:,1:50], DX[:, 1:50], basis, opt, p = [1.0; 1.0], maxiter = 5000, convergence_error = 1e-3)
 println(Ψ)
 print_equations(Ψ)
 
@@ -65,7 +65,7 @@ parameters(Ψ)
 
 # SR3, works good with lesser data and tuning
 opt = SR3(1e-2, 1.0)
-Ψ = SInDy(sol[:,1:end], DX[:, 1:end], basis, opt, p = [0.5; 0.5], maxiter = 5000, convergence_error = 1e-5)
+Ψ = SINDy(sol[:,1:end], DX[:, 1:end], basis, opt, p = [0.5; 0.5], maxiter = 5000, convergence_error = 1e-5)
 println(Ψ)
 print_equations(Ψ, show_parameter = true)
 
@@ -74,7 +74,7 @@ print_equations(Ψ, show_parameter = true)
 λs = exp10.(-5:0.1:-1)
 # Use SR3 with high relaxation (allows the solution to diverge from LTSQ) and high iterations
 opt = SR3(1e-2, 5.0)
-Ψ = SInDy(sol[:,1:10], DX[:, 1:10], basis, λs, opt, p = [1.0; 1.0], maxiter = 15000)
+Ψ = SINDy(sol[:,1:10], DX[:, 1:10], basis, λs, opt, p = [1.0; 1.0], maxiter = 15000)
 println(Ψ)
 print_equations(Ψ)
 

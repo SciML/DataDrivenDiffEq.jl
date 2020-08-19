@@ -60,11 +60,11 @@ export print_equations
 export get_coefficients, get_error, get_sparsity, get_aicc
 
 include("./sindy/sindy.jl")
-export SInDy
+export SINDy
 export sparse_regression, sparse_regression!
 
 include("./sindy/isindy.jl")
-export ISInDy
+export ISINDy
 
 include("./utils.jl")
 export AIC, AICC, BIC

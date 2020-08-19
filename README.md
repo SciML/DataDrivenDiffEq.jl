@@ -69,7 +69,7 @@ end
 basis = Basis(polys, u)
 
 opt = STRRidge(0.1)
-Ψ = SInDy(X, DX, basis, opt, maxiter = 100, normalize = true)
+Ψ = SINDy(X, DX, basis, opt, maxiter = 100, normalize = true)
 print_equations(Ψ)
 get_error(Ψ)
 ```

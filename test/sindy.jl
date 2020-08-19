@@ -1,6 +1,6 @@
 
 @info "Starting SINDy tests"
-@testset "SInDy" begin
+@testset "SINDy" begin
     # Create a nonlinear pendulum
     function pendulum(u, p, t)
         x = u[2]
@@ -38,7 +38,7 @@
     basis = Basis(h, u)
 
     opt = STRRidge(1e-2)
-    Ψ = SInDy(sol[:,:], DX, basis, opt, maxiter = 2000)
+    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter = 2000)
     @test_nowarn set_threshold!(opt, 1e-2)
     
     @test length(Ψ) == 2
@@ -57,7 +57,7 @@
     @test sol[:,:] ≈ sol_[:,:]
 
     opt = ADMM(1e-2, 0.7)
-    Ψ = SInDy(sol[:,:], DX, basis, opt, maxiter = 5000)
+    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter = 5000)
     @test_nowarn set_threshold!(opt, 1e-2)
 
     # Simulate
@@ -66,7 +66,7 @@
     @test norm(sol[:,:] - sol_2[:,:], 2) < 2e-1
 
     opt = SR3(1e-2, 1.0)
-    Ψ = SInDy(sol[:,:], DX, basis, opt, maxiter = 5000)
+    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter = 5000)
     @test_nowarn set_threshold!(opt, 0.1)
 
     # Simulate
@@ -77,19 +77,19 @@
     # Now use the threshold adaptation
     opt = STRRidge(1e-2)
     λs = exp10.(-7:0.1:-1)
-    Ψ = SInDy(sol[:,:], DX[:, :], basis, λs, opt, maxiter = 100)
+    Ψ = SINDy(sol[:,:], DX[:, :], basis, λs, opt, maxiter = 100)
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
     sol_4 = solve(estimator, Tsit5(), saveat = dt)
     @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
     
     # Check for errors
-    @test_nowarn SInDy(sol[:,:], DX[1,:], basis, λs, opt, maxiter = 1)
-    @test_nowarn SInDy(sol[:, :], DX[1, :], basis, λs, opt, maxiter = 1, denoise = true, normalize = true)
+    @test_nowarn SINDy(sol[:,:], DX[1,:], basis, λs, opt, maxiter = 1)
+    @test_nowarn SINDy(sol[:, :], DX[1, :], basis, λs, opt, maxiter = 1, denoise = true, normalize = true)
 
     # Check with noise
     X = sol[:, :] + 1e-3*randn(size(sol[:,:])...)
     opt = SR3(1e-1, 10.0)
-    Ψ = SInDy(X, DX, basis, λs, opt, maxiter = 10000, denoise = true, normalize = true)
+    Ψ = SINDy(X, DX, basis, λs, opt, maxiter = 10000, denoise = true, normalize = true)
 
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
     sol_5 = solve(estimator,Tsit5(), saveat = dt)

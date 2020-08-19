@@ -113,19 +113,19 @@ end
 
 
 # One Variable on multiple derivatives
-function SInDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, opt::T = STRRidge(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
-    return SInDy(X', Ẋ, Ψ, opt; kwargs...)
+function SINDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, opt::T = STRRidge(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
+    return SINDy(X', Ẋ, Ψ, opt; kwargs...)
 end
 
 # Multiple on one
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, opt::T = STRRidge(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
-    return SInDy(X, Ẋ', Ψ, opt; kwargs...)
+function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, opt::T = STRRidge(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
+    return SINDy(X, Ẋ', Ψ, opt; kwargs...)
 end
 
 # General
 """
-    SInDy(X, Y, basis, opt = STRRidge(); p, t, maxiter, convergence_error, denoise, normalize)
-    SInDy(X, Y, basis, lambdas, opt = STRRidge(); weights, f_target, p, t, opt, maxiter, convergence_error, denoise, normalize)
+    SINDy(X, Y, basis, opt = STRRidge(); p, t, maxiter, convergence_error, denoise, normalize)
+    SINDy(X, Y, basis, lambdas, opt = STRRidge(); weights, f_target, p, t, opt, maxiter, convergence_error, denoise, normalize)
 
 Performs Sparse Identification of Nonlinear Dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t` which are passed in optionally.
@@ -135,12 +135,12 @@ bound which causes the optimizer to stop.
 `normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
 
-If `SInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimization over all thresholds.
+If `SINDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimization over all thresholds.
 The best candidate is determined via the mapping onto a feature space `f` and an (scalar, positive definite) evaluation `g`.
 The signature of should be `f(xi, theta, yi)` where `xi` are the coefficients of the sparse optimization,`theta` is the evaluated candidate library and `yi` are the rows of the matrix `Y`.
-Returns a `SInDyResult`. If the pareto optimization is used, the result combines the best candidate for each row of `Y`.
+Returns a `SINDyResult`. If the pareto optimization is used, the result combines the best candidate for each row of `Y`.
 """
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, opt::T = STRRidge(); p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer, S <: Number}
+function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, opt::T = STRRidge(); p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer, S <: Number}
     Ξ, iters = sparse_regression(X, Ẋ, Ψ, p, t, maxiter, opt, denoise, normalize, convergence_error)
     convergence = iters < maxiter
     SparseIdentificationResult(Ξ, Ψ, iters, opt, convergence, Ẋ, X, p = p)
@@ -148,15 +148,15 @@ end
 
 
 
-function SInDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
-    return SInDy(X', Ẋ, Ψ, thresholds, opt; kwargs...)
+function SINDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
+    return SINDy(X', Ẋ, Ψ, thresholds, opt; kwargs...)
 end
 
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge()::AbstractArray; kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
-    return SInDy(X, Ẋ', Ψ, thresholds, opt; kwargs...)
+function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge()::AbstractArray; kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
+    return SINDy(X, Ẋ', Ψ, thresholds, opt; kwargs...)
 end
 
-function SInDy(X, DX, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge(); f::Function = (xi, theta, dx)->[norm(xi, 0); norm(dx .- theta'*xi, 2)], g::Function = x->norm(x), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer}
+function SINDy(X, DX, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge(); f::Function = (xi, theta, dx)->[norm(xi, 0); norm(dx .- theta'*xi, 2)], g::Function = x->norm(x), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer}
     @assert size(X)[end] == size(DX)[end]
     nx, nm = size(X)
     ny, nm = size(DX)
