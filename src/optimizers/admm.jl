@@ -31,7 +31,7 @@ init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X,
 
 #soft_thresholding(x::AbstractArray, t::T) where T <: Real = sign.(x) .* max.(abs.(x) .- t, zero(eltype(x)))
 
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 1, convergence_error::T = eps(), progress::B = EmptyProgressMeter()) where {T <: Real, B <: ProgressMeter.AbstractProgress}
+function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
     n, m = size(A)
 
     g = NormL1(get_threshold(opt))
@@ -68,11 +68,19 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
             x_i .= X
         end
 
-        next!(progress; showvalues = [(:Iterations, iters),(:Convergence, _error), (:Sparsity, _sparsity)])
-        
+        @logmsg(LogLevel(-1),
+            "ADMM",
+            _id = :DataDrivenDiffEq,
+            message="Error: $(_error)\nSparsity: $(_sparsity)",
+            progress=i/maxiter)
+
     end
 
-    finish!(progress; showvalues = [(:Iterations, iters),(:Convergence, _error), (:Sparsity, _sparsity)])
+    @logmsg(LogLevel(-1),
+        "ADMM",
+        _id = :DataDrivenDiffEq,
+        message="Error: $(_error)\nSparsity: $(_sparsity)",
+        progress="done")
     
     X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
     return iters

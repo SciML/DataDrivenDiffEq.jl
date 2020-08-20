@@ -67,7 +67,9 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
     normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimize.init!(Ξ, opt, θ', Ẋ')
+
     iters = Optimize.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
+
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
 
@@ -87,6 +89,7 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimize.init!(Ξ, opt, θ', Ẋ')
+
     iters = Optimize.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
@@ -103,7 +106,9 @@ function sparse_regression!(Ξ::AbstractArray, θ::AbstractArray, Ẋ::AbstractA
     normalize ? normalize_theta!(scales, θ) : nothing
 
     Optimize.init!(Ξ, opt, θ', Ẋ')'
+
     iters = Optimize.fit!(Ξ, θ', Ẋ', opt, maxiter = maxiter, convergence_error = convergence_error)
+
 
     normalize ? rescale_xi!(Ξ, scales) : nothing
     normalize ? rescale_theta!(θ, scales) : nothing
@@ -124,8 +129,8 @@ end
 
 # General
 """
-    SInDy(X, Y, basis; p, t, opt, maxiter, convergence_error, denoise, normalize)
-    SInDy(X, Y, basis, lambdas; weights, f_target, p, t, opt, maxiter, convergence_error, denoise, normalize)
+    SInDy(X, Y, basis; p, t, opt, maxiter, convergence_error, denoise, normalize, progress)
+    SInDy(X, Y, basis, lambdas; weights, f_target, p, t, opt, maxiter, convergence_error, denoise, normalize, progress)
 
 Performs Sparse Identification of Nonlinear Dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t` which are passed in optionally.
@@ -139,9 +144,16 @@ If `SInDy` is called with an additional array of thresholds contained in `lambda
 The best candidate is determined via the mapping onto a feature space `f` and an (scalar, positive definite) evaluation `g`.
 The signature of should be `f(xi, theta, yi)` where `xi` are the coefficients of the sparse optimization,`theta` is the evaluated candidate library and `yi` are the rows of the matrix `Y`.
 Returns a `SInDyResult`. If the pareto optimization is used, the result combines the best candidate for each row of `Y`.
+
+If `progess` is set to `true`, (progressbar intergration)[https://diffeq.sciml.ai/stable/features/progress_bar/] is available. 
 """
-function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimize.STRRidge(), denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer, S <: Number}
-    Ξ, iters = sparse_regression(X, Ẋ, Ψ, p, t, maxiter, opt, denoise, normalize, convergence_error)
+function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = Optimize.STRRidge(), denoise::Bool = false, normalize::Bool = true, convergence_error = eps(), progress::Bool = false) where {T <: Optimize.AbstractOptimizer, S <: Number}
+    logger = progress ? DiffEqBase.default_logger(Logging.current_logger()) : nothing
+    
+    Ξ, iters = DiffEqBase.maybe_with_logger(logger) do 
+        sparse_regression(X, Ẋ, Ψ, p, t, maxiter, opt, denoise, normalize, convergence_error)
+    end
+
     convergence = iters < maxiter
     SparseIdentificationResult(Ξ, Ψ, iters, opt, convergence, Ẋ, X, p = p)
 end
@@ -156,7 +168,7 @@ function SInDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thre
     return SInDy(X, Ẋ', Ψ, thresholds; kwargs...)
 end
 
-function SInDy(X, DX, Ψ::Basis, thresholds::AbstractArray ; f::Function = (xi, theta, dx)->[norm(xi, 0); norm(dx .- theta'*xi, 2)], g::Function = x->norm(x), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer}
+function SInDy(X, DX, Ψ::Basis, thresholds::AbstractArray ; f::Function = (xi, theta, dx)->[norm(xi, 0); norm(dx .- theta'*xi, 2)], g::Function = x->norm(x), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, opt::T = STRRidge(),denoise::Bool = false, normalize::Bool = true, convergence_error = eps(), progress::Bool = false) where {T <: Optimize.AbstractOptimizer}
     @assert size(X)[end] == size(DX)[end]
     nx, nm = size(X)
     ny, nm = size(DX)
@@ -175,24 +187,39 @@ function SInDy(X, DX, Ψ::Basis, thresholds::AbstractArray ; f::Function = (xi, 
     denoise ? optimal_shrinkage!(θ') : nothing
     normalize ? normalize_theta!(scales, θ) : nothing
 
+    logger = progress ? DiffEqBase.default_logger(Logging.current_logger()) : nothing
+
     fg(xi, theta, dx) = (g∘f)(xi, theta, dx)
     
-    @inbounds for j in 1:length(thresholds)
-        set_threshold!(opt, thresholds[j])
-        iter_ = sparse_regression!(view(ξ_tmp, :, :), view(θ, :, :), view(DX, :, :), maxiter, opt, false, false, convergence_error)
-        normalize ? rescale_xi!(ξ_tmp, scales) : nothing
-        for i in 1:ny
-            if j == 1
-                Ξ_opt .= ξ_tmp
-                _iter = iter_
-                _thresh = thresholds[j]
-            else
-                if evaluate_pareto!(view(Ξ_opt, :, i), view(ξ_tmp, :, i), fg, view(θ, :, :), view(DX, i, :))
+    DiffEqBase.maybe_with_logger(logger) do 
+        @inbounds for j in 1:length(thresholds)
+            set_threshold!(opt, thresholds[j])
+            iter_ = sparse_regression!(view(ξ_tmp, :, :), view(θ, :, :), view(DX, :, :), maxiter, opt, false, false, convergence_error)
+            normalize ? rescale_xi!(ξ_tmp, scales) : nothing
+            for i in 1:ny
+                if j == 1
+                    Ξ_opt .= ξ_tmp
                     _iter = iter_
                     _thresh = thresholds[j]
+                else
+                    if evaluate_pareto!(view(Ξ_opt, :, i), view(ξ_tmp, :, i), fg, view(θ, :, :), view(DX, i, :))
+                        _iter = iter_
+                        _thresh = thresholds[j]
+                    end
                 end
             end
+
+            @logmsg(LogLevel(-1),
+                "Pareto Front",
+                _id = :DataDrivenDiffEqPareto,
+                progress=j/length(thresholds))
         end
+
+
+        @logmsg(LogLevel(-1),
+            "Pareto Front",
+            _id = :DataDrivenDiffEqPareto,
+            progress="done")
     end
 
     set_threshold!(opt, _thresh)
