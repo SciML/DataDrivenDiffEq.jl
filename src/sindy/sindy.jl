@@ -143,6 +143,9 @@ bound which causes the optimizer to stop.
 If `SINDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimization over all thresholds.
 The best candidate is determined via the mapping onto a feature space `f` and an (scalar, positive definite) evaluation `g`.
 The signature of should be `f(xi, theta, yi)` where `xi` are the coefficients of the sparse optimization,`theta` is the evaluated candidate library and `yi` are the rows of the matrix `Y`.
+
+If `progess` is set to `true`, (progressbar intergration)[https://diffeq.sciml.ai/stable/features/progress_bar/] is available. 
+
 Returns a `SINDyResult`. If the pareto optimization is used, the result combines the best candidate for each row of `Y`.
 """
 function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, opt::T = STRRidge(); p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps(), progress::Bool = false) where {T <: Optimize.AbstractOptimizer, S <: Number}
