@@ -1,6 +1,6 @@
 
 @info "Starting implicit SINDy tests"
-@testset "ISInDy" begin
+@testset "ISINDy" begin
     
     @info "Nonlinear Implicit System"
     # Create a test problem
@@ -38,7 +38,7 @@
     basis= Basis(polys, u)
 
     opt = ADM(1e-2)
-    Ψ = ISInDy(X, DX, basis, opt, maxiter = 100)
+    Ψ = ISINDy(X, DX, basis, opt, maxiter = 100)
 
     # Transform into ODE System
     sys = ODESystem(Ψ)
@@ -81,7 +81,7 @@
 
     @variables u
     basis= Basis([u^i for i in 0:4], [u])
-    Ψ = ISInDy(X, DX, basis, ADM(1.1e-1), maxiter = 100)
+    Ψ = ISINDy(X, DX, basis, ADM(1.1e-1), maxiter = 100)
     print_equations(Ψ, show_parameter = true)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
@@ -92,7 +92,7 @@
     @test isapprox(sol_[:,:], solution_1[:,:], atol = 1e-1)
     @test abs.(ps) ≈ [1/3; 1.0; 0.2; 0.92] atol = 1e-1
 
-    Ψ = ISInDy(X, DX, basis, STRRidge(1e-2), maxiter = 100, normalize = true)
+    Ψ = ISINDy(X, DX, basis, STRRidge(1e-2), maxiter = 100, normalize = true)
     print_equations(Ψ, show_parameter = true)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
@@ -104,7 +104,7 @@
     @test abs.(ps) ≈ [1/3; 1.0; 0.2; 0.92] atol = 1e-1
 
     λs = exp10.(-3:0.1:-1)
-    Ψ = ISInDy(X, DX, basis, λs ,STRRidge(1e-2), maxiter = 100, normalize = false)
+    Ψ = ISINDy(X, DX, basis, λs ,STRRidge(1e-2), maxiter = 100, normalize = false)
     print_equations(Ψ, show_parameter = true)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)

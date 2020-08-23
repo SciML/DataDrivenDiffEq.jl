@@ -53,18 +53,29 @@ export DMDc, gDMDc
 include("./koopman/extended_dmd.jl")
 export EDMD, gEDMD
 
-
 include("./sindy/results.jl")
 export SparseIdentificationResult
 export print_equations
 export get_coefficients, get_error, get_sparsity, get_aicc
 
 include("./sindy/sindy.jl")
-export SInDy
+export SINDy
 export sparse_regression, sparse_regression!
 
+function SInDy(Y, X, basis; opt = STRRidge(), kwargs...)
+    @warn("SInDy has been deprecated. Use SINDy to recover the same functionality.")
+    SINDy(Y, X, basis, opt; kwargs...)
+end
+
+function ISInDy(Y, X, basis; opt = ADM(), kwargs...)
+    @warn("ISInDy has been deprecated. Use ISINDy to recover the same functionality.")
+    ISINDy(Y, X, basis, opt; kwargs...)
+end
+
+export SInDy, ISInDy
+
 include("./sindy/isindy.jl")
-export ISInDy
+export ISINDy
 
 include("./utils.jl")
 export AIC, AICC, BIC

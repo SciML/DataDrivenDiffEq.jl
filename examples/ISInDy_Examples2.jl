@@ -63,7 +63,7 @@ basis= Basis(polys, u, iv = t)
 # Simply use any optimizer you would use for sindy
 λ = exp10.(-4:0.1:-1)
 g(x) = norm([1e-3; 10.0] .* x, 2)
-Ψ = ISInDy(X[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
+Ψ = ISINDy(X[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
 println(Ψ)
 print_equations(Ψ, show_parameter = true)
 

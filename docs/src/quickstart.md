@@ -191,9 +191,9 @@ Looking at the eigenvalues of the system, we see that the estimated eigenvalues 
 
 ## Nonlinear Systems - Sparse Identification of Nonlinear Dynamics
 
-Okay, so far we can fit linear models via DMD and nonlinear models via EDMD. But what if we want to find a model of a nonlinear system *without moving to Koopman space*? Simple, we use [Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) or `SInDy`.
+Okay, so far we can fit linear models via DMD and nonlinear models via EDMD. But what if we want to find a model of a nonlinear system *without moving to Koopman space*? Simple, we use [Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) or `SINDy`.
 
-As the name suggests, `SInDy` finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system
+As the name suggests, `SINDy` finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system
 
 ```@example 3
 using DataDrivenDiffEq
@@ -224,7 +224,7 @@ savefig("nonlinear_pendulum.png") # hide
 
 which is the simple nonlinear pendulum with damping.
 
-Suppose we are like John and know nothing about the system, we have just the data in front of us. To apply `SInDy`, we need three ingredients:
+Suppose we are like John and know nothing about the system, we have just the data in front of us. To apply `SINDy`, we need three ingredients:
 
 + A `Basis` containing all possible candidate functions which might be in the model
 + An optimizer which is able to produce a sparse output
@@ -248,11 +248,11 @@ nothing # hide
 
 ```@example 3
 opt = SR3(3e-1, 1.0)
-Ψ = SInDy(X[:, 1:1000], DX[:, 1:1000], basis, maxiter = 10000, opt = opt, normalize = true)
+Ψ = SINDy(X[:, 1:1000], DX[:, 1:1000], basis, opt, maxiter = 10000, normalize = true)
 print_equations(Ψ) # hide
 ```
 
-We recovered the equations! Let's transform the `SInDyResult` into a performant piece of
+We recovered the equations! Let's transform the `SINDyResult` into a performant piece of
 Julia Code using `ODESystem`
 
 ```@example 3
@@ -267,6 +267,6 @@ estimation = solve(estimator, Tsit5(), saveat = solution.t)
 plot(solution.t[1:1000], solution[:,1:1000]', color = :red, line = :dot, label = nothing) # hide
 plot!(solution.t[1000:end], solution[:,1000:end]', color = :blue, line = :dot,label = nothing) # hide
 plot!(estimation, color = :green, label = "Estimation") # hide
-savefig("sindy_estimation.png") # hide
+savefig("SINDy_estimation.png") # hide
 ```
-![](sindy_estimation.png)
+![](SINDy_estimation.png)

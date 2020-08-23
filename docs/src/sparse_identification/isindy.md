@@ -1,6 +1,6 @@
 # Implicit Sparse Identification of Nonlinear Dynamics
 
-While `SInDy` works well for ODEs, some systems take the form of [DAE](https://diffeq.sciml.ai/stable/types/dae_types/)s. A common form is `f(x, p, t) - g(x, p, t)*dx = 0`. These can be inferred via `ISInDy`, which extends `SInDy` [for Implicit problems](https://ieeexplore.ieee.org/abstract/document/7809160). In particular, it solves
+While `SINDy` works well for ODEs, some systems take the form of [DAE](https://diffeq.sciml.ai/stable/types/dae_types/)s. A common form is `f(x, p, t) - g(x, p, t)*dx = 0`. These can be inferred via `ISINDy`, which extends `SINDy` [for Implicit problems](https://ieeexplore.ieee.org/abstract/document/7809160). In particular, it solves
 
 ```math
 \Xi = \min ~ \left\lVert \Theta(X, p, t)^{T} \Xi \right\rVert_{2} + \lambda ~ \left\lVert \Xi \right\rVert_{1}
@@ -13,7 +13,7 @@ where ``\Xi`` lies in the nullspace of ``\Theta``.
 Let's try to infer the [Michaelis-Menten Kinetics](https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics), like in the corresponding paper. We start by generating the
 corresponding data.
 
-```@example isindy_1
+```@example iSINDy_1
 using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
@@ -32,11 +32,11 @@ problem = ODEProblem(michaelis_menten, u0, tspan)
 solution = solve(problem, Tsit5(), saveat = 0.1, atol = 1e-7, rtol = 1e-7)
     
 plot(solution) # hide
-savefig("isindy_example.png")
+savefig("iSINDy_example.png")
 ```
-![](isindy_example.png)
+![](iSINDy_example.png)
 
-```@example isindy_1
+```@example iSINDy_1
 X = solution[:,:]
 DX = similar(X)
 for (i, xi) in enumerate(eachcol(X))
@@ -47,24 +47,24 @@ end
 basis= Basis([u^i for i in 0:4], [u])
 ```
 
-The signature of `ISInDy` is equal to `SInDy`, but requires an `AbstractSubspaceOptimizer`. Currently, `DataDrivenDiffEq` just implements `ADM()` based on [alternating directions](https://arxiv.org/pdf/1412.4659.pdf). `rtol` gets passed into the derivation of the `nullspace` via `LinearAlgebra`.
+The signature of `ISINDy` is equal to `SINDy`, but requires an `AbstractSubspaceOptimizer`. Currently, `DataDrivenDiffEq` just implements `ADM()` based on [alternating directions](https://arxiv.org/pdf/1412.4659.pdf). `rtol` gets passed into the derivation of the `nullspace` via `LinearAlgebra`.
 
 
-```@example isindy_1
+```@example iSINDy_1
 opt = ADM(1.1e-1)
 ```
 
-Since `ADM()` returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide a sufficient cost function `g` to `ISInDy`. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of ``\Theta^T \xi`` (nullspace). This is a default setting which can be changed by providing a function `f` which maps the coefficients and the library onto a feature space. Here, we want to set the focus on the the magnitude of the deviation from the nullspace.
+Since `ADM()` returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide a sufficient cost function `g` to `ISINDy`. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of ``\Theta^T \xi`` (nullspace). This is a default setting which can be changed by providing a function `f` which maps the coefficients and the library onto a feature space. Here, we want to set the focus on the the magnitude of the deviation from the nullspace.
 
-```@example isindy_1
-Ψ = ISInDy(X, DX, basis, opt, g = x->norm([1e-1*x[1]; x[2]]), maxiter = 1000, rtol = 0.99)
+```@example iSINDy_1
+Ψ = ISINDy(X, DX, basis, opt, g = x->norm([1e-1*x[1]; x[2]]), maxiter = 1000, rtol = 0.99)
 nothing #hide
 ```
 
 The function call returns a `SparseIdentificationResult`.
 As in [Sparse Identification of Nonlinear Dynamics](@ref), we can transform the `SparseIdentificationResult` into an `ODESystem`.
 
-```@example isindy_1
+```@example iSINDy_1
 # Transform into ODE System
 sys = ODESystem(Ψ)
 dudt = ODEFunction(sys)
@@ -75,13 +75,13 @@ estimation = solve(estimator, Tsit5(), saveat = 0.1)
 
 plot(solution, color = :red, label = "True") # hide
 plot!(estimation, color = :green, label = "Estimation") # hide
-savefig("isindy_example_final.png") # hide
+savefig("iSINDy_example_final.png") # hide
 ```
-![](isindy_example_final.png)
+![](iSINDy_example_final.png)
 
-The model recovered by `ISInDy` is  correct
+The model recovered by `ISINDy` is  correct
 
-```@example isindy_1
+```@example iSINDy_1
 print_equations(Ψ)
 ```
 
@@ -92,7 +92,7 @@ The parameters are off a little, but, as before, we can use `DiffEqFlux` to tune
 
 Implicit dynamics can also be reformulated as an explicit problem as stated in [this paper](https://arxiv.org/pdf/2004.02322.pdf). The algorithm searches the correct equations by trying out all candidate functions as a right hand side and performing a sparse regression onto the remaining set of candidates. Let's start by defining the problem and generate the data:
 
-```@example isindy_2
+```@example iSINDy_2
 
 using DataDrivenDiffEq
 using ModelingToolkit
@@ -125,15 +125,15 @@ for (i, xi) in enumerate(eachcol(X))
 end
 
 plot(solution) # hide
-savefig("isindy_cartpole_data.png") # hide
+savefig("iSINDy_cartpole_data.png") # hide
 
 ```
-![](isindy_cartpole_data.png)
+![](iSINDy_cartpole_data.png)
 
 We see that we include a forcing term `F` inside the model which is depending on `t`.
 As before, we will also need a `Basis` to derive our equations from:
 
-```@example isindy_2
+```@example iSINDy_2
 @variables u[1:4] t
 polys = Operation[]
 for i ∈ 0:4
@@ -164,12 +164,12 @@ We added the time dependent input directly into the basis to account for its inf
 
 *NOTE : Including input signals may change in future releases!*
 
-Like for a `SInDy`, we can use any `AbstractOptimizer` with a pareto front optimization over different thresholds. 
+Like for a `SINDy`, we can use any `AbstractOptimizer` with a pareto front optimization over different thresholds. 
 
-```@example isindy_2
+```@example iSINDy_2
 λ = exp10.(-4:0.1:-1)
 g(x) = norm([1e-3; 10.0] .* x, 2)
-Ψ = ISInDy(X[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
+Ψ = ISINDy(X[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
 
 # Transform into ODE System
 sys = ODESystem(Ψ)
@@ -182,13 +182,13 @@ sol_ = solve(estimator, Tsit5(), saveat = dt)
 
 plot(solution.t[:], solution[:,:]', color = :red, label = nothing) # hide
 plot!(sol_.t, sol_[:, :]', color = :green, label = "Estimation") # hide
-savefig("isindy_cartpole_estimation.png") # hide
+savefig("iSINDy_cartpole_estimation.png") # hide
 ```
-![](isindy_cartpole_estimation.png)
+![](iSINDy_cartpole_estimation.png)
 
 Let's have a look at the equations recovered. They nearly match up.
 
-```@example isindy_2
+```@example iSINDy_2
 print_equations(Ψ)
 ```
 
@@ -198,5 +198,5 @@ print_equations(Ψ)
 ## Functions
 
 ```@docs
-ISInDy
+ISINDy
 ```

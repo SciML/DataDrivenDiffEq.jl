@@ -114,7 +114,7 @@ end
 h = [cos.(u)...; sin.(u)...; polys...]
 basis = Basis(h, u)
 
-# Create an optimizer for the SINDY problem
+# Create an optimizer for the SINDy problem
 opt = SR3()
 # Create the thresholds which should be used in the search process
 λ = exp10.(-10:0.05:-0.5)
@@ -129,12 +129,12 @@ function eval_target(x)
 end
 
 alg = GoalProgramming(x->norm(x, 2), eval_target)
-@info "Start sindy regression with unknown threshold"
+@info "Start SINDy regression with unknown threshold"
 # Test on uode derivative data
-Ψ = SInDy(X[:, 2:end], Y[:, 2:end], basis, λ,  opt = opt, maxiter = 10000, normalize = true, denoise = true, alg = alg) # Succeed
+Ψ = SINDy(X[:, 2:end], Y[:, 2:end], basis, λ,  opt = opt, maxiter = 10000, normalize = true, denoise = true, alg = alg) # Succeed
 p̂ = parameters(Ψ)
 @info "Build initial guess system"
-# The parameters are a bit off, so we reiterate another sindy term to get closer to the ground truth
+# The parameters are a bit off, so we reiterate another SINDy term to get closer to the ground truth
 # Create function
 unknown_sys = ODESystem(Ψ)
 unknown_eq = ODEFunction(unknown_sys)
@@ -142,7 +142,7 @@ unknown_eq = ODEFunction(unknown_sys)
 b = Basis((u, p, t)->unknown_eq(u, ones(size(p̂)), t), u)
 # Test on uode derivative data
 @info "Refine the guess"
-Ψ = SInDy(X[:, 2:end], Y[:, 2:end],b, opt = SR3(0.1), maxiter = 1000) # Succeed
+Ψ = SINDy(X[:, 2:end], Y[:, 2:end],b, opt = SR3(0.1), maxiter = 1000) # Succeed
 p̂ = parameters(Ψ)
 
 @info "Checking equations"
@@ -157,7 +157,7 @@ end
 @test all(isequal.(found_basis, expected_eqs))
 @test isapprox(abs.(p̂), p_[2:3], atol = 9e-2)
 
-# The parameters are a bit off, so we reiterate another sindy term to get closer to the ground truth
+# The parameters are a bit off, so we reiterate another SINDy term to get closer to the ground truth
 # Create function
 unknown_sys = ODESystem(Ψ)
 unknown_eq = ODEFunction(unknown_sys)
@@ -165,7 +165,7 @@ unknown_eq = ODEFunction(unknown_sys)
 
 # Build a ODE for the estimated system
 function approx(du, u, p, t)
-    # Add SInDy Term
+    # Add SINDy Term
     α, δ, β, γ = p
     z = unknown_eq(u, [β; γ], t)
     du[1] = α*u[1] + z[1]
