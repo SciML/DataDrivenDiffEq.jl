@@ -24,7 +24,7 @@ mutable struct MyOpt <: DataDrivenDiffEq.Optimize.AbstractOptimizer
 end
 ```
 
-To use `MyOpt` within `SInDy`, an `init!` function has to be implemented.
+To use `MyOpt` within `SINDy`, an `init!` function has to be implemented.
 
 ```julia
 function init!(X::AbstractArray, o::MyOpt, A::AbstractArray, Y::AbstractArray)

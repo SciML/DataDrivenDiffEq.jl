@@ -7,9 +7,9 @@
 # TODO preallocation
 
 """
-    ISInDy(X, Y, Ψ, opt = ADM(); f, g, maxiter, rtol, p, t, convergence_error)
-    ISInDy(X, Y, Ψ, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
-    ISInDy(X, Y, Ψ, lamdas, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
+    ISINDy(X, Y, Ψ, opt = ADM(); f, g, maxiter, rtol, p, t, convergence_error)
+    ISINDy(X, Y, Ψ, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
+    ISINDy(X, Y, Ψ, lamdas, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
 
 Performs an implicit sparse identification of nonlinear dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t`, which are passed in optionally.
@@ -18,17 +18,17 @@ Tries to find a sparse vector inside the nullspace if `opt` is an `AbstractSubsp
 bound which causes the optimizer to stop. `denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
 `normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
-If `ISInDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimization over all thresholds.
+If `ISINDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimization over all thresholds.
 The best vectors of the sparse nullspace are selected via multi-objective optimization.
 The best candidate is determined via the mapping onto a feature space `f` and an (scalar, positive definite) evaluation `g`.
 The signature of should be `f(xi, theta)` where `xi` are the coefficients of the sparse optimization and `theta` is the evaluated candidate library.
 `rtol` gets directly passed into the computation of the nullspace.
 
-Currently ISInDy supports functions of the form `g(u, p, t)*du - f(u, p, t) = 0`.
+Currently ISINDy supports functions of the form `g(u, p, t)*du - f(u, p, t) = 0`.
 
 Returns a `SparseIdentificationResult`.
 """
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = ADM(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
+function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = ADM(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps()) where T <: DataDrivenDiffEq.Optimize.AbstractSubspaceOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
@@ -43,7 +43,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = ADM();
 end
 
 
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T; f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
+function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T; f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
@@ -75,7 +75,7 @@ function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T; f::Func
 end
 
 
-function ISInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractVector, opt::T = STRRidge(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
+function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractVector, opt::T = STRRidge(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
