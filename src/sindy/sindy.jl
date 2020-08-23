@@ -145,7 +145,7 @@ The best candidate is determined via the mapping onto a feature space `f` and an
 The signature of should be `f(xi, theta, yi)` where `xi` are the coefficients of the sparse optimization,`theta` is the evaluated candidate library and `yi` are the rows of the matrix `Y`.
 Returns a `SINDyResult`. If the pareto optimization is used, the result combines the best candidate for each row of `Y`.
 """
-function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, opt::T = STRRidge(); p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps(), progress::Bool = true) where {T <: Optimize.AbstractOptimizer, S <: Number}
+function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, opt::T = STRRidge(); p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps(), progress::Bool = false) where {T <: Optimize.AbstractOptimizer, S <: Number}
     logger = progress ? DiffEqBase.default_logger(Logging.current_logger()) : nothing
     
     Ξ, iters = DiffEqBase.maybe_with_logger(logger) do 
@@ -167,7 +167,7 @@ function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thre
     return SINDy(X, Ẋ', Ψ, thresholds, opt; kwargs...)
 end
 
-function SINDy(X, DX, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge(); f::Function = (xi, theta, dx)->[norm(xi, 0); norm(dx .- theta'*xi, 2)], g::Function = x->norm(x), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps(), progress::Bool = true) where {T <: Optimize.AbstractOptimizer}
+function SINDy(X, DX, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge(); f::Function = (xi, theta, dx)->[norm(xi, 0); norm(dx .- theta'*xi, 2)], g::Function = x->norm(x), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps(), progress::Bool = false) where {T <: Optimize.AbstractOptimizer}
     @assert size(X)[end] == size(DX)[end]
     nx, nm = size(X)
     ny, nm = size(DX)
