@@ -61,7 +61,9 @@ function sparse_regression(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, p::A
 
     Ξ = zeros(eltype(X), length(Ψ), ny)
     scales = ones(eltype(X), length(Ψ))
-    θ = Ψ(X, p, t)
+    θ = zeros(eltype(X), length(Ψ), nm)
+    Ψ(θ, X, p, t)
+
 
     denoise ? optimal_shrinkage!(θ') : nothing
     normalize ? normalize_theta!(scales, θ) : nothing
@@ -81,8 +83,9 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     @assert size(Ξ) == (length(Ψ), ny)
 
     scales = ones(eltype(X), length(Ψ))
-    θ = Ψ(X, p, t)
-
+    θ = zeros(eltype(X), length(Ψ), nm)
+    Ψ(θ, X, p, t)
+    
     denoise ? optimal_shrinkage!(θ') : nothing
     normalize ? normalize_theta!(scales, θ) : nothing
 
