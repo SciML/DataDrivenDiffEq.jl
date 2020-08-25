@@ -32,7 +32,8 @@ function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T = ADM();
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
-    θ = Ψ(X, p, t)
+    θ = zeros(eltype(X), length(Ψ), size(X, 2))
+    Ψ(θ, X, p, t)
 
     # Init for sweep over the differential variables
     Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
@@ -47,7 +48,9 @@ function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T; f::Func
     @assert size(X)[end] == size(Ẋ)[end]
 
     # Compute the library and the corresponding nullspace
-    θ = Ψ(X, p, t)
+    θ = zeros(eltype(X), length(Ψ), size(X, 2))
+    Ψ(θ, X, p, t)
+
     dθ = zeros(eltype(θ), size(θ, 1)*2, size(θ, 2))
     dθ[size(θ, 1)+1:end, :] .= θ
 
@@ -77,9 +80,11 @@ end
 
 function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractVector, opt::T = STRRidge(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
-
+    
     # Compute the library and the corresponding nullspace
-    θ = Ψ(X, p, t)
+    θ = zeros(eltype(X), length(Ψ), size(X, 2))
+    Ψ(θ, X, p, t)
+    
     dθ = zeros(eltype(θ), size(θ, 1)*2, size(θ, 2))
     dθ[size(θ, 1)+1:end, :] .= θ
 
