@@ -110,7 +110,7 @@ function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::I
         
         
     end
-    b_ = Basis(eq, variables(b), parameters = [parameters(b)...; p...], iv = independent_variable(b))
+    b_ = Basis(eq, variables(b), parameters = vcat(parameters(b),p), iv = independent_variable(b))
 
     b_, p_
 end
