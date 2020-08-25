@@ -119,19 +119,10 @@ opt = SR3()
 # Create the thresholds which should be used in the search process
 λ = exp10.(-10:0.05:-0.5)
 # Target function to choose the results from; x = L0 of coefficients and L2-Error of the model
-function eval_target(x)
-    y = similar(x)
-    if iszero(x[1])
-        y[1] = convert(eltype(x), Inf)
-    end
-    y[2] = x[2]
-    return y
-end
-
-alg = GoalProgramming(x->norm(x, 2), eval_target)
+f(x) = x[1] < 1 ? Inf : norm(x, 2)
 @info "Start SINDy regression with unknown threshold"
 # Test on uode derivative data
-Ψ = SINDy(X[:, 2:end], Y[:, 2:end], basis, λ,  opt = opt, maxiter = 10000, normalize = true, denoise = true, alg = alg) # Succeed
+Ψ = SINDy(X[:, 2:end], Y[:, 2:end], basis, λ, opt, f = f, maxiter = 10000, normalize = true, denoise = true) # Succeed
 p̂ = parameters(Ψ)
 @info "Build initial guess system"
 # The parameters are a bit off, so we reiterate another SINDy term to get closer to the ground truth
@@ -161,7 +152,6 @@ end
 # Create function
 unknown_sys = ODESystem(Ψ)
 unknown_eq = ODEFunction(unknown_sys)
-
 
 # Build a ODE for the estimated system
 function approx(du, u, p, t)
