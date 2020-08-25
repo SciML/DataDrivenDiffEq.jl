@@ -125,7 +125,7 @@ end
 # General
 """
     SINDy(X, Y, basis, opt = STRRidge(); p, t, maxiter, convergence_error, denoise, normalize)
-    SINDy(X, Y, basis, lambdas, opt = STRRidge(); weights, f_target, p, t, opt, maxiter, convergence_error, denoise, normalize)
+    SINDy(X, Y, basis, lambdas, opt = STRRidge(); f, g, p, t, opt, maxiter, convergence_error, denoise, normalize)
 
 Performs Sparse Identification of Nonlinear Dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t` which are passed in optionally.
