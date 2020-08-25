@@ -49,10 +49,10 @@ function dudt_(u, p,t)
 end
 
 prob_nn = ODEProblem(dudt_,u0, tspan, p)
-s = concrete_solve(prob_nn, Tsit5(), u0, p, saveat = solution.t)
+s = solve(prob_nn, Tsit5(), u0 = u0, p = p, saveat = solution.t)
 
 function predict(θ)
-    Array(concrete_solve(prob_nn, Vern7(), u0, θ, saveat = solution.t,
+    Array(solve(prob_nn, Vern7(), u0 = u0, p = θ, saveat = solution.t,
                          abstol=1e-6, reltol=1e-6))
 end
 
