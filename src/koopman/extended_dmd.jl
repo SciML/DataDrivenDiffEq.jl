@@ -32,8 +32,10 @@ function EDMD(X::AbstractArray, Y::AbstractArray, Ψ::AbstractBasis; p::Abstract
     N,M = size(X)
 
     # Compute the transformed data
-    Ψ₀ = Ψ(X, p, t)
-    Ψ₁ = Ψ(Y, p, t)
+    Ψ₀ = zeros(eltype(X), length(Ψ), size(X, 2))
+    Ψ₁ = zeros(eltype(X), length(Ψ), size(Y, 2))
+    Ψ(Ψ₀, X, p, t)
+    Ψ(Ψ₁, Y, p, t)
 
     A = alg(Ψ₀, Ψ₁)
 
@@ -56,7 +58,10 @@ function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::AbstractBasis; p::Abstra
     N,M = size(X)
 
     # Compute the transformed data
-    Ψ₀ = Ψ(X, p, t)
+    
+    # Compute the transformed data
+    Ψ₀ = zeros(eltype(X), length(Ψ), size(X, 2))
+    Ψ(Ψ₀, X, p, t)
 
     # The jacobian to get d/dt(Ψ) = d/dx(Ψ) dx/dt
     ∇ = jacobian(Ψ)
