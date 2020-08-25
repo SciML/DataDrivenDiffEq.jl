@@ -89,27 +89,29 @@ end
 
 function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::Int64) where T <: Real
     @parameters p[1:sparsity]
-    p_ = zeros(eltype(Ξ), sparsity)
+    
+    inds = @. ~ iszero.(Ξ)
+    p_ = Ξ[inds]
+    pinds = Int64.(norm.(eachcol(inds), 0))
+    
     cnt = 1
-    b_ = Basis(Operation[], variables(b), parameters = [parameters(b)...; p...], iv = independent_variable(b))
+    eq = zeros(Operation, sum([i>0 for i in pinds]))
 
-    for i=1:size(Ξ, 2)
-        eq = nothing
-        for j = 1:size(Ξ, 1)
-            if !iszero(Ξ[j,i])
-                if eq === nothing
-                    eq = p[cnt]*b[j]
-                else
-                    eq += p[cnt]*b[j]
-                end
-                p_[cnt] = Ξ[j,i]
-                cnt += 1
-            end
+    @inbounds for i=1:size(Ξ, 2)
+        if iszero(pinds[i])
+            continue
+        elseif i == 1 
+            eq[cnt] = sum(p[1:pinds[i]] .* b.basis[inds[:, i]])
+            cnt += 1
+        else
+            eq[cnt] = sum(p[sum(pinds[1:i-1])+1:pinds[i]+sum(pinds[1:i-1])] .* b.basis[inds[:, i]])
+            cnt += 1
         end
-        if !isnothing(eq)
-            push!(b_, eq)
-        end
+        
+        
     end
+    b_ = Basis(eq, variables(b), parameters = vcat(parameters(b),p), iv = independent_variable(b))
+
     b_, p_
 end
 
