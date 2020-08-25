@@ -146,7 +146,7 @@ function ImplicitSparseIdentificationResult(coeff::AbstractArray, equations::Bas
     ps = [p; p_]
 
     Ŷ = b_(X, ps, t)
-    training_error = norm.(eachrow(Y-Ŷ), 2)
+    training_error = [norm(Y[i, :]-Ŷ[i,:], 2) for i in 1:size(Ŷ, 1)]
     aicc = similar(training_error)
 
     for i in 1:length(aicc)
@@ -158,49 +158,53 @@ end
 
 
 function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) where T <: Real
-
-    sparsity = Int64(norm(Ξ, 0))
-
-    @parameters p[1:sparsity]
-    p_ = zeros(eltype(Ξ), sparsity)
-    cnt = 1
-
-    b_ = Basis(Operation[], variables(b), parameters = [parameters(b)...; p...])
-
-    for i=1:size(Ξ, 2)
-        eq_d = nothing
-        eq_n = nothing
-        # Denominator
-        for j = 1:length(b)
-            if !iszero(Ξ[j,i])
-                if eq_d === nothing
-                    eq_d = p[cnt]*b[j]
-                else
-                    eq_d += p[cnt]*b[j]
-                end
-                p_[cnt] = Ξ[j,i]
-                cnt += 1
-            end
-        end
-
-        # Numerator
-        for j = 1:length(b)
-            if !iszero(Ξ[j+length(b),i])
-                if eq_n === nothing
-                    eq_n = p[cnt]*b[j]
-                else
-                    eq_n += p[cnt]*b[j]
-                end
-                p_[cnt] = Ξ[j+length(b),i]
-                cnt += 1
-            end
-        end
-
-        if !(isnothing(eq_d) || isnothing(eq_n))
-            push!(b_, ModelingToolkit.simplify(-eq_n ./ eq_d))
-        end
-
-    end
     
+    sparsity = Int64(norm(Ξ, 0)) # Overall sparsity
+    @parameters p[1:sparsity]
+    size_b = length(b)
+
+    inds = @. ! iszero(Ξ)
+
+    pinds = Int64.(norm.(eachcol(inds), 0))
+    
+    pinds_d = Int64.(norm.(eachcol(inds[1:size_b,:]), 0))
+    pinds_n = Int64.(norm.(eachcol(inds[size_b+1:end, :]), 0))
+    
+    p_ = similar(Ξ[inds])
+
+    eq = zeros(Operation, sum([i>0 for i in pinds]))
+    cnt = 1
+    p_cnt = 1
+    eq_n = ModelingToolkit.Constant(0)
+    eq_d = ModelingToolkit.Constant(0)
+
+    @views for i=1:size(Ξ, 2)
+        # Numerator
+        eq_n = ModelingToolkit.Constant(0)
+        eq_d = ModelingToolkit.Constant(0)
+        if iszero(pinds_n[i]) || iszero(pinds_d[i])
+            continue
+        else
+            for j in 1:size_b
+                if inds[j, i]
+                    eq_d +=  p[p_cnt] * b.basis[j]
+                    p_[p_cnt] = Ξ[j, i]
+                    p_cnt += 1
+                end
+
+                if inds[j+size_b, i]
+                    eq_n +=  p[p_cnt] * b.basis[j]
+                    p_[p_cnt] = Ξ[j+size_b, i]
+                    p_cnt += 1
+                end
+            end
+
+            eq[cnt] = - eq_n / eq_d
+        end
+        cnt += 1
+    end
+
+    b_ = Basis(eq, variables(b), parameters = vcat(parameters(b), p), iv = independent_variable(b))
+
     b_, p_
 end

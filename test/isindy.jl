@@ -54,7 +54,7 @@
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test sol[:,:] ≈ sol_[:,:]
-    @test abs.(ps) ≈ abs.(Float64[-1/3 ; -1/3 ; -1.00 ; 2/3; 1.00 ;0.5 ;0.5 ; 1.0; 1.0; -1.0; 1.0])
+    @test abs.(ps) ≈ abs.(Float64[1/3, 1.0, 1/3, 2/3, 1, 0.5, 0.5, 1, 1, 1, 1]) atol = 1e-2
 
 
     @info "Michaelis-Menten-Kinetics"
@@ -90,7 +90,7 @@
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test isapprox(sol_[:,:], solution_1[:,:], atol = 1e-1)
-    @test abs.(ps) ≈ [1/3; 1.0; 0.2; 0.92] atol = 1e-1
+    @test abs.(ps) ≈ [1/3; 0.2; 1.0; 0.92] atol = 1e-1
 
     Ψ = ISINDy(X, DX, basis, STRRidge(1e-2), maxiter = 100, normalize = true)
     print_equations(Ψ, show_parameter = true)
@@ -101,7 +101,7 @@
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test isapprox(sol_[:,:], solution_1[:,:], atol = 1e-1)
-    @test abs.(ps) ≈ [1/3; 1.0; 0.2; 0.92] atol = 1e-1
+    @test abs.(ps) ≈ [1/3; 0.2; 1.0; 0.92] atol = 1e-1
 
     λs = exp10.(-3:0.1:-1)
     Ψ = ISINDy(X, DX, basis, λs ,STRRidge(1e-2), maxiter = 100, normalize = false)
@@ -113,5 +113,5 @@
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
     @test isapprox(sol_[:,:], solution_1[:,:], atol = 1e-1)
-    @test abs.(ps) ≈ [1/3; 1.0; 0.2; 0.92] atol = 1e-1
+    @test abs.(ps) ≈ [1/3; 0.2; 1.0; 0.92] atol = 1e-1
 end
