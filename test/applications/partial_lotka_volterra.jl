@@ -49,10 +49,10 @@ function dudt_(u, p,t)
 end
 
 prob_nn = ODEProblem(dudt_,u0, tspan, p)
-s = concrete_solve(prob_nn, Tsit5(), u0, p, saveat = solution.t)
+s = solve(prob_nn, Tsit5(), u0 = u0, p = p, saveat = solution.t)
 
 function predict(θ)
-    Array(concrete_solve(prob_nn, Vern7(), u0, θ, saveat = solution.t,
+    Array(solve(prob_nn, Vern7(), u0 = u0, p = θ, saveat = solution.t,
                          abstol=1e-6, reltol=1e-6))
 end
 
@@ -119,19 +119,10 @@ opt = SR3()
 # Create the thresholds which should be used in the search process
 λ = exp10.(-10:0.05:-0.5)
 # Target function to choose the results from; x = L0 of coefficients and L2-Error of the model
-function eval_target(x)
-    y = similar(x)
-    if iszero(x[1])
-        y[1] = convert(eltype(x), Inf)
-    end
-    y[2] = x[2]
-    return y
-end
-
-alg = GoalProgramming(x->norm(x, 2), eval_target)
+g(x) = x[1] < 1 ? Inf : norm(x, 2)
 @info "Start SINDy regression with unknown threshold"
 # Test on uode derivative data
-Ψ = SINDy(X[:, 2:end], Y[:, 2:end], basis, λ,  opt = opt, maxiter = 10000, normalize = true, denoise = true, alg = alg) # Succeed
+Ψ = SINDy(X[:, 2:end], Y[:, 2:end], basis, λ, opt, g = g, maxiter = 10000, normalize = true, denoise = true) # Succeed
 p̂ = parameters(Ψ)
 @info "Build initial guess system"
 # The parameters are a bit off, so we reiterate another SINDy term to get closer to the ground truth
@@ -142,7 +133,7 @@ unknown_eq = ODEFunction(unknown_sys)
 b = Basis((u, p, t)->unknown_eq(u, ones(size(p̂)), t), u)
 # Test on uode derivative data
 @info "Refine the guess"
-Ψ = SINDy(X[:, 2:end], Y[:, 2:end],b, opt = SR3(0.1), maxiter = 1000) # Succeed
+Ψ = SINDy(X[:, 2:end], Y[:, 2:end],b, SR3(0.1), maxiter = 1000) # Succeed
 p̂ = parameters(Ψ)
 
 @info "Checking equations"
@@ -161,7 +152,6 @@ end
 # Create function
 unknown_sys = ODESystem(Ψ)
 unknown_eq = ODEFunction(unknown_sys)
-
 
 # Build a ODE for the estimated system
 function approx(du, u, p, t)
