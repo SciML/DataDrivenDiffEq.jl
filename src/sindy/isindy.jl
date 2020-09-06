@@ -18,6 +18,9 @@ Tries to find a sparse vector inside the nullspace if `opt` is an `AbstractSubsp
 bound which causes the optimizer to stop. `denoise` defines if the matrix holding candidate trajectories should be thresholded via the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
 `normalize` normalizes the matrix holding candidate trajectories via the L2-Norm over each function.
 
+Typically `X` represent the state measurements and `Y` the measurements of the differential state. Since only the number of measurements (column dimension of the matrices) have to be equal, it is possible to augment `X` with additional
+data, e.g. external forcing or inputs.
+
 If `ISINDy` is called with an additional array of thresholds contained in `lambdas`, it performs a multi objective optimization over all thresholds.
 The best vectors of the sparse nullspace are selected via multi-objective optimization.
 The best candidate is determined via the mapping onto a feature space `f` and an (scalar, positive definite) evaluation `g`.
