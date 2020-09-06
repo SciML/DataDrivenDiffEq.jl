@@ -56,7 +56,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
     for i in 1:maxiter
         iters += 1
         # Solve ridge regression
-        X .= P*(X̂+W/(opt.ν))
+        X .= P*(X̂.+W./(opt.ν))
         # Add proximal iteration
         prox!(W, f, X, opt.ν*opt.λ)
 

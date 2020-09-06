@@ -10,7 +10,7 @@ end
 function rescale_xi!(Ξ::AbstractArray, scales::AbstractArray)
     @assert length(scales) == size(Ξ, 1)
     @inbounds for (si, ti) in zip(scales, eachrow(Ξ))
-        ti .= ti / si
+        ti .= ti ./ si
     end
     return
 end
@@ -18,7 +18,7 @@ end
 function rescale_theta!(θ::AbstractArray, scales::AbstractArray)
     @assert length(scales) == size(θ, 1)
     @inbounds for (i, ti) in enumerate(eachrow(θ))
-        ti .= ti * scales[i]
+        ti .= ti .* scales[i]
     end
     return
 end

@@ -51,9 +51,9 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
     @inbounds for i in 1:maxiter
         iters += 1
 
-        x̂ .= P*(opt.ρ*X - ŷ) + c
-        prox!(X, g, x̂ + ŷ/opt.ρ)
-        ŷ .= ŷ + opt.ρ*(x̂ - X)
+        x̂ .= P*(opt.ρ.*X .- ŷ) .+ c
+        prox!(X, g, x̂ .+ ŷ./opt.ρ)
+        ŷ .= ŷ .+ opt.ρ.*(x̂ .- X)
 
         if norm(x_i - X, 2) < convergence_error
             break

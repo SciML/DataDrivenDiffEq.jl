@@ -71,7 +71,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADM; rt
 
     @inbounds for i in 1:size(Y, 1)
         for j in 1:size(A, 2)
-            θ[1:size(A, 1), j] .= Y[i, j]*A[:, j]
+            @views θ[1:size(A, 1), j] .= Y[i, j].*A[:, j]
         end
 
         N = nullspace(θ', rtol = rtol)
@@ -95,7 +95,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADM; rt
         end
         
         X[abs.(X[:, i]) .< get_threshold(opt), i] .= zero(eltype(X))
-        X[:, i] .= X[:, i] ./maximum(abs.(X[:, i]))
+        @views X[:, i] .= X[:, i] ./ maximum(abs, X[:, i])
     end
 
     
