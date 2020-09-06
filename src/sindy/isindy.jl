@@ -67,7 +67,7 @@ function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T; f::Func
     # TODO maybe add normalization here
     for i in 1:size(Ẋ, 1)
         for j in 1:size(θ, 2)
-            dθ[1:size(θ, 1), j] .= Ẋ[i, j]*θ[:, j]
+            dθ[1:size(θ, 1), j] .= Ẋ[i, j].*@view(θ[:, j])
         end
 
         iters[i] = parallel_implicit!(view(Ξ,:, i), view(dθ, :, :), opt, fg, maxiter, denoise, normalize, convergence_error)
@@ -101,7 +101,7 @@ function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::Abs
     # TODO maybe add normalization here
     for i in 1:size(Ẋ, 1)
         for j in 1:size(θ, 2)
-            dθ[1:size(θ, 1), j] .= Ẋ[i, j]*θ[:, j]
+            dθ[1:size(θ, 1), j] .= Ẋ[i, j].*@view(θ[:, j])
         end
 
         iters[i] = parallel_implicit!(view(Ξ,:, i), view(dθ, :, :), opt, fg, maxiter, denoise, normalize, convergence_error, thresholds)
@@ -133,7 +133,7 @@ function parallel_implicit!(Ξ, X, opt, fg, maxiter, denoise, normalize, converg
         norm(view(q, 1:half_size , j, k), 0) <= 0 || norm(view(q, (half_size+1):size(X, 1),j, k), 0)<= 0 ? continue : nothing
         
         if evaluate_pareto!(view(Ξ, :), view(q, :, j, k), fg, view(X, :, :)) || j == 1
-            mul!(Ξ, q[:, j, k],  one(eltype(q))./maximum(abs.(q[:, j, k])))
+            @views mul!(Ξ, q[:, j, k],  one(eltype(q))./maximum(abs, q[:, j, k]))
 
             iters_[j, k] < iters ? iters = iters_[j, k] : nothing
         end

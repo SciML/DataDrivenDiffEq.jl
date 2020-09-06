@@ -44,8 +44,8 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STRRidg
 
         smallinds .= abs.(X) .<= opt.λ
         X[smallinds] .= zero(eltype(X))
-        for j in 1:size(Y, 2)
-            biginds .= @. ! smallinds[:, j]
+        @views for j in 1:size(Y, 2)
+            @. biginds = ! smallinds[:, j]
             X[biginds, j] .= A[:, biginds] \ Y[:,j]
         end
 
