@@ -49,7 +49,7 @@ using ModelingToolkit
 using DataDrivenDiffEq
 
 @parameters w[1:2] t
-@variables u[1:2](t)
+@variables u[1:2]
 
 Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)
 ```
@@ -67,7 +67,7 @@ on sufficiently large basis functions. By default eval_expression=false.
 """
 function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};
                parameters::AbstractArray =  Operation[], iv = nothing, eval_expression = false)
-    @assert all(is_independent.(variables)) "Please provide independent variables for basis."
+    @assert all(is_independent.(variables)) "Please provide independent states."
 
     bs = unique(basis)
 

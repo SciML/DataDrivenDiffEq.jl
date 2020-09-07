@@ -12,7 +12,7 @@ Additional keyworded arguments include `p` for the parameter of the basis and `t
 
 ```julia
 @parameters p[1] t
-@variables u[1:2](t)
+@variables u[1:2]
 h = Operation[u; sin.(u); cos(p[1]*t)]
 basis = Basis(h, u, parameters = p, iv = t)
 koopman = EDMD(X, basis, p = [2.0], t = collect(0:0.2:10.0), C = Float64[1 0 0 0 0; 0 1 0 0 0])
