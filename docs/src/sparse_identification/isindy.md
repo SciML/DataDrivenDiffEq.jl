@@ -157,6 +157,8 @@ push!(polys, sin.(u[1]).*cos.(u[1])...)
 push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4]...)
 push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4].^2...)
 push!(polys, -0.2+0.5*sin(6*t))
+push!(polys, (-0.2+0.5*sin(6*t))*cos(u[1]))
+push!(polys, (-0.2+0.5*sin(6*t))*sin(u[1]))
 basis= Basis(polys, u, iv = t)
 ```
 
@@ -186,14 +188,57 @@ savefig("iSINDy_cartpole_estimation.png") # hide
 ```
 ![](iSINDy_cartpole_estimation.png)
 
-Let's have a look at the equations recovered. They nearly match up.
+Let's have a look at the equations recovered. They match up.
 
 ```@example iSINDy_2
 print_equations(Ψ)
 ```
 
+Alternatively, we can also use the input as an extended state `x`.
 
+```@example iSINDy_2
+@variables u[1:4] t x
+polys = Operation[]
+# Lots of basis functions -> sindy pi can handle more than ADM()
+for i ∈ 0:4
+    if i == 0
+        push!(polys, u[1]^0)
+    else
+        if i < 2
+            push!(polys, u.^i...)
+        else
+            push!(polys, u[3:4].^i...)
+        end
+        
+    end
+end
+push!(polys, sin.(u[1])...)
+push!(polys, cos.(u[1]))
+push!(polys, sin.(u[1]).*u[3:4]...)
+push!(polys, sin.(u[1]).*u[3:4].^2...)
+push!(polys, cos.(u[1]).^2...)
+push!(polys, sin.(u[1]).*cos.(u[1])...)
+push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4]...)
+push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4].^2...)
+push!(polys, x)
+push!(polys, x*cos(u[1]))
+push!(polys, x*sin(u[1]))
+basis= Basis(polys, vcat(u, x), iv = t)
+```
 
+Now we include the input signal into the extended state array `Xᵤ` and perform a sparse regression.
+
+```@example iSINDy_2
+U = -0.2 .+ 0.5*sin.(6*solution.t)
+Xᵤ = vcat(X, U')
+
+λ = exp10.(-4:0.5:-1)
+g(x) = norm([1e-3; 10.0] .* x, 2)
+Ψ = ISINDy(Xᵤ[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
+print_equations(Ψ, show_parameter = true)
+```
+
+Currently, we *can not* generate an `ODESystem` out of the resulting equations, which is a work in progress.
 
 ## Functions
 
