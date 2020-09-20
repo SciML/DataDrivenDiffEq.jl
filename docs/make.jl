@@ -27,7 +27,8 @@ makedocs(
             "sparse_identification/optimizers.md"
         ],
         "Utilities" => "utils.md",
-        "Contributing" => "contributions.md"
+        "Contributing" => "contributions.md",
+        "Extended Examples" => "extended_examples.md"
     ]
 )
 
