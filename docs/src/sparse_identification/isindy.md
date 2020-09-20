@@ -57,7 +57,7 @@ opt = ADM(1.1e-1)
 Since `ADM()` returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide a sufficient cost function `g` to `ISINDy`. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of ``\Theta^T \xi`` (nullspace). This is a default setting which can be changed by providing a function `f` which maps the coefficients and the library onto a feature space. Here, we want to set the focus on the the magnitude of the deviation from the nullspace.
 
 ```@example iSINDy_1
-Ψ = ISINDy(X, DX, basis, opt, g = x->norm([1e-1*x[1]; x[2]]), maxiter = 1000, rtol = 0.99)
+Ψ = ISINDy(X, DX, basis, opt, g = x->norm([1e-1*x[1]; x[2]]), maxiter = 100)
 nothing #hide
 ```
 
