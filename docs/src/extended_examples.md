@@ -1,5 +1,10 @@
 # Multiple Trajectories for Koopman
 
+Lets consider the case of approximating a Koopman Operator based on multiple trajectories. We assume pairs ``(X_i, \dot{X}_i)`` of the measured state space trajectory and its time derivative.
+
+Lets create our artificial measurements for a system with a slow and fast manifold, for which there exists an [analytical solution of this problem](https://arxiv.org/abs/1510.03007).
+
+
 ```@example multiple_koopman
 using DataDrivenDiffEq
 using ModelingToolkit
@@ -32,12 +37,21 @@ scatter(X_1[1,:], X_1[2,:], legend = false, label = "Trajectory 1") #hide
 scatter!(X_2[1,:], X_2[2,:], legend = true, label = "Trajectory 2") #hide
 savefig("multiple_koopman_trajectories.png") #hide
 ```
+
+Note that we varied the inital conditions and the measurement time. The resulting trajectories are shown below.
+
 ![](multiple_koopman_trajectories.png)
+
+Since we simply solve a least square regression problem, we can assume the data to be given in pairs ``(x_i, \dot{x}_i)``. In [this paper on the Dynamic Mode Decomposition](https://arxiv.org/pdf/1312.0041.pdf) its pointed out that the overall ordering of the snapshots does not matter, as long as the specific pair is consistent. 
+
+This means we can simply append the trajectories and use the new array to derive the approximation.
 
 ```@example multiple_koopman
 X = hcat(X_1, X_2)
 DX = hcat(DX_1, DX_2)
 ```
+
+In the next steps, we simply create a basis for the approximation and proceed as usual.
 
 ```@example multiple_koopman
 @variables u[1:2]
@@ -53,4 +67,8 @@ scatter!(eigvals([p[1] 0 0; 0 p[2] -p[2]; 0 0 2*p[1]]), label = "True", legend =
 savefig("eigenvalue_slowmanifold_multiple_trajectories.png") #hide
 ```
 
+Which results in the following eigenvalues of the system and its approximation.
+
 ![](eigenvalue_slowmanifold_multiple_trajectories.png)
+
+This procedure works for all methods which take two snapshot matrices as input arguments. 
