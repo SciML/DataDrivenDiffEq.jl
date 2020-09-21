@@ -1,6 +1,6 @@
-# Multiple Trajectories for Koopman
+# Multiple Trajectories for Koopman Approximation
 
-Lets consider the case of approximating a Koopman Operator based on multiple trajectories. We assume pairs ``(X_i, \dot{X}_i)`` of the measured state space trajectory and its time derivative.
+Lets consider the case of approximating a Koopman Operator based on multiple trajectories. We assume pairs ``(x_i, \dot{x}_i)`` of the measured state space trajectory and its time derivative where ``i`` denotes a single measurement. 
 
 Lets create our artificial measurements for a system with a slow and fast manifold, for which there exists an [analytical solution of this problem](https://arxiv.org/abs/1510.03007).
 
@@ -42,16 +42,14 @@ Note that we varied the inital conditions and the measurement time. The resultin
 
 ![](multiple_koopman_trajectories.png)
 
-Since we simply solve a least square regression problem, we can assume the data to be given in pairs ``(x_i, \dot{x}_i)``. In [this paper on the Dynamic Mode Decomposition](https://arxiv.org/pdf/1312.0041.pdf) its pointed out that the overall ordering of the snapshots does not matter, as long as the specific pair is consistent. 
-
-This means we can simply append the trajectories and use the new array to derive the approximation.
+In [this paper on the Dynamic Mode Decomposition](https://arxiv.org/pdf/1312.0041.pdf) its pointed out that the overall ordering of the snapshots does not matter, as long as the specific pair is consistent. This means we can simply append the trajectories and use the new array to derive the approximation.
 
 ```@example multiple_koopman
 X = hcat(X_1, X_2)
 DX = hcat(DX_1, DX_2)
 ```
 
-In the next steps, we simply create a basis for the approximation and proceed as usual.
+In the next steps, we simply create a basis for the approximation and proceed as usual. At first we create the basis and afterwards feed it to the function for approximating the Koopman generator.
 
 ```@example multiple_koopman
 @variables u[1:2]
