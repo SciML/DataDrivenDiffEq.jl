@@ -191,8 +191,7 @@ function Base.merge!(basis_a::Basis, basis_b::Basis)
     basis_a.parameter = unique(vcat(basis_a.parameter, basis_b.parameter))
     update!(basis_a)
     return
-end    println("$o -> $n_ops")
-
+end
 
 Base.getindex(b::Basis, idx) = b.basis[idx]
 Base.firstindex(b::Basis) = firstindex(b.basis)
@@ -294,7 +293,7 @@ function create_linear_independent_eqs(o::AbstractVector{T}) where T <: Expressi
         @views split_operation!(u_o[ind_lo:ind_up], o[i], [+])
     end
     remove_constant_factor!(u_o)
-    #unique!(u_o)
+    unique!(u_o)
     return u_o
 end
 
