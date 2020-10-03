@@ -202,23 +202,48 @@ function (==)(x::Basis, y::Basis)
     return all(n)
 end
 
+function is_unary(f::Function)
+    for m in methods(f)
+        m.nargs - 1 > 1 && return false
+    end
+    return true
+end
 
-function count_operation(x::T, ops) where T <: Expression
+function count_operation(x::T, op::Function) where T <: Expression
     isa(x, ModelingToolkit.Constant) && return 0
-    length(x.args) <= 1 && return 0
-    x.op ∈ ops && return length(x.args)-1 + sum([count_ops(xi, ops) for xi in x.args])
+    isa(x.op, Expression) && return 0
+    if x.op == op
+        if is_unary(op)
+            # Handles sin, cos and stuff
+            return 1 + count_operation(x.args, op)
+        else
+            # Handles +, *
+            return length(x.args)-1 + count_operation(x.args, op)
+        end
+    else
+        return count_operation(x.args, op)
+    end
     return 0
 end
 
-function count_operation(x::AbstractVector{T}, ops) where T <: Expression
+function count_operation(x::T, ops::AbstractArray) where T<:Expression
     c_ops = 0
-    for xi in x
-        c_ops += count_ops(xi, ops)
+    for oi in ops
+        c_ops += count_operation(x, oi)
     end
     return c_ops
 end
 
-free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
+function count_operation(x::AbstractVector{T}, op) where T <: Expression
+    c_ops = 0
+    for xi in x
+        c_ops += count_operation(xi, op)
+    end
+    return c_ops
+end
+
+
+free_parameters(b::Basis; operations = [+]) = count_operation(b.basis, operations) + length(b.basis)
 
 (b::Basis)(u, p::DiffEqBase.NullParameters, t) = b(u, [], t)
 (b::Basis)(du, u, p::DiffEqBase.NullParameters, t) = b(du, u, [], t)
@@ -325,25 +350,25 @@ function Base.unique(b::Basis)
     return Basis(b.basis[returns], variables(b), parameters = parameters(b))
 end
 
-#function Base.unique(b₀::AbstractVector{Operation})
-#    b = simplify.(b₀)
-#    N = length(b)
-#    returns = Vector{Bool}()
-#    for i ∈ 1:N
-#        push!(returns, any([isequal(b[i], b[j]) for j in i+1:N]))
-#    end
-#    returns = [!r for r in returns]
-#    return b[returns]
-#end
-#
-#function Base.unique!(b::AbstractArray{Operation})
-#    N = length(b)
-#    removes = Vector{Bool}()
-#    for i ∈ 1:N
-#        push!(removes, any([isequal(b[i], b[j]) for j in i+1:N]))
-#    end
-#    deleteat!(b, removes)
-#end
+function Base.unique(b₀::AbstractVector{Operation})
+    b = simplify.(b₀)
+    N = length(b)
+    returns = Vector{Bool}()
+    for i ∈ 1:N
+        push!(returns, any([isequal(b[i], b[j]) for j in i+1:N]))
+    end
+    returns = [!r for r in returns]
+    return b[returns]
+end
+
+function Base.unique!(b::AbstractArray{Operation})
+    N = length(b)
+    removes = Vector{Bool}()
+    for i ∈ 1:N
+        push!(removes, any([isequal(b[i], b[j]) for j in i+1:N]))
+    end
+    deleteat!(b, removes)
+end
 
 """
     dynamics(basis)
