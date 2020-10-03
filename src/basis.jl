@@ -202,15 +202,20 @@ function (==)(x::Basis, y::Basis)
     return all(n)
 end
 
-function count_operation(o::Expression, ops::AbstractArray)
-    if isa(o, ModelingToolkit.Constant)
-        return 0
+
+function count_operation(x::T, ops) where T <: Expression
+    isa(x, ModelingToolkit.Constant) && return 0
+    length(x.args) <= 1 && return 0
+    x.op ∈ ops && return length(x.args)-1 + sum([count_ops(xi, ops) for xi in x.args])
+    return 0
+end
+
+function count_operation(x::AbstractVector{T}, ops) where T <: Expression
+    c_ops = 0
+    for xi in x
+        c_ops += count_ops(xi, ops)
     end
-    k = o.op ∈ ops ? 1 : 0
-    if !isempty(o.args)
-        k += sum([count_operation(ai, ops) for ai in o.args])
-    end
-    return k
+    return c_ops
 end
 
 free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
@@ -320,25 +325,25 @@ function Base.unique(b::Basis)
     return Basis(b.basis[returns], variables(b), parameters = parameters(b))
 end
 
-function Base.unique(b₀::AbstractVector{Operation})
-    b = simplify.(b₀)
-    N = length(b)
-    returns = Vector{Bool}()
-    for i ∈ 1:N
-        push!(returns, any([isequal(b[i], b[j]) for j in i+1:N]))
-    end
-    returns = [!r for r in returns]
-    return b[returns]
-end
-
-function Base.unique!(b::AbstractArray{Operation})
-    N = length(b)
-    removes = Vector{Bool}()
-    for i ∈ 1:N
-        push!(removes, any([isequal(b[i], b[j]) for j in i+1:N]))
-    end
-    deleteat!(b, removes)
-end
+#function Base.unique(b₀::AbstractVector{Operation})
+#    b = simplify.(b₀)
+#    N = length(b)
+#    returns = Vector{Bool}()
+#    for i ∈ 1:N
+#        push!(returns, any([isequal(b[i], b[j]) for j in i+1:N]))
+#    end
+#    returns = [!r for r in returns]
+#    return b[returns]
+#end
+#
+#function Base.unique!(b::AbstractArray{Operation})
+#    N = length(b)
+#    removes = Vector{Bool}()
+#    for i ∈ 1:N
+#        push!(removes, any([isequal(b[i], b[j]) for j in i+1:N]))
+#    end
+#    deleteat!(b, removes)
+#end
 
 """
     dynamics(basis)
