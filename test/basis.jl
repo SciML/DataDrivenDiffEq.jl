@@ -5,12 +5,15 @@
     h = [u[1]; u[2]; cos(w[1]*u[2]+w[2]*u[3]); u[3]+u[2]]
     h_not_unique = [u[1]; u[1]; u[1]^1; h]
     basis = Basis(h_not_unique, u, parameters = w, iv = t)
-
+    basis_2 = Basis(h_not_unique, u, parameters = w, iv = t, linear_independent = true)
     @test isequal(variables(basis), u)
     @test isequal(parameters(basis), w)
     @test isequal(independent_variable(basis), t)
+
     @test free_parameters(basis) == 6
+    @test free_parameters(basis_2) == 5
     @test free_parameters(basis, operations = [+, cos]) == 7
+    @test free_parameters(basis_2, operations = [+, cos]) == 6
     @test DataDrivenDiffEq.count_operation((ModelingToolkit.Constant(1) + cos(u[2])*sin(u[1]))^3, [+, cos, ^, *]) == 4
 
     basis_2 = unique(basis)
