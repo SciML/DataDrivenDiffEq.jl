@@ -214,6 +214,24 @@ function is_unary(f::Function)
     return true
 end
 
+function types_in_f_tuple(sig)
+    sig.parameters[2:end]
+end
+
+function types_in_f_tuple(sig::UnionAll)
+    Base.unwrap_unionall(sig).parameters[2:end]    
+end
+
+function is_unary(f::Function, dtype::DataType)
+    for m in methods(f)
+        if dtype ∈ types_in_f_tuple(m.sig)
+            m.nargs - 1 > 1 && return false
+        end
+
+    end
+    return true
+end
+
 function count_operation(x::T, op::Function, nested::Bool = true) where T <: Expression
     isa(x, ModelingToolkit.Constant) && return 0
     isa(x.op, Expression) && return 0
