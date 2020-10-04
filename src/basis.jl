@@ -34,13 +34,15 @@ is_independent(o::Operation) = isempty(o.args)
 
 
 """
-    Basis(f, u; p, iv, eval_expression)
+    Basis(f, u; p, iv, linear_independent = false, simplify_eqs = true, eval_expression = false)
 
 A basis over the variables `u` with parameters `p` and independent variable `iv`.
 `f` can either be a Julia function which is able to use ModelingToolkit variables or
 a vector of `Operation`.
 It can be called with the typical DiffEq signature, meaning out of place with `f(u,p,t)`
 or in place with `f(du, u, p, t)`.
+If `linear_independent` is set to `true`, a linear independent basis is created from all atom function in `f`.
+If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
 
 # Example
 
@@ -66,10 +68,13 @@ on sufficiently large basis functions. By default eval_expression=false.
 
 """
 function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operation};
-               parameters::AbstractArray =  Operation[], iv = nothing, eval_expression = false)
+               parameters::AbstractArray =  Operation[], iv = nothing, linear_independent::Bool = false, simplify_eqs = true, eval_expression = false)
     @assert all(is_independent.(variables)) "Please provide independent states."
 
-    bs = unique(basis)
+    bs = deepcopy(basis)
+    simplify_eqs && (bs = simplify.(bs))
+    linear_independent && (bs = create_linear_independent_eqs(bs))
+    unique!(bs)
 
     if isnothing(iv)
         @parameters t
@@ -92,7 +97,7 @@ function Basis(basis::AbstractArray{Operation}, variables::AbstractArray{Operati
 end
 
 
-function Basis(basis::Function, variables::AbstractArray{Operation};  parameters::AbstractArray =  Operation[], iv = nothing)
+function Basis(basis::Function, variables::AbstractArray{Operation};  parameters::AbstractArray =  Operation[], iv = nothing, kwargs...)
     @assert all(is_independent.(variables)) "Please provide independent variables for basis."
 
     if isnothing(iv)
@@ -102,7 +107,7 @@ function Basis(basis::Function, variables::AbstractArray{Operation};  parameters
 
     try
         eqs = basis(variables, parameters, iv)
-        return Basis(eqs, variables, parameters = parameters, iv = iv)
+        return Basis(eqs, variables, parameters = parameters, iv = iv, kwargs...)
     catch e
         rethrow(e)
     end
@@ -202,18 +207,97 @@ function (==)(x::Basis, y::Basis)
     return all(n)
 end
 
-function count_operation(o::Expression, ops::AbstractArray)
-    if isa(o, ModelingToolkit.Constant)
-        return 0
+function is_unary(f::Function)
+    for m in methods(f)
+        m.nargs - 1 > 1 && return false
     end
-    k = o.op ∈ ops ? 1 : 0
-    if !isempty(o.args)
-        k += sum([count_operation(ai, ops) for ai in o.args])
-    end
-    return k
+    return true
 end
 
-free_parameters(b::Basis; operations = [+]) = sum([count_operation(bi, operations) for bi in b.basis]) + length(b.basis)
+function count_operation(x::T, op::Function, nested::Bool = true) where T <: Expression
+    isa(x, ModelingToolkit.Constant) && return 0
+    isa(x.op, Expression) && return 0
+    if x.op == op
+        if is_unary(op)
+            # Handles sin, cos and stuff
+            nested && return 1 + count_operation(x.args, op)
+            return 1
+        else
+            # Handles +, *
+            nested && length(x.args)-1 + count_operation(x.args, op) 
+            return length(x.args)-1 
+        end
+    elseif nested
+        return count_operation(x.args, op, nested)
+    end
+    return 0
+end
+
+function count_operation(x::T, ops::AbstractArray,nested::Bool = true) where T<:Expression
+    c_ops = 0
+    for oi in ops
+        c_ops += count_operation(x, oi, nested)
+    end
+    return c_ops
+end
+
+function count_operation(x::AbstractVector{T}, op, nested::Bool = true) where T <: Expression
+    c_ops = 0
+    for xi in x
+        c_ops += count_operation(xi, op, nested)
+    end
+    return c_ops
+end
+
+function remove_constant_factor(o::T) where T <: Expression
+    isa(o, ModelingToolkit.Constant) && return ModelingToolkit.Constant(1)
+    n_ops = count_operation(o, *, false) +1
+    ops = Array{Expression}(undef, n_ops)
+    @views split_operation!(ops, o, [*])
+    filter!(x->!isa(x, ModelingToolkit.Constant), ops)
+    return prod(ops)
+end
+
+function remove_constant_factor!(o::AbstractArray{T}) where T <: Expression
+    for i in eachindex(o)
+        o[i] = remove_constant_factor(o[i])
+    end
+end
+
+function split_operation!(k::AbstractVector{T}, o::Expression, ops::AbstractArray = [+]) where T <: Expression
+    n_ops = count_operation(o, ops, false) 
+    c_ops = 0
+    @views begin
+        if n_ops == 0
+            k .= o
+        else
+            counter_ = 1
+            for oi in o.args
+                c_ops = count_operation(oi, ops, false)
+                split_operation!(k[counter_:counter_+c_ops], oi, ops)
+                counter_ += c_ops + 1
+            end
+        end
+    end
+end
+
+function create_linear_independent_eqs(o::AbstractVector{T}) where T <: Expression
+    unique!(o)
+    n_ops = [count_operation(bi, +, false) for bi in o]
+    n_x = sum(n_ops) + length(o)
+    u_o = Array{T}(undef, n_x)
+    ind_lo, ind_up = 0, 0
+    for i in eachindex(o)
+        ind_lo = i > 1 ? sum(n_ops[1:i-1]) + i : 1
+        ind_up = sum(n_ops[1:i]) + i
+        @views split_operation!(u_o[ind_lo:ind_up], o[i], [+])
+    end
+    remove_constant_factor!(u_o)
+    unique!(u_o)
+    return u_o
+end
+
+free_parameters(b::Basis; operations = [+]) = count_operation(b.basis, operations) + length(b.basis)
 
 (b::Basis)(u, p::DiffEqBase.NullParameters, t) = b(u, [], t)
 (b::Basis)(du, u, p::DiffEqBase.NullParameters, t) = b(du, u, [], t)
