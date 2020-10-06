@@ -20,6 +20,7 @@ const GROUP = get(ENV, "GROUP", "All")
         include("./isindy.jl")
         include("./utils.jl")
         include("./optimize.jl")
+        include("./symbolic_regression.jl")
     end
 
     # These are excluded right now, until the deps are figured out

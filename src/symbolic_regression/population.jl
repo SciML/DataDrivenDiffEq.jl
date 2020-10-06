@@ -1,11 +1,3 @@
-using ModelingToolkit
-using DataDrivenDiffEq
-using LinearAlgebra
-using StatsBase
-using DiffEqBase
-
-import DataDrivenDiffEq: is_unary
-
 struct OperationPool{F}
     ops::AbstractArray{F}
     unary::BitArray
@@ -13,7 +5,7 @@ struct OperationPool{F}
 end
 
 OperationPool(ops::AbstractArray{Function}) = OperationPool(ops, is_unary.(ops, Number), Weights(ones(length(ops))))
-DataDrivenDiffEq.is_unary(op::OperationPool, ind) = op.unary[ind]
+is_unary(op::OperationPool, ind) = op.unary[ind]
 
 Base.length(op::OperationPool) = length(op.ops)
 Base.size(op::OperationPool, args...) = size(op.ops, args...)
@@ -33,9 +25,9 @@ Candidate(b::Basis) = Candidate(b, fill(-Inf, length(b)))
 
 (c::Candidate)(args...) = c.basis(args...)
 
-DataDrivenDiffEq.variables(c::Candidate) = variables(c.basis)
-DataDrivenDiffEq.parameters(c::Candidate) = parameters(c.basis)
-DataDrivenDiffEq.independent_variable(c::Candidate) = independent_variable(c.basis)
+variables(c::Candidate) = variables(c.basis)
+ModelingToolkit.parameters(c::Candidate) = parameters(c.basis)
+ModelingToolkit.independent_variable(c::Candidate) = independent_variable(c.basis)
 score(c::Candidate, ind = :) = c.score[ind]
 
 
@@ -60,17 +52,16 @@ function _conditional_feature!(features, i, op, selection_rng, maxiter = 100)
     return
 end
 
-function add_features!(c::Candidate, op::OperationPool, n_features::Int64 = 1, selection_rng = :, insertion_rng = nothing; maxiter = 100)
+function add_features!(c::Candidate, op::OperationPool, n_features::Int64 = 1, selection_rng = nothing, insertion_rng = nothing; maxiter = 100)
     n_basis = length(c)
     features = Array{Operation}(undef, n_basis+n_features)
     features[1:n_basis] .= simplify.(c.basis.basis)
     features[n_basis+1:end] .= ModelingToolkit.Constant(0)
+    selection_inds = isnothing(selection_rng) ? (1:n_basis) : (1:length(features))
     for i in n_basis+1:(n_basis+n_features)
-        @views _conditional_feature!(features, i, op, selection_rng, maxiter)
-        println(features)
+        @views _conditional_feature!(features, i, op, selection_inds, maxiter)
     end
     if !isnothing(insertion_rng)
-        println("Jup")
         @views for i in insertion_rng
             c.basis.basis[i] = features[i]
         end
@@ -79,18 +70,6 @@ function add_features!(c::Candidate, op::OperationPool, n_features::Int64 = 1, s
             push!(c.basis.basis, f)
         end
     end
-    DataDrivenDiffEq.update!(c.basis)
+    update!(c.basis)
     return
 end
-
-
-@variables x[1:4]
-ops = [sin, cos, tanh, +, *, /, exp]
-op = OperationPool(ops)
-b = Basis(x, x, simplify_eqs = false)
-c = Candidate(b)
-@time add_features!(c, op, 6, 1:4)
-println(c.basis)
-println(unique(c.basis))
-@time DataDrivenDiffEq.update!(c.basis)
-

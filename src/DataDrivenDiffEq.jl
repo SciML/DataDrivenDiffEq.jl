@@ -5,6 +5,7 @@ using DiffEqBase
 using ModelingToolkit
 using QuadGK
 using Statistics
+using StatsBase
 using DSP
 using FiniteDifferences, DataInterpolations
 using Compat
@@ -87,5 +88,9 @@ export burst_sampling, subsample
 include("./basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis
 export sin_basis, cos_basis, fourier_basis 
+
+
+include("./symbolic_regression/population.jl")
+export OperationPool
 
 end # module
