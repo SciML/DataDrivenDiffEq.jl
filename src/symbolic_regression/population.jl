@@ -6,7 +6,6 @@ using DiffEqBase
 
 import DataDrivenDiffEq: is_unary
 
-
 struct OperationPool{F}
     ops::AbstractArray{F}
     unary::BitArray
@@ -61,15 +60,17 @@ function _conditional_feature!(features, i, op, selection_rng, maxiter = 100)
     return
 end
 
-function add_features!(c::Candidate, op::OperationPool, n_features::Int64 = 1, selection_rng = :, insertion_rng = nothing; maxiter = 10)
+function add_features!(c::Candidate, op::OperationPool, n_features::Int64 = 1, selection_rng = :, insertion_rng = nothing; maxiter = 100)
     n_basis = length(c)
     features = Array{Operation}(undef, n_basis+n_features)
     features[1:n_basis] .= simplify.(c.basis.basis)
     features[n_basis+1:end] .= ModelingToolkit.Constant(0)
-    for i in n_basis:(n_basis+n_features)
+    for i in n_basis+1:(n_basis+n_features)
         @views _conditional_feature!(features, i, op, selection_rng, maxiter)
+        println(features)
     end
-    if !isnothing(insertion_rng) && length(insertion_rng) == n_features && insertion_rng[end] <= length(c)
+    if !isnothing(insertion_rng)
+        println("Jup")
         @views for i in insertion_rng
             c.basis.basis[i] = features[i]
         end
