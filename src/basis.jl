@@ -139,20 +139,20 @@ end
     Push the operation(s) in `op` into the basis and update all internal fields accordingly.
     `op` can either be a single `Operation` or an Array of `Operation`s.
 """
-function Base.push!(b::Basis, ops::AbstractArray{Operation})
+function Base.push!(b::Basis, ops::AbstractArray{Operation}, unique::Bool = true)
     @inbounds for o in ops
-        push!(b.basis, o)
+        push!(b.basis, o, false)
     end
-    unique!(b.basis)
+    unique ? unique!(b.basis) : nothing
     update!(b)
     return
 end
 
-function Base.push!(b::Basis, op₀::Operation)
+function Base.push!(b::Basis, op₀::Operation, unique::Bool = true)
     op = simplify(op₀)
     push!(b.basis, op)
     # Check for uniqueness
-    unique!(b)
+    unique ? unique!(b) : nothing
     update!(b)
     return
 end
