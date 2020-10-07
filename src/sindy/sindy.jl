@@ -27,6 +27,7 @@ end
     sparse_regression(X, Y, basis, p, t, maxiter, opt, denoise, normalize, convergence_error)
     sparse_regression!(Xi, X, Y, basis, p, t, maxiter, opt, denoise, normalize, convergence_error)
     spares_regression!(Xi, Theta, Y, maxiter, opt, denoise, normalize, convergence_error)
+    sparse_regression!(Xi, Theta, Y,thresholds, loss, maxiter, opt, denoise, normalize, convergence_error)
 
 Performs a sparse regression via the algorithm `opt <: AbstractOptimizer`. `maxiter` specifies the upper bound of the iterations
 of the optimizer, `convergence_error` the breaking condition due to convergence.
@@ -38,6 +39,8 @@ measurements `t`, it returns the coefficient matrix `Xi` and the iterations take
 This function is also available in place, which returns just the iterations.
 
 If `Xi`, `Theta` and `Y` are given, the sparse regression will find the coefficients `Xi`, which minimize the objective and return the iterations needed.
+
+If an array of thresholds and a loss function with signature `loss(Xi, Theta, DX)` are given, a pareto front optimization is performed.
 
 # Example
 
