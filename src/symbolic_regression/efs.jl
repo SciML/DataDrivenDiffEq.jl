@@ -40,44 +40,6 @@ function add_features!(c::DataDrivenDiffEq.Candidate, e::EFS, s::FixedSize)
     return
 end
 
-function _symbolic_regression!(Ψ, θ, X, DX, p, t, s::FixedSize ,thresholds, maxiter, opt, denoise, normalize, convergence_error)
-    nx, nm = size(X)
-    ny, nm = size(DX)
-
-    # Pathwise sparse regression
-    scales = ones(eltype(X), length(Ψ))
-
-    ξ_tmp = similar(Ξ)
-    Ξ_tmp = zeros(eltype(X), length(Ψ), ny)
-
-    iter_ = Inf
-    _iter = Inf
-    _thresh = Inf
-
-    denoise ? optimal_shrinkage!(θ') : nothing
-    normalize ? normalize_theta!(scales, θ) : nothing
-    
-    @inbounds for j in 1:length(thresholds)
-        set_threshold!(opt, thresholds[j])
-        iter_ = sparse_regression!(view(ξ_tmp, :, :), view(θ, :, :), view(DX, :, :), maxiter, opt, false, false, convergence_error)
-        normalize ? rescale_xi!(ξ_tmp, scales) : nothing
-        for i in 1:ny
-            if j == 1
-                Ξ_opt .= ξ_tmp
-                _iter = iter_
-                _thresh = thresholds[j]
-            else
-                if evaluate_pareto!(view(Ξ_opt, :, i), view(ξ_tmp, :, i), fg, view(θ, :, :), view(DX, i, :))
-                    _iter = iter_
-                    _thresh = thresholds[j]
-                end
-            end
-        end
-    end
-
-    
-end
-
 function symbolic_regression(X, DX, b::Basis, thresholds::AbstractArray, e::EFS, opt::T = STRRidge(), steps::Int64 = 10; 
     f::Function = (xi, theta, dx)->[norm(xi, 0); norm(dx .- theta'*xi, 2)], 
     g::Function = x->norm(x), p::AbstractArray = [], t::AbstractVector = [], 
@@ -94,7 +56,8 @@ function symbolic_regression(X, DX, b::Basis, thresholds::AbstractArray, e::EFS,
     fg(xi, theta, dx) = (g∘f)(xi, theta, dx)
 
     for i in 1:steps
-        _symbolic_regression!(Ψ, Ξ, X, DX, p, t, strategy(e), thresholds, maxiter, opt, denoise, normalize, convergence_error)
+        iter = sparse_regression!(Ξ, θ, DX, thresholds, fg, maxiter, opt, denoise, normalize, convergence_error)
+    
     end
     
     return SparseIdentificationResult(Ξ_opt, Ψ, _iter, opt, _iter < maxiter, DX, X, p = p)
