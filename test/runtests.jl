@@ -80,7 +80,7 @@ end
     s3 = solve(p3,FunctionMap())
     @test sol[:,:] ≈ s1[:,:]
     @test sol[:,:] ≈ s2[:,:]
-    @test hcat(estimator_2.basis.(eachcol(sol[:,:]))...)≈ s3[:,:]
+    @test hcat(estimator_2.basis.(copy.(eachcol(sol[:,:])))...)≈ s3[:,:]
     @test eigvals(estimator_2) ≈ [-0.9; -0.3]
 
     # Test for nonlinear system

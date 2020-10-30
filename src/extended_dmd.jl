@@ -27,8 +27,8 @@ function ExtendedDMD(X::AbstractArray, Y::AbstractArray, Ψ::abstractBasis; p::A
     N,M = size(X)
 
     # Compute the transformed data
-    Ψ₀ = hcat([Ψ(xi, p = p) for xi in eachcol(X)]...)
-    Ψ₁ = hcat([Ψ(xi, p = p) for xi in eachcol(Y)]...)
+    Ψ₀ = hcat([Ψ(copy(xi), p = p) for xi in eachcol(X)]...)
+    Ψ₁ = hcat([Ψ(copy(xi), p = p) for xi in eachcol(Y)]...)
     Op = ExactDMD(Ψ₀, Ψ₁) # Initial guess based upon the basis
 
     # Transform back to states

@@ -2,6 +2,7 @@ module DataDrivenDiffEq
 
 using LinearAlgebra
 using ModelingToolkit
+using ModelingToolkit: Term, Sym, FnType, value, <ₑ, isparameter
 using Compat
 import Convex, GLPKMathProgInterface;
 

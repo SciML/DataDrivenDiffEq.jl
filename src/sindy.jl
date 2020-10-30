@@ -51,7 +51,7 @@ function sparseConvex(A::AbstractArray, Y::AbstractArray; ϵ::Float64 = 1e-3)
 end
 
 function simplified_matvec(Ξ, basis)
-    eqs = Operation[]
+    eqs = []
     for i=1:size(Ξ, 1)
         eq = nothing
         for j = 1:size(Ξ, 2)
@@ -74,7 +74,7 @@ end
 
 # Returns a basis for the differential state
 function SInDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis; p::AbstractArray = [], ϵ::Number = 1e-1)
-    θ = hcat([Ψ(xi, p = p) for xi in eachcol(X)]...)
+  θ = hcat([Ψ(copy(xi), p = p) for xi in eachcol(X)]...)
     Ξ = sparseConvex(θ', Ẋ, ϵ = ϵ)
     return Basis(simplified_matvec(Ξ, Ψ.basis), variables(Ψ), parameters = p)
 end
