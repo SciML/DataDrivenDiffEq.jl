@@ -66,12 +66,13 @@ is_independent(s::Sym) = true
 is_independent(x::Num) = is_independent(ModelingToolkit.value(x))
 
 function Basis(eqs::AbstractVector, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
-    simplify = false, name = gensym(:Basis), eval_expression = true,
+    simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = true,
     pins = [], observed = [],
     kwargs...)
     @assert all(is_independent.(states)) "Please provide independent states."
 
     eqs = simplify ? ModelingToolkit.simplify.(eqs) : eqs
+    eqs = linear_independent ? create_linear_independent_eqs(eqs) : eqs
     isnothing(iv) && (iv = Num(Variable(:t)))
     unique!(eqs, !simplify)
     
@@ -128,6 +129,8 @@ end
     end
 end
 
+variables(x::Basis) = x.states
+
 function update!(b::Basis, eval_expression = true)
 
     if eval_expression
@@ -153,14 +156,13 @@ function unique(b::AbstractArray{Num}, simplify_eqs = false)
     return b[returns]
 end
 
-function Base.unique!(b::AbstractArray{Num}, simplify_eqs = false)
+function Base.unique!(b::AbstractArray, simplify_eqs = false)
     bs = simplify_eqs ? simplify.(b) : b
     removes = zeros(Bool, size(bs)...)
     N = maximum(eachindex(bs))
     for i ∈ eachindex(bs)
         removes[i] = any([isequal(bs[i], bs[j]) for j in i+1:N])
     end
-    @show removes
     deleteat!(b, removes)
 end
 
@@ -174,8 +176,6 @@ function unique(b::AbstractArray{Equation}, simplify_eqs = false)
     return b[returns]
 end
 
-
-
 function Base.unique!(b::AbstractArray{Equation}, simplify_eqs = false)
     bs = [bi.rhs for bi in b]
     bs = simplify_eqs ? simplify.(bs) : bs
@@ -188,10 +188,14 @@ function Base.unique!(b::AbstractArray{Equation}, simplify_eqs = false)
 end
 
 
-
 function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = true)
     unique!(b.eqs, simplify_eqs)
     update!(b, eval_expression)
+end
+
+function Base.unique(b::Basis; kwargs...)
+    eqs = unique(map(x->x.rhs, equations(b)))
+    return Basis(eqs, variables(b), parameters = parameters(b), iv = independent_variable(b), kwargs...)
 end
 
 """
@@ -219,7 +223,7 @@ function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expr
     return
 end
 
-function Base.push!(b::Basis, eq::Num, simplify_eqs = true; eval_expression = true)
+function Base.push!(b::Basis, eq, simplify_eqs = true; eval_expression = true)
     push!(b.eqs, Variable(:φ, length(b.eqs)+1)~eq)
     unique!(b, simplify_eqs, eval_expression = eval_expression)
     return
@@ -245,16 +249,15 @@ end
     Updates `x` to include the union of both `x` and `y`.
 """
 function Base.merge!(x::Basis, y::Basis; eval_expression = true)
-    push!(x, equations(y))
+    push!(x, map(x->x.rhs, equations(y)))
     x.states = unique(vcat(x.states, y.states))
     x.ps = unique(vcat(x.ps, y.ps))
     update!(x, eval_expression)
     return
 end
 
-
 Base.length(x::Basis) = length(x.eqs)
-Base.size(x::Basis) = size(x.basis)
+Base.size(x::Basis) = size(x.eqs)
 
 Base.getindex(x::Basis, idx) = getindex(equations(x), idx)
 Base.firstindex(x::Basis) = firstindex(equations(x))
@@ -262,7 +265,6 @@ Base.lastindex(x::Basis) = lastindex(equations(x))
 Base.iterate(x::Basis) = iterate(equations(x))
 Base.iterate(x::Basis, id) = iterate(equations(x), id)
 
-import Base.==
 function (==)(x::Basis, y::Basis)
     length(x) == length(y) || return false
     n = zeros(Bool, length(x))
@@ -271,10 +273,8 @@ function (==)(x::Basis, y::Basis)
     @inbounds for (i, xi) in enumerate(xrhs)
         n[i] = any(isequal.([xi], yrhs))
     end
-    @show n
     return all(n)
 end
-
 
 free_parameters(b::Basis; operations = [+]) = count_operation([xi.rhs for xi in b.eqs], operations) + length(b.eqs)
 
@@ -454,3 +454,9 @@ function create_linear_independent_eqs(o::AbstractVector)
 end
 
 ## System Conversion
+function ModelingToolkit.ODESystem(x::Basis; kwargs...)
+    @assert length(x) == length(variables(x)) 
+    return ODESystem(
+        equations(x), independent_variable(x), variables(x), parameters(x),
+        pins = x.pins, observed = x.observed, kwargs...)
+end
