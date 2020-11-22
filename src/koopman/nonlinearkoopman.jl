@@ -28,7 +28,7 @@ mutable struct NonlinearKoopman <: AbstractKoopmanOperator
     input::AbstractArray
     output::AbstractArray
 
-    basis::AbstractBasis
+    basis::Basis
 
     Q::AbstractArray
     P::AbstractArray
@@ -87,10 +87,10 @@ end
 Reduces the `basis` of the nonlinear Koopman using the 1-norm of each row
 of the matrix `C*K`. Rows where the threshold is not reached are deleted.
 """
-function reduce_basis(k::NonlinearKoopman; threshold = 1e-5)
+function reduce_basis(k::NonlinearKoopman; threshold = 1e-5, kwargs...)
     b = k.output*k.operator
     inds = vec(sum(abs, b, dims = 1) .> threshold)
-    return Basis(k.basis[inds], variables(k.basis), parameters = parameters(k.basis), iv = independent_variable(k.basis))
+    return Basis(map(x->x.rhs, k.basis[inds]), variables(k.basis), parameters = parameters(k.basis), iv = independent_variable(k.basis), kwargs...)
 end
 
 
@@ -100,25 +100,13 @@ end
 Convert a `NonlinearKoopman` into an `ODESystem`. `threshold` determines the cutoff
 for the entries of the matrix representing the state space evolution of the system.
 """
-function ModelingToolkit.ODESystem(k::NonlinearKoopman; threshold = eps())
+function ModelingToolkit.ODESystem(k::NonlinearKoopman; threshold = eps(), kwargs...)
     @assert threshold > zero(threshold) "Threshold must be greater than zero"
 
-    eqs = Operation[]
+    eqs = Any[]
     A = outputmap(k)*k.operator
     A[abs.(A) .< threshold] .= zero(eltype(A))
-    @inbounds for i in 1:size(A, 1)
-        eq = nothing
-        for j in 1:size(A, 2)
-            if !iszero(A[i,j])
-                if isnothing(eq)
-                    eq = A[i,j]*k.basis[j]
-                else
-                    eq += A[i,j]*k.basis[j]
-                end
-            end
-        end
-        isnothing(eq) ? nothing : push!(eqs, eq)
-    end
-    b = Basis(eqs, variables(k.basis), parameters = parameters(k.basis), iv = independent_variable(k.basis))
-    return ODESystem(b)
+    eqs = hcat([x.rhs for x in k.basis.eqs])
+    b = Basis(simplify.(A*eqs)[:,1], variables(k.basis), parameters = parameters(k.basis), iv = independent_variable(k.basis))
+    return ODESystem(b, kwargs...)
 end

@@ -18,11 +18,11 @@ basis = Basis(h, u, parameters = p, iv = t)
 koopman = EDMD(X, basis, p = [2.0], t = collect(0:0.2:10.0), C = Float64[1 0 0 0 0; 0 1 0 0 0])
 ```
 """
-function EDMD(X::AbstractArray, Ψ::AbstractBasis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
+function EDMD(X::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
     return EDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, t = t, C = C, alg = alg)
 end
 
-function EDMD(X::AbstractArray, Y::AbstractArray, Ψ::AbstractBasis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
+function EDMD(X::AbstractArray, Y::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
     @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
 
@@ -48,7 +48,7 @@ function EDMD(X::AbstractArray, Y::AbstractArray, Ψ::AbstractBasis; p::Abstract
     return NonlinearKoopman(A, [], C , Ψ, Ψ₁*Ψ₀', Ψ₀*Ψ₀', true)
 end
 
-function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::AbstractBasis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
+function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
     @assert size(X)[2] .== size(DX)[2] "Provide consistent dimensions for data"
     @assert size(DX)[1] .<= size(DX)[2] "Provide consistent dimensions for data"
 
@@ -103,7 +103,7 @@ itp = CubicSpline
 koopman = gEDMD(t, X, basis, fdm = fdm, itp = itp)
 ```
 """
-function gEDMD(t::AbstractVector, X::AbstractArray, Ψ::DataDrivenDiffEq.AbstractBasis; dt::Real = 0.0, p::AbstractArray = [], C::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline)
+function gEDMD(t::AbstractVector, X::AbstractArray, Ψ::Basis; dt::Real = 0.0, p::AbstractArray = [], C::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline)
     @assert size(X, 2) == length(t) "Sample size must match."
     @assert test_comp = begin
 

@@ -24,31 +24,31 @@ export Basis
 export variables, jacobian, dynamics
 export free_parameters
 
-#include("./koopman/algorithms.jl")
-#export DMDPINV, DMDSVD, TOTALDMD
-#
-#include("./koopman/koopman.jl")
-#export eigen, eigvals, eigvecs
-#export modes, frequencies
-#export is_discrete, is_continouos
-#export operator, generator
-#export inputmap, outputmap, updateable, isstable
-#
-#include("./koopman/linearkoopman.jl")
-#export LinearKoopman, update!
-#
-#include("./koopman/nonlinearkoopman.jl")
-#export NonlinearKoopman, reduce_basis
-#
-#include("./koopman/exact_dmd.jl")
-#export DMD, gDMD
-#
-#include("./koopman/dmdc.jl")
-#export DMDc, gDMDc
-#
-#include("./koopman/extended_dmd.jl")
-#export EDMD, gEDMD
-#
+include("./koopman/algorithms.jl")
+export DMDPINV, DMDSVD, TOTALDMD
+
+include("./koopman/koopman.jl")
+export eigen, eigvals, eigvecs
+export modes, frequencies
+export is_discrete, is_continouos
+export operator, generator
+export inputmap, outputmap, updateable, isstable
+
+include("./koopman/linearkoopman.jl")
+export LinearKoopman, update!
+
+include("./koopman/nonlinearkoopman.jl")
+export NonlinearKoopman, reduce_basis
+
+include("./koopman/exact_dmd.jl")
+export DMD, gDMD
+
+include("./koopman/dmdc.jl")
+export DMDc, gDMDc
+
+include("./koopman/extended_dmd.jl")
+export EDMD, gEDMD
+
 #include("./sindy/results.jl")
 #export SparseIdentificationResult
 #export print_equations

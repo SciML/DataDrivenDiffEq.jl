@@ -453,10 +453,16 @@ function create_linear_independent_eqs(o::AbstractVector)
     return u_o
 end
 
+import ModelingToolkit.SymbolicUtils.FnType
 ## System Conversion
 function ModelingToolkit.ODESystem(x::Basis; kwargs...)
     @assert length(x) == length(variables(x)) 
+    ∂t = Differential(independent_variable(x))
+    dvs = [Num(Sym{FnType{Tuple{Any}, Real}}(value(xi).name)(value(independent_variable(x)))) for xi in variables(x)] 
+    dvsdt = ∂t.(dvs)
+    eqs = dvsdt .~ x(dvs, parameters(x), independent_variable(x))
+    @show eqs
     return ODESystem(
-        equations(x), independent_variable(x), variables(x), parameters(x),
+        eqs, independent_variable(x), dvs, parameters(x),
         pins = x.pins, observed = x.observed, kwargs...)
 end
