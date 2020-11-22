@@ -46,7 +46,7 @@ cos_basis(x, c)
 Constructs an array containing a Cosine basis in the variables `x` with coefficients `c`.
 If `c` is an `Int` returns all coefficients from 1 to `c`.
 """
-function cos_basis(x::Array coefficients::AbstractVector)
+function cos_basis(x::Array, coefficients::AbstractVector)
     eqs = Array{Any}(undef, size(x, 1)*length(coefficients))
     f(x, t) = cos.(t .* x)
     _generateBasis!(eqs, f, x, coefficients)
@@ -87,7 +87,7 @@ function polynomial_basis(x::Array, degree::Int = 1)
     itr_ = Base.Iterators.Stateful(Base.Iterators.filter(_check_degree, itr))
     filled = false
     @inbounds for i in 1:n_c
-        eqs[i] = ModelingToolkit.Constant(1)
+        eqs[i] = 1
         filled = true
         for (xi, ci) in zip(x, popfirst!(itr_))
             if !iszero(ci)
