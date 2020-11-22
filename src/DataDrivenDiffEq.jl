@@ -80,8 +80,8 @@ export savitzky_golay
 export burst_sampling, subsample
 
 
-#include("./basis_generators.jl")
-#export chebyshev_basis, monomial_basis, polynomial_basis
-#export sin_basis, cos_basis, fourier_basis 
+include("./basis_generators.jl")
+export chebyshev_basis, monomial_basis, polynomial_basis
+export sin_basis, cos_basis, fourier_basis 
 
 end # module
