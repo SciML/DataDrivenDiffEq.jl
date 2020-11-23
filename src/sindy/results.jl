@@ -95,7 +95,7 @@ function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::I
     pinds = Int64.(norm.(eachcol(inds), 0))
     
     cnt = 1
-    eq = zeros(Operation, sum([i>0 for i in pinds]))
+    eq = zeros(Any, sum([i>0 for i in pinds]))
 
     @inbounds for i=1:size(Ξ, 2)
         if iszero(pinds[i])

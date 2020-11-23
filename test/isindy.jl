@@ -22,18 +22,7 @@
 
     # Create a basis
     @variables u[1:3]
-    polys = ModelingToolkit.Operation[]
-    # Lots of basis functions
-    for i ∈ 0:5
-        if i == 0
-            push!(polys, u[1]^0)
-        end
-        for ui in u
-            if i > 0
-                push!(polys, ui^i)
-            end
-        end
-    end
+    polys = polynomial_basis(u, 5)
 
     basis= Basis(polys, u)
 
