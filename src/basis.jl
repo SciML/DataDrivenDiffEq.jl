@@ -66,7 +66,7 @@ is_independent(s::Sym) = true
 is_independent(x::Num) = is_independent(ModelingToolkit.value(x))
 
 function Basis(eqs::AbstractVector, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
-    simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = true,
+    simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = false,
     pins = [], observed = [],
     kwargs...)
     @assert all(is_independent.(states)) "Please provide independent states."
@@ -131,7 +131,7 @@ end
 
 variables(x::Basis) = x.states
 
-function update!(b::Basis, eval_expression = true)
+function update!(b::Basis, eval_expression = false)
 
     if eval_expression
         f_oop, f_iip = eval.(ModelingToolkit.build_function([bi.rhs for bi in b.eqs], b.states, b.ps, [b.iv], expression = Val{true}))
@@ -188,7 +188,7 @@ function Base.unique!(b::AbstractArray{Equation}, simplify_eqs = false)
 end
 
 
-function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = true)
+function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
     unique!(b.eqs, simplify_eqs)
     update!(b, eval_expression)
 end
@@ -199,23 +199,23 @@ function Base.unique(b::Basis; kwargs...)
 end
 
 """
-    deleteat!(basis, inds, eval_expression = true)
+    deleteat!(basis, inds, eval_expression = false)
 
     Delete the entries specified by `inds` and update the `Basis` accordingly.
 """
-function Base.deleteat!(b::Basis, inds; eval_expression = true)
+function Base.deleteat!(b::Basis, inds; eval_expression = false)
     deleteat!(b.eqs, inds)
     update!(b, eval_expression)
     return
 end
 
 """
-    push!(basis, eq, simplify_eqs = true; eval_expression = true)
+    push!(basis, eq, simplify_eqs = true; eval_expression = false)
 
     Push the operation(s) in `eq` into the basis and update all internal fields accordingly.
     `eq` can either be a single equation or an array. If `simplify_eq` is true, the equation will be simplified.
 """
-function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expression = true)
+function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expression = false)
     @inbounds for eq ∈ eqs
         push!(b, eq, false)
     end
@@ -223,18 +223,18 @@ function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expr
     return
 end
 
-function Base.push!(b::Basis, eq, simplify_eqs = true; eval_expression = true)
+function Base.push!(b::Basis, eq, simplify_eqs = true; eval_expression = false)
     push!(b.eqs, Variable(:φ, length(b.eqs)+1)~eq)
     unique!(b, simplify_eqs, eval_expression = eval_expression)
     return
 end
 
 """
-    merge(x::Basis, y::Basis; eval_expression = true)
+    merge(x::Basis, y::Basis; eval_expression = false)
 
     Return a new `Basis`, which is defined via the union of `x` and `y` .
 """
-function Base.merge(x::Basis, y::Basis; eval_expression = true)
+function Base.merge(x::Basis, y::Basis; eval_expression = false)
     b =  unique(vcat([xi.rhs  for xi ∈ equations(x)], [xi.rhs  for xi ∈ equations(y)]))
     vs = unique(vcat(x.states, y.states))
     ps = unique(vcat(x.ps, y.ps))
@@ -244,11 +244,11 @@ function Base.merge(x::Basis, y::Basis; eval_expression = true)
 end
 
 """
-    merge!(x::Basis, y::Basis; eval_expression = true)
+    merge!(x::Basis, y::Basis; eval_expression = false)
 
     Updates `x` to include the union of both `x` and `y`.
 """
-function Base.merge!(x::Basis, y::Basis; eval_expression = true)
+function Base.merge!(x::Basis, y::Basis; eval_expression = false)
     push!(x, map(x->x.rhs, equations(y)))
     x.states = unique(vcat(x.states, y.states))
     x.ps = unique(vcat(x.ps, y.ps))
