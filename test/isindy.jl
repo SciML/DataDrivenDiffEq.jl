@@ -22,7 +22,18 @@
 
     # Create a basis
     @variables u[1:3]
-    polys = polynomial_basis(u, 5)
+    polys = Any[]
+    # Lots of basis functions
+    for i ∈ 0:5
+        if i == 0
+            push!(polys, u[1]^0)
+        end
+        for ui in u
+            if i > 0
+                push!(polys, ui^i)
+            end
+        end
+    end
 
     basis= Basis(polys, u)
 
@@ -69,7 +80,7 @@
     end
 
     @variables u
-    basis= Basis([u^i for i in 0:4], [u])
+    basis= Basis(monomial_basis([u],4), [u])
     Ψ = ISINDy(X, DX, basis, ADM(1.1e-1), maxiter = 100)
     print_equations(Ψ, show_parameter = true)
     sys = ODESystem(Ψ)
