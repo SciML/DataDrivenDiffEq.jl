@@ -104,7 +104,7 @@ Base.show(io::IO, x::Basis) = print(io, "$(String.(x.name)) : $(length(x.eqs)) d
 
 @inline function Base.print(io::IO, x::Basis)
     show(io, x)
-    !isempty(x.ps) && println(o, "\nParameters : $(x.ps)")
+    !isempty(x.ps) && println(io, "\nParameters : $(x.ps)")
     println(io, "\nIndependent variable: $(x.iv)")
     println(io, "Equations")
     for (i,eq) ∈ enumerate(x.eqs)
@@ -121,7 +121,7 @@ end
 @inline function Base.println(io::IO, x::Basis, fullview::DataType = Val{false})
     fullview == Val{false} && return print(io, x) 
     show(io, x)
-    !isempty(x.ps) && println(o, "\nParameters : $(x.ps)")
+    !isempty(x.ps) && println(io, "\nParameters : $(x.ps)")
     println(io, "\nIndependent variable: $(x.iv)")
     println(io, "Equations")
     for (i,eq) ∈ enumerate(x.eqs)
@@ -286,7 +286,7 @@ free_parameters(b::Basis; operations = [+]) = count_operation([xi.rhs for xi in 
 function (b::Basis)(x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray = [])
     isempty(t) ? nothing : @assert size(x, 2) == length(t)
 
-    if (isempty(p) || eltype(p) <: Expression) && !isempty(parameters(b))
+    if (isempty(p) || eltype(p) <: Num) && !isempty(parameters(b))
         pi = isempty(p) ? parameters(b) : p
         res = zeros(eltype(pi), length(b), size(x)[2])
     else

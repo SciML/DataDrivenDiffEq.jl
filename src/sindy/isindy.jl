@@ -197,13 +197,21 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
         else
             for j in 1:size_b
                 if inds[j, i]
-                    eq_d +=  p[p_cnt] * (b.eqs[j]).rhs
+                    if iszero(eq_d)
+                        eq_d =  p[p_cnt] * (b.eqs[j]).rhs
+                    else    
+                        eq_d +=  p[p_cnt] * (b.eqs[j]).rhs
+                    end
                     p_[p_cnt] = Ξ[j, i]
                     p_cnt += 1
                 end
 
                 if inds[j+size_b, i]
-                    eq_n +=  p[p_cnt] * (b.eqs[j]).rhs
+                    if iszero(eq_n)
+                        eq_n =  p[p_cnt] * (b.eqs[j]).rhs
+                    else
+                        eq_n +=  p[p_cnt] * (b.eqs[j]).rhs
+                    end
                     p_[p_cnt] = Ξ[j+size_b, i]
                     p_cnt += 1
                 end
