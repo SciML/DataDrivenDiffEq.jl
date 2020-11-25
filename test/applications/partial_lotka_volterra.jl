@@ -98,7 +98,7 @@ X = noisy_data
 # Create a Basis
 @variables u[1:2]
 # Lots of polynomials
-polys = Operation[1]
+polys = Any[1]
 for i ∈ 1:5
     push!(polys, u[1]^i)
     push!(polys, u[2]^i)
@@ -123,6 +123,7 @@ g(x) = x[1] < 1 ? Inf : norm(x, 2)
 @info "Start SINDy regression with unknown threshold"
 # Test on uode derivative data
 Ψ = SINDy(X[:, 2:end], Y[:, 2:end], basis, λ, opt, g = g, maxiter = 10000, normalize = true, denoise = true) # Succeed
+print_equations(Ψ)
 p̂ = parameters(Ψ)
 @info "Build initial guess system"
 # The parameters are a bit off, so we reiterate another SINDy term to get closer to the ground truth
@@ -137,14 +138,13 @@ b = Basis((u, p, t)->unknown_eq(u, ones(size(p̂)), t), u)
 p̂ = parameters(Ψ)
 
 @info "Checking equations"
-found_basis = Ψ.equations.basis
+found_basis = map(x->simplify(x.rhs), equations(Ψ.equations))
 pps = parameters(Ψ.equations)
 
 expected_eqs = Vector{Any}()
 for _p in pps
-    push!(expected_eqs, simplify(_p*u[2]*u[1]))
+    push!(expected_eqs, _p*u[1]*u[2])
 end
-
 @test all(isequal.(found_basis, expected_eqs))
 @test isapprox(abs.(p̂), p_[2:3], atol = 9e-2)
 
