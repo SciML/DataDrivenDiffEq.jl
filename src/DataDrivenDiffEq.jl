@@ -8,6 +8,7 @@ using Statistics
 using DSP
 using FiniteDifferences, DataInterpolations
 using Compat
+using DocStringExtensions
 
 abstract type AbstractKoopmanOperator end;
 
