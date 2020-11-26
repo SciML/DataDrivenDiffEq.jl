@@ -77,7 +77,7 @@ f(u, p, t) = [u[3]; u[2]*u[1]; sin(u[1])*u[2]]
 b = Basis(f, u)
 
 using Flux
-NNlib.σ(x::Operation) = 1 / (1+exp(-x))
+NNlib.σ(x::Num) = 1 / (1+exp(-x))
 # Build a fully
 c = Chain(Dense(3,5,σ), Dense(5, 2, σ))
 ps, re = Flux.destructure(c)

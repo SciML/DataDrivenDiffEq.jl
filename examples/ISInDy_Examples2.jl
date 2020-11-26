@@ -35,7 +35,7 @@ end
 plot(DX')
 
 @variables u[1:4] t
-polys = Operation[]
+polys = Any[]
 # Lots of basis functions -> sindy pi can handle more than ADM()
 for i ∈ 0:4
     if i == 0
