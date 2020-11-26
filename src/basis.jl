@@ -215,7 +215,7 @@ end
 """
     push!(basis, eq, simplify_eqs = true; eval_expression = false)
 
-    Push the equation(s) in `eq` into the basis and update all internal fields accordingly.
+    Push the equations(s) in `eq` into the basis and update all internal fields accordingly.
     `eq` can either be a single equation or an array. If `simplify_eq` is true, the equation will be simplified.
 """
 function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expression = false)
@@ -291,7 +291,7 @@ function (b::Basis)(x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray =
 
     if (isempty(p) || eltype(p) <: Num) && !isempty(parameters(b))
         pi = isempty(p) ? parameters(b) : p
-        res = zeros(eltype(pi), length(b), size(x)[2])
+        res = Array{Any}(undef,length(b), size(x)[2])
     else
         pi = p
         res = zeros(eltype(x), length(b), size(x)[2])
