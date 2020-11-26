@@ -5,43 +5,46 @@ import Base.==
 import Base.unique, Base.unique!
 using ModelingToolkit: <ₑ, value, isparameter
 
-#"""
-#$(TYPEDEF)
-#
-#A basis over the variables `u` with parameters `p` and independent variable `iv`.
-#`f` can either be a Julia function which is able to use ModelingToolkit variables or
-#a vector of `Operation`.
-#It can be called with the typical DiffEq signature, meaning out of place with `f(u,p,t)`
-#or in place with `f(du, u, p, t)`.
-#If `linear_independent` is set to `true`, a linear independent basis is created from all atom function in `f`.
-#If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
-#
-## Fields
-#$(FIELDS)
-#
-## Example
-#
-#```julia
-#using ModelingToolkit
-#using DataDrivenDiffEq
-#
-#@parameters w[1:2] t
-#@variables u[1:2]
-#
-#Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)
-#```
-#
-### Note
-#
-#The keyword argument `eval_expression` controls the function creation
-#behavior. `eval_expression=true` means that `eval` is used, so normal
-#world-age behavior applies (i.e. the functions cannot be called from
-#the function that generates them). If `eval_expression=false`,
-#then construction via GeneralizedGenerated.jl is utilized to allow for
-#same world-age evaluation. However, this can cause Julia to segfault
-#on sufficiently large basis functions. By default eval_expression=false.
-#
-#"""
+"""
+$(TYPEDEF)
+
+A basis over the variables `u` with parameters `p` and independent variable `iv`.
+It extends an `AbstractSystem` as defined in `ModelingToolkit.jl`.
+`f` can either be a Julia function which is able to use ModelingToolkit variables or
+a vector of `eqs`.
+It can be called with the typical DiffEq signature, meaning out of place with `f(u,p,t)`
+or in place with `f(du, u, p, t)`.
+If `linear_independent` is set to `true`, a linear independent basis is created from all atom function in `f`.
+If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
+Additional keyworded arguments include `name`, which can be used to name the basis, `pins` used for connections and
+`observed` for defining observeables. 
+
+# Fields
+$(FIELDS)
+
+# Example
+
+```julia
+using ModelingToolkit
+using DataDrivenDiffEq
+
+@parameters w[1:2] t
+@variables u[1:2]
+
+Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)
+```
+
+## Note
+
+The keyword argument `eval_expression` controls the function creation
+behavior. `eval_expression=true` means that `eval` is used, so normal
+world-age behavior applies (i.e. the functions cannot be called from
+the function that generates them). If `eval_expression=false`,
+then construction via GeneralizedGenerated.jl is utilized to allow for
+same world-age evaluation. However, this can cause Julia to segfault
+on sufficiently large basis functions. By default eval_expression=false.
+
+"""
 mutable struct Basis <: ModelingToolkit.AbstractSystem
     """The equations of the basis"""
     eqs::Vector{Equation}
@@ -212,7 +215,7 @@ end
 """
     push!(basis, eq, simplify_eqs = true; eval_expression = false)
 
-    Push the operation(s) in `eq` into the basis and update all internal fields accordingly.
+    Push the equation(s) in `eq` into the basis and update all internal fields accordingly.
     `eq` can either be a single equation or an array. If `simplify_eq` is true, the equation will be simplified.
 """
 function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expression = false)

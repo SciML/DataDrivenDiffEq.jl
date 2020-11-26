@@ -135,7 +135,7 @@ As before, we will also need a `Basis` to derive our equations from:
 
 ```@example iSINDy_2
 @variables u[1:4] t
-polys = Operation[]
+polys = Any[]
 for i ∈ 0:4
     if i == 0
         push!(polys, u[1]^0)
@@ -198,7 +198,7 @@ Alternatively, we can also use the input as an extended state `x`.
 
 ```@example iSINDy_2
 @variables u[1:4] t x
-polys = Operation[]
+polys = Any[]
 # Lots of basis functions -> sindy pi can handle more than ADM()
 for i ∈ 0:4
     if i == 0
