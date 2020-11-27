@@ -134,9 +134,6 @@ b = Basis(g, u, parameters = p)
 ## Functions
 
 ```@docs
-parameters
-variables
-DataDrivenDiffEq.independent_variable
 jacobian
 dynamics
 push!

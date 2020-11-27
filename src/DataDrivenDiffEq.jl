@@ -31,9 +31,9 @@ export DMDPINV, DMDSVD, TOTALDMD
 include("./koopman/koopman.jl")
 export eigen, eigvals, eigvecs
 export modes, frequencies
-export is_discrete, is_continouos
+export is_discrete, is_continuous
 export operator, generator
-export inputmap, outputmap, updateable, isstable
+export inputmap, outputmap, updatable, isstable
 
 include("./koopman/linearkoopman.jl")
 export LinearKoopman, update!
