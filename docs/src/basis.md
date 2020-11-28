@@ -4,13 +4,15 @@ Many of the methods require the definition of a `Basis` on observables or
 functional forms. A `Basis` is generated via:
 
 ```julia
-Basis(h, u, parameters = [], iv = nothing)
+Basis(eqs::AbstractVector, states::AbstractVector; 
+    parameters::AbstractArray = [], iv = nothing,
+    simplify = false, linear_independent = false, name = gensym(:Basis), 
+    pins = [], observed = [], eval_expression = false,
+    kwargs...)
 ```
+where `eqs` is either a vector containing symbolic functions using 'ModelingToolkit.jl' or a general function with the typical DiffEq signature `h(u,p,t)`, which can be used with an `Num` or vector of `Num`. `states` are the dependent variables used to describe the Basis, and
+`parameters` are the optional parameters in the `Basis`. `iv` represents the independent variable of the system - in most cases the time. Additional arguments are `simplify`, which simplifies `eqs` before creating a `Basis`. `linear_dependent` breaks up `eqs` in linear independent elements which are unique. `name` is an optional name for the `Basis`, `pins` and `observed` can be using in accordance to ModelingToolkits documentation. `eval_expression` is used to generate a callable function from the eqs. If set to `false`, callable code will be returned. `true` will use `eval` on code returned from the function, which might cause worldage issues. 
 
-where `h` is either a vector of ModelingToolkit `Operation`s for the valid functional
-forms or a general function with the typical DiffEq signature `h(u,p,t)`, which can be used with an  `Operation` or vector of `Operation`. `u` are the ModelingToolkit `Variable`s used to describe the Basis, and
-`parameters` are the optional ModelingToolkit `Variable`s used to describe the
-parameters in the basis elements. `iv` represents the independent variable of the system - the time.
 
 ```@docs
 Basis
@@ -18,7 +20,7 @@ Basis
 
 ## Example
 
-We start by crearting some `Variables` and `Parameters` using `ModelingToolkit`.
+We start by crearting some variables and parameters using `ModelingToolkit`.
 ```@example basis
 using LinearAlgebra
 using DataDrivenDiffEq
@@ -29,14 +31,11 @@ using ModelingToolkit
 @parameters w[1:2]
 ```
 
-To define a basis, simply write down the equations you want to be included as a
-`Vector{Operation}`. Possible used parameters have to be given to the constructor.
+To define a basis, simply write down the equations you want to be included as a `Vector`. Possible used parameters have to be given to the constructor.
 ```@example basis
 h = [u[1]; u[2]; cos(w[1]*u[2]+w[2]*u[3])]
 b = Basis(h, u, parameters = w)
 ```
-What can a `Basis` do? Can it do stuff? Let's find out!
-
 `Basis` are callable with the signature of functions to be used in `DifferentialEquations`.
 So, the function value at a single point looks like:
 ```@example basis
@@ -70,7 +69,7 @@ push!(b, sin(u[1]))
 size(b)
 ```
 
-We can also define functions of time and add them
+We can also define functions of the independent variable and add them
 
 ```@example basis
 t = independent_variable(b)
@@ -116,11 +115,11 @@ b_f = Basis(f, u, parameters = w)
 println(b_f)
 ```
 
-This works for every function defined over `Operation`s. So to create a `Basis` from a `Flux` model, simply extend the activations used:
+This works for every function defined over `Num`s. So to create a `Basis` from a `Flux` model, simply extend the activations used:
 
 ```julia
 using Flux
-NNlib.σ(x::Operation) = 1 / (1+exp(-x))
+NNlib.σ(x::Num) = 1 / (1+exp(-x))
 
 c = Chain(Dense(3,2,σ), Dense(2, 1, σ))
 ps, re = Flux.destructure(c)
@@ -135,9 +134,6 @@ b = Basis(g, u, parameters = p)
 ## Functions
 
 ```@docs
-parameters
-variables
-DataDrivenDiffEq.independent_variable
 jacobian
 dynamics
 push!

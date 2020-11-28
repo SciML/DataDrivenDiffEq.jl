@@ -31,13 +31,7 @@ end
 @variables u[1:2]
 @parameters w[1:2]
 # Lots of polynomials
-polys = Operation[1]
-for i ∈ 1:5
-    push!(polys, u.^i...)
-    for j ∈ 1:i-1
-        push!(polys, u[1]^i*u[2]^j)
-    end
-end
+polys = polynomial_basis(u, 5)
 
 # And some other stuff
 h = [w[1]*cos(u[1]); w[2]*sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys...]

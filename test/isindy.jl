@@ -22,7 +22,7 @@
 
     # Create a basis
     @variables u[1:3]
-    polys = ModelingToolkit.Operation[]
+    polys = Any[]
     # Lots of basis functions
     for i ∈ 0:5
         if i == 0
@@ -80,7 +80,7 @@
     end
 
     @variables u
-    basis= Basis([u^i for i in 0:4], [u])
+    basis= Basis(monomial_basis([u],4), [u])
     Ψ = ISINDy(X, DX, basis, ADM(1.1e-1), maxiter = 100)
     print_equations(Ψ, show_parameter = true)
     sys = ODESystem(Ψ)

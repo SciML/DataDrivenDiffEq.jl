@@ -21,4 +21,3 @@ eigvecs(sys)
 prob = DiscreteProblem(sys, X[:, 1], (0., 10.))
 sol_unforced = solve(prob,  FunctionMap())
 plot(sol_unforced)
-sol_unforced[:,:]

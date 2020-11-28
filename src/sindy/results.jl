@@ -95,16 +95,17 @@ function derive_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis, sparsity::I
     pinds = Int64.(norm.(eachcol(inds), 0))
     
     cnt = 1
-    eq = zeros(Operation, sum([i>0 for i in pinds]))
+    eq = Array{Any}(undef, sum([i>0 for i in pinds]))
+    eq .= 0
 
     @inbounds for i=1:size(Ξ, 2)
         if iszero(pinds[i])
             continue
-        elseif i == 1 
-            eq[cnt] = sum(p[1:pinds[i]] .* b.basis[inds[:, i]])
+        elseif i == 1
+            eq[cnt] = sum(p[1:pinds[i]] .* map(x->x.rhs, b.eqs[inds[:, i]]))
             cnt += 1
         else
-            eq[cnt] = sum(p[sum(pinds[1:i-1])+1:pinds[i]+sum(pinds[1:i-1])] .* b.basis[inds[:, i]])
+            eq[cnt] = sum(p[sum(pinds[1:i-1])+1:pinds[i]+sum(pinds[1:i-1])] .* map(x->x.rhs,b.eqs[inds[:, i]]))
             cnt += 1
         end
         
@@ -150,6 +151,6 @@ Return the coefficient matrix `Ξ` of the `SparseIdentificationResult`.
 """
 get_coefficients(r::SparseIdentificationResult) = r.coeff
 
-function ModelingToolkit.ODESystem(b::SparseIdentificationResult)
-    return ODESystem(b.equations)
+function ModelingToolkit.ODESystem(b::SparseIdentificationResult; kwargs...)
+    return ODESystem(b.equations; kwargs...)
 end

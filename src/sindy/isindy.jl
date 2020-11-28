@@ -180,28 +180,38 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
     
     p_ = similar(Ξ[inds])
 
-    eq = zeros(Operation, sum([i>0 for i in pinds]))
+    eq = Array{Any}(undef, sum([i>0 for i in pinds]))
+    eq .= 0
+
     cnt = 1
     p_cnt = 1
-    eq_n = ModelingToolkit.Constant(0)
-    eq_d = ModelingToolkit.Constant(0)
+    eq_n = 0
+    eq_d = 0
 
     @views for i=1:size(Ξ, 2)
         # Numerator
-        eq_n = ModelingToolkit.Constant(0)
-        eq_d = ModelingToolkit.Constant(0)
+        eq_n = 0
+        eq_d = 0
         if iszero(pinds_n[i]) || iszero(pinds_d[i])
             continue
         else
             for j in 1:size_b
                 if inds[j, i]
-                    eq_d +=  p[p_cnt] * b.basis[j]
+                    if iszero(eq_d)
+                        eq_d =  p[p_cnt] * (b.eqs[j]).rhs
+                    else    
+                        eq_d +=  p[p_cnt] * (b.eqs[j]).rhs
+                    end
                     p_[p_cnt] = Ξ[j, i]
                     p_cnt += 1
                 end
 
                 if inds[j+size_b, i]
-                    eq_n +=  p[p_cnt] * b.basis[j]
+                    if iszero(eq_n)
+                        eq_n =  p[p_cnt] * (b.eqs[j]).rhs
+                    else
+                        eq_n +=  p[p_cnt] * (b.eqs[j]).rhs
+                    end
                     p_[p_cnt] = Ξ[j+size_b, i]
                     p_cnt += 1
                 end

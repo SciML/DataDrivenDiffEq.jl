@@ -1,10 +1,10 @@
 
 @info "Starting SINDy tests"
 @testset "SINDy" begin
-    # Create a nonlinear pendulum
+# Create a nonlinear pendulum
     function pendulum(u, p, t)
         x = u[2]
-        y = -9.81sin(u[1]) - 0.1u[2]^3 -0.2*cos(u[1])
+        y = -9.81sin(u[1]) - 0.1u[2]^3 - 0.2 * cos(u[1])
         return [x;y]
     end
 
@@ -12,37 +12,37 @@
     tspan = (0.0, 20.0)
     dt = 0.3
     prob = ODEProblem(pendulum, u0, tspan)
-    sol = solve(prob, Tsit5(), saveat = dt)
+    sol = solve(prob, Tsit5(), saveat=dt)
 
 
-    # Create the differential data
+# Create the differential data
     DX = similar(sol[:,:])
     for (i, xi) in enumerate(eachcol(sol[:,:]))
         DX[:,i] = pendulum(xi, [], 0.0)
     end
 
-    # Create a basis
+# Create a basis
     @variables u[1:2]
-    # Lots of polynomials
-    polys = Operation[1]
+# Lots of polynomials
+    polys = Any[1]
     for i ∈ 1:5
         push!(polys, u.^i...)
-        for j ∈ 1:i-1
-            push!(polys, u[1]^i*u[2]^j)
+        for j ∈ 1:i - 1
+            push!(polys, u[1]^i * u[2]^j)
         end
     end
 
-    # And some other stuff
-    h = [cos(u[1]); sin(u[1]); u[1]*u[2]; u[1]*sin(u[2]); u[2]*cos(u[2]); polys]
+# And some other stuff
+    h = [cos(u[1]); sin(u[1]); u[1] * u[2]; u[1] * sin(u[2]); u[2] * cos(u[2]); polys]
 
     basis = Basis(h, u)
 
     opt = STRRidge(1e-2)
-    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter = 2000)
+    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter=2000)
     @test_nowarn set_threshold!(opt, 1e-2)
-    
+
     @test length(Ψ) == 2
-    @test size(Ψ) == (2, )
+    @test size(Ψ) == (2,)
     @test parameters(Ψ) ≈ [1.0; -0.2; -9.81; -0.1]
     W = get_coefficients(Ψ)
     @test size(W) == (length(basis), 2)
@@ -51,51 +51,51 @@
     @test sum(get_error(Ψ)) < 1e-10
     @test Ψ(u0) ≈ pendulum(u0, nothing, nothing)
 
-    # Simulate
+# Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_ = solve(estimator,Tsit5(), saveat = dt)
+    sol_ = solve(estimator, Tsit5(), saveat=dt)
     @test sol[:,:] ≈ sol_[:,:]
 
     opt = ADMM(1e-2, 0.7)
-    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter = 5000)
+    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter=5000)
     @test_nowarn set_threshold!(opt, 1e-2)
 
-    # Simulate
+# Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_2 = solve(estimator,Tsit5(), saveat = dt)
+    sol_2 = solve(estimator, Tsit5(), saveat=dt)
     @test norm(sol[:,:] - sol_2[:,:], 2) < 2e-1
 
     opt = SR3(1e-2, 1.0)
-    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter = 5000)
+    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter=5000)
     @test_nowarn set_threshold!(opt, 0.1)
 
-    # Simulate
+# Simulate
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_3 = solve(estimator,Tsit5(), saveat = dt)
+    sol_3 = solve(estimator, Tsit5(), saveat=dt)
     @test norm(sol[:,:] - sol_3[:,:], 2) < 1e-1
 
-    # Now use the threshold adaptation
+# Now use the threshold adaptation
     opt = STRRidge(1e-2)
     λs = exp10.(-7:0.1:-1)
-    Ψ = SINDy(sol[:,:], DX[:, :], basis, λs, opt, maxiter = 100)
+    Ψ = SINDy(sol[:,:], DX[:, :], basis, λs, opt, maxiter=100)
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_4 = solve(estimator, Tsit5(), saveat = dt)
+    sol_4 = solve(estimator, Tsit5(), saveat=dt)
     @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
-    
-    # Check for errors
-    @test_nowarn SINDy(sol[:,:], DX[1,:], basis, λs, opt, maxiter = 1)
-    @test_nowarn SINDy(sol[:, :], DX[1, :], basis, λs, opt, maxiter = 1, denoise = true, normalize = true)
 
-    # Check with noise
-    X = sol[:, :] + 1e-3*randn(size(sol[:,:])...)
+# Check for errors
+    @test_nowarn SINDy(sol[:,:], DX[1,:], basis, λs, opt, maxiter=1)
+    @test_nowarn SINDy(sol[:, :], DX[1, :], basis, λs, opt, maxiter=1, denoise=true, normalize=true)
+
+# Check with noise
+    X = sol[:, :] + 1e-3 * randn(size(sol[:,:])...)
     opt = SR3(1e-1, 10.0)
-    Ψ = SINDy(X, DX, basis, λs, opt, maxiter = 10000, denoise = true, normalize = true)
+    Ψ = SINDy(X, DX, basis, λs, opt, maxiter=10000, denoise=true, normalize=true)
 
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_5 = solve(estimator,Tsit5(), saveat = dt)
+    sol_5 = solve(estimator, Tsit5(), saveat=dt)
     @test norm(sol[:,:] - sol_5[:,:], 2) < 5e-1
 
-    # Check sparse_regression
+# Check sparse_regression
     X .= Array(sol)
     opt = SR3(1e-1, 1.0)
     maxiter = 5000
@@ -108,5 +108,5 @@
 
     @test iters_1 == iters_2 == iters_3
     @test Ξ1 ≈ Ξ2 ≈ Ξ3
-    @test isapprox(norm(Ξ1'*θ - DX,2), 10.18; atol = 1e-1)
+    @test isapprox(norm(Ξ1' * θ - DX, 2), 10.18; atol=1e-1)
 end

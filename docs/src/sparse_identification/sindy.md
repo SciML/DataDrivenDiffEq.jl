@@ -59,8 +59,8 @@ To generate the symbolic equations, we need to define a ` Basis` over the variab
 
 ```@example SINDy_1
 @variables x y z
-u = Operation[x; y; z]
-polys = Operation[]
+u = [x; y; z]
+polys = Any[]
 for i ∈ 0:4
     for j ∈ 0:i
         for k ∈ 0:j

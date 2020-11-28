@@ -238,7 +238,7 @@ So, let's create a bunch of basis functions for our problem first
 
 @variables u[1:2]
 
-h = Operation[u; u.^2; u.^3; sin.(u); cos.(u); 1]
+h = [u; u.^2; u.^3; sin.(u); cos.(u); 1]
 
 basis = Basis(h, u)
 nothing # hide
