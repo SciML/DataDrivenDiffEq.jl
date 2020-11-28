@@ -25,6 +25,8 @@ export Basis
 export variables, jacobian, dynamics
 export free_parameters
 
+include("./system_conversions.jl")
+
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD
 

@@ -458,18 +458,3 @@ function create_linear_independent_eqs(o::AbstractVector)
     unique!(u_o)
     return u_o
 end
-
-import ModelingToolkit.SymbolicUtils.FnType
-## System Conversion
-function ModelingToolkit.ODESystem(x::Basis; kwargs...)
-    @assert length(x) == length(variables(x)) 
-    # Create new variables with time dependency
-    ∂t = Differential(independent_variable(x))
-    dvs = [Num(Sym{FnType{Tuple{Any}, Real}}(value(xi).name)(value(independent_variable(x)))) for xi in variables(x)] 
-    dvsdt = ∂t.(dvs)
-    # Adapt equations
-    eqs = dvsdt .~ x(dvs, parameters(x), independent_variable(x))
-    return ODESystem(
-        eqs, independent_variable(x), dvs, parameters(x),
-        pins = x.pins, observed = x.observed, kwargs...)
-end
