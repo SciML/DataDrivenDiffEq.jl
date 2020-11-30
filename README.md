@@ -4,6 +4,8 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/29rskms03i48xxt1?svg=true)](https://ci.appveyor.com/project/ChrisRackauckas/datadrivendiffeq-jl)
 [![Coverage Status](https://coveralls.io/repos/JuliaDiffEq/DataDrivenDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaDiffEq/DataDrivenDiffEq.jl?branch=master)
 [![codecov.io](http://codecov.io/github/JuliaDiffEq/DataDrivenDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaDiffEq/DataDrivenDiffEq.jl?branch=master)
+[![DOI](https://zenodo.org/badge/212827023.svg)](https://zenodo.org/badge/latestdoi/212827023)
+
 
 DataDrivenDiffEq.jl is a package in the SciML ecosystem for data-driven differential equation
 structural estimation and identification. These tools include automatically discovering equations
