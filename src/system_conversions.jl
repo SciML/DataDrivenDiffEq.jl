@@ -11,7 +11,11 @@ function _generate_deqs(x::Basis, states, iv, p)
     return eqs, dvs
 end
 
-## System Conversion
+"""
+$(SIGNATURES)
+
+Convert a given `Basis` or `SparseIdentificationResult` into an `ODESystem`. For details, see ModelingToolkit.jl.
+"""
 function ModelingToolkit.ODESystem(x::Basis, iv = nothing, dvs = Num[], ps = Num[]; pins = Num[], observed = Num[], systems = ODESystem[],kwargs...)
     iv = isnothing(iv) ? independent_variable(x) : iv
     dvs = isempty(dvs) ? variables(x) : dvs
@@ -69,6 +73,11 @@ end
 
 
 
+"""
+$(SIGNATURES)
+
+Convert a given `Basis` or `SparseIdentificationResult` into a `ControlSystem`. For details, see ModelingToolkit.jl.
+"""
 function ModelingToolkit.ControlSystem(loss, x::Basis, controls, iv = nothing, dvs = nothing, ps = nothing; 
     pins = Num[], observed = Num[], systems = ODESystem[], kwargs...)
     iv = isnothing(iv) ? independent_variable(x) : iv
