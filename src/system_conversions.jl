@@ -4,7 +4,7 @@ function _generate_deqs(x::Basis, states, iv, p)
     @assert length(x) == length(states)  
     # Create new variables with time dependency
     ∂t = Differential(iv)
-    dvs = [Num(Sym{FnType{Tuple{Any}, Real}}(value(xi).name)(value(iv))) for xi in states] 
+    dvs = [Num(Sym{FnType{Tuple{Any}, Real}}(_get_name(xi))(value(iv))) for xi in states] 
     dvsdt = ∂t.(dvs)
     # Adapt equations
     eqs = dvsdt .~ x(dvs,p,iv)
@@ -38,12 +38,12 @@ function _generate_deqs(x::Basis, states, iv, p, controls)
     states_ = _remove_controls(states, controls)
     @assert length(x) == length(states_)
     ∂t = Differential(iv)
-    dvs = [Num(Sym{FnType{Tuple{Any}, Real}}(value(xi).name)(value(iv))) for xi in states_] 
+    dvs = [Num(Sym{FnType{Tuple{Any}, Real}}(_get_name(xi))(value(iv))) for xi in states_] 
     input_states = _create_input_vec(states, dvs, controls)
     dvsdt = ∂t.(dvs)
     # Adapt equations
     eqs = dvsdt .~ x(input_states,p, iv)
-    return eqs, dvs
+    return eqs, dvs, input_states
 end
 
 function _create_input_vec(states, dvs, controls)
@@ -68,8 +68,10 @@ function ModelingToolkit.ControlSystem(loss, x::Basis, controls, iv = nothing, d
     iv = isnothing(iv) ? independent_variable(x) : iv
     dvs = isnothing(dvs) ? variables(x) : dvs
     ps = isnothing(ps) ? parameters(x) : ps
-
-    eqs, dvs = _generate_deqs(x, dvs, iv, ps, controls)
+    eqs, dvs, input_states = _generate_deqs(x, dvs, iv, ps, controls)
+    #return input_states
+    subs = [(xi => is) for (xi, is) in zip(variables(x), input_states)]
+    loss = substitute.(loss, (subs,))[1]
     pins = isempty(pins) ? x.pins : pins
     observed = isempty(observed) ? x.observed : observed
     systems = isempty(systems) ? x.systems : systems

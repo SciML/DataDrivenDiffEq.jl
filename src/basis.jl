@@ -64,15 +64,15 @@ mutable struct Basis <: ModelingToolkit.AbstractSystem
     systems::Vector{Basis}
 end
 
-is_independent(t::Term) = isempty(t.args)
-is_independent(s::Sym) = true
-is_independent(x::Num) = is_independent(ModelingToolkit.value(x))
+#is_independent(t::Term) = isempty(t.args)
+#is_independent(s::Sym) = true
+#is_independent(x::Num) = is_independent(ModelingToolkit.value(x))
 
 function Basis(eqs::AbstractVector, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
     simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = false,
     pins = [], observed = [],
     kwargs...)
-    @assert all(is_independent.(states)) "Please provide independent states."
+    #@assert all(is_independent.(states)) "Please provide independent states."
 
     eqs = simplify ? ModelingToolkit.simplify.(eqs) : eqs
     eqs = linear_independent ? create_linear_independent_eqs(eqs) : eqs
@@ -92,7 +92,7 @@ function Basis(eqs::AbstractVector, states::AbstractVector; parameters::Abstract
 end
 
 function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = [], iv = nothing, kwargs...)
-    @assert all(is_independent.(states)) "Please provide independent states."
+    #@assert all(is_independent.(states)) "Please provide independent states."
     
     isnothing(iv) && (iv = Num(Variable(:t)))
     try
@@ -103,7 +103,11 @@ function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = 
     end
 end
 
-Base.show(io::IO, x::Basis) = print(io, "$(String.(x.name)) : $(length(x.eqs)) dimensional basis in ", "$(String.([value(v).name for v in x.states]))")
+_get_name(x::Num) = _get_name(x.val)
+_get_name(x) = x.name
+_get_name(x::Term) = x.f.name
+
+Base.show(io::IO, x::Basis) = print(io, "$(String.(x.name)) : $(length(x.eqs)) dimensional basis in ", "$(String.([_get_name(v) for v in x.states]))")
 
 @inline function Base.print(io::IO, x::Basis)
     show(io, x)
