@@ -52,6 +52,7 @@ Print the equations stored inside the `SparseIdentificationResult` `res`. If `sh
 to true, the numerical values will be used. Otherwise, the symbolic form will appear.
 """
 print_equations(r::SparseIdentificationResult;kwargs...) = print_equations(stdout,r;kwargs...)
+
 function print_equations(io::IO, r::SparseIdentificationResult;
                          show_parameter::Bool = false)
 
@@ -151,6 +152,3 @@ Return the coefficient matrix `Ξ` of the `SparseIdentificationResult`.
 """
 get_coefficients(r::SparseIdentificationResult) = r.coeff
 
-function ModelingToolkit.ODESystem(b::SparseIdentificationResult; kwargs...)
-    return ODESystem(b.equations; kwargs...)
-end

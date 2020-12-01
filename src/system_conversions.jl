@@ -25,6 +25,10 @@ function ModelingToolkit.ODESystem(x::Basis, iv = nothing, dvs = Num[], ps = Num
         pins = pins, observed = observed, systems = systems, kwargs...)
 end
 
+function ModelingToolkit.ODESystem(b::SparseIdentificationResult, iv = nothing, dvs = Num[], ps = Num[]; kwargs...)
+    return ODESystem(b.equations, iv, dvs, ps; kwargs...)
+end
+
 function _remove_controls(states, controls)
     idxs = ones(Bool, size(states)...)
     for i in eachindex(states)
@@ -63,6 +67,8 @@ function _create_input_vec(states, dvs, controls)
     return input_states
 end
 
+
+
 function ModelingToolkit.ControlSystem(loss, x::Basis, controls, iv = nothing, dvs = nothing, ps = nothing; 
     pins = Num[], observed = Num[], systems = ODESystem[], kwargs...)
     iv = isnothing(iv) ? independent_variable(x) : iv
@@ -79,4 +85,6 @@ function ModelingToolkit.ControlSystem(loss, x::Basis, controls, iv = nothing, d
         pins = pins, observed = observed, systems = systems, kwargs...)
 end
 
-
+function ModelingToolkit.ControlSystem(loss, b::SparseIdentificationResult, controls, iv = nothing, dvs = Num[], ps = Num[]; kwargs...)
+    return ControlSystem(loss, b.equations, controls, iv, dvs, ps; kwargs...)
+end
