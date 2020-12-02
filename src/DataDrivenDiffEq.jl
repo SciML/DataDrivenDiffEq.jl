@@ -74,6 +74,8 @@ export SInDy, ISInDy
 include("./sindy/isindy.jl")
 export ISINDy
 
+include("./system_conversions.jl")
+
 include("./utils.jl")
 export AIC, AICC, BIC
 export optimal_shrinkage, optimal_shrinkage!

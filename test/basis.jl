@@ -66,6 +66,11 @@
     b = Basis(f, u, parameters=w, iv=t)
     @test f([1; 2; 3], [2; 0], 3.0) ≈ b([1; 2; 3], [2; 0], 3.0)
     @test_throws AssertionError ODESystem(b)
+
+    # Create a small control system from a basis
+    @variables u x t
+    b_c = Basis([x+u], [x; u], iv = t)
+    @test_nowarn ControlSystem(x, b_c, [u])
 end
 
 @testset "Basis Generators" begin
