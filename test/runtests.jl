@@ -23,7 +23,7 @@ const GROUP = get(ENV, "GROUP", "All")
     end
 
     # These are excluded right now, until the deps are figured out
-    if GROUP == "Integration"
+    if GROUP == "Integration" || GROUP == "All"
         @safetestset "Partial Lotka Volterra Discovery " begin include("./applications/partial_lotka_volterra.jl") end
     end
 end
