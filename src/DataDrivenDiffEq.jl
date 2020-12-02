@@ -25,8 +25,6 @@ export Basis
 export variables, jacobian, dynamics
 export free_parameters
 
-include("./system_conversions.jl")
-
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD
 
@@ -75,6 +73,8 @@ export SInDy, ISInDy
 
 include("./sindy/isindy.jl")
 export ISINDy
+
+include("./system_conversions.jl")
 
 include("./utils.jl")
 export AIC, AICC, BIC

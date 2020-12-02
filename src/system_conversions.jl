@@ -72,7 +72,6 @@ function _create_input_vec(states, dvs, controls)
 end
 
 
-
 """
 $(SIGNATURES)
 
