@@ -1,7 +1,7 @@
 @info "Starting standard basis tests"
 @testset "Basis" begin
-    @variables u[1:3]
     @parameters w[1:2] t
+    @variables u[1:3](t)
     h = [u[1]; u[2]; cos(w[1] * u[2] + w[2] * u[3]); u[3] + u[2]]
     h_not_unique = [u[1]; u[1]; u[1]^1; h]
     basis = Basis(h_not_unique, u, parameters=w, iv=t)
