@@ -29,7 +29,7 @@ using ModelingToolkit
 using DataDrivenDiffEq
 
 @parameters w[1:2] t
-@variables u[1:2]
+@variables u[1:2](t)
 
 Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)
 ```
@@ -64,16 +64,12 @@ mutable struct Basis <: ModelingToolkit.AbstractSystem
     systems::Vector{Basis}
 end
 
-#is_independent(t::Term) = isempty(t.args)
-#is_independent(s::Sym) = true
-#is_independent(x::Num) = is_independent(ModelingToolkit.value(x))
-
 function Basis(eqs::AbstractVector, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
+    
     simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = false,
     pins = [], observed = [],
     kwargs...)
-    #@assert all(is_independent.(states)) "Please provide independent states."
-
+    
     eqs = simplify ? ModelingToolkit.simplify.(eqs) : eqs
     eqs = linear_independent ? create_linear_independent_eqs(eqs) : eqs
     isnothing(iv) && (iv = Num(Variable(:t)))
@@ -91,10 +87,10 @@ function Basis(eqs::AbstractVector, states::AbstractVector; parameters::Abstract
     return Basis(eqs, value.(states), value.(parameters), pins, observed, value(iv), f_, name, Basis[])
 end
 
-function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = [], iv = nothing, kwargs...)
-    #@assert all(is_independent.(states)) "Please provide independent states."
+function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = [], iv = nothing, kwargs...)    
     
     isnothing(iv) && (iv = Num(Variable(:t)))
+    
     try
         eqs = f(states, parameters, iv)
         return Basis(eqs, states, parameters = parameters, iv = iv; kwargs...)
