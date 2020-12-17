@@ -24,7 +24,6 @@ end
 
 function EDMD(X::AbstractArray, Y::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
-    @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
 
     # Based upon William et.al., A Data-Driven Approximation of the Koopman operator
 
@@ -50,7 +49,6 @@ end
 
 function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
     @assert size(X)[2] .== size(DX)[2] "Provide consistent dimensions for data"
-    @assert size(DX)[1] .<= size(DX)[2] "Provide consistent dimensions for data"
 
     # Based upon William et.al., A Data-Driven Approximation of the Koopman operator
 

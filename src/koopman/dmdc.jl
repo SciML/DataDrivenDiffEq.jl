@@ -20,7 +20,6 @@ end
 
 function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
-    @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
     @assert size(X)[2] == size(U)[2] "Provide consistent input data."
 
     nₓ = size(X)[1]
@@ -65,7 +64,6 @@ koopman = gDMD(t, X, U, fdm = fdm, itp = itp)
 """
 function gDMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
-    @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
     @assert size(X)[2] == size(U)[2] "Provide consistent input data."
 
     nₓ = size(X)[1]
