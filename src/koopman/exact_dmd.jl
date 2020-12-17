@@ -20,7 +20,6 @@ end
 
 function DMD(X::AbstractArray, Y::AbstractArray; alg::AbstractKoopmanAlgorithm = DMDPINV())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
-    @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
 
     # Best Frob norm approximator
     A = alg(X, Y)
@@ -52,7 +51,6 @@ koopman = gDMD(t, X, fdm = fdm, itp = itp)
 """
 function gDMD(X::AbstractArray, Y::AbstractArray; alg::AbstractKoopmanAlgorithm = DMDPINV())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
-    @assert size(Y)[1] .<= size(Y)[2] "Provide consistent dimensions for data"
 
     # Best Frob norm approximator
     A = alg(X, Y)
