@@ -89,7 +89,6 @@ end
 function gDMDc(t::AbstractVector, X::AbstractArray, U::AbstractArray; dt::Real = 0.0, B::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline, itp_u = LinearInterpolation)
     @assert size(X, 2) == length(t) "Sample size must match."
     @assert test_comp = begin
-
         if itp ∈ [LinearInterpolation, QuadraticInterpolation] && !isa(fdm, FiniteDifferences.Backward{typeof(fdm.grid), typeof(fdm.coefs)})
             false
         else
@@ -104,7 +103,7 @@ function gDMDc(t::AbstractVector, X::AbstractArray, U::AbstractArray; dt::Real =
     Y = similar(X̂)
     for (i, xi) in enumerate(eachrow(X))
         itp_ = itp(xi, t)
-        dx(t) = FiniteDifferences.fdm(fdm, itp_, t)
+        dx(t) = fdm(x->itp_(x), t)
         X̂[i, :] .= itp_.(t̂)
         Y[i, :] .= dx.(t̂)
     end

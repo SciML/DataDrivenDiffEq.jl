@@ -56,7 +56,7 @@ function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::Basis; p::AbstractArray 
     N,M = size(X)
 
     # Compute the transformed data
-    
+
     # Compute the transformed data
     Ψ₀ = zeros(eltype(X), length(Ψ), size(X, 2))
     Ψ(Ψ₀, X, p, t)
@@ -104,7 +104,6 @@ koopman = gEDMD(t, X, basis, fdm = fdm, itp = itp)
 function gEDMD(t::AbstractVector, X::AbstractArray, Ψ::Basis; dt::Real = 0.0, p::AbstractArray = [], C::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline)
     @assert size(X, 2) == length(t) "Sample size must match."
     @assert test_comp = begin
-
         if itp ∈ [LinearInterpolation, QuadraticInterpolation, QuadraticSpline] && !isa(fdm, FiniteDifferences.Backward{typeof(fdm.grid), typeof(fdm.coefs)})
             false
         else
@@ -119,7 +118,7 @@ function gEDMD(t::AbstractVector, X::AbstractArray, Ψ::Basis; dt::Real = 0.0, p
     Y = similar(X̂)
     for (i, xi) in enumerate(eachrow(X))
         itp_ = itp(xi, t)
-        dx(t) = FiniteDifferences.fdm(fdm, itp_, t)
+        dx(t) = fdm(x->itp_(x), t)
         X̂[i, :] .= itp_.(t̂)
         Y[i, :] .= dx.(t̂)
     end
