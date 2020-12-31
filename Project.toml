@@ -1,7 +1,7 @@
 name = "DataDrivenDiffEq"
 uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
 authors = ["Julius Martensen <julius.martensen@gmail.com>"]
-version = "0.5.1"
+version = "0.5.2"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
