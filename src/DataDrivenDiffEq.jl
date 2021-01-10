@@ -1,13 +1,21 @@
 module DataDrivenDiffEq
 
+using Reexport
+
 using LinearAlgebra
 using DiffEqBase
 using ModelingToolkit
+
 using QuadGK
 using Statistics
 using DSP
-using FiniteDifferences, DataInterpolations
-using LowRankApprox
+
+# Error with
+# @reexport using LowRankApprox: LRAOptions --> Why? 
+@reexport using FiniteDifferences
+@reexport using DataInterpolations
+@reexport using LowRankApprox
+
 using Compat
 using DocStringExtensions
 
