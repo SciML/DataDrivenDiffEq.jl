@@ -1,17 +1,15 @@
 """
-    NonlinearKoopman(K, B, C, basis, Q, P, discrete)
+$(TYPEDEF)
 
-An approximation of the Koopman operator which is nonlinear in the states.
+An approximation of the Koopman operator which is nonlinear in its states and defined over a [basis]@ref(Basis) of observables.
+It is callable with the with the typical signature `f(u,p,t)` and `f(du,u,p,t)` for
+out of place and inplace computation.
 
-`K` is the array representing the operator, `B` is the (possible present) array
-representing the influence of exogenous inputs on the evolution.
-`C` is the array mapping from the Koopman space to the original state space. `basis` is a
-[Basis]@ref(Basis), mapping the state space to the Koopman space.
+---
 
-`Q` and `P` are matrices used for updating the operator with new measurements.
-`discrete` indicates if the operator is discrete or continuous.
+$(FIELDS)
 
-The Koopman operator is callable with the typical signature of `f(u,p,t)` and `f(du,u,p,t)`, respectively.
+---
 
 # Example
 
@@ -24,15 +22,19 @@ k(du, u, nothing, nothing)
 ```
 """
 mutable struct NonlinearKoopman <: AbstractKoopmanOperator
-    operator::AbstractArray
+    "The operator or generator describing the dynamics"
+    operator::Union{AbstractArray, LinearOperator}
+    "Mapping of possible inputs onto the dynamics"
     input::AbstractArray
+    "Mapping of the observeables onto the original states"
     output::AbstractArray
-
+    "The [basis]@ref(Basis) describing the observables"
     basis::Basis
-
+    "Used for internal rank-1 update"
     Q::AbstractArray
+    "Used for internal rank-1 update"
     P::AbstractArray
-
+    "Indicates if the system is discrete"
     discrete::Bool
 end
 
@@ -57,12 +59,7 @@ function (k::NonlinearKoopman)(du, u, p::AbstractArray = [], t = nothing)
 end
 
 """
-    update!(k, X, Y; p = [], t = [], threshold = eps())
-
-Update the Koopman `k` given new data `X` and `Y`. The operator is updated in place if
-the L2 error of the prediction exceeds the `threshold`.
-
-`p` and `t` are the parameters of the basis and the vector of timepoints, if necessary.
+$(TYPEDSIGNATURES)
 """
 function update!(k::NonlinearKoopman, X::AbstractArray, Y::AbstractArray; p::AbstractArray = [], t::AbstractVector = [], threshold::T = eps()) where {T <: Real}
     @assert updatable(k) "Linear Koopman is not updatable."
@@ -91,9 +88,9 @@ function update!(k::NonlinearKoopman, X::AbstractArray, Y::AbstractArray; p::Abs
 end
 
 """
-    reduce_basis(k; threshold)
+$(SIGNATURES)
 
-Reduces the `basis` of the nonlinear Koopman using the 1-norm of each row
+Reduces the [basis]@ref(Basis) of the nonlinear Koopman using the 1-norm of each row
 of the matrix `C*K`. Rows where the threshold is not reached are deleted.
 """
 function reduce_basis(k::NonlinearKoopman; threshold = 1e-5, kwargs...)
@@ -104,7 +101,7 @@ end
 
 
 """
-    ODESystem(k; threshold = eps())
+$(TYPEDSIGNATURES)
 
 Convert a `NonlinearKoopman` into an `ODESystem`. `threshold` determines the cutoff
 for the entries of the matrix representing the state space evolution of the system.
