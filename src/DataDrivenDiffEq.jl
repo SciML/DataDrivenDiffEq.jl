@@ -7,6 +7,7 @@ using QuadGK
 using Statistics
 using DSP
 using FiniteDifferences, DataInterpolations
+using LowRankApprox
 using Compat
 using DocStringExtensions
 
@@ -24,6 +25,9 @@ include("./basis.jl")
 export Basis
 export variables, jacobian, dynamics
 export free_parameters
+
+# For useage within koopman
+struct EmptyLRAOptions <: Any end
 
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD
@@ -85,6 +89,6 @@ export burst_sampling, subsample
 
 include("./basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis
-export sin_basis, cos_basis, fourier_basis 
+export sin_basis, cos_basis, fourier_basis
 
 end # module

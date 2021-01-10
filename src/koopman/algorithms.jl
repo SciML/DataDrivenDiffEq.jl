@@ -19,7 +19,7 @@ mutable struct DMDPINV <: AbstractKoopmanAlgorithm end;
 
 
 """
-    DMDSVD(rtol)
+    DMDSVD(;kwargs...)
 
 Approximates the Koopman operator `K` based on the singular value decomposition
 of `X` such that:
@@ -33,25 +33,20 @@ If `rtol` ∈ (0, 1) is given, the singular value decomposition is reduced to in
 entries bigger than `rtol*maximum(Σ)`. If `rtol` is an integer, the reduced SVD up to `rtol` is used
 for computation.
 """
-mutable struct DMDSVD{T} <: AbstractKoopmanAlgorithm
-    rtol::T
+mutable struct DMDSVD <: AbstractKoopmanAlgorithm
+    opts::LRAOptions
+    DMDSVD(x::LRAOptions) = new(x)
 end;
 
-DMDSVD() = DMDSVD(0.0)
+DMDSVD(x::Real) = DMDSVD(typeof(x), rtol = x)
+DMDSVD(x::Int64) = DMDSVD(Float64, rank = x)
+DMDSVD(; kwargs...) = DMDSVD(Float64;kwargs...)
+DMDSVD(t::Type{T}; kwargs...) where T = DMDSVD(LRAOptions(t; kwargs...))
 
 # Slower but fewer allocations
 function (x::DMDSVD)(X::AbstractArray, Y::AbstractArray)
-    U, S, V = svd(X)
-    if typeof(x.rtol) <: Int && x.rtol < size(X, 1)
-        V = V[:, x.rtol]
-    elseif zero(x.rtol) < x.rtol < one(x.rtol)
-        r = vec(S .> x.rtol*maximum(S))
-        U = U[:, r]
-        S = S[r]
-        V = V[:, r]
-    end
-
-    return Y*V*Diagonal(one(eltype(X)) ./ S)*U'
+    F = psvdfact(X, x.opts)
+    return Y*F.Vt'*Diagonal(one(eltype(X)) ./ F.S)*F.U'
 end
 
 """

@@ -91,3 +91,13 @@ updatable(k::AbstractKoopmanOperator) = !isempty(k.Q) && !isempty(k.P)
     + the Koopman generator has just eigenvalues with a negative real part
 """
 isstable(k::AbstractKoopmanOperator) = is_discrete(k) ? all(abs.(eigvals(k)) .< one(eltype(k.operator))) : all(real.(eigvals(k)) .< zero(eltype(k.operator)))
+
+# For use with LowRankApprox
+# Need to find a better way
+function LinearAlgebra.eigvals(l::LinearOperator)
+    eigvals(Matrix(l))
+end
+
+function LinearAlgebra.eigvecs(l::LinearOperator)
+    eigvecs(Matrix(l))
+end

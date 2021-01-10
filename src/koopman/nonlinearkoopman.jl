@@ -36,6 +36,15 @@ mutable struct NonlinearKoopman <: AbstractKoopmanOperator
     discrete::Bool
 end
 
+function NonlinearKoopman(operator, input, output, basis, Q, P, discrete, lowrank::LRAOptions)
+    op = LinearOperator(psvdfact(operator, lowrank))
+    NonlinearKoopman(op, input, output, basis, Q, P, discrete)
+end
+
+function NonlinearKoopman(operator, input, output, basis, Q, P, discrete, lowrank::EmptyLRAOptions)
+    NonlinearKoopman(operator, input, output, basis, Q, P, discrete)
+end
+
 (k::NonlinearKoopman)(u, p::DiffEqBase.NullParameters, t) = k(u, [], t)
 (k::NonlinearKoopman)(du, u, p::DiffEqBase.NullParameters, t) = k(du, u, [], t)
 

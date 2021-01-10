@@ -14,11 +14,11 @@ koopman = DMDc(X, U, alg = alg)
 koopman = DMD(X[:, 1:end-1], X[:, 2:end], U, alg = alg)
 ```
 """
-function DMDc(X::AbstractArray, U::AbstractArray; B::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
-    return DMDc(X[:, 1:end-1], X[:, 2:end], U, B = B, alg = alg)
+function DMDc(X::AbstractArray, U::AbstractArray; B::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV(), lowrank = EmptyLRAOptions())
+    return DMDc(X[:, 1:end-1], X[:, 2:end], U, B = B, alg = alg, lowrank = lowrank)
 end
 
-function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
+function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV(), lowrank = EmptyLRAOptions())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
     @assert size(X)[2] == size(U)[2] "Provide consistent input data."
 
@@ -37,7 +37,7 @@ function DMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractA
         A = alg(X, Y-B*U)
     end
 
-    return LinearKoopman(A, B, Y*Ω', Ω*Ω', true)
+    return LinearKoopman(A, B, Y*Ω', Ω*Ω', true, lowrank)
 end
 
 """
@@ -62,7 +62,7 @@ itp = CubicSpline
 koopman = gDMD(t, X, U, fdm = fdm, itp = itp)
 ```
 """
-function gDMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
+function gDMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV(),lowrank = EmptyLRAOptions())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
     @assert size(X)[2] == size(U)[2] "Provide consistent input data."
 
@@ -82,11 +82,11 @@ function gDMDc(X::AbstractArray, Y::AbstractArray, U::AbstractArray; B::Abstract
     end
 
 
-    return LinearKoopman(A, B, Y*Ω', Ω*Ω', false)
+    return LinearKoopman(A, B, Y*Ω', Ω*Ω', false, lowrank)
 end
 
 
-function gDMDc(t::AbstractVector, X::AbstractArray, U::AbstractArray; dt::Real = 0.0, B::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline, itp_u = LinearInterpolation)
+function gDMDc(t::AbstractVector, X::AbstractArray, U::AbstractArray; dt::Real = 0.0, B::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline, itp_u = LinearInterpolation, lowrank = EmptyLRAOptions())
     @assert size(X, 2) == length(t) "Sample size must match."
     @assert test_comp = begin
         if itp ∈ [LinearInterpolation, QuadraticInterpolation] && !isa(fdm, FiniteDifferences.Backward{typeof(fdm.grid), typeof(fdm.coefs)})
@@ -115,5 +115,5 @@ function gDMDc(t::AbstractVector, X::AbstractArray, U::AbstractArray; dt::Real =
         Û[i, :] .= uitp_.(t̂)
     end
 
-    return gDMDc(X̂, Y, Û; B = B, alg = alg)
+    return gDMDc(X̂, Y, Û; B = B, alg = alg, lowrank = lowrank)
 end

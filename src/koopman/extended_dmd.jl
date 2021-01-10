@@ -18,11 +18,11 @@ basis = Basis(h, u, parameters = p, iv = t)
 koopman = EDMD(X, basis, p = [2.0], t = collect(0:0.2:10.0), C = Float64[1 0 0 0 0; 0 1 0 0 0])
 ```
 """
-function EDMD(X::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
-    return EDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, t = t, C = C, alg = alg)
+function EDMD(X::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV(), lowrank = EmptyLRAOptions())
+    return EDMD(X[:, 1:end-1], X[:, 2:end], Ψ, p = p, t = t, C = C, alg = alg, lowrank = lowrank)
 end
 
-function EDMD(X::AbstractArray, Y::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
+function EDMD(X::AbstractArray, Y::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV(), lowrank = EmptyLRAOptions())
     @assert size(X)[2] .== size(Y)[2] "Provide consistent dimensions for data"
 
     # Based upon William et.al., A Data-Driven Approximation of the Koopman operator
@@ -44,10 +44,10 @@ function EDMD(X::AbstractArray, Y::AbstractArray, Ψ::Basis; p::AbstractArray = 
     end
 
     # TODO Maybe reduce the observable space here
-    return NonlinearKoopman(A, [], C , Ψ, Ψ₁*Ψ₀', Ψ₀*Ψ₀', true)
+    return NonlinearKoopman(A, [], C , Ψ, Ψ₁*Ψ₀', Ψ₀*Ψ₀', true, lowrank)
 end
 
-function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV())
+function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::Basis; p::AbstractArray = [], t::AbstractVector = [], C::AbstractArray = [], alg::AbstractKoopmanAlgorithm = DMDPINV(), lowrank = EmptyLRAOptions())
     @assert size(X)[2] .== size(DX)[2] "Provide consistent dimensions for data"
 
     # Based upon William et.al., A Data-Driven Approximation of the Koopman operator
@@ -75,7 +75,7 @@ function gEDMD(X::AbstractArray, DX::AbstractArray, Ψ::Basis; p::AbstractArray 
     end
 
     # TODO Maybe reduce the observable space here
-    return NonlinearKoopman(A, [], C , Ψ, Ψ₁*Ψ₀', Ψ₀*Ψ₀', false)
+    return NonlinearKoopman(A, [], C , Ψ, Ψ₁*Ψ₀', Ψ₀*Ψ₀', false, lowrank)
 end
 
 
@@ -101,7 +101,7 @@ itp = CubicSpline
 koopman = gEDMD(t, X, basis, fdm = fdm, itp = itp)
 ```
 """
-function gEDMD(t::AbstractVector, X::AbstractArray, Ψ::Basis; dt::Real = 0.0, p::AbstractArray = [], C::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline)
+function gEDMD(t::AbstractVector, X::AbstractArray, Ψ::Basis; dt::Real = 0.0, p::AbstractArray = [], C::AbstractArray = [], alg::DataDrivenDiffEq.AbstractKoopmanAlgorithm = DMDPINV(), fdm::FiniteDifferences.FiniteDifferenceMethod = backward_fdm(5, 1), itp = CubicSpline, lowrank = EmptyLRAOptions())
     @assert size(X, 2) == length(t) "Sample size must match."
     @assert test_comp = begin
         if itp ∈ [LinearInterpolation, QuadraticInterpolation, QuadraticSpline] && !isa(fdm, FiniteDifferences.Backward{typeof(fdm.grid), typeof(fdm.coefs)})
@@ -122,5 +122,5 @@ function gEDMD(t::AbstractVector, X::AbstractArray, Ψ::Basis; dt::Real = 0.0, p
         X̂[i, :] .= itp_.(t̂)
         Y[i, :] .= dx.(t̂)
     end
-    return gEDMD(X̂, Y, Ψ, alg = alg, p = p, t = collect(t̂), C = C)
+    return gEDMD(X̂, Y, Ψ, alg = alg, p = p, t = collect(t̂), C = C, lowrank = lowrank)
 end

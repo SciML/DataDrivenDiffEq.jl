@@ -22,13 +22,23 @@ k(du, u, nothing, nothing)
 ```
 """
 mutable struct LinearKoopman <: AbstractKoopmanOperator
-    operator::AbstractArray
+    operator::Union{AbstractArray, LinearOperator}
     input::AbstractArray
 
     Q::AbstractArray
     P::AbstractArray
 
     discrete::Bool
+end
+
+
+function LinearKoopman(operator, input, Q, P, discrete, lowrank::LRAOptions)
+    op = LinearOperator(psvdfact(operator, lowrank))
+    LinearKoopman(op, input, Q, P, discrete)
+end
+
+function LinearKoopman(operator, input, Q, P, discrete, lowrank::EmptyLRAOptions)
+    LinearKoopman(operator, input, Q, P, discrete)
 end
 
 outputmap(k::LinearKoopman) = throw(AssertionError("Linear Koopman Operator has no output map."))
