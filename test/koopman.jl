@@ -67,7 +67,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
             @test norm(sol-sol_, Inf) < 2.0
             lrank = rand(1:99)
             d2 = gDMD(X, DX, alg = alg_, lowrank = LRAOptions(rank = lrank))
-            @test rank(Matrix(generator(d2))) == lrank
+            @test rank(Matrix(generator(d2))) <= lrank
         end
     end
 
