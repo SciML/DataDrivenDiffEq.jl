@@ -1,9 +1,8 @@
 using ModelingToolkit
 using LinearAlgebra
 using DiffEqBase
-import Base.==
-import Base.unique, Base.unique!
-using ModelingToolkit: <ₑ, value, isparameter
+import Base: unique, unique!, ==
+using ModelingToolkit: <ₑ, value, isparameter, operation, arguments, istree
 
 """
 $(TYPEDEF)
@@ -17,7 +16,7 @@ or in place with `f(du, u, p, t)`.
 If `linear_independent` is set to `true`, a linear independent basis is created from all atom function in `f`.
 If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
 Additional keyworded arguments include `name`, which can be used to name the basis, `pins` used for connections and
-`observed` for defining observeables. 
+`observed` for defining observeables.
 
 # Fields
 $(FIELDS)
@@ -65,19 +64,19 @@ mutable struct Basis <: ModelingToolkit.AbstractSystem
 end
 
 function Basis(eqs::AbstractVector, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
-    
+
     simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = false,
     pins = [], observed = [],
     kwargs...)
-    
+
     eqs = simplify ? ModelingToolkit.simplify.(eqs) : eqs
     eqs = linear_independent ? create_linear_independent_eqs(eqs) : eqs
     isnothing(iv) && (iv = Num(Variable(:t)))
     unique!(eqs, !simplify)
-    
+
     if eval_expression
         f_oop, f_iip = eval.(build_function(eqs, value.(states), value.(parameters), [value(iv)], expression = Val{true}))
-    else 
+    else
         f_oop, f_iip = build_function(eqs, value.(states), value.(parameters), [value(iv)], expression = Val{false})
     end
     eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs)]
@@ -87,10 +86,10 @@ function Basis(eqs::AbstractVector, states::AbstractVector; parameters::Abstract
     return Basis(eqs, value.(states), value.(parameters), pins, observed, value(iv), f_, name, Basis[])
 end
 
-function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = [], iv = nothing, kwargs...)    
-    
+function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = [], iv = nothing, kwargs...)
+
     isnothing(iv) && (iv = Num(Variable(:t)))
-    
+
     try
         eqs = f(states, parameters, iv)
         return Basis(eqs, states, parameters = parameters, iv = iv; kwargs...)
@@ -99,9 +98,8 @@ function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = 
     end
 end
 
-_get_name(x::Num) = _get_name(x.val)
-_get_name(x) = x.name
-_get_name(x::Term) = x.f.name
+_get_name(x::Num) = _get_name(value(x))
+_get_name(x) = nameof(istree(x) ? operation(x) : x)
 
 Base.show(io::IO, x::Basis) = print(io, "$(String.(x.name)) : $(length(x.eqs)) dimensional basis in ", "$(String.([_get_name(v) for v in x.states]))")
 
@@ -115,14 +113,14 @@ Base.show(io::IO, x::Basis) = print(io, "$(String.(x.name)) : $(length(x.eqs)) d
         println(io, "$(eq.lhs) = $(eq.rhs)")
         elseif i == 5
             println(io, "...")
-        else 
+        else
             continue
         end
     end
 end
 
 @inline function Base.println(io::IO, x::Basis, fullview::DataType = Val{false})
-    fullview == Val{false} && return print(io, x) 
+    fullview == Val{false} && return print(io, x)
     show(io, x)
     !isempty(x.ps) && println(io, "\nParameters : $(x.ps)")
     println(io, "\nIndependent variable: $(x.iv)")
@@ -349,7 +347,7 @@ function dynamics(b::Basis)
     return b.f_
 end
 
-## Term Manipulation
+## Symbolic Manipulation
 
 function is_unary(f::Function)
     for m in methods(f)
@@ -362,19 +360,19 @@ count_operation(x::Number, op::Function, nested::Bool = true) = 0
 count_operation(x::Sym, op::Function, nested::Bool = true) = 0
 count_operation(x::Num, op::Function, nested::Bool = true) = count_operation(value(x), op, nested)
 
-function count_operation(x::Term, op::Function, nested::Bool = true)
-    if x.f == op
+function count_operation(x, op::Function, nested::Bool = true)
+    if operation(x)== op
         if is_unary(op)
             # Handles sin, cos and stuff
-            nested && return 1 + count_operation(x.arguments, op)
+            nested && return 1 + count_operation(arguments(x), op)
             return 1
         else
             # Handles +, *
-            nested && length(x.arguments)-1 + count_operation(x.arguments, op) 
-            return length(x.arguments)-1 
+            nested && length(arguments(x))-1 + count_operation(arguments(x), op)
+            return length(arguments(x))-1
         end
     elseif nested
-        return count_operation(x.arguments, op, nested)
+        return count_operation(arguments(x), op, nested)
     end
     return 0
 end
@@ -395,40 +393,35 @@ function count_operation(x::AbstractArray, ops::AbstractArray, nested::Bool = tr
     counter
 end
 
-function split_term!(x::AbstractArray, o::Term, ops::AbstractArray = [+])
-    n_ops = count_operation(o, ops, false) 
-    c_ops = 0
-    @views begin
-        if n_ops == 0
-            x[begin]= o
-        else
-            counter_ = 1
-            for oi in o.arguments
-                c_ops = count_operation(oi, ops, false)
-                split_term!(x[counter_:counter_+c_ops], oi, ops)
-                counter_ += c_ops + 1
+function split_term!(x::AbstractArray, o, ops::AbstractArray = [+])
+    if istree(o)
+        n_ops = count_operation(o, ops, false)
+        c_ops = 0
+        @views begin
+            if n_ops == 0
+                x[begin]= o
+            else
+                counter_ = 1
+                for oi in arguments(o)
+                    c_ops = count_operation(oi, ops, false)
+                    split_term!(x[counter_:counter_+c_ops], oi, ops)
+                    counter_ += c_ops + 1
+                end
             end
         end
+    else
+        x[begin] = o
     end
+    return
 end
 
 split_term!(x::AbstractArray,o::Num, ops::AbstractArray = [+]) = split_term!(x, value(o), ops)
 
-function split_term!(x::AbstractArray, o::Sym, ops::AbstractArray = [+]) 
-    x[begin] = o
-    return
-end
-
-function split_term!(x::AbstractArray, o::Number, ops::AbstractArray = [+]) 
-    x[begin] = o
-    return
-end
-
 remove_constant_factor(x::Num) = remove_constant_factor(value(x))
-remove_constant_factor(x::Sym) = x
 remove_constant_factor(x::Number) = one(x)
 
-function remove_constant_factor(x::Term)
+function remove_constant_factor(x)
+    istree(x) || return x
     n_ops = count_operation(x, *, false)+1
     ops = Array{Any}(undef, n_ops)
     @views split_term!(ops, x, [*])
