@@ -48,9 +48,29 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
             @test isapprox(generator(estimator), generator(d3), atol = 5e-1)
         end
     end
+    @info "Starting big discrete system tests"
+    @testset "Discrete big system" begin
+        dd(u, p, t) = 0.9*ones(length(u))*u[1] - 0.05*u
+        u0 = randn(100)*100.0
+        u0[1] = 100.0
+        prob = DiscreteProblem(dd, u0, (0.0, 120.0))
+        sol = solve(prob, FunctionMap())
+        X = sol[:,:]
+
+        for alg_ in algorithms
+            @info "Testing $alg_"
+            d = DMD(X, alg = alg_)
+            test = DiscreteProblem(d, u0, (0.0, 120.0))
+            sol_ = solve(test, FunctionMap())
+            @test norm(sol-sol_, Inf) < 2.0
+            lrank = rand(1:99) # We can just test for a maximum rank
+            d2 = DMD(X, alg = alg_, lowrank = LRAOptions(rank = lrank))
+            @test rank(Matrix(operator(d2))) <= lrank
+        end
+    end
 
     @info "Starting big continuous system tests"
-    @testset "Big System" begin
+    @testset "Continuous big system" begin
         dd(u, p, t) = -0.9*ones(length(u))*u[1] - 0.05*u
         u0 = randn(100)*100.0
         u0[1] = 100.0
@@ -65,7 +85,7 @@ algorithms = [DMDPINV(), DMDSVD(1e-2), TOTALDMD(1e-2, DMDPINV()), TOTALDMD(1e-2,
             test = ODEProblem(d, u0, (0.0, 10.0))
             sol_ = solve(test, Tsit5(), saveat = 0.001)
             @test norm(sol-sol_, Inf) < 2.0
-            lrank = rand(1:99)
+            lrank = rand(1:99) # We can just test for a maximum rank
             d2 = gDMD(X, DX, alg = alg_, lowrank = LRAOptions(rank = lrank))
             @test rank(Matrix(generator(d2))) <= lrank
         end
