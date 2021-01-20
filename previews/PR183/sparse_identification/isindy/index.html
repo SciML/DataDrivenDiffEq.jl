@@ -23,7 +23,11 @@ for (i, xi) in enumerate(eachcol(X))
 end
 
 @variables u
-basis= Basis([u^i for i in 0:4], [u])</code></pre><pre><code class="language-none">##Basis#374 : 5 dimensional basis in [&quot;u&quot;]</code></pre><p>The signature of <code>ISINDy</code> is equal to <code>SINDy</code>, but requires an <code>AbstractSubspaceOptimizer</code>. Currently, <code>DataDrivenDiffEq</code> just implements <code>ADM()</code> based on <a href="https://arxiv.org/pdf/1412.4659.pdf">alternating directions</a>. <code>rtol</code> gets passed into the derivation of the <code>nullspace</code> via <code>LinearAlgebra</code>.</p><pre><code class="language-julia">opt = ADM(1.1e-1)</code></pre><pre><code class="language-none">ADM{Float64,ProximalOperators.NormL1{Float64}}(0.11, description : weighted L1 norm
+basis= Basis([u^i for i in 0:4], [u])</code></pre><p>\begin{align} \varphi{<em>1} =&amp; 1 \
+\varphi{</em>2} =&amp; u \
+\varphi{<em>3} =&amp; u^{2} \
+\varphi{</em>4} =&amp; u^{3} \
+\varphi{_5} =&amp; u^{4} \end{align}</p><p>The signature of <code>ISINDy</code> is equal to <code>SINDy</code>, but requires an <code>AbstractSubspaceOptimizer</code>. Currently, <code>DataDrivenDiffEq</code> just implements <code>ADM()</code> based on <a href="https://arxiv.org/pdf/1412.4659.pdf">alternating directions</a>. <code>rtol</code> gets passed into the derivation of the <code>nullspace</code> via <code>LinearAlgebra</code>.</p><pre><code class="language-julia">opt = ADM(1.1e-1)</code></pre><pre><code class="language-none">ADM{Float64,ProximalOperators.NormL1{Float64}}(0.11, description : weighted L1 norm
 domain      : AbstractArray{Real}, AbstractArray{Complex}
 expression  : x ↦ λ||x||_1
 parameters  : λ = 0.11)</code></pre><p>Since <code>ADM()</code> returns sparsified columns of the nullspace we need to find a pareto optimal solution. To achieve this, we provide a sufficient cost function <code>g</code> to <code>ISINDy</code>. This allows us to evaluate each individual column of the sparse matrix on its 0-norm (sparsity) and the 2-norm of the matrix vector product of <span>$\Theta^T \xi$</span> (nullspace). This is a default setting which can be changed by providing a function <code>f</code> which maps the coefficients and the library onto a feature space. Here, we want to set the focus on the the magnitude of the deviation from the nullspace.</p><pre><code class="language-julia">Ψ = ISINDy(X, DX, basis, opt, g = x-&gt;norm([1e-1*x[1]; x[2]]), maxiter = 100)</code></pre><p>The function call returns a <code>SparseIdentificationResult</code>. As in <a href="../sindy/#Sparse-Identification-of-Nonlinear-Dynamics-1">Sparse Identification of Nonlinear Dynamics</a>, we can transform the <code>SparseIdentificationResult</code> into an <code>ODESystem</code>.</p><pre><code class="language-julia"># Transform into ODE System
@@ -37,7 +41,7 @@ Parameters : SymbolicUtils.Sym{ModelingToolkit.Parameter{Real}}[p₁, p₂, p₃
 
 Independent variable: t
 Equations
-φ₁ = (-(((p₂ * (u ^ 0)) + (p₄ * (u ^ 1))) + (p₆ * (u ^ 2)))) / (((p₁ * (u ^ 0)) + (p₃ * (u ^ 1))) + (p₅ * (u ^ 2)))</code></pre><p>The parameters are off a little, but, as before, we can use <code>DiffEqFlux</code> to tune them.</p><h2 id="Example-:-Cart-Pole-with-Time-Dependent-Control-1"><a class="docs-heading-anchor" href="#Example-:-Cart-Pole-with-Time-Dependent-Control-1">Example : Cart-Pole with Time-Dependent Control</a><a class="docs-heading-anchor-permalink" href="#Example-:-Cart-Pole-with-Time-Dependent-Control-1" title="Permalink"></a></h2><p>Implicit dynamics can also be reformulated as an explicit problem as stated in <a href="https://arxiv.org/pdf/2004.02322.pdf">this paper</a>. The algorithm searches the correct equations by trying out all candidate functions as a right hand side and performing a sparse regression onto the remaining set of candidates. Let&#39;s start by defining the problem and generate the data:</p><pre><code class="language-julia">using DataDrivenDiffEq
+φ₁ = (-1p₂ + -1p₄*u + -1p₆*(u^2))*((p₁ + p₃*u + p₅*(u^2))^-1)</code></pre><p>The parameters are off a little, but, as before, we can use <code>DiffEqFlux</code> to tune them.</p><h2 id="Example-:-Cart-Pole-with-Time-Dependent-Control-1"><a class="docs-heading-anchor" href="#Example-:-Cart-Pole-with-Time-Dependent-Control-1">Example : Cart-Pole with Time-Dependent Control</a><a class="docs-heading-anchor-permalink" href="#Example-:-Cart-Pole-with-Time-Dependent-Control-1" title="Permalink"></a></h2><p>Implicit dynamics can also be reformulated as an explicit problem as stated in <a href="https://arxiv.org/pdf/2004.02322.pdf">this paper</a>. The algorithm searches the correct equations by trying out all candidate functions as a right hand side and performing a sparse regression onto the remaining set of candidates. Let&#39;s start by defining the problem and generate the data:</p><pre><code class="language-julia">using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
 using LinearAlgebra
@@ -90,7 +94,32 @@ push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4].^2...)
 push!(polys, -0.2+0.5*sin(6*t))
 push!(polys, (-0.2+0.5*sin(6*t))*cos(u[1]))
 push!(polys, (-0.2+0.5*sin(6*t))*sin(u[1]))
-basis= Basis(polys, u, iv = t)</code></pre><pre><code class="language-none">##Basis#400 : 26 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;, &quot;u₄&quot;]</code></pre><p>We added the time dependent input directly into the basis to account for its influence.</p><p><em>NOTE : Including input signals may change in future releases!</em></p><p>Like for a <code>SINDy</code>, we can use any <code>AbstractOptimizer</code> with a pareto front optimization over different thresholds. </p><pre><code class="language-julia">λ = exp10.(-4:0.1:-1)
+basis= Basis(polys, u, iv = t)</code></pre><p>\begin{align} \varphi{<em>1} =&amp; 1 \
+\varphi{</em>2} =&amp; u{<em>1} \
+\varphi{</em>3} =&amp; u{<em>2} \
+\varphi{</em>4} =&amp; u{<em>3} \
+\varphi{</em>5} =&amp; u{<em>4} \
+\varphi{</em>6} =&amp; u{<em>3}^{2} \
+\varphi{</em>7} =&amp; u{<em>4}^{2} \
+\varphi{</em>8} =&amp; u{<em>3}^{3} \
+\varphi{</em>9} =&amp; u{<em>4}^{3} \
+\varphi{</em>{10}} =&amp; u{<em>3}^{4} \
+\varphi{</em>{11}} =&amp; u{<em>4}^{4} \
+\varphi{</em>{12}} =&amp; \sin\left( u{<em>1} \right) \
+\varphi{</em>{13}} =&amp; \cos\left( u{<em>1} \right) \
+\varphi{</em>{14}} =&amp; u{<em>3} \sin\left( u{</em>1} \right) \
+\varphi{<em>{15}} =&amp; u{</em>4} \sin\left( u{<em>1} \right) \
+\varphi{</em>{16}} =&amp; \sin\left( u{<em>1} \right) u{</em>3}^{2} \
+\varphi{<em>{17}} =&amp; \sin\left( u{</em>1} \right) u{<em>4}^{2} \
+\varphi{</em>{18}} =&amp; \cos^{2}\left( u{<em>1} \right) \
+\varphi{</em>{19}} =&amp; \cos\left( u{<em>1} \right) \sin\left( u{</em>1} \right) \
+\varphi{<em>{20}} =&amp; u{</em>3} \cos\left( u{<em>1} \right) \sin\left( u{</em>1} \right) \
+\varphi{<em>{21}} =&amp; u{</em>4} \cos\left( u{<em>1} \right) \sin\left( u{</em>1} \right) \
+\varphi{<em>{22}} =&amp; \cos\left( u{</em>1} \right) \sin\left( u{<em>1} \right) u{</em>3}^{2} \
+\varphi{<em>{23}} =&amp; \cos\left( u{</em>1} \right) \sin\left( u{<em>1} \right) u{</em>4}^{2} \
+\varphi{<em>{24}} =&amp; -0.2 + 0.5 \sin\left( 6 t \right) \
+\varphi{</em>{25}} =&amp; \cos\left( u{<em>1} \right) \left( -0.2 + 0.5 \sin\left( 6 t \right) \right) \
+\varphi{</em>{26}} =&amp; \sin\left( u{_1} \right) \left( -0.2 + 0.5 \sin\left( 6 t \right) \right) \end{align}</p><p>We added the time dependent input directly into the basis to account for its influence.</p><p><em>NOTE : Including input signals may change in future releases!</em></p><p>Like for a <code>SINDy</code>, we can use any <code>AbstractOptimizer</code> with a pareto front optimization over different thresholds. </p><pre><code class="language-julia">λ = exp10.(-4:0.1:-1)
 g(x) = norm([1e-3; 10.0] .* x, 2)
 Ψ = ISINDy(X[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
 
@@ -106,10 +135,10 @@ Parameters : SymbolicUtils.Sym{ModelingToolkit.Parameter{Real}}[p₁, p₂, p₃
 
 Independent variable: t
 Equations
-φ₁ = (-(p₂ * (u₃ ^ 1))) / (p₁ * (u₁ ^ 0))
-φ₂ = (-(p₄ * (u₄ ^ 1))) / (p₃ * (u₁ ^ 0))
-φ₃ = (-(((p₆ * sin(u₁)) + (p₈ * ((sin(u₁) * cos(u₁)) * (u₃ ^ 2)))) + (p₉ * ((-0.2 + (0.5 * sin(6 * t))) * cos(u₁))))) / ((p₅ * (u₁ ^ 0)) + (p₇ * (cos(u₁) ^ 2)))
-φ₄ = (-(((p₁₁ * (sin(u₁) * (u₃ ^ 2))) + (p₁₃ * (sin(u₁) * cos(u₁)))) + (p₁₄ * (-0.2 + (0.5 * sin(6 * t)))))) / ((p₁₀ * (u₁ ^ 0)) + (p₁₂ * (cos(u₁) ^ 2)))</code></pre><p>Alternatively, we can also use the input as an extended state <code>x</code>.</p><pre><code class="language-julia">@variables u[1:4] t x
+φ₁ = -1p₂*u₃*(p₁^-1)
+φ₂ = -1p₄*u₄*(p₃^-1)
+φ₃ = (-1p₆*sin(u₁) + -1p₉*cos(u₁)*(-0.2 + 0.5sin(6t)) + -1p₈*cos(u₁)*sin(u₁)*(u₃^2))*((p₅ + p₇*(cos(u₁)^2))^-1)
+φ₄ = (-1p₁₄*(-0.2 + 0.5sin(6t)) + -1p₁₁*sin(u₁)*(u₃^2) + -1p₁₃*cos(u₁)*sin(u₁))*((p₁₀ + p₁₂*(cos(u₁)^2))^-1)</code></pre><p>Alternatively, we can also use the input as an extended state <code>x</code>.</p><pre><code class="language-julia">@variables u[1:4] t x
 polys = Any[]
 # Lots of basis functions -&gt; sindy pi can handle more than ADM()
 for i ∈ 0:4
@@ -135,15 +164,40 @@ push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4].^2...)
 push!(polys, x)
 push!(polys, x*cos(u[1]))
 push!(polys, x*sin(u[1]))
-basis= Basis(polys, vcat(u, x), iv = t)</code></pre><pre><code class="language-none">##Basis#431 : 26 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;, &quot;u₄&quot;, &quot;x&quot;]</code></pre><p>Now we include the input signal into the extended state array <code>Xᵤ</code> and perform a sparse regression.</p><pre><code class="language-julia">U = -0.2 .+ 0.5*sin.(6*solution.t)
+basis= Basis(polys, vcat(u, x), iv = t)</code></pre><p>\begin{align} \varphi{<em>1} =&amp; 1 \
+\varphi{</em>2} =&amp; u{<em>1} \
+\varphi{</em>3} =&amp; u{<em>2} \
+\varphi{</em>4} =&amp; u{<em>3} \
+\varphi{</em>5} =&amp; u{<em>4} \
+\varphi{</em>6} =&amp; u{<em>3}^{2} \
+\varphi{</em>7} =&amp; u{<em>4}^{2} \
+\varphi{</em>8} =&amp; u{<em>3}^{3} \
+\varphi{</em>9} =&amp; u{<em>4}^{3} \
+\varphi{</em>{10}} =&amp; u{<em>3}^{4} \
+\varphi{</em>{11}} =&amp; u{<em>4}^{4} \
+\varphi{</em>{12}} =&amp; \sin\left( u{<em>1} \right) \
+\varphi{</em>{13}} =&amp; \cos\left( u{<em>1} \right) \
+\varphi{</em>{14}} =&amp; u{<em>3} \sin\left( u{</em>1} \right) \
+\varphi{<em>{15}} =&amp; u{</em>4} \sin\left( u{<em>1} \right) \
+\varphi{</em>{16}} =&amp; \sin\left( u{<em>1} \right) u{</em>3}^{2} \
+\varphi{<em>{17}} =&amp; \sin\left( u{</em>1} \right) u{<em>4}^{2} \
+\varphi{</em>{18}} =&amp; \cos^{2}\left( u{<em>1} \right) \
+\varphi{</em>{19}} =&amp; \cos\left( u{<em>1} \right) \sin\left( u{</em>1} \right) \
+\varphi{<em>{20}} =&amp; u{</em>3} \cos\left( u{<em>1} \right) \sin\left( u{</em>1} \right) \
+\varphi{<em>{21}} =&amp; u{</em>4} \cos\left( u{<em>1} \right) \sin\left( u{</em>1} \right) \
+\varphi{<em>{22}} =&amp; \cos\left( u{</em>1} \right) \sin\left( u{<em>1} \right) u{</em>3}^{2} \
+\varphi{<em>{23}} =&amp; \cos\left( u{</em>1} \right) \sin\left( u{<em>1} \right) u{</em>4}^{2} \
+\varphi{<em>{24}} =&amp; x \
+\varphi{</em>{25}} =&amp; x \cos\left( u{<em>1} \right) \
+\varphi{</em>{26}} =&amp; x \sin\left( u{_1} \right) \end{align}</p><p>Now we include the input signal into the extended state array <code>Xᵤ</code> and perform a sparse regression.</p><pre><code class="language-julia">U = -0.2 .+ 0.5*sin.(6*solution.t)
 Xᵤ = vcat(X, U&#39;)
 
 λ = exp10.(-4:0.5:-1)
 g(x) = norm([1e-3; 10.0] .* x, 2)
 Ψ = ISINDy(Xᵤ[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
-print_equations(Ψ, show_parameter = true)</code></pre><pre><code class="language-none">f_1 = (-(-1.0 * (u₃ ^ 1))) / (1.0 * (u₁ ^ 0))
-f_2 = (-(-0.9999999999999999 * (u₄ ^ 1))) / (1.0 * (u₁ ^ 0))
-f_3 = (-(((0.9999999999999999 * sin(u₁)) + (0.05096839959225281 * ((sin(u₁) * cos(u₁)) * (u₃ ^ 2)))) + (0.0509683995922528 * (x * cos(u₁))))) / ((0.10193679918450561 * (u₁ ^ 0)) + (-0.05096839959225284 * (cos(u₁) ^ 2)))
-f_4 = (-(((0.10193679918450554 * (sin(u₁) * (u₃ ^ 2))) + (1.0 * (sin(u₁) * cos(u₁)))) + (0.10193679918450561 * x))) / ((0.2038735983690113 * (u₁ ^ 0)) + (-0.10193679918450563 * (cos(u₁) ^ 2)))</code></pre><p>Currently, we <em>can not</em> generate an <code>ODESystem</code> out of the resulting equations, which is a work in progress.</p><h2 id="Functions-1"><a class="docs-heading-anchor" href="#Functions-1">Functions</a><a class="docs-heading-anchor-permalink" href="#Functions-1" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="DataDrivenDiffEq.ISINDy" href="#DataDrivenDiffEq.ISINDy"><code>DataDrivenDiffEq.ISINDy</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">ISINDy(X, Y, Ψ, opt = ADM(); f, g, maxiter, rtol, p, t, convergence_error)
+print_equations(Ψ, show_parameter = true)</code></pre><pre><code class="language-none">f_1 = u₃
+f_2 = 0.9999999999999999u₄
+f_3 = (-0.9999999999999999sin(u₁) + -0.0509683995922528x*cos(u₁) + -0.05096839959225281cos(u₁)*sin(u₁)*(u₃^2))*((0.10193679918450561 + -0.05096839959225284(cos(u₁)^2))^-1)
+f_4 = (-0.10193679918450561x + -1.0cos(u₁)*sin(u₁) + -0.10193679918450554sin(u₁)*(u₃^2))*((0.2038735983690113 + -0.10193679918450563(cos(u₁)^2))^-1)</code></pre><p>Currently, we <em>can not</em> generate an <code>ODESystem</code> out of the resulting equations, which is a work in progress.</p><h2 id="Functions-1"><a class="docs-heading-anchor" href="#Functions-1">Functions</a><a class="docs-heading-anchor-permalink" href="#Functions-1" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="DataDrivenDiffEq.ISINDy" href="#DataDrivenDiffEq.ISINDy"><code>DataDrivenDiffEq.ISINDy</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">ISINDy(X, Y, Ψ, opt = ADM(); f, g, maxiter, rtol, p, t, convergence_error)
 ISINDy(X, Y, Ψ, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)
-ISINDy(X, Y, Ψ, lamdas, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)</code></pre><p>Performs an implicit sparse identification of nonlinear dynamics given the data matrices <code>X</code> and <code>Y</code> via the <code>AbstractBasis</code> <code>basis.</code> Keyworded arguments include the parameter (values) of the basis <code>p</code> and the timepoints <code>t</code>, which are passed in optionally. Tries to find a sparse vector inside the nullspace if <code>opt</code> is an <code>AbstractSubspaceOptimizer</code> or performs parallel implicit search if <code>opt</code> is a <code>AbstractOptimizer</code>. <code>maxiter</code> denote the maximum iterations to perform and <code>convergence_error</code> the bound which causes the optimizer to stop. <code>denoise</code> defines if the matrix holding candidate trajectories should be thresholded via the <a href="http://arxiv.org/abs/1305.5870">optimal threshold for singular values</a>. <code>normalize</code> normalizes the matrix holding candidate trajectories via the L2-Norm over each function.</p><p>Typically <code>X</code> represent the state measurements and <code>Y</code> the measurements of the differential state. Since only the number of measurements (column dimension of the matrices) have to be equal, it is possible to augment <code>X</code> with additional data, e.g. external forcing or inputs.</p><p>If <code>ISINDy</code> is called with an additional array of thresholds contained in <code>lambdas</code>, it performs a multi objective optimization over all thresholds. The best vectors of the sparse nullspace are selected via multi-objective optimization. The best candidate is determined via the mapping onto a feature space <code>f</code> and an (scalar, positive definite) evaluation <code>g</code>. The signature of should be <code>f(xi, theta)</code> where <code>xi</code> are the coefficients of the sparse optimization and <code>theta</code> is the evaluated candidate library. <code>rtol</code> gets directly passed into the computation of the nullspace.</p><p>Currently ISINDy supports functions of the form <code>g(u, p, t)*du - f(u, p, t) = 0</code>.</p><p>Returns a <code>SparseIdentificationResult</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/e748a9eb484dadd2589e17fef4c30e68d0fdb913/src/sindy/isindy.jl#L9-L33">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../sindy/">« Sparse Identification of Nonlinear Dynamics</a><a class="docs-footer-nextpage" href="../optimizers/">Optimizer »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 11 January 2021 19:32">Monday 11 January 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ISINDy(X, Y, Ψ, lamdas, opt; f, g, maxiter, rtol, p, t, convergence_error, normalize, denoise)</code></pre><p>Performs an implicit sparse identification of nonlinear dynamics given the data matrices <code>X</code> and <code>Y</code> via the <code>AbstractBasis</code> <code>basis.</code> Keyworded arguments include the parameter (values) of the basis <code>p</code> and the timepoints <code>t</code>, which are passed in optionally. Tries to find a sparse vector inside the nullspace if <code>opt</code> is an <code>AbstractSubspaceOptimizer</code> or performs parallel implicit search if <code>opt</code> is a <code>AbstractOptimizer</code>. <code>maxiter</code> denote the maximum iterations to perform and <code>convergence_error</code> the bound which causes the optimizer to stop. <code>denoise</code> defines if the matrix holding candidate trajectories should be thresholded via the <a href="http://arxiv.org/abs/1305.5870">optimal threshold for singular values</a>. <code>normalize</code> normalizes the matrix holding candidate trajectories via the L2-Norm over each function.</p><p>Typically <code>X</code> represent the state measurements and <code>Y</code> the measurements of the differential state. Since only the number of measurements (column dimension of the matrices) have to be equal, it is possible to augment <code>X</code> with additional data, e.g. external forcing or inputs.</p><p>If <code>ISINDy</code> is called with an additional array of thresholds contained in <code>lambdas</code>, it performs a multi objective optimization over all thresholds. The best vectors of the sparse nullspace are selected via multi-objective optimization. The best candidate is determined via the mapping onto a feature space <code>f</code> and an (scalar, positive definite) evaluation <code>g</code>. The signature of should be <code>f(xi, theta)</code> where <code>xi</code> are the coefficients of the sparse optimization and <code>theta</code> is the evaluated candidate library. <code>rtol</code> gets directly passed into the computation of the nullspace.</p><p>Currently ISINDy supports functions of the form <code>g(u, p, t)*du - f(u, p, t) = 0</code>.</p><p>Returns a <code>SparseIdentificationResult</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/e259e096ccac773a4d4bea1a665f4b8653268483/src/sindy/isindy.jl#L9-L33">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../sindy/">« Sparse Identification of Nonlinear Dynamics</a><a class="docs-footer-nextpage" href="../optimizers/">Optimizer »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 20 January 2021 09:01">Wednesday 20 January 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
