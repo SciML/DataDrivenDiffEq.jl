@@ -1,8 +1,5 @@
-using ModelingToolkit
-using LinearAlgebra
-using DiffEqBase
 import Base: unique, unique!, ==
-using ModelingToolkit: <ₑ, value, isparameter, operation, arguments, istree
+using ModelingToolkit: value, operation, arguments, istree
 
 """
 $(TYPEDEF)
