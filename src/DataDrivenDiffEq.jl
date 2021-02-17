@@ -10,7 +10,7 @@ using FiniteDifferences, DataInterpolations
 using Compat
 using DocStringExtensions
 
-abstract type AbstractKoopmanOperator end;
+abstract type AbstractKoopmanOperator <: Function end;
 
 include("./optimizers/Optimize.jl")
 using .Optimize
@@ -85,6 +85,6 @@ export burst_sampling, subsample
 
 include("./basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis
-export sin_basis, cos_basis, fourier_basis 
+export sin_basis, cos_basis, fourier_basis
 
 end # module
