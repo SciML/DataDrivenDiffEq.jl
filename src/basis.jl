@@ -12,7 +12,7 @@ It can be called with the typical DiffEq signature, meaning out of place with `f
 or in place with `f(du, u, p, t)`.
 If `linear_independent` is set to `true`, a linear independent basis is created from all atom function in `f`.
 If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
-Additional keyworded arguments include `name`, which can be used to name the basis, `pins` used for connections and
+Additional keyworded arguments include `name`, which can be used to name the basis, and
 `observed` for defining observeables.
 
 # Fields
@@ -48,7 +48,6 @@ mutable struct Basis <: ModelingToolkit.AbstractSystem
     states::Vector
     """Parameters"""
     ps::Vector
-    pins::Vector
     observed::Vector
     """Independent variable"""
     iv::Num
@@ -63,7 +62,7 @@ end
 function Basis(eqs::AbstractVector, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
 
     simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = false,
-    pins = [], observed = [],
+    observed = [],
     kwargs...)
 
     eqs = simplify ? ModelingToolkit.simplify.(eqs) : eqs
@@ -80,7 +79,7 @@ function Basis(eqs::AbstractVector, states::AbstractVector; parameters::Abstract
     f_(u,p,t) = f_oop(u,p,t)
     f_(du, u, p, t) = f_iip(du, u, p, t)
 
-    return Basis(eqs, value.(states), value.(parameters), pins, observed, value(iv), f_, name, Basis[])
+    return Basis(eqs, value.(states), value.(parameters), observed, value(iv), f_, name, Basis[])
 end
 
 function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = [], iv = nothing, kwargs...)
@@ -239,9 +238,8 @@ function Base.merge(x::Basis, y::Basis; eval_expression = false)
     b =  unique(vcat([xi.rhs  for xi ∈ equations(x)], [xi.rhs  for xi ∈ equations(y)]))
     vs = unique(vcat(x.states, y.states))
     ps = unique(vcat(x.ps, y.ps))
-    pins = unique(vcat(x.pins, y.pins))
     observed = unique(vcat(x.observed, y.observed))
-    return Basis(Num.(b), vs, parameters = ps, pins = pins, observed = observed, eval_expression = eval_expression)
+    return Basis(Num.(b), vs, parameters = ps, observed = observed, eval_expression = eval_expression)
 end
 
 """
