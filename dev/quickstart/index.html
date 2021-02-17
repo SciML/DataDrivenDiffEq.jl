@@ -68,7 +68,24 @@ basis = Basis(observables, u)</code></pre><p>\begin{align} \varphi{<em>1} =&amp;
 \varphi{<em>3} =&amp; u{</em>1}^{2} \end{align}</p><p>A <code>Basis</code> captures a bunch of functions defined over some variables provided via <a href="https://github.com/SciML/ModelingToolkit.jl">ModelingToolkit.jl</a>. Here, we included the state and <code>u[1]^2</code>. Now, we simply call <code>gEDMD</code>, which will compute the generator of the <a href="../koopman/koopman/#koopman_operator-1">Koopman Operator</a> associated with the model.</p><pre><code class="language-julia">approximation = gEDMD(X, DX, basis)
 
 approximation_problem = ODEProblem(approximation, u0, tspan)
-generator_sol = solve(approximation_problem, Tsit5(), saveat = solution.t)</code></pre><p><img src="../slow_approximation_cont.png" alt/></p><p>Looking at the eigenvalues of the system, we see that the estimated eigenvalues of the linear system are close to the true values.</p><p><img src="../eigenvalue_slowmanifold.png" alt/></p><h2 id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1"><a class="docs-heading-anchor" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1">Nonlinear Systems - Sparse Identification of Nonlinear Dynamics</a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1" title="Permalink"></a></h2><p>Okay, so far we can fit linear models via DMD and nonlinear models via EDMD. But what if we want to find a model of a nonlinear system <em>without moving to Koopman space</em>? Simple, we use <a href="https://www.pnas.org/content/113/15/3932">Sparse Identification of Nonlinear Dynamics</a> or <code>SINDy</code>.</p><p>As the name suggests, <code>SINDy</code> finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system</p><pre><code class="language-julia">using DataDrivenDiffEq
+generator_sol = solve(approximation_problem, Tsit5(), saveat = solution.t)</code></pre><pre><code class="language-none">┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.f_` is deprecated. Use getters like `get_f_` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.iv` is deprecated. Use getters like `get_iv` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.ps` is deprecated. Use getters like `get_ps` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.f_` is deprecated. Use getters like `get_f_` instead.
+│   caller = ip:0x0
+└ @ Core :-1</code></pre><p><img src="../slow_approximation_cont.png" alt/></p><p>Looking at the eigenvalues of the system, we see that the estimated eigenvalues of the linear system are close to the true values.</p><p><img src="../eigenvalue_slowmanifold.png" alt/></p><h2 id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1"><a class="docs-heading-anchor" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1">Nonlinear Systems - Sparse Identification of Nonlinear Dynamics</a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1" title="Permalink"></a></h2><p>Okay, so far we can fit linear models via DMD and nonlinear models via EDMD. But what if we want to find a model of a nonlinear system <em>without moving to Koopman space</em>? Simple, we use <a href="https://www.pnas.org/content/113/15/3932">Sparse Identification of Nonlinear Dynamics</a> or <code>SINDy</code>.</p><p>As the name suggests, <code>SINDy</code> finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system</p><pre><code class="language-julia">using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
 using LinearAlgebra
@@ -92,8 +109,32 @@ DX = solution(solution.t, Val{1})</code></pre><p><img src="../nonlinear_pendulum
 h = [u; u.^2; u.^3; sin.(u); cos.(u); 1]
 
 basis = Basis(h, u)</code></pre><p><code>DataDrivenDiffEq</code> comes with some optimizers to tackle sparse regression problems. Here, we will use <code>SR3</code>, used <a href="https://arxiv.org/abs/1906.10612">here</a> and introduced <a href="https://ieeexplore.ieee.org/document/8573778">here</a>. We choose a threshold of <code>3.5e-1</code> and start the optimizer.</p><pre><code class="language-julia">opt = SR3(3e-1, 1.0)
-Ψ = SINDy(X[:, 1:1000], DX[:, 1:1000], basis, opt, maxiter = 10000, normalize = true)</code></pre><pre><code class="language-none">##Basis#356 : 2 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;]
+Ψ = SINDy(X[:, 1:1000], DX[:, 1:1000], basis, opt, maxiter = 10000, normalize = true)</code></pre><pre><code class="language-none">┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.f_` is deprecated. Use getters like `get_f_` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.name` is deprecated. Use getters like `get_name` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+##Basis#344 : 2 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;]┌ Warning: `sys.name` like `sys.ps` is deprecated. Use getters like `get_ps` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+
 Parameters : SymbolicUtils.Sym{ModelingToolkit.Parameter{Real}}[p₁, p₂, p₃]
+┌ Warning: `sys.name` like `sys.iv` is deprecated. Use getters like `get_iv` instead.
+│   caller = ip:0x0
+└ @ Core :-1
 
 Independent variable: t
 Equations
@@ -104,4 +145,18 @@ p = parameters(Ψ)
 dudt = ODEFunction(sys)
 
 estimator = ODEProblem(dudt, u0, tspan, p)
-estimation = solve(estimator, Tsit5(), saveat = solution.t)</code></pre><p><img src="../SINDy_estimation.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../basis/">Basis »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 29 January 2021 08:40">Friday 29 January 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+estimation = solve(estimator, Tsit5(), saveat = solution.t)</code></pre><pre><code class="language-none">┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.f_` is deprecated. Use getters like `get_f_` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.observed` is deprecated. Use getters like `get_observed` instead.
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: `sys.name` like `sys.systems` is deprecated. Use getters like `get_systems` instead.
+│   caller = ip:0x0
+└ @ Core :-1</code></pre><p><img src="../SINDy_estimation.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../basis/">Basis »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 17 February 2021 20:19">Wednesday 17 February 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
