@@ -18,7 +18,7 @@ using .Optimize
 export set_threshold!, set_threshold
 export STLSQ, ADMM, SR3
 export ADM
-export SoftThreshold, HardThreshold
+export SoftThreshold, HardThreshold, ClippedAbsoluteDeviation
 
 include("./basis.jl")
 export Basis

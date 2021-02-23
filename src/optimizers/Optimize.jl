@@ -29,7 +29,7 @@ export evaluate_pareto!
 end
 
 include("./proximals.jl")
-export SoftThreshold, HardThreshold
+export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
 
 include("./stlsq.jl")
 include("./admm.jl")

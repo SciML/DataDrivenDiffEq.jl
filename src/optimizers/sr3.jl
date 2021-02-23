@@ -9,10 +9,10 @@ $(TYPEDEF)
 It solves the following problem
 
 ```math
-\\min_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda R(w) + \\frac{\\kappa}{2}\\|x-w\\|_2
+\\min_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda R(w) + \\frac{\\nu\\lambda}{2}\\|x-w\\|_2
 ```
 
-Where `R` is a proximal operator.
+Where `R` is a proximal operator and the result is given by `w`.
 
 #Fields
 $(FIELDS)
@@ -22,7 +22,13 @@ $(FIELDS)
 opt = SR3()
 opt = SR3(1e-2)
 opt = SR3(1e-3, 1.0)
+opt = SR3(1e-3, 1.0, SoftThreshold())
 ```
+
+## Note
+Opposed to the original formulation, we use `κ = ν * λ` as a relaxation parameter, such that
+`λ` is equal to the threshold of the proximal operator.
+
 """
 mutable struct SR3{T,P} <: AbstractOptimizer where {T <: Real, P <: AbstractProximalOperator}
     """Sparsity threshold"""
@@ -53,7 +59,8 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
     W = copy(X)
 
     # Init matrices
-    H = inv(A'*A+I(m)*opt.ν)
+    κ = opt.ν*opt.λ
+    H = inv(A'*A+I(m)*κ)
     X̂ = A'*Y
 
     w_i = similar(W)
@@ -64,18 +71,18 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
         iters += 1
 
         # Solve ridge regression
-        X .= H*(X̂ .+ W * opt.ν)
+        X .= H*(X̂ .+ W * κ)
         # Soft threshold
-        opt.R(W, X, get_threshold(opt)/opt.ν)
+        opt.R(W, X, get_threshold(opt))
 
-        if norm(w_i - W, 2) < convergence_error
+        if norm(w_i - W, 2)*κ < convergence_error
             break
         else
             w_i .= W
         end
 
     end
-    
+
     X .= W
     clip_by_threshold!(X, get_threshold(opt))
     return iters
