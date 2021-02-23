@@ -16,8 +16,7 @@ include("./optimizers/Optimize.jl")
 using .Optimize
 
 export set_threshold!, set_threshold
-export STRRidge, ADMM, SR3
-
+export STLSQ, ADMM, SR3
 export ADM
 
 include("./basis.jl")
@@ -74,7 +73,7 @@ function ISInDy(Y, X, basis; opt = ADM(), kwargs...)
     ISINDy(Y, X, basis, opt; kwargs...)
 end
 
-export SInDy, ISInDy
+export SInDy, ISInDy, STRRidge
 
 include("./sindy/isindy.jl")
 export ISINDy
