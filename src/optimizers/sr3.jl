@@ -1,26 +1,32 @@
-# Based upon alg 1 in
-# A unified sparse optimization framework to learn parsimonious physics-informed models from data
-# by K Champion et. al.
-
-mutable struct SR3{U} <: AbstractOptimizer
-    λ::U
-    ν::U
-end
-
+# Based upon alg 2 in https://ieeexplore.ieee.org/document/8573778
 
 """
-    SR3(λ, ν, R)
-    SR3(λ = 1e-1, ν = 1.0)
+$(TYPEDEF)
 
 `SR3` is an optimizer framework introduced [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778) and used within
 [Champion et. al., 2019](https://arxiv.org/abs/1906.10612). `SR3` contains a sparsification parameter `λ`, a relaxation `ν`.
-# Examples
+
+It solves the following problem
+
+```math
+\min_{x, w} \frac{1}{2} \| Ax-b\|_2 + \lambda \|w\|_1 + \frac{\kappa}{2}\|x-w\|_2
+```
+#Fields
+$(FIELDS)
+
+# Example
 ```julia
 opt = SR3()
 opt = SR3(1e-2)
 opt = SR3(1e-3, 1.0)
 ```
 """
+mutable struct SR3{U} <: AbstractOptimizer
+    """Sparsification parameter"""
+    λ::U
+    """Relaxation parameter"""
+    ν::U
+end
 
 function SR3(λ = 1e-1, ν = 1.0)
     return SR3(λ, ν)
@@ -37,7 +43,6 @@ init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
-    #f = opt.R(get_threshold(opt))
 
     n, m = size(A)
     W = copy(X)
@@ -65,7 +70,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
         end
 
     end
-
+    X .= W
     hard_thresholding!(X, get_threshold(opt))
     return iters
 end
