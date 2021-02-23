@@ -18,11 +18,11 @@ opt = ADMM()
 opt = ADMM(1e-1, 2.0)
 ```
 """
-mutable struct ADMM{U} <: AbstractOptimizer
+mutable struct ADMM{T} <: AbstractOptimizer where T <: Real
     """Sparsity threshold"""
-    λ::U
+    λ::T
     """Augmented Lagrangian parameter"""
-    ρ::U
+    ρ::T
 end
 
 ADMM() = ADMM(0.1, 1.0)

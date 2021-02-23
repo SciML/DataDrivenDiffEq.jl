@@ -21,8 +21,8 @@ opt = SR3(1e-2)
 opt = SR3(1e-3, 1.0)
 ```
 """
-mutable struct SR3{U} <: AbstractOptimizer
-    """Sparsification parameter"""
+mutable struct SR3{U} <: AbstractOptimizer where T <: Real
+    """Sparsity threshold"""
     λ::U
     """Relaxation parameter"""
     ν::U

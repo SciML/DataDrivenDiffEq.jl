@@ -2,7 +2,6 @@
 # repository, see https://arxiv.org/abs/1711.05501
 # and https://github.com/eurika-kaiser/SINDY-MPC/blob/master/LICENSE
 
-
 """
 $(TYPEDEF)
 
@@ -25,7 +24,7 @@ opt = STLQS()
 opt = STLQS(1e-1)
 ```
 """
-mutable struct STLSQ{T} <: AbstractOptimizer
+mutable struct STLSQ{T} <: AbstractOptimizer where T <: Real
     """Sparsity threshold"""
     λ::T
 end
