@@ -65,7 +65,7 @@
     sol_2 = solve(estimator, Tsit5(), saveat=dt)
     @test norm(sol[:,:] - sol_2[:,:], 2) < 2e-1
 
-    opt = SR3(1e-3, 1.0)
+    opt = SR3(1e-2, 1.0)
     Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter=5000)
     @test_nowarn set_threshold!(opt, 0.1)
 
