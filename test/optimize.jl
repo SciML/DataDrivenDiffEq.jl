@@ -1,4 +1,4 @@
-opts = [STRRidge(), ADMM(), SR3()]
+opts = [STLSQ(), ADMM(), SR3()]
 iters = Int64[3000, 30000, 30000]
 atols = Float64[1e-10, 1e-4, 1e-5]
 

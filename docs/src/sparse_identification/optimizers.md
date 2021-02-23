@@ -6,7 +6,7 @@
 ## Functions
 
 ```@docs
-STRRidge
+STLSQ
 ADMM
 SR3
 DataDrivenDiffEq.Optimize.ADM

@@ -30,7 +30,7 @@ tspan = (0.0, 5.0)
 problem = ODEProblem(michaelis_menten, u0, tspan)
 
 solution = solve(problem, Tsit5(), saveat = 0.1, atol = 1e-7, rtol = 1e-7)
-    
+
 plot(solution) # hide
 savefig("iSINDy_example.png")
 ```
@@ -145,7 +145,7 @@ for i ∈ 0:4
         else
             push!(polys, u[3:4].^i...)
         end
-        
+
     end
 end
 push!(polys, sin.(u[1])...)
@@ -166,12 +166,12 @@ We added the time dependent input directly into the basis to account for its inf
 
 *NOTE : Including input signals may change in future releases!*
 
-Like for a `SINDy`, we can use any `AbstractOptimizer` with a pareto front optimization over different thresholds. 
+Like for a `SINDy`, we can use any `AbstractOptimizer` with a pareto front optimization over different thresholds.
 
 ```@example iSINDy_2
 λ = exp10.(-4:0.1:-1)
 g(x) = norm([1e-3; 10.0] .* x, 2)
-Ψ = ISINDy(X[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
+Ψ = ISINDy(X[:,:], DX[:, :], basis, λ, STLSQ(), maxiter = 100, normalize = false, t = solution.t, g = g)
 
 # Transform into ODE System
 sys = ODESystem(Ψ)
@@ -209,7 +209,7 @@ for i ∈ 0:4
         else
             push!(polys, u[3:4].^i...)
         end
-        
+
     end
 end
 push!(polys, sin.(u[1])...)
@@ -234,7 +234,7 @@ Xᵤ = vcat(X, U')
 
 λ = exp10.(-4:0.5:-1)
 g(x) = norm([1e-3; 10.0] .* x, 2)
-Ψ = ISINDy(Xᵤ[:,:], DX[:, :], basis, λ, STRRidge(), maxiter = 100, normalize = false, t = solution.t, g = g)
+Ψ = ISINDy(Xᵤ[:,:], DX[:, :], basis, λ, STLSQ(), maxiter = 100, normalize = false, t = solution.t, g = g)
 print_equations(Ψ, show_parameter = true)
 ```
 

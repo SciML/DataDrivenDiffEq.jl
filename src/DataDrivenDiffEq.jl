@@ -59,6 +59,11 @@ include("./sindy/sindy.jl")
 export SINDy
 export sparse_regression, sparse_regression!
 
+function STRRidge(args...)
+    @warn("STRRidge has been deprecated. Use STLSQ to recover the same functionality")
+    return STLSQ(args...)
+end
+
 function SInDy(Y, X, basis; opt = STRRidge(), kwargs...)
     @warn("SInDy has been deprecated. Use SINDy to recover the same functionality.")
     SINDy(Y, X, basis, opt; kwargs...)

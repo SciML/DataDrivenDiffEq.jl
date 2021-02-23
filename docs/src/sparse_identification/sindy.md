@@ -77,10 +77,10 @@ nothing #hide
 
 *A `Basis` consists of unique functions, so duplicates will be included just once*
 
-To perform the sparse identification on our data, we need to define an `Optimizer`. Here, we will use `STRRidge`, which is described in the original paper. The threshold of the optimizer is set to `0.1`. An overview of the different optimizers can be found below.
+To perform the sparse identification on our data, we need to define an `Optimizer`. Here, we will use `STLSQ`, which is described in the original paper. The threshold of the optimizer is set to `0.1`. An overview of the different optimizers can be found below.
 
 ```@example SINDy_1
-opt = STRRidge(0.1)
+opt = STLSQ(0.1)
 Ψ = SINDy(X, DX, basis, opt, maxiter = 100, normalize = true)
 ```
 

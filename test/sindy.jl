@@ -37,7 +37,7 @@
 
     basis = Basis(h, u)
 
-    opt = STRRidge(1e-2)
+    opt = STLSQ(1e-2)
     Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter=2000)
     @test_nowarn set_threshold!(opt, 1e-2)
 
@@ -75,7 +75,7 @@
     @test norm(sol[:,:] - sol_3[:,:], 2) < 1e-1
 
 # Now use the threshold adaptation
-    opt = STRRidge(1e-2)
+    opt = STLSQ(1e-2)
     λs = exp10.(-7:0.1:-1)
     Ψ = SINDy(sol[:,:], DX[:, :], basis, λs, opt, maxiter=100)
     estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))

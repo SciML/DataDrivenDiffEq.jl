@@ -38,11 +38,11 @@ end
     for i in eachindex(x)
         x[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
     end
-    return 
+    return
 end
 
 
-include("./strridge.jl")
+include("./stlsq.jl")
 include("./admm.jl")
 include("./sr3.jl")
 
@@ -50,7 +50,7 @@ include("./sr3.jl")
 include("./adm.jl")
 
 export init, init!, fit!, set_threshold!, get_threshold
-export STRRidge, ADMM, SR3
+export STLSQ, ADMM, SR3
 export ADM
 
 end
