@@ -29,12 +29,10 @@ get_threshold(opt::ADMM) = opt.λ/opt.ρ
 init(o::ADMM, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
-#soft_thresholding(x::AbstractArray, t::T) where T <: Real = sign.(x) .* max.(abs.(x) .- t, zero(eltype(x)))
-
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
     n, m = size(A)
 
-    g = NormL1(get_threshold(opt))
+    #g = NormL1(get_threshold(opt))
 
     x̂ = deepcopy(X)
     ŷ = zero(X)
@@ -52,7 +50,8 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
         iters += 1
 
         x̂ .= P*(opt.ρ.*X .- ŷ) .+ c
-        prox!(X, g, x̂ .+ ŷ./opt.ρ)
+        soft_thresholding!(X,  x̂ .+ ŷ./opt.ρ, get_threshold(opt))
+        #prox!(X, g, x̂ .+ ŷ./opt.ρ)
         ŷ .= ŷ .+ opt.ρ.*(x̂ .- X)
 
         if norm(x_i - X, 2) < convergence_error
@@ -63,6 +62,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
 
     end
 
-    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
+
+    hard_thresholding!(X, get_threshold(opt))
     return iters
 end

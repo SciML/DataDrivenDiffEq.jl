@@ -2,10 +2,9 @@
 # A unified sparse optimization framework to learn parsimonious physics-informed models from data
 # by K Champion et. al.
 
-mutable struct SR3{U,T} <: AbstractOptimizer
+mutable struct SR3{U} <: AbstractOptimizer
     λ::U
     ν::U
-    R::T
 end
 
 
@@ -14,9 +13,7 @@ end
     SR3(λ = 1e-1, ν = 1.0)
 
 `SR3` is an optimizer framework introduced [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778) and used within
-[Champion et. al., 2019](https://arxiv.org/abs/1906.10612). `SR3` contains a sparsification parameter `λ`, a relaxation `ν`,
-and a corresponding penalty function `R`, which should be taken from [ProximalOperators.jl](https://github.com/kul-forbes/ProximalOperators.jl).
-
+[Champion et. al., 2019](https://arxiv.org/abs/1906.10612). `SR3` contains a sparsification parameter `λ`, a relaxation `ν`.
 # Examples
 ```julia
 opt = SR3()
@@ -24,29 +21,29 @@ opt = SR3(1e-2)
 opt = SR3(1e-3, 1.0)
 ```
 """
+
 function SR3(λ = 1e-1, ν = 1.0)
-    R = NormL1
-    return SR3(λ, ν, R)
+    return SR3(λ, ν)
 end
 
 function set_threshold!(opt::SR3, threshold)
-    opt.λ = threshold^2*opt.ν /2
+    opt.λ = threshold
     return
 end
 
-get_threshold(opt::SR3) = sqrt(2*opt.λ/opt.ν)
+get_threshold(opt::SR3) = opt.λ
 
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
-    f = opt.R(get_threshold(opt))
+    #f = opt.R(get_threshold(opt))
 
     n, m = size(A)
     W = copy(X)
 
     # Init matrices
-    P = inv(A'*A+I(m)/(opt.ν))
+    H = inv(A'*A+I(m)*opt.ν)
     X̂ = A'*Y
 
     w_i = similar(W)
@@ -55,12 +52,13 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
 
     for i in 1:maxiter
         iters += 1
-        # Solve ridge regression
-        X .= P*(X̂.+W./(opt.ν))
-        # Add proximal iteration
-        prox!(W, f, X, opt.ν*opt.λ)
 
-        if norm(w_i - W, 2)/opt.ν < convergence_error
+        # Solve ridge regression
+        X .= H*(X̂ .+ W * opt.ν)
+        # Soft threshold
+        soft_thresholding!(W, X, get_threshold(opt)/opt.ν)
+
+        if norm(w_i - W, 2)*opt.ν < convergence_error
             break
         else
             w_i .= W
@@ -68,6 +66,6 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
 
     end
 
-    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
+    hard_thresholding!(X, get_threshold(opt))
     return iters
 end

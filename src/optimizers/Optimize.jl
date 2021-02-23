@@ -1,7 +1,6 @@
 module Optimize
 
 using LinearAlgebra
-using ProximalOperators
 
 
 abstract type AbstractOptimizer end;
@@ -19,6 +18,28 @@ end
 
 # Pareto
 export evaluate_pareto!
+
+@inline function soft_thresholding!(x::AbstractArray, λ::T) where T <: Real
+    for i in eachindex(x)
+        x[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
+    end
+    return
+end
+
+@inline function soft_thresholding!(y::AbstractArray, x::AbstractArray, λ::T) where T <: Real
+    @assert all(size(y) .== size(x))
+    for i in eachindex(x)
+        y[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
+    end
+    return
+end
+
+@inline function hard_thresholding!(x::AbstractArray, λ::T) where T <: Real
+    for i in eachindex(x)
+        x[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
+    end
+    return 
+end
 
 
 include("./strridge.jl")

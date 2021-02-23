@@ -1,6 +1,6 @@
 opts = [STRRidge(), ADMM(), SR3()]
 iters = Int64[3000, 30000, 30000]
-atols = Float64[1e-10, 1e-4, 1e-7]
+atols = Float64[1e-10, 1e-4, 1e-5]
 
 @info "Starting optimzation tests"
 @testset "Equal Sizes" begin

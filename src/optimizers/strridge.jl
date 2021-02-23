@@ -57,6 +57,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STRRidg
 
     end
 
-    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
+    hard_thresholding!(X, get_threshold(opt))
+    #X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
     return iters
 end
