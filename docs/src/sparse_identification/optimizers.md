@@ -9,7 +9,7 @@
 STLSQ
 ADMM
 SR3
-DataDrivenDiffEq.Optimize.ADM
+ADM
 ```
 
 

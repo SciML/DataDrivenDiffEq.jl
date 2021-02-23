@@ -1,18 +1,31 @@
+"""
+$(TYPEDEF)
 
+Optimizer for finding a sparse basis vector in a subspace based on [this paper](https://arxiv.org/pdf/1412.4659.pdf).
+
+It solves the following problem
+
+```math
+\min_{x} \|x\|_0 ~s.t.~Ax= 0
+```
+
+#Fields
+$(FIELDS)
+
+# Example
+```julia
+ADM()
+ADM(λ = 0.1)
+```
+"""
 mutable struct ADM{U} <: AbstractSubspaceOptimizer
+    """Sparsity threshold"""
     λ::U
 end
 
 get_threshold(opt::ADM) = opt.λ
 set_threshold!(opt::ADM, λ) = (opt.λ = λ; return)
 
-"""
-    ADM()
-    ADM(λ = 0.1)
-
-Optimizer for finding a sparse basis vector in a subspace based on [this paper](https://arxiv.org/pdf/1412.4659.pdf).
-`λ` is the weight for the soft-thresholding operation.
-"""
 
 # ADM algorithm
 function fit!(q::AbstractArray{T, 1}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10, tol::T = eps(eltype(q))) where T <: Real
