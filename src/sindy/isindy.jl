@@ -60,12 +60,12 @@ function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T; f::Func
     # Init for sweep over the differential variables
     Ξ = zeros(eltype(θ), length(Ψ)*2, size(Ẋ, 1))
     q = zeros(eltype(θ), size(θ, 1)*2, size(θ, 1)*2)
-    
+
     # Closure
     fg(xi, theta) = (g∘f)(xi, theta)
 
     iters = zeros(Int64, size(Ẋ, 1))
-    
+
 
     # TODO maybe add normalization here
     for i in 1:size(Ẋ, 1)
@@ -81,13 +81,13 @@ function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, opt::T; f::Func
 end
 
 
-function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractVector, opt::T = STRRidge(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
+function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractVector, opt::T = STLSQ(); f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x), maxiter::Int64 = 10, rtol::Float64 = 0.99, p::AbstractArray = [], t::AbstractVector = [], convergence_error = eps(), normalize::Bool = true, denoise::Bool = false) where T <: DataDrivenDiffEq.Optimize.AbstractOptimizer
     @assert size(X)[end] == size(Ẋ)[end]
-    
+
     # Compute the library and the corresponding nullspace
     θ = zeros(eltype(X), length(Ψ), size(X, 2))
     Ψ(θ, X, p, t)
-    
+
     dθ = zeros(eltype(θ), size(θ, 1)*2, size(θ, 2))
     dθ[size(θ, 1)+1:end, :] .= θ
 
@@ -99,7 +99,7 @@ function ISINDy(X::AbstractArray, Ẋ::AbstractArray, Ψ::Basis, thresholds::Abs
     fg(xi, theta) = (g∘f)(xi, theta)
 
     iters = zeros(Int64, size(Ẋ, 1))
-    
+
 
     # TODO maybe add normalization here
     for i in 1:size(Ẋ, 1)
@@ -118,23 +118,23 @@ function parallel_implicit!(Ξ, X, opt, fg, maxiter, denoise, normalize, converg
 
     q = zeros(eltype(X), size(X, 1), size(X, 1), length(thresholds))
     iters_ = zeros(Int64, size(X,1), length(thresholds))
-    
+
     Threads.@threads for j in 1:size(X, 1)
         idx = [k_ != j for k_ in 1:size(X, 1)]
-        
+
         for k in 1:length(thresholds)
             set_threshold!(opt, thresholds[k])
-            iters_[j, k] = sparse_regression!(view(q, idx, j, k), view(X, idx , :), -transpose(view(X, j, :)), maxiter , opt, denoise, normalize, convergence_error) 
+            iters_[j, k] = sparse_regression!(view(q, idx, j, k), view(X, idx , :), -transpose(view(X, j, :)), maxiter , opt, denoise, normalize, convergence_error)
             q[j, j, k] = one(eltype(q))
         end
     end
-        
+
     iters = Inf
     half_size = Int64(round(size(X, 1)/2))
-    
+
     for j in 1:size(X, 1), k in 1:length(thresholds)
         norm(view(q, 1:half_size , j, k), 0) <= 0 || norm(view(q, (half_size+1):size(X, 1),j, k), 0)<= 0 ? continue : nothing
-        
+
         if evaluate_pareto!(view(Ξ, :), view(q, :, j, k), fg, view(X, :, :)) || j == 1
             @views mul!(Ξ, q[:, j, k],  one(eltype(q))./maximum(abs, q[:, j, k]))
 
@@ -166,7 +166,7 @@ end
 
 
 function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) where T <: Real
-    
+
     sparsity = Int64(norm(Ξ, 0)) # Overall sparsity
     @parameters p[1:sparsity]
     size_b = length(b)
@@ -174,10 +174,10 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
     inds = @. ! iszero(Ξ)
 
     pinds = Int64.(norm.(eachcol(inds), 0))
-    
+
     pinds_d = Int64.(norm.(eachcol(inds[1:size_b,:]), 0))
     pinds_n = Int64.(norm.(eachcol(inds[size_b+1:end, :]), 0))
-    
+
     p_ = similar(Ξ[inds])
 
     eq = Array{Any}(undef, sum([i>0 for i in pinds]))
@@ -199,7 +199,7 @@ function derive_implicit_parameterized_eqs(Ξ::AbstractArray{T, 2}, b::Basis) wh
                 if inds[j, i]
                     if iszero(eq_d)
                         eq_d =  p[p_cnt] * (b.eqs[j]).rhs
-                    else    
+                    else
                         eq_d +=  p[p_cnt] * (b.eqs[j]).rhs
                     end
                     p_[p_cnt] = Ξ[j, i]

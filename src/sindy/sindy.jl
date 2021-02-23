@@ -42,7 +42,7 @@ If `Xi`, `Theta` and `Y` are given, the sparse regression will find the coeffici
 # Example
 
 ```julia
-opt = STRRidge()
+opt = STLSQ()
 maxiter = 10
 c_error = 1e-3
 
@@ -85,7 +85,7 @@ function sparse_regression!(Ξ::AbstractArray, X::AbstractArray, Ẋ::AbstractAr
     scales = ones(eltype(X), length(Ψ))
     θ = zeros(eltype(X), length(Ψ), nm)
     Ψ(θ, X, p, t)
-    
+
     denoise ? optimal_shrinkage!(θ') : nothing
     normalize ? normalize_theta!(scales, θ) : nothing
 
@@ -116,19 +116,19 @@ end
 
 
 # One Variable on multiple derivatives
-function SINDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, opt::T = STRRidge(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
+function SINDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, opt::T = STLSQ(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
     return SINDy(X', Ẋ, Ψ, opt; kwargs...)
 end
 
 # Multiple on one
-function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, opt::T = STRRidge(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
+function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, opt::T = STLSQ(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
     return SINDy(X, Ẋ', Ψ, opt; kwargs...)
 end
 
 # General
 """
-    SINDy(X, Y, basis, opt = STRRidge(); p, t, maxiter, convergence_error, denoise, normalize)
-    SINDy(X, Y, basis, lambdas, opt = STRRidge(); f, g, p, t, opt, maxiter, convergence_error, denoise, normalize)
+    SINDy(X, Y, basis, opt = STLSQ(); p, t, maxiter, convergence_error, denoise, normalize)
+    SINDy(X, Y, basis, lambdas, opt = STLSQ(); f, g, p, t, opt, maxiter, convergence_error, denoise, normalize)
 
 Performs Sparse Identification of Nonlinear Dynamics given the data matrices `X` and `Y` via the `AbstractBasis` `basis.`
 Keyworded arguments include the parameter (values) of the basis `p` and the timepoints `t` which are passed in optionally.
@@ -145,7 +145,7 @@ The best candidate is determined via the mapping onto a feature space `f` and an
 The signature of should be `f(xi, theta, yi)` where `xi` are the coefficients of the sparse optimization,`theta` is the evaluated candidate library and `yi` are the rows of the matrix `Y`.
 Returns a `SINDyResult`. If the pareto optimization is used, the result combines the best candidate for each row of `Y`.
 """
-function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, opt::T = STRRidge(); p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer, S <: Number}
+function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 2}, Ψ::Basis, opt::T = STLSQ(); p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer, S <: Number}
     Ξ, iters = sparse_regression(X, Ẋ, Ψ, p, t, maxiter, opt, denoise, normalize, convergence_error)
     convergence = iters < maxiter
     SparseIdentificationResult(Ξ, Ψ, iters, opt, convergence, Ẋ, X, p = p)
@@ -153,15 +153,15 @@ end
 
 
 
-function SINDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
+function SINDy(X::AbstractArray{S, 1}, Ẋ::AbstractArray, Ψ::Basis, thresholds::AbstractArray, opt::T = STLSQ(); kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
     return SINDy(X', Ẋ, Ψ, thresholds, opt; kwargs...)
 end
 
-function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge()::AbstractArray; kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
+function SINDy(X::AbstractArray{S, 2}, Ẋ::AbstractArray{S, 1}, Ψ::Basis, thresholds::AbstractArray, opt::T = STLSQ()::AbstractArray; kwargs...) where {T <: Optimize.AbstractOptimizer, S <: Number}
     return SINDy(X, Ẋ', Ψ, thresholds, opt; kwargs...)
 end
 
-function SINDy(X, DX, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge(); f::Function = (xi, theta, dx)->[norm(xi, 0); norm(dx .- theta'*xi, 2)], g::Function = x->norm(x), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer}
+function SINDy(X, DX, Ψ::Basis, thresholds::AbstractArray, opt::T = STLSQ(); f::Function = (xi, theta, dx)->[norm(xi, 0); norm(dx .- theta'*xi, 2)], g::Function = x->norm(x), p::AbstractArray = [], t::AbstractVector = [], maxiter::Int64 = 10, denoise::Bool = false, normalize::Bool = true, convergence_error = eps()) where {T <: Optimize.AbstractOptimizer}
     @assert size(X)[end] == size(DX)[end]
     nx, nm = size(X)
     ny, nm = size(DX)
@@ -181,7 +181,7 @@ function SINDy(X, DX, Ψ::Basis, thresholds::AbstractArray, opt::T = STRRidge();
     normalize ? normalize_theta!(scales, θ) : nothing
 
     fg(xi, theta, dx) = (g∘f)(xi, theta, dx)
-    
+
     @inbounds for j in 1:length(thresholds)
         set_threshold!(opt, thresholds[j])
         iter_ = sparse_regression!(view(ξ_tmp, :, :), view(θ, :, :), view(DX, :, :), maxiter, opt, false, false, convergence_error)
