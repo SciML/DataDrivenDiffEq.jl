@@ -9,8 +9,11 @@ $(TYPEDEF)
 It solves the following problem
 
 ```math
-\\min_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|w\\|_1 + \\frac{\\kappa}{2}\\|x-w\\|_2
+\\min_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda R(w) + \\frac{\\kappa}{2}\\|x-w\\|_2
 ```
+
+Where `R` is a proximal operator.
+
 #Fields
 $(FIELDS)
 
@@ -21,15 +24,17 @@ opt = SR3(1e-2)
 opt = SR3(1e-3, 1.0)
 ```
 """
-mutable struct SR3{U} <: AbstractOptimizer where T <: Real
+mutable struct SR3{T,P} <: AbstractOptimizer where {T <: Real, P <: AbstractProximalOperator}
     """Sparsity threshold"""
-    λ::U
+    λ::T
     """Relaxation parameter"""
-    ν::U
+    ν::T
+    """Proximal operator"""
+    R::P
 end
 
 function SR3(λ = 1e-1, ν = 1.0)
-    return SR3(λ, ν)
+    return SR3(λ, ν, SoftThreshold())
 end
 
 function set_threshold!(opt::SR3, threshold)
@@ -61,16 +66,17 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
         # Solve ridge regression
         X .= H*(X̂ .+ W * opt.ν)
         # Soft threshold
-        soft_thresholding!(W, X, get_threshold(opt)/opt.ν)
+        opt.R(W, X, get_threshold(opt)/opt.ν)
 
-        if norm(w_i - W, 2)*opt.ν < convergence_error
+        if norm(w_i - W, 2) < convergence_error
             break
         else
             w_i .= W
         end
 
     end
+    
     X .= W
-    hard_thresholding!(X, get_threshold(opt))
+    clip_by_threshold!(X, get_threshold(opt))
     return iters
 end

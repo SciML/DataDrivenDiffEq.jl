@@ -34,9 +34,11 @@ function fit!(q::AbstractArray{T, 1}, Y::AbstractArray, opt::ADM; maxiter::Int64
     q_ = deepcopy(q)
     iters_ = 0
 
+    R = SoftThreshold()
+
     while iters_ <= maxiter
         iters_ += 1
-        soft_thresholding!(x, Y*q, get_threshold(opt))
+        R(x, Y*q, get_threshold(opt))
         #prox!(x, opt.R, Y*q)
         mul!(q, Y', x)
         normalize!(q, 2)

@@ -67,7 +67,6 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STLSQ; 
 
     end
 
-    hard_thresholding!(X, get_threshold(opt))
-    #X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
+    clip_by_threshold!(X, get_threshold(opt))
     return iters
 end

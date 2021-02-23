@@ -46,6 +46,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
     P = I(m)/opt.ρ - (A' * pinv(opt.ρ*I(n) + A*A') *A)/opt.ρ
     c = P*(A'*Y)
 
+    R = SoftThreshold()
 
     x_i = similar(X)
     x_i .= X
@@ -56,8 +57,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
         iters += 1
 
         x̂ .= P*(opt.ρ.*X .- ŷ) .+ c
-        soft_thresholding!(X,  x̂ .+ ŷ./opt.ρ, get_threshold(opt))
-        #prox!(X, g, x̂ .+ ŷ./opt.ρ)
+        R(X,  x̂ .+ ŷ./opt.ρ, get_threshold(opt))
         ŷ .= ŷ .+ opt.ρ.*(x̂ .- X)
 
         if norm(x_i - X, 2) < convergence_error
@@ -69,6 +69,6 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
     end
 
 
-    hard_thresholding!(X, get_threshold(opt))
+    clip_by_threshold!(X, get_threshold(opt))
     return iters
 end
