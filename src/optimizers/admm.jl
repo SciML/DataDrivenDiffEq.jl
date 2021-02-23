@@ -1,15 +1,16 @@
-mutable struct ADMM{U} <: AbstractOptimizer
-    λ::U
-    ρ::U
-end
-
 """
-    ADMM()
-    ADMM(λ, ρ)
+$(TYPEDEF)
 
 `ADMM` is an implementation of Lasso using the alternating direction methods of multipliers and loosely based on [this implementation](https://web.stanford.edu/~boyd/papers/admm/lasso/lasso.html).
 
-`λ` is the sparsification parameter, `ρ` the augmented Lagrangian parameter.
+It solves the following problem
+
+```math
+\min_{x} \frac{1}{2} \| Ax-b\|_2 + \lambda \|x\|_1
+```
+
+#Fields
+$(FIELDS)
 
 # Example
 ```julia
@@ -17,6 +18,13 @@ opt = ADMM()
 opt = ADMM(1e-1, 2.0)
 ```
 """
+mutable struct ADMM{U} <: AbstractOptimizer
+    """Sparsity threshold"""
+    λ::U
+    """Augmented Lagrangian parameter"""
+    ρ::U
+end
+
 ADMM() = ADMM(0.1, 1.0)
 
 
@@ -31,8 +39,6 @@ init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X,
 
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
     n, m = size(A)
-
-    #g = NormL1(get_threshold(opt))
 
     x̂ = deepcopy(X)
     ŷ = zero(X)
