@@ -1,7 +1,7 @@
 module Optimize
 
 using LinearAlgebra
-
+using DocStringExtensions
 
 abstract type AbstractOptimizer end;
 abstract type AbstractSubspaceOptimizer end;

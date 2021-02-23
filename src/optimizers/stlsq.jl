@@ -12,7 +12,7 @@ It is based upon [this matlab implementation](https://github.com/eurika-kaiser/S
 It solves the following problem
 
 ```math
-\min_{x} \frac{1}{2} \| Ax-b\|_2 + \lambda \|x\|_1
+\\min_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|x\\|_1
 ```
 
 #Fields

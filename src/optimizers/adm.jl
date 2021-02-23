@@ -6,7 +6,7 @@ Optimizer for finding a sparse basis vector in a subspace based on [this paper](
 It solves the following problem
 
 ```math
-\min_{x} \|x\|_0 ~s.t.~Ax= 0
+\\min_{x} \\|x\\|_0 ~s.t.~Ax= 0
 ```
 
 #Fields

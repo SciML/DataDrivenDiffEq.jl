@@ -9,7 +9,7 @@ $(TYPEDEF)
 It solves the following problem
 
 ```math
-\min_{x, w} \frac{1}{2} \| Ax-b\|_2 + \lambda \|w\|_1 + \frac{\kappa}{2}\|x-w\|_2
+\\min_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|w\\|_1 + \\frac{\\kappa}{2}\\|x-w\\|_2
 ```
 #Fields
 $(FIELDS)
