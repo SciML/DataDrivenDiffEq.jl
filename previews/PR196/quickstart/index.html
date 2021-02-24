@@ -131,15 +131,15 @@ basis = Basis(h, u)</code></pre><p><code>DataDrivenDiffEq</code> comes with some
 │   caller = ip:0x0
 └ @ Core :-1
 
-Parameters : SymbolicUtils.Sym{ModelingToolkit.Parameter{Real}}[p₁, p₂, p₃]
+Parameters : SymbolicUtils.Sym{ModelingToolkit.Parameter{Real}}[p₁, p₂, p₃, p₄, p₅, p₆, p₇, p₈, p₉, p₁₀, p₁₁, p₁₂, p₁₃, p₁₄, p₁₅, p₁₆, p₁₇, p₁₈, p₁₉, p₂₀, p₂₁, p₂₂]
 ┌ Warning: `sys.name` like `sys.iv` is deprecated. Use getters like `get_iv` instead.
 │   caller = ip:0x0
 └ @ Core :-1
 
 Independent variable: t
 Equations
-φ₁ = p₁*u₂
-φ₂ = p₂*u₂ + p₃*sin(u₁)</code></pre><p>We recovered the equations! Let&#39;s transform the <code>SINDyResult</code> into a performant piece of Julia Code using <code>ODESystem</code></p><pre><code class="language-julia">sys = ODESystem(Ψ)
+φ₁ = p₁₁ + p₁*u₁ + p₁₀*cos(u₂) + p₂*u₂ + p₃*(u₁^2) + p₄*(u₂^2) + p₅*(u₁^3) + p₆*(u₂^3) + p₇*sin(u₁) + p₈*sin(u₂) + p₉*cos(u₁)
+φ₂ = p₂₂ + p₁₂*u₁ + p₁₃*u₂ + p₁₄*(u₁^2) + p₁₅*(u₂^2) + p₁₆*(u₁^3) + p₁₇*(u₂^3) + p₁₈*sin(u₁) + p₁₉*sin(u₂) + p₂₀*cos(u₁) + p₂₁*cos(u₂)</code></pre><p>We recovered the equations! Let&#39;s transform the <code>SINDyResult</code> into a performant piece of Julia Code using <code>ODESystem</code></p><pre><code class="language-julia">sys = ODESystem(Ψ)
 p = parameters(Ψ)
 
 dudt = ODEFunction(sys)
@@ -159,4 +159,4 @@ estimation = solve(estimator, Tsit5(), saveat = solution.t)</code></pre><pre><co
 └ @ Core :-1
 ┌ Warning: `sys.name` like `sys.systems` is deprecated. Use getters like `get_systems` instead.
 │   caller = ip:0x0
-└ @ Core :-1</code></pre><p><img src="../SINDy_estimation.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../basis/">Basis »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 23 February 2021 22:32">Tuesday 23 February 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+└ @ Core :-1</code></pre><p><img src="../SINDy_estimation.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../basis/">Basis »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 24 February 2021 15:35">Wednesday 24 February 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
