@@ -12,7 +12,7 @@ It is based upon [this matlab implementation](https://github.com/eurika-kaiser/S
 It solves the following problem
 
 ```math
-\\min_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|x\\|_1
+\\min_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|x\\|_2
 ```
 
 #Fields
@@ -23,6 +23,9 @@ $(FIELDS)
 opt = STLQS()
 opt = STLQS(1e-1)
 ```
+
+## Note
+This was formally `STRRidge` and has been renamed.
 """
 mutable struct STLSQ{T} <: AbstractOptimizer where T <: Real
     """Sparsity threshold"""

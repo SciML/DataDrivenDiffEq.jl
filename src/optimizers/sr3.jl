@@ -9,7 +9,7 @@ $(TYPEDEF)
 It solves the following problem
 
 ```math
-\\min_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda R(w) + \\frac{\\nu\\lambda}{2}\\|x-w\\|_2
+\\min_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda R(w) + \\frac{\\nu}{2}\\|x-w\\|_2
 ```
 
 Where `R` is a proximal operator and the result is given by `w`.
@@ -26,8 +26,9 @@ opt = SR3(1e-3, 1.0, SoftThreshold())
 ```
 
 ## Note
-Opposed to the original formulation, we use `κ = ν * λ` as a relaxation parameter, such that
-`λ` is equal to the threshold of the proximal operator.
+Opposed to the original formulation, we use `ν` as a relaxation parameter,
+as given in [Champion et. al., 2019](https://arxiv.org/abs/1906.10612). In the standard case of
+hard thresholding the sparsity is interpreted as `λ = threshold^2 / 2`, otherwise `λ = threshold`.
 
 """
 mutable struct SR3{T,P} <: AbstractOptimizer where {T <: Real, P <: AbstractProximalOperator}
@@ -37,18 +38,19 @@ mutable struct SR3{T,P} <: AbstractOptimizer where {T <: Real, P <: AbstractProx
     ν::T
     """Proximal operator"""
     R::P
-end
 
-function SR3(λ = 1e-1, ν = 1.0)
-    return SR3(λ, ν, SoftThreshold())
+    function SR3(threshold = 1e-1, ν = 1.0, R = HardThreshold())
+        λ = isa(R, HardThreshold) ? threshold^2 /2 : threshold
+        return new{typeof(λ), typeof(R)}(λ, ν, R)
+    end
 end
 
 function set_threshold!(opt::SR3, threshold)
-    opt.λ = threshold
+    opt.λ =  isa(opt.R, HardThreshold) ? threshold^2 /2 : threshold
     return
 end
 
-get_threshold(opt::SR3) = opt.λ
+get_threshold(opt::SR3) = opt.λ/opt.ν
 
 init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
 init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
@@ -59,8 +61,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
     W = copy(X)
 
     # Init matrices
-    κ = opt.ν*opt.λ
-    H = inv(A'*A+I(m)*κ)
+    H = cholesky(A'*A+I(m)*opt.ν)
     X̂ = A'*Y
 
     w_i = similar(W)
@@ -71,19 +72,20 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
         iters += 1
 
         # Solve ridge regression
-        X .= H*(X̂ .+ W * κ)
-        # Soft threshold
+        ldiv!(X, H, X̂ .+ W*opt.ν)
+        #X .= H*(X̂ .+ W*opt.ν)
+        # Proximal
         opt.R(W, X, get_threshold(opt))
 
-        if norm(w_i - W, 2)*κ < convergence_error
+        if norm(w_i - W, 2)*opt.ν < convergence_error
             break
         else
             w_i .= W
         end
 
     end
-
+    # We really search for W here
     X .= W
-    clip_by_threshold!(X, get_threshold(opt))
+    #clip_by_threshold!(X, get_threshold(opt))
     return iters
 end
