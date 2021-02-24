@@ -1,7 +1,7 @@
 name = "DataDrivenDiffEq"
 uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
 authors = ["Julius Martensen <julius.martensen@gmail.com>"]
-version = "0.5.5"
+version = "0.6.0"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
@@ -38,6 +38,8 @@ Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
 
 [targets]
-test = ["DiffEqFlux", "DiffEqSensitivity", "Flux", "JLD2", "Optim", "OrdinaryDiffEq", "Test", "SafeTestsets"]
+test = ["DiffEqFlux", "DiffEqSensitivity", "Flux", "JLD2", "Optim", "OrdinaryDiffEq", "Test", "SafeTestsets", "Random"]
