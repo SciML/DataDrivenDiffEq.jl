@@ -1,7 +1,7 @@
 
 @info "Starting implicit SINDy tests"
 @testset "ISINDy" begin
-    
+
     @info "Nonlinear Implicit System"
     # Create a test problem
     function simple(u, p, t)
@@ -49,7 +49,7 @@
     @test all(get_error(Ψ) .< 1e-6)
     @test length(ps) == 11
     @test get_sparsity(Ψ) == [4; 3; 4]
-    
+
     # Simulate
     estimator = ODEProblem(dudt, u0, tspan, ps)
     sol_ = solve(estimator, Tsit5(), saveat = 0.1)
@@ -65,7 +65,7 @@
 
     u0 = [0.5]
     tspan = (0.0, 6.0)
-    
+
     problem_1 = ODEProblem(michaelis_menten, u0, tspan)
     solution_1 = solve(problem_1, Tsit5(), saveat = 0.1)
 
@@ -92,7 +92,7 @@
     @test isapprox(sol_[:,:], solution_1[:,:], atol = 1e-1)
     @test abs.(ps) ≈ [1/3; 0.2; 1.0; 0.92] atol = 1e-1
 
-    Ψ = ISINDy(X, DX, basis, STRRidge(1e-2), maxiter = 100, normalize = true)
+    Ψ = ISINDy(X, DX, basis, STLSQ(1e-2), maxiter = 100, normalize = true)
     print_equations(Ψ, show_parameter = true)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)
@@ -104,7 +104,7 @@
     @test abs.(ps) ≈ [1/3; 0.2; 1.0; 0.92] atol = 1e-1
 
     λs = exp10.(-3:0.1:-1)
-    Ψ = ISINDy(X, DX, basis, λs ,STRRidge(1e-2), maxiter = 100, normalize = false)
+    Ψ = ISINDy(X, DX, basis, λs ,STLSQ(1e-2), maxiter = 100, normalize = false)
     print_equations(Ψ, show_parameter = true)
     sys = ODESystem(Ψ)
     dudt = ODEFunction(sys)

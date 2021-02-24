@@ -1,7 +1,9 @@
 
-@info "Starting SINDy tests"
 @testset "SINDy" begin
-# Create a nonlinear pendulum
+    using Random
+
+    Random.seed!(5723)
+
     function pendulum(u, p, t)
         x = u[2]
         y = -9.81sin(u[1]) - 0.1u[2]^3 - 0.2 * cos(u[1])
@@ -15,98 +17,95 @@
     sol = solve(prob, Tsit5(), saveat=dt)
 
 
-# Create the differential data
+    # Create the differential data
+    X = Array(sol)
+    Xₙ = X + 1e-1*randn(size(X))
     DX = similar(sol[:,:])
+    DXₙ = similar(Xₙ)
+
     for (i, xi) in enumerate(eachcol(sol[:,:]))
         DX[:,i] = pendulum(xi, [], 0.0)
+        DXₙ[:,i] = pendulum(Xₙ[:,i], [], 0.0)
     end
 
-# Create a basis
+    # Smaller dataset
+    Xₛ = X[:, 1:20]
+    DXₛ = DX[:, 1:20]
+
+    # Create a basis
     @variables u[1:2]
-# Lots of polynomials
-    polys = Any[1]
-    for i ∈ 1:5
-        push!(polys, u.^i...)
-        for j ∈ 1:i - 1
-            push!(polys, u[1]^i * u[2]^j)
+    polys = polynomial_basis(u, 5)
+    h = [cos(u[1]); sin(u[1]); u[1] * sin(u[2]); u[2] * cos(u[2]); polys]
+    basis = Basis(h, u)
+
+    ## Check conversions
+    @testset "General Tests" begin
+
+        Ψ = SINDy(X, DX, basis, STLSQ(1e-2), maxiter=100, denoise=false, normalize=false)
+        sys = ODESystem(Ψ)
+        dudt = ODEFunction(sys)
+        prob = ODEProblem(dudt, u0, tspan, parameters(Ψ))
+        sol_ = solve(prob, Tsit5(), saveat=dt)
+        @test isapprox(opnorm(sol .- sol_, 1), 0 ,atol = 1e-1)
+
+        @test length(Ψ) == 2
+        @test size(Ψ) == (2,)
+        @test parameters(Ψ) ≈ [1.0; -0.2; -9.81; -0.1]
+        W = get_coefficients(Ψ)
+        @test size(W) == (length(basis), 2)
+        @test_nowarn get_aicc(Ψ)
+        @test sum(get_sparsity(Ψ)) == 4
+        @test sum(get_error(Ψ)) < 1e-10
+        @test Ψ(u0) ≈ pendulum(u0, nothing, nothing)
+    end
+
+    @testset "Full Dataset" begin
+        opts = [STLSQ(1e-2), SR3(1e-2, 1.0), SR3(1e-2, 1.0, ClippedAbsoluteDeviation())]
+
+        maxiters = 50000
+        for opt in opts
+            Ψ = SINDy(X, DX, basis, opt, maxiter=maxiters, denoise=false, normalize=false)
+
+            @test all(get_sparsity(Ψ) .== [1; 3])
+            @test max(get_error(Ψ)...) < 1e-5
+            @test all(isapprox.(parameters(Ψ), [1.0; -0.2; -9.81; -0.1],atol = 1e-1))
         end
     end
 
-# And some other stuff
-    h = [cos(u[1]); sin(u[1]); u[1] * u[2]; u[1] * sin(u[2]); u[2] * cos(u[2]); polys]
+    @testset "Noisy Dataset" begin
+        opts = [STLSQ(1e-1), ADMM(1e-1, 0.5), SR3(1e-1, 0.2, SoftThreshold())]
+        maxiters = 50000
+        λs = exp10.(-10:0.1:10)
+        for opt in opts
+            Ψ = SINDy(Xₙ, DX, basis, λs, opt, maxiter=maxiters, denoise=true, normalize=true)
+            @test all(get_sparsity(Ψ) .== [1; 2])
+            @test max(get_error(Ψ)...) < 10
+        end
+    end
 
-    basis = Basis(h, u)
+    @testset "Limited Dataset" begin
+        opts = [STLSQ(1e-2), SR3(1e-2, 0.01, SoftThreshold())]
+        maxiters = 100000
+        λs = exp10.(-5:0.1:5)
+        for opt in opts
+            Ψ = SINDy(Xₛ, DXₛ, basis, λs, opt, maxiter=maxiters, denoise=false, normalize=false)
+            @test all(get_sparsity(Ψ) .== [1; 3])
+            @test max(get_error(Ψ)...) < 1e-1
+            @test all(isapprox.(parameters(Ψ), [1.0; -0.2; -9.81; -0.1],atol = 2e-1))
+        end
+    end
 
-    opt = STLSQ(1e-2)
-    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter=2000)
-    @test_nowarn set_threshold!(opt, 1e-2)
+    @testset "Sparse Regression" begin
+        opt = SR3(1e-2, 1.0)
+        maxiters = 50000
+        θ = basis(X)
+        Ξ1, iters_1 = sparse_regression(X, DX, basis, parameters(basis), [], maxiters, opt, false, false, eps())
+        Ξ2 = similar(Ξ1); Ξ3 = similar(Ξ1);
+        iters_2 = sparse_regression!(Ξ2, X, DX, basis, parameters(basis), [], maxiters, opt, false, false, eps())
+        iters_3 = sparse_regression!(Ξ3, θ, DX, maxiters, opt, false, false, eps())
 
-    @test length(Ψ) == 2
-    @test size(Ψ) == (2,)
-    @test parameters(Ψ) ≈ [1.0; -0.2; -9.81; -0.1]
-    W = get_coefficients(Ψ)
-    @test size(W) == (length(basis), 2)
-    @test_nowarn get_aicc(Ψ)
-    @test sum(get_sparsity(Ψ)) == 4
-    @test sum(get_error(Ψ)) < 1e-10
-    @test Ψ(u0) ≈ pendulum(u0, nothing, nothing)
-
-# Simulate
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_ = solve(estimator, Tsit5(), saveat=dt)
-    @test sol[:,:] ≈ sol_[:,:]
-
-    opt = ADMM(1e-2, 0.7)
-    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter=5000)
-    @test_nowarn set_threshold!(opt, 1e-2)
-
-# Simulate
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_2 = solve(estimator, Tsit5(), saveat=dt)
-    @test norm(sol[:,:] - sol_2[:,:], 2) < 2e-1
-
-    opt = SR3(1e-3, 1.0)
-    Ψ = SINDy(sol[:,:], DX, basis, opt, maxiter=5000)
-    @test_nowarn set_threshold!(opt, 0.1)
-
-# Simulate
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_3 = solve(estimator, Tsit5(), saveat=dt)
-    @test norm(sol[:,:] - sol_3[:,:], 2) < 1e-1
-
-# Now use the threshold adaptation
-    opt = STLSQ(1e-2)
-    λs = exp10.(-7:0.1:-1)
-    Ψ = SINDy(sol[:,:], DX[:, :], basis, λs, opt, maxiter=100)
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_4 = solve(estimator, Tsit5(), saveat=dt)
-    @test norm(sol[:,:] - sol_4[:,:], 2) < 1e-1
-
-# Check for errors
-    @test_nowarn SINDy(sol[:,:], DX[1,:], basis, λs, opt, maxiter=1)
-    @test_nowarn SINDy(sol[:, :], DX[1, :], basis, λs, opt, maxiter=1, denoise=true, normalize=true)
-
-# Check with noise
-    X = sol[:, :] + 1e-3 * randn(size(sol[:,:])...)
-    opt = SR3(1e-1, 10.0)
-    Ψ = SINDy(X, DX, basis, λs, opt, maxiter=10000, denoise=true, normalize=true)
-
-    estimator = ODEProblem(dynamics(Ψ), u0, tspan, parameters(Ψ))
-    sol_5 = solve(estimator, Tsit5(), saveat=dt)
-    @test norm(sol[:,:] - sol_5[:,:], 2) < 5e-1
-
-# Check sparse_regression
-    X .= Array(sol)
-    opt = SR3(1e-1, 1.0)
-    maxiter = 5000
-    θ = basis(X)
-    Ξ1, iters_1 = sparse_regression(X, DX, basis, parameters(basis), [], maxiter, opt, true, true, eps())
-    Ξ2 = similar(Ξ1)
-    Ξ3 = similar(Ξ1)
-    iters_2 = sparse_regression!(Ξ2, X, DX, basis, parameters(basis), [], maxiter, opt, true, true, eps())
-    iters_3 = sparse_regression!(Ξ3, θ, DX, maxiter, opt, true, true, eps())
-
-    @test iters_1 == iters_2 == iters_3
-    @test Ξ1 ≈ Ξ2 ≈ Ξ3
-    @test isapprox(norm(Ξ1' * θ - DX, 2), 10.18; atol=1e-1)
+        @test iters_1 == iters_2 == iters_3
+        @test Ξ1 ≈ Ξ2 ≈ Ξ3
+        @test isapprox(norm(Ξ1' * θ - DX, 2), 0; atol=1e-1)
+    end
 end
