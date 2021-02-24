@@ -12,6 +12,13 @@ SR3
 ADM
 ```
 
+## Proximal Operators
+
+```@docs
+SoftThreshold
+HardThreshold
+ClippedAbsoluteDeviation
+```
 
 ## Implementing New Optimizer
 
