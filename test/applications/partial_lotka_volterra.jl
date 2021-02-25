@@ -62,8 +62,7 @@ g(x) = x[1] < 1 ? Inf : norm(x, 2)
 # Test on uode derivative data
 println("SINDy on learned, partial, available data")
 Ψ = SINDy(X̂, Y, basis, λ,  opt, g = g, maxiter = 500, normalize = false, denoise = false, convergence_error = Float32(1e-10)) # Succeed
-println(Ψ)
-print_equations(Ψ)
+
 p̂ = parameters(Ψ)
 
 @info "Checking equations"
