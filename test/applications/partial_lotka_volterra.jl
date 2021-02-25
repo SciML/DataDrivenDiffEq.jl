@@ -13,12 +13,16 @@ using JLD2
 
 @info "Loading pretrained parameters"
 results = jldopen(joinpath(dirname(@__FILE__), "partial_lotka_volterra.jld2"), "r")
+rbf(x) = exp.(-x.^2)
+
+U = FastChain(
+    FastDense(2,5,rbf), FastDense(5,5, rbf), FastDense(5,5, rbf), FastDense(5,2)
+)
 
 # Define necessary stuff
-rbf(x) = exp.(-x.^2)
 X = results["X"]
 t = results["t"]
-U = results["neural_network"]
+
 p_trained = results["trained_parameters"]
 # Plot the data and the approximation
 p_ = Float32[1.3, 0.9, 0.8, 1.8]

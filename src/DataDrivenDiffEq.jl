@@ -60,17 +60,17 @@ export SINDy
 export sparse_regression, sparse_regression!
 
 function STRRidge(args...)
-    @warn("STRRidge has been deprecated. Use STLSQ to recover the same functionality")
+    @deprecate("STRRidge has been deprecated. Use STLSQ to recover the same functionality")
     return STLSQ(args...)
 end
 
 function SInDy(Y, X, basis; opt = STRRidge(), kwargs...)
-    @warn("SInDy has been deprecated. Use SINDy to recover the same functionality.")
+    @deprecate("SInDy has been deprecated. Use SINDy to recover the same functionality.")
     SINDy(Y, X, basis, opt; kwargs...)
 end
 
 function ISInDy(Y, X, basis; opt = ADM(), kwargs...)
-    @warn("ISInDy has been deprecated. Use ISINDy to recover the same functionality.")
+    @deprecate("ISInDy has been deprecated. Use ISINDy to recover the same functionality.")
     ISINDy(Y, X, basis, opt; kwargs...)
 end
 
