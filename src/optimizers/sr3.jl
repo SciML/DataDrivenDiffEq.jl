@@ -40,12 +40,17 @@ mutable struct SR3{T,P} <: AbstractOptimizer where {T <: Real, P <: AbstractProx
     R::P
 
     function SR3(threshold = 1e-1, ν = 1.0, R = HardThreshold())
+        @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
+        @assert ν > zero(eltype(threshold)) "Relaxation must be positive definite"
+
         λ = isa(R, HardThreshold) ? threshold^2 /2 : threshold
         return new{typeof(λ), typeof(R)}(λ, ν, R)
     end
 end
 
 function set_threshold!(opt::SR3, threshold)
+    @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
+
     opt.λ =  isa(opt.R, HardThreshold) ? threshold^2 /2 : threshold
     return
 end
@@ -72,12 +77,12 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
         iters += 1
 
         # Solve ridge regression
-        ldiv!(X, H, X̂ .+ W*opt.ν)
+        @views ldiv!(X, H, X̂ .+ W*opt.ν)
         #X .= H*(X̂ .+ W*opt.ν)
         # Proximal
-        opt.R(W, X, get_threshold(opt))
+        @views opt.R(W, X, get_threshold(opt))
 
-        if norm(w_i - W, 2)*opt.ν < convergence_error
+        if norm(w_i .- W, 2)*opt.ν < convergence_error
             break
         else
             w_i .= W

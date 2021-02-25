@@ -23,12 +23,19 @@ mutable struct ADMM{T} <: AbstractOptimizer where T <: Real
     λ::T
     """Augmented Lagrangian parameter"""
     ρ::T
-end
 
-ADMM() = ADMM(0.1, 1.0)
+
+    function ADMM(threshold = 1e-1, ρ = 1.0)
+        @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
+
+        return new{typeof(threshold)}(threshold, ρ)
+    end
+end
 
 
 function set_threshold!(opt::ADMM, threshold)
+    @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
+
     opt.λ = threshold*opt.ρ
 end
 
@@ -53,14 +60,14 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; m
 
     iters = 0
 
-    @inbounds for i in 1:maxiter
+    @views for i in 1:maxiter
         iters += 1
 
         x̂ .= P*(opt.ρ.*X .- ŷ) .+ c
         R(X,  x̂ .+ ŷ./opt.ρ, get_threshold(opt))
         ŷ .= ŷ .+ opt.ρ.*(x̂ .- X)
 
-        if norm(x_i - X, 2) < convergence_error
+        if norm(x_i .- X, 2) < convergence_error
             break
         else
             x_i .= X

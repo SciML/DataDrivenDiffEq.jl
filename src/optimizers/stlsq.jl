@@ -30,11 +30,17 @@ This was formally `STRRidge` and has been renamed.
 mutable struct STLSQ{T} <: AbstractOptimizer where T <: Real
     """Sparsity threshold"""
     λ::T
+
+    function STLSQ(threshold = 1e-1)
+        @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
+
+        return new{typeof(threshold)}(threshold)
+    end
 end
 
-STLSQ() = STLSQ(0.1)
 
 function set_threshold!(opt::STLSQ, threshold)
+    @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
     opt.λ = threshold
 end
 
@@ -44,6 +50,7 @@ init(o::STLSQ, A::AbstractArray, Y::AbstractArray) = A \ Y
 init!(X::AbstractArray, o::STLSQ, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
 function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STLSQ; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
+
     smallinds = abs.(X) .<= opt.λ
     biginds = @. ! smallinds[:, 1]
 
@@ -62,7 +69,7 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STLSQ; 
             X[biginds, j] .= A[:, biginds] \ Y[:,j]
         end
 
-        if norm(x_i - X, 2) < convergence_error
+        if norm(x_i .- X, 2) < convergence_error
             break
         else
             x_i .= X

@@ -21,10 +21,21 @@ ADM(λ = 0.1)
 mutable struct ADM{U} <: AbstractSubspaceOptimizer
     """Sparsity threshold"""
     λ::U
+
+    function ADM(threshold = 1e-1)
+        @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
+
+        return new{typeof(threshold)}(threshold)
+    end
 end
 
 get_threshold(opt::ADM) = opt.λ
-set_threshold!(opt::ADM, λ) = (opt.λ = λ; return)
+function set_threshold!(opt::ADM, threshold)
+    @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
+
+    opt.λ = threshold
+    return
+end
 
 
 # ADM algorithm
