@@ -59,23 +59,6 @@ include("./sindy/sindy.jl")
 export SINDy
 export sparse_regression, sparse_regression!
 
-function STRRidge(args...)
-    @deprecate("STRRidge has been deprecated. Use STLSQ to recover the same functionality")
-    return STLSQ(args...)
-end
-
-function SInDy(Y, X, basis; opt = STRRidge(), kwargs...)
-    @deprecate("SInDy has been deprecated. Use SINDy to recover the same functionality.")
-    SINDy(Y, X, basis, opt; kwargs...)
-end
-
-function ISInDy(Y, X, basis; opt = ADM(), kwargs...)
-    @deprecate("ISInDy has been deprecated. Use ISINDy to recover the same functionality.")
-    ISINDy(Y, X, basis, opt; kwargs...)
-end
-
-export SInDy, ISInDy, STRRidge
-
 include("./sindy/isindy.jl")
 export ISINDy
 
@@ -91,5 +74,12 @@ export burst_sampling, subsample
 include("./basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis
 export sin_basis, cos_basis, fourier_basis
+
+# Deprecated
+@deprecate STRRidge(args...) STLSQ(args...)
+@deprecate SInDy(Y, X, basis; opt = STLSQ(), kwargs...) SINDy(Y, X, basis, opt; kwargs...)
+@deprecate SInDy(Y, X, basis, λ; opt = STLSQ(), kwargs...) SINDy(Y, X, basis, λ, opt; kwargs...)
+@deprecate ISInDy(Y, X, basis; opt = ADM(), kwargs...) ISINDy(Y, X, basis, opt; kwargs...)
+
 
 end # module
