@@ -50,7 +50,7 @@
     Y = similar(X)
     basis(Y, X)
     @test Y ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0] * X
-    f = jacobian(basis)
+    f = DataDrivenDiffEq.jacobian(basis)
     @test f([1;1;1], [0.0 0.0], 0.0) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
     @test_nowarn [xi for xi in basis]
     @test_nowarn basis[2:end]; basis[2]; first(basis); last(basis); basis[:]

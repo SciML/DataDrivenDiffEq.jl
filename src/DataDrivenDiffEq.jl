@@ -3,36 +3,27 @@ module DataDrivenDiffEq
 using LinearAlgebra
 using DiffEqBase
 using ModelingToolkit
-
 using QuadGK
 using Statistics
 using DSP
 using FiniteDifferences, DataInterpolations
-
-using Reexport
 using Compat
 using DocStringExtensions
 
+abstract type AbstractKoopmanOperator <: Function end;
 
-@reexport using ModelingToolkit: states, parameters, independent_variable, observed
+include("./optimizers/Optimize.jl")
+using .Optimize
 
+export set_threshold!, set_threshold
+export STRRidge, ADMM, SR3
+
+export ADM
 
 include("./basis.jl")
 export Basis
-export jacobian
 export free_parameters
 
-
-#include("./optimizers/Optimize.jl")
-#using .Optimize
-#
-#export set_threshold!, set_threshold
-#export STRRidge, ADMM, SR3
-#
-#export ADM
-
-
-abstract type AbstractKoopmanOperator <: Function end;
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD
 
@@ -58,31 +49,31 @@ export DMDc, gDMDc
 include("./koopman/extended_dmd.jl")
 export EDMD, gEDMD
 
-#include("./sindy/results.jl")
-#export SparseIdentificationResult
-#export print_equations
-#export get_coefficients, get_error, get_sparsity, get_aicc
-#
-#include("./sindy/sindy.jl")
-#export SINDy
-#export sparse_regression, sparse_regression!
-#
-#function SInDy(Y, X, basis; opt = STRRidge(), kwargs...)
-#    @warn("SInDy has been deprecated. Use SINDy to recover the same functionality.")
-#    SINDy(Y, X, basis, opt; kwargs...)
-#end
-#
-#function ISInDy(Y, X, basis; opt = ADM(), kwargs...)
-#    @warn("ISInDy has been deprecated. Use ISINDy to recover the same functionality.")
-#    ISINDy(Y, X, basis, opt; kwargs...)
-#end
-#
-#export SInDy, ISInDy
-#
-#include("./sindy/isindy.jl")
-#export ISINDy
+include("./sindy/results.jl")
+export SparseIdentificationResult
+export print_equations
+export get_coefficients, get_error, get_sparsity, get_aicc
 
-#include("./system_conversions.jl")
+include("./sindy/sindy.jl")
+export SINDy
+export sparse_regression, sparse_regression!
+
+function SInDy(Y, X, basis; opt = STRRidge(), kwargs...)
+    @warn("SInDy has been deprecated. Use SINDy to recover the same functionality.")
+    SINDy(Y, X, basis, opt; kwargs...)
+end
+
+function ISInDy(Y, X, basis; opt = ADM(), kwargs...)
+    @warn("ISInDy has been deprecated. Use ISINDy to recover the same functionality.")
+    ISINDy(Y, X, basis, opt; kwargs...)
+end
+
+export SInDy, ISInDy
+
+include("./sindy/isindy.jl")
+export ISINDy
+
+include("./system_conversions.jl")
 
 include("./utils.jl")
 export AIC, AICC, BIC
