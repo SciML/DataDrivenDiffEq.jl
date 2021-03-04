@@ -3,7 +3,7 @@
 [Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) - or SINDy - identifies the equations of motion of a system as the result of a sparse regression over a chosen basis. In particular, it tries to find coefficients ``\Xi`` such that:
 
 ```math
-\Xi = \operatorname{argmin} ~ \left\lVert Y^{T} - \Theta(X, p, t)^{T} \Xi \right\rVert_{2} + \lambda ~ \left\lVert \Xi \right\rVert_{1}
+\Xi = \operatorname{argmin} ~ \left\{ \left\lVert Y^{T} - \Theta(X, p, t)^{T} \Xi \right\rVert_{2} + \lambda ~ \left\lVert \Xi \right\rVert_{1} \right\}
 ```
 
 where, in most cases, ``Y``is the data matrix containing the derivatives of the state data stored in ``X``. ``\Theta`` is a matrix containing candidate functions ``\xi`` over the measurements in ``X``.
