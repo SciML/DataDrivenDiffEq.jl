@@ -22,6 +22,7 @@ export ADM
 
 include("./basis.jl")
 export Basis
+export dynamics
 export free_parameters
 
 include("./koopman/algorithms.jl")
