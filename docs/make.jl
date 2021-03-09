@@ -14,18 +14,18 @@ makedocs(
         "Home" => "index.md",
         "Getting Started" => "quickstart.md",
         "Basis" => "basis.md",
-        "Koopman Operators" => Any[
-            "koopman/koopman.md",
-            "koopman/dmd.md",
-            "koopman/edmd.md",
-            "koopman/dmdc.md",
-            "koopman/algorithms.md"
+        #"Koopman Operators" => Any[
+        #    "koopman/koopman.md",
+        #    "koopman/dmd.md",
+        #    "koopman/edmd.md",
+        #    "koopman/dmdc.md",
+        #    "koopman/algorithms.md"
         ],
-        "Sparse Identification" => Any[
-            "sparse_identification/sindy.md",
-            "sparse_identification/isindy.md",
-            "sparse_identification/optimizers.md"
-        ],
+        #"Sparse Identification" => Any[
+        #    "sparse_identification/sindy.md",
+        #    "sparse_identification/isindy.md",
+        #    "sparse_identification/optimizers.md"
+        #],
         "Utilities" => "utils.md",
         "Contributing" => "contributions.md",
         "Extended Examples" => "extended_examples.md"

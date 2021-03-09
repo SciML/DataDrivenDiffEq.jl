@@ -1,5 +1,5 @@
 import Base: unique, unique!, ==
-using ModelingToolkit: value, operation, arguments, istree
+using ModelingToolkit: value, operation, arguments, istree, get_observed
 
 """
 $(TYPEDEF)
@@ -14,6 +14,7 @@ If `linear_independent` is set to `true`, a linear independent basis is created 
 If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
 Additional keyworded arguments include `name`, which can be used to name the basis, and
 `observed` for defining observeables.
+
 
 # Fields
 $(FIELDS)
@@ -48,39 +49,81 @@ mutable struct Basis <: ModelingToolkit.AbstractSystem
     states::Vector
     """Parameters"""
     ps::Vector
+    """Observed"""
     observed::Vector
     """Independent variable"""
     iv::Num
     """Internal function representation of the basis"""
-    f_::Function
+    f::Function
     """Name of the basis"""
     name::Symbol
     """Internal systems"""
     systems::Vector{Basis}
 end
 
-function Basis(eqs::AbstractVector, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
+## Constructors
 
+function Basis(eqs::AbstractVector, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
     simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = false,
     observed = [],
     kwargs...)
 
-    eqs = simplify ? ModelingToolkit.simplify.(eqs) : eqs
-    eqs = linear_independent ? create_linear_independent_eqs(eqs) : eqs
+    if linear_independent
+        eqs_ = create_linear_independent_eqs(eqs, simplify)
+    else
+        eqs_ = simplify ? ModelingToolkit.simplify.(eqs) : eqs
+    end
+
     isnothing(iv) && (iv = Num(Variable(:t)))
     unique!(eqs, !simplify)
 
     if eval_expression
-        f_oop, f_iip = eval.(build_function(eqs, value.(states), value.(parameters), [value(iv)], expression = Val{true}))
+        f_oop, f_iip = eval.(build_function(eqs_, value.(states), value.(parameters), [value(iv)], expression = Val{true}))
     else
-        f_oop, f_iip = build_function(eqs, value.(states), value.(parameters), [value(iv)], expression = Val{false})
+        f_oop, f_iip = build_function(eqs_, value.(states), value.(parameters), [value(iv)], expression = Val{false})
     end
-    eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs)]
+
+    eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs_)]
+
     f_(u,p,t) = f_oop(u,p,t)
     f_(du, u, p, t) = f_iip(du, u, p, t)
 
     return Basis(eqs, value.(states), value.(parameters), observed, value(iv), f_, name, Basis[])
 end
+
+
+
+function Basis(eqs::AbstractVector{Equation}, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
+    simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = false,
+    observed = [],
+    kwargs...)
+
+    lhs = [x.lhs for x in eqs]
+    rhs = Num.([x.rhs for x in eqs])
+
+    if linear_independent
+        rhs = create_linear_independent_eqs(rhs, simplify)
+    else
+        rhs = simplify ? ModelingToolkit.simplify.(rhs) : rhs
+    end
+
+    isnothing(iv) && (iv = Num(Variable(:t)))
+    unique!(rhs, !simplify)
+
+    if eval_expression
+        f_oop, f_iip = eval.(build_function(rhs, value.(states), value.(parameters), [value(iv)], expression = Val{true}))
+    else
+        f_oop, f_iip = build_function(rhs, value.(states), value.(parameters), [value(iv)], expression = Val{false})
+    end
+
+    eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(rhs)]
+
+    f_(u,p,t) = f_oop(u,p,t)
+    f_(du, u, p, t) = f_iip(du, u, p, t)
+
+    return Basis(eqs, value.(states), value.(parameters), observed, value(iv), f_, name, Basis[])
+end
+
 
 function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = [], iv = nothing, kwargs...)
 
@@ -94,18 +137,36 @@ function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = 
     end
 end
 
-_get_name(x::Num) = _get_name(value(x))
-_get_name(x) = nameof(istree(x) ? operation(x) : x)
-
-Base.show(io::IO, x::Basis) = print(io, "$(String.(x.name)) : $(length(x.eqs)) dimensional basis in ", "$(String.([_get_name(v) for v in x.states]))")
+## Printing
 
 @inline function Base.print(io::IO, x::Basis)
-    show(io, x)
-    !isempty(x.ps) && println(io, "\nParameters : $(x.ps)")
-    println(io, "\nIndependent variable: $(x.iv)")
+    state = states(x)
+    ps = parameters(x)
+    Base.printstyled(io, "Model $(nameof(x)) with $(length(x)) equations\n"; bold=true)
+    print(io, "States :")
+    if length(state) < 5
+        for xi in state
+            print(io, " ", xi)
+        end
+    else
+        print(io, " ", length(state))
+    end
+
+    if !isempty(ps)
+         print(io, "\nParameters :")
+         if length(ps) < 5
+             for p_ in ps
+                 print(io, " ", p_)
+             end
+         else
+             print(io, " ", length(ps))
+         end
+     end
+
+    println(io, "\nIndependent variable: $(independent_variable(x))")
     println(io, "Equations")
-    for (i,eq) ∈ enumerate(x.eqs)
-        if i < 5 || i == length(x.eqs)
+    for (i,eq) ∈ enumerate(equations(x))
+        if i < 5 || i == length(x)
         println(io, "$(eq.lhs) = $(eq.rhs)")
         elseif i == 5
             println(io, "...")
@@ -117,34 +178,83 @@ end
 
 @inline function Base.println(io::IO, x::Basis, fullview::DataType = Val{false})
     fullview == Val{false} && return print(io, x)
-    show(io, x)
-    !isempty(x.ps) && println(io, "\nParameters : $(x.ps)")
-    println(io, "\nIndependent variable: $(x.iv)")
+
+    state = states(x)
+    ps = parameters(x)
+    Base.printstyled(io, "Model $(nameof(x)) with $(length(x)) equations\n"; bold=true)
+    print(io, "States :")
+    if length(state) < 5
+        for xi in state
+            print(io, " ", xi)
+        end
+    else
+        print(io, " ", length(state))
+    end
+
+    if !isempty(ps)
+         print(io, "\nParameters :")
+         if length(ps) < 5
+             for p_ in ps
+                 print(io, " ", p_)
+             end
+         else
+             print(io, " ", length(ps))
+         end
+     end
+
+    println(io, "\nIndependent variable: $(independent_variable(x))")
     println(io, "Equations")
-    for (i,eq) ∈ enumerate(x.eqs)
+    for (i,eq) ∈ enumerate(equations(x))
         println(io, "$(eq.lhs) = $(eq.rhs)")
     end
 end
 
-"""
+## Getters
 
 """
-variables(x::Basis) = x.states
+    $(SIGNATURES)
+
+    Returns the internal function representing the dynamics of the `Basis`. This can be called either inplace or out-of-place
+    with the typical SciML signature `f(u,p,t)` or `f(du,u,p,t)`.
+"""
+function dynamics(b::Basis)
+    return get_f(b)
+end
+
+
+## Information and Iteration
+
+Base.length(x::Basis) = length(x.eqs)
+Base.size(x::Basis) = size(x.eqs)
+
+Base.getindex(x::Basis, idx) = getindex(equations(x), idx)
+Base.firstindex(x::Basis) = firstindex(equations(x))
+Base.lastindex(x::Basis) = lastindex(equations(x))
+Base.iterate(x::Basis) = iterate(equations(x))
+Base.iterate(x::Basis, id) = iterate(equations(x), id)
+
+## Internal update
 
 function update!(b::Basis, eval_expression = false)
 
     if eval_expression
-        f_oop, f_iip = eval.(ModelingToolkit.build_function([bi.rhs for bi in b.eqs], b.states, b.ps, [b.iv], expression = Val{true}))
+        f_oop, f_iip = eval.(ModelingToolkit.build_function([bi.rhs for bi in equations(b)],
+            states(b), parameters(b), [independent_variable(b)],
+            expression = Val{true}))
     else
-        f_oop, f_iip = ModelingToolkit.build_function([bi.rhs for bi in b.eqs], b.states, b.ps, [b.iv], expression = Val{false})
+        f_oop, f_iip = ModelingToolkit.build_function([bi.rhs for bi in equations(b)],
+            states(b), parameters(b), [independent_variable(b)],
+            expression = Val{false})
     end
 
     f_(u, p, t) = f_oop(u, p, t)
     f_(du, u, p, t) = f_iip(du, u, p, t)
 
-    b.f_ = f_
+    b.f = f_
     return
 end
+
+## Utilities
 
 function unique(b::AbstractArray{Num}, simplify_eqs = false)
     b = simplify_eqs ? simplify.(b) : b
@@ -153,10 +263,10 @@ function unique(b::AbstractArray{Num}, simplify_eqs = false)
     for i ∈ eachindex(b)
         returns[i] = !any([isequal(b[i], b[j]) for j in i+1:N])
     end
-    return b[returns]
+    return Num.(b[returns])
 end
 
-function Base.unique!(b::AbstractArray, simplify_eqs = false)
+function Base.unique!(b::AbstractArray{Num}, simplify_eqs = false)
     bs = simplify_eqs ? simplify.(b) : b
     removes = zeros(Bool, size(bs)...)
     N = maximum(eachindex(bs))
@@ -187,6 +297,7 @@ function Base.unique!(b::AbstractArray{Equation}, simplify_eqs = false)
     deleteat!(b, removes)
 end
 
+## Interfacing && merging
 
 function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
     unique!(b.eqs, simplify_eqs)
@@ -194,8 +305,8 @@ function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
 end
 
 function Base.unique(b::Basis; kwargs...)
-    eqs = unique(map(x->x.rhs, equations(b)))
-    return Basis(eqs, variables(b), parameters = parameters(b), iv = independent_variable(b), kwargs...)
+    eqs = unique(equations(b))
+    return Basis(eqs, states(b), parameters = parameters(b), iv = independent_variable(b), kwargs...)
 end
 
 """
@@ -224,7 +335,7 @@ function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expr
 end
 
 function Base.push!(b::Basis, eq, simplify_eqs = true; eval_expression = false)
-    push!(b.eqs, Variable(:φ, length(b.eqs)+1)~eq)
+    push!(equations(b), Variable(:φ, length(b.eqs)+1)~eq)
     unique!(b, simplify_eqs, eval_expression = eval_expression)
     return
 end
@@ -236,9 +347,9 @@ end
 """
 function Base.merge(x::Basis, y::Basis; eval_expression = false)
     b =  unique(vcat([xi.rhs  for xi ∈ equations(x)], [xi.rhs  for xi ∈ equations(y)]))
-    vs = unique(vcat(x.states, y.states))
-    ps = unique(vcat(x.ps, y.ps))
-    observed = unique(vcat(x.observed, y.observed))
+    vs = unique(vcat(states(x), states(y)))
+    ps = unique(vcat(parameters(x), parameters(y)))
+    observed = unique(vcat(get_observed(x), get_observed(y)))
     return Basis(Num.(b), vs, parameters = ps, observed = observed, eval_expression = eval_expression)
 end
 
@@ -249,20 +360,14 @@ end
 """
 function Base.merge!(x::Basis, y::Basis; eval_expression = false)
     push!(x, map(x->x.rhs, equations(y)))
-    x.states = unique(vcat(x.states, y.states))
-    x.ps = unique(vcat(x.ps, y.ps))
+    x.states = unique(vcat(states(x),states(y)))
+    x.ps = unique(vcat(parameters(x), parameters(y)))
+    x.observed = unique(vcat(get_observed(x), get_observed(y)))
     update!(x, eval_expression)
     return
 end
 
-Base.length(x::Basis) = length(x.eqs)
-Base.size(x::Basis) = size(x.eqs)
-
-Base.getindex(x::Basis, idx) = getindex(equations(x), idx)
-Base.firstindex(x::Basis) = firstindex(equations(x))
-Base.lastindex(x::Basis) = lastindex(equations(x))
-Base.iterate(x::Basis) = iterate(equations(x))
-Base.iterate(x::Basis, id) = iterate(equations(x), id)
+## Additional functionalities
 
 function (==)(x::Basis, y::Basis)
     length(x) == length(y) || return false
@@ -271,16 +376,20 @@ function (==)(x::Basis, y::Basis)
     xrhs = [xi.rhs for xi in equations(x)]
     @inbounds for (i, xi) in enumerate(xrhs)
         n[i] = any(isequal.([xi], yrhs))
+        !n[i] && break
     end
     return all(n)
 end
 
 free_parameters(b::Basis; operations = [+]) = count_operation([xi.rhs for xi in b.eqs], operations) + length(b.eqs)
 
+## Callable struct
+
 (b::Basis)(u, p::DiffEqBase.NullParameters, t) = b(u, [], t)
 (b::Basis)(du, u, p::DiffEqBase.NullParameters, t) = b(du, u, [], t)
-(b::Basis)(u::AbstractVector,  p::AbstractArray = [], t = nothing) = b.f_(u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
-(b::Basis)(du::AbstractVector, u::AbstractVector, p::AbstractArray = [], t = nothing) = b.f_(du, u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
+(b::Basis)(u::AbstractVector,  p::AbstractArray = [], t = nothing) = b.f(u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
+(b::Basis)(du::AbstractVector, u::AbstractVector, p::AbstractArray = [], t = nothing) = b.f(du, u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
+
 
 function (b::Basis)(x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray = [])
     isempty(t) ? nothing : @assert size(x, 2) == length(t)
@@ -294,7 +403,7 @@ function (b::Basis)(x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray =
     end
 
     @inbounds for i in 1:size(x)[2]
-        res[:, i] .= b.f_(x[:, i], isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
+        res[:, i] .= b.f(x[:, i], isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
     end
     return res
 end
@@ -305,10 +414,11 @@ function (b::Basis)(y::AbstractMatrix, x::AbstractMatrix, p::AbstractArray = [],
     isempty(t) ? nothing : @assert size(x, 2) == length(t)
 
     @inbounds for i in 1:size(x, 2)
-        b.f_(view(y, :, i), view(x, :, i), isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
+        b.f(view(y, :, i), view(x, :, i), isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
     end
 end
 
+## Derivatives
 
 """
     jacobian(basis)
@@ -318,38 +428,46 @@ end
 """
 function jacobian(x::Basis, eval_expression = false)
 
-    j = ModelingToolkit.jacobian([xi.rhs for xi in x.eqs], x.states)
+    j = Symbolics.jacobian([xi.rhs for xi in equations(x)], states(x))
 
     if eval_expression
-        f_oop, f_iip = eval.(ModelingToolkit.build_function(expand_derivatives.(j), x.states, x.ps, [x.iv], expression = Val{true}))
+        f_oop, f_iip = eval.(ModelingToolkit.build_function(expand_derivatives.(j), states(x), parameters(x), [independent_variable(x)], expression = Val{true}))
     else
-        f_oop, f_iip = ModelingToolkit.build_function(expand_derivatives.(j), x.states, x.ps, [x.iv], expression = Val{false})
+        f_oop, f_iip = ModelingToolkit.build_function(expand_derivatives.(j), states(x), parameters(x), [independent_variable(x)], expression = Val{false})
     end
 
-    f_(u, p, t) = f_oop(u, p, t)
-    f_(du, u, p, t) = f_iip(du, u, p, t)
+    jac(u, p, t) = f_oop(u, p, t)
+    jac(du, u, p, t) = f_iip(du, u, p, t)
 
-    return f_
+    return jac
 end
 
+## Get unary and binary functions
 
-"""
-    dynamics(basis)
-
-    Returns the internal function representing the dynamics of the `Basis`.
-"""
-function dynamics(b::Basis)
-    return b.f_
-end
-
-## Symbolic Manipulation
-
-function is_unary(f::Function)
-    for m in methods(f)
+function is_unary(f::Function, t::Type = Number)
+    f ∈ [+, -, *, /, ^] && return false
+    for m in methods(f, (t, ))
         m.nargs - 1 > 1 && return false
     end
     return true
 end
+
+function is_binary(f::Function, t::Type = Number)
+    f ∈ [+, -, *, /, ^] && return true
+    !is_unary(f, t)
+end
+
+
+function sort_ops(f::Vector{Function})
+    U = Function[]
+    B = Function[]
+    for fi in f
+        is_unary(fi) ? push!(U, fi) : push!(B, fi)
+    end
+    return U, B
+end
+
+## Create linear independent basis
 
 count_operation(x::Number, op::Function, nested::Bool = true) = 0
 count_operation(x::Sym, op::Function, nested::Bool = true) = 0
@@ -416,8 +534,11 @@ remove_constant_factor(x::Num) = remove_constant_factor(value(x))
 remove_constant_factor(x::Number) = one(x)
 
 function remove_constant_factor(x)
+    # Return, if the function is nested
     istree(x) || return x
+    # Count the number of operations
     n_ops = count_operation(x, *, false)+1
+    # Create a new array
     ops = Array{Any}(undef, n_ops)
     @views split_term!(ops, x, [*])
     filter!(x->!isa(x, Number), ops)
@@ -430,7 +551,7 @@ function remove_constant_factor!(o::AbstractArray)
     end
 end
 
-function create_linear_independent_eqs(o::AbstractVector)
+function create_linear_independent_eqs(o::AbstractVector, simplify_eqs::Bool = false)
     o .= simplify.(o)
     remove_constant_factor!(o)
     n_ops = [count_operation(bi, +, false) for bi in o]
@@ -444,5 +565,5 @@ function create_linear_independent_eqs(o::AbstractVector)
     end
     remove_constant_factor!(u_o)
     unique!(u_o)
-    return u_o
+    return simplify_eqs ? simplify.(Num.(u_o)) : Num.(u_o)
 end
