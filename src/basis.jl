@@ -137,6 +137,12 @@ function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = 
     end
 end
 
+function Basis(n::Int)
+    @parameters t
+    @variables u[1:n](t)
+    return Basis(u, u, iv = t)
+end
+
 ## Printing
 
 @inline function Base.print(io::IO, x::Basis)
