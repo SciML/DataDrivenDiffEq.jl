@@ -2,7 +2,29 @@
 # Collect the DataInterpolations Methods into an Interpolation Type
 abstract type AbstractInterpolationMethod end
 
-struct InterpolationMethod{T}
+"""
+A wrapper for the interpolation methods of DataInterpolations.jl.
+
+$(SIGNATURES)
+
+Wraps the methods in such a way that they are callable as `f(u,t)` to
+create and return an interpolation of `u` over `t`.
+The first argument of the constructor always defines the interpolation method,
+all following arguments will be used in the interpolation.
+
+
+# Example
+
+```julia
+# Create the wrapper struct
+itp_method = InterpolationMethod(QuadraticSpline)
+# Create a callable interpolation
+itp = itp_method(u,t)
+# Return u[2]
+itp(t[2])
+```
+"""
+struct InterpolationMethod{T} <: AbstractInterpolationMethod
   itp::T
   args
 
@@ -14,9 +36,9 @@ end
 
 (x::InterpolationMethod)(u, t) = x.itp(u,t,x.args...)
 
+# TODO Wrap all types
 # Wrap the common itps
 InterpolationMethod() = InterpolationMethod(QuadraticSpline)
-
 
 
 
@@ -187,6 +209,7 @@ end
 # Adapted to dispatch on InterpolationMethod
 function collocate_data(data::AbstractMatrix{T},tpoints::AbstractVector{T},
                         tpoints_sample::AbstractVector{T},interp::InterpolationMethod) where T
+
   u = zeros(T,size(data, 1),length(tpoints_sample))
   du = zeros(T,size(data, 1),length(tpoints_sample))
   for d1 in 1:size(data,1)
