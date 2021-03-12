@@ -18,24 +18,40 @@ abstract type AbstractDataDrivenProblem end
 """
 $(TYPEDEF)
 
-The `DataDrivenProblem` defines
+The `DataDrivenProblem` defines a general estimation problem given measurements, inputs and (in the near future) observations.
+Two construction methods are available:
+
++ `DiscreteDataDrivenProblem` for time discrete systems
++ `ContinousDataDrivenProblem` for systems continouos in time
+
+both are aliases for constructing a problem.
 
 # Fields
 $(FIELDS)
+
+# Signatures
+$(SIGNATURES)
 
 # Example
 
 ```julia
 X, DX, t = data...
+
+# Define a discrete time problem
 prob = DiscreteDataDrivenProblem(X)
+
+# Define a continous time problem without explicit time points
 prob = ContinuousDataDrivenProblem(X, DX)
+
+# Define a continous time problem without explict derivatives
 prob = ContinuousDataDrivenProblem(X, t)
 
+# Define a discrete time problem with an input function as a function
 input_signal(u,p,t) = t^2
-prob = DiscreteDataDrivenProblem(X, )
+prob = DiscreteDataDrivenProblem(X, t, input_signal)
 ```
 """
-struct DataDrivenProblem{dType, P, uType} <: AbstractDataDrivenProblem where {uType <: Union{AbstractMatrix, Function}}
+struct DataDrivenProblem{dType, uType} <: AbstractDataDrivenProblem where {dType <: Real, uType <: Union{AbstractMatrix, Function}}
 
     # Data
     """State measurements"""
@@ -44,123 +60,137 @@ struct DataDrivenProblem{dType, P, uType} <: AbstractDataDrivenProblem where {uT
     t::AbstractVector{dType}
     """Differental state measurements (optional)"""
     DX::AbstractMatrix{dType}
-    """Output measurements (optional; not used right now) """
+    """Output measurements (optional; not used right now)"""
     Y::AbstractMatrix{dType}
-    """Input measurements (optional) provided either as an `AbstractArray` or a `Function` of form `f(u,p,t)`"""
+    """Input measurements (optional) provided either as an `AbstractMatrix` or a `Function` of form `f(u,p,t)` which returns an `AbstractVector`"""
     U::uType
-    
+
     """(Time) discrete problem"""
     is_discrete::Bool
 
-    function DataDrivenProblem(
-        X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix,
-        Y::AbstractMatrix, U::AbstractMatrix, is_discrete::Bool
-        )
+    function DataDrivenProblem(X, t, DX, Y, U::F, is_discrete) where F <: AbstractMatrix
         dType = Base.promote_eltype(X, t, DX, Y, U)
-        return new{dType, typeof(p), typeof(U)}(_promote(X, t, DX, Y, U)..., is_discrete)
+        return new{dType, typeof(U)}(_promote(X,t,DX,Y,U)..., is_discrete)
     end
 
-    function DataDrivenProblem(
-        X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix,
-        Y::AbstractMatrix, U::AbstractMatrix, p::AbstractArray, b::Basis, is_discrete::Bool
-        )
-        dType = Base.promote_eltype(X, t, DX, Y, U, p)
-        return new{dType, typeof(p), typeof(U)}(_promote(X, t, DX, Y, U, p)..., b, is_discrete)
-    end
 
-    function DataDrivenProblem(
-        X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix,
-        Y::AbstractMatrix, U::F, p, b::Basis, is_discrete::Bool
-        ) where F <: Function
+    function DataDrivenProblem(X, t, DX, Y, U::F, is_discrete) where F <: Function
         dType = Base.promote_eltype(X, t, DX, Y)
-        return new{dType, typeof(p), typeof(U)}(_promote(X, t, DX, Y)..., U ,p, b, is_discrete)
-    end
-
-    function DataDrivenProblem(
-        X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix,
-        Y::AbstractMatrix, U::F, p::AbstractArray, b::Basis, is_discrete::Bool
-        ) where F <: Function
-        dType = Base.promote_eltype(X, t, DX, Y)
-        p = convert.(dType, p)
-        return new{dType, typeof(p), typeof(U)}(_promote(X, t, DX, Y)..., U , p, b, is_discrete)
+        return new{dType, typeof(U)}(_promote(X,t,DX,Y)..., U, is_discrete)
     end
 end
 
-init_estimate() = x.basis(x.X, x.p, x.t)
 
-DiscreteDataDrivenProblem(args...) = DataDrivenProblem(args..., true)
-ContinuousDataDrivenProblem(args...) = DataDrivenProblem(args..., false)
+function DataDrivenProblem(X::AbstractMatrix;
+    t::AbstractVector = Array{eltype(X)}(undef, 0),
+    DX::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
+    Y::AbstractMatrix = Array{eltype(X)}(undef, 0,0),
+    U::F = Array{eltype(X)}(undef, 0,0),
+    is_discrete::Bool = true) where F <: Union{AbstractMatrix, Function}
 
-
-## Discrete
-
-function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector,
-    U::uType) where uType <: Union{AbstractMatrix, Function}
-    return DiscreteDataDrivenProblem(
-        X, t, Array{eltype(X)}(undef, 0,0), Array{eltype(X)}(undef, 0,0), U, Basis(size(X, 1)), DiffEqBase.NullParamters()
-    )
+    return DataDrivenProblem(X,t,DX,Y,U, is_discrete)
 end
 
-function DiscreteDataDrivenProblem(X::AbstractArray, b::Basis = Basis(size(X, 1)),p = DiffEqBase.NullParameters())
-    return DiscreteDataDrivenProblem(X, Array{eltype(X)}(undef, 0), Array{eltype(X)}(undef, size(X, 1), 0), Array{eltype(X)}(undef, 0, 0), Array{eltype(X)}(undef, 0, 0), p, b)
+## Discrete Constructors
+"""
+A time discrete `DataDrivenProblem`.
+
+$(SIGNATURES)
+"""
+DiscreteDataDrivenProblem(args...; kwargs...) = DataDrivenProblem(args...;kwargs..., is_discrete = true)
+DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector) =  DiscreteDataDrivenProblem(X, t=t)
+DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::F) where F <: Union{AbstractMatrix, Function} =  DiscreteDataDrivenProblem(X, t=t, U = U)
+DiscreteDataDrivenProblem(X::AbstractMatrix, U::F) where F <: Union{AbstractMatrix, Function} =  DiscreteDataDrivenProblem(X, U = U)
+
+
+## Continouos Constructors
+"""
+A time continuous `DataDrivenProblem`.
+
+$(SIGNATURES)
+
+Automatically constructs derivatives via an additional collocation method, which can be either:
+
+or a wrapped interpolation from `DataInterpolations.jl`
+"""
+ContinuousDataDrivenProblem(args...; kwargs...) = DataDrivenProblem(args...; kwargs...,  is_discrete = false)
+
+function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, collocation = InterpolationMethod())
+    dx, x = collocate_data(X, t, collocation)
+    return ContinuousDataDrivenProblem(x, t = t, DX = dx)
 end
 
-function DiscreteDataDrivenProblem(X::AbstractArray, t::AbstractVector, b::Basis = Basis(size(X, 1)),p = DiffEqBase.NullParameters())
-    return DiscreteDataDrivenProblem(X, t, Array{eltype(X)}(undef, size(X, 1), 0), Array{eltype(X)}(undef, 0, 0), Array{eltype(X)}(undef, 0, 0), p, b)
+function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::F, collocation = InterpolationMethod()) where F <: Union{AbstractMatrix, Function}
+    dx, x = collocate_data(X, t, collocation)
+    return ContinuousDataDrivenProblem(x, t = t, DX = dx, U = U)
 end
 
-function DiscreteDataDrivenProblem(X::AbstractArray, t::AbstractVector, U::AbstractArray, b::Basis = Basis(size(X, 1)),p = DiffEqBase.NullParameters())
-    return DiscreteDataDrivenProblem(X, t, Array{eltype(X)}(undef, size(X, 1), 0), Array{eltype(X)}(undef, 0, 0), U, p, b)
+function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U_DX::AbstractMatrix)
+    size(X) == size(U_DX) ? ContinuousDataDrivenProblem(X, t = t, DX = U_DX) : ContinuousDataDrivenProblem(X, t, U, InterpolationMethod())
 end
 
-function DiscreteDataDrivenProblem(X::AbstractArray, t::AbstractVector, ::F, b::Basis = Basis(size(X, 1)),p = DiffEqBase.NullParameters()) where F <: Function
-    return DiscreteDataDrivenProblem(X, t, Array{eltype(X)}(undef, size(X, 1), 0), Array{eltype(X)}(undef, 0, 0),U, p, b)
+function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix, U::F) where F <: Union{AbstractMatrix, Function}
+    return ContinuousDataDrivenProblem(X, t = t, DX = DX, U = U)
 end
 
-## Continuous
+## Utils
 
-function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix,
-    U, b::Basis = Basis(size(X, 1)), p = DiffEqBase.NullParamters())
-    return ContinuousDataDrivenProblem(
-        X, t, DX, Array{eltype(X)}(undef, 0,0), U, b, p
-    )
+# Check for systemtype
+is_discrete(x::DataDrivenProblem) = x.is_discrete
+is_continuous(x::DataDrivenProblem) = !x.is_discrete
+
+# Check for timepoints
+has_timepoints(x::DataDrivenProblem) = !isempty(x.t)
+
+# Check for inputs
+has_inputs(x::DataDrivenProblem) = _isfun(x.U) ? true : !isempty(x.U)
+
+# Check for observations
+has_observations(x::DataDrivenProblem) = _isfun(x.Y) ? true : !isempty(x.Y)
+
+# Check for derivatives
+has_derivatives(x::DataDrivenProblem) = !isempty(x.DX)
+
+# Check for nans, inf etc
+check_domain(x) =  any(isnan.(x) || isinf.(x))
+
+# Check for validity
+
+"""
+$(METHODS)
+
+Checks if a `DataDrivenProblem` is valid by checking if the data contains `NaN`, `Inf` and
+if the number of measurements is consistent.
+
+# Example
+
+```julia
+is_valid(problem)
+```
+"""
+function is_valid(x::DataDrivenProblem)
+    # Check for nans, infs
+    check_domain(x.X) && return false
+
+    if has_timepoints(x)
+        length(x.t) != size(x.X, 2) && return false
+    end
+
+    if has_derivatives(x)
+        size(x.X) != size(x.DX) && return false
+        check_domain(x.DX) && return false
+
+    end
+
+    if has_inputs(x) && isa(x.U, AbstractMatrix)
+        size(x.X, 2) != size(x.U, 2) && return false
+        check_domain(x.U) && return false
+    end
+
+    if has_observations(x)
+        size(x.X, 2) != size(x.Y, 2) && return false
+        check_domain(x.Y) && return false
+    end
+
+    return true
 end
-
-function ContinuousDataDrivenProblem(X::AbstractMatrix, DX::AbstractMatrix, b::Basis = Basis(size(X, 1)), p = DiffEqBase.NullParameters())
-    @assert size(X) == size(DX)
-    return ContinuousDataDrivenProblem(X, Array{eltype(X)}(undef, 0), DX, Array{eltype(X)}(undef, 0, 0), Array{eltype(X)}(undef, 0, 0), p, b)
-end
-
-function ContinuousDataDrivenProblem_(X::AbstractMatrix, t::AbstractVector, b::Basis = Basis(size(X, 1)),p = DiffEqBase.NullParameters();
-    collocation = TriangularKernel(), tsample::AbstractVector = t)
-    dx_, x_ = collocate_data(X, t, collocation)
-    return ContinuousDataDrivenProblem(x_, t, dx_, Array{eltype(X)}(undef, 0, 0), Array{eltype(X)}(undef, 0, 0), p, b)
-end
-
-function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::AbstractMatrix, b::Basis = Basis(size(X, 1)),p = DiffEqBase.NullParameters();
-    collocation = TriangularKernel(), tsample::AbstractVector = t)
-    dx_, x_ = collocate_data(X, t, collocation)
-    return ContinuousDataDrivenProblem(x_, t, dx_, Array{eltype(X)}(undef, 0, 0), Array{eltype(X)}(undef, 0, 0), p, b)
-end
-
-function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::F, b::Basis = Basis(size(X, 1)),p = DiffEqBase.NullParameters();
-    collocation = TriangularKernel(), tsample::AbstractVector = t) where F <: Function
-    dx_, x_ = collocate_data(X, t, collocation)
-    return ContinuousDataDrivenProblem(x_, t, dx_, Array{eltype(X)}(undef, 0, 0), U, p, b)
-end
-
-
-t = collect(0:0.1:6.0)
-X = vcat(sin.(t'), cos.(t'))
-DiscreteDataDrivenProblem(X, t, (u,p,t)->[sin(u[1])])
-DX = vcat(cos.(t'), -sin.(t'))
-prob = DiscreteDataDrivenProblem(X, t)
-prob = ContinuousDataDrivenProblem(X, t)
-prob()
-all(isapprox.(prob.DX, DX, atol = 1e-1))
-itp = InterpolationMethod(CubicSpline)
-dx, x = collocate_data(X, t, t, itp)
-prob = ContinuousDataDrivenProblem(X,t, collocation = itp)
-typeof((u,p,t)->[sin(t)]) <: Function
-prob = ContinuousDataDrivenProblem(X,t,(u,p,t)->[sin(t)], collocation = itp)
-all(isapprox.(prob.DX, DX, atol = 1e-1))
