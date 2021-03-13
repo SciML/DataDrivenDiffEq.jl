@@ -1,7 +1,3 @@
-
-# Collect the DataInterpolations Methods into an Interpolation Type
-abstract type AbstractInterpolationMethod end
-
 """
 A wrapper for the interpolation methods of DataInterpolations.jl.
 
@@ -46,7 +42,6 @@ InterpolationMethod() = InterpolationMethod(QuadraticSpline)
 # https://github.com/SciML/DiffEqFlux.jl/blob/master/src/collocation.jl
 # On 3-11-2021
 
-abstract type CollocationKernel end
 struct EpanechnikovKernel <: CollocationKernel end
 struct UniformKernel <: CollocationKernel end
 struct TriangularKernel <: CollocationKernel end

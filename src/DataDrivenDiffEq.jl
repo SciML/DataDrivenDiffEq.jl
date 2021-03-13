@@ -7,7 +7,7 @@ using ModelingToolkit
 using QuadGK
 using Statistics
 using DSP
-using FiniteDifferences, DataInterpolations
+using DataInterpolations
 
 using Reexport
 using Compat
@@ -15,7 +15,11 @@ using DocStringExtensions
 
 
 @reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls
+@reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
 
+# Collect the DataInterpolations Methods into an Interpolation Type
+abstract type AbstractInterpolationMethod end
+abstract type CollocationKernel end
 
 include("./basis.jl")
 export Basis
@@ -26,6 +30,16 @@ export free_parameters
 include("./utils/basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis
 export sin_basis, cos_basis, fourier_basis
+
+include("./utils/collocation.jl")
+export InterpolationMethod
+export EpanechnikovKernel, UniformKernel, TriangularKernel,QuarticKernel
+export TriweightKernel, TricubeKernel, GaussianKernel, CosineKernel
+export LogisticKernel, SigmoidKernel, SilvermanKernel
+export collocate_data
+
+
+
 
 #include("./optimizers/Optimize.jl")
 #using .Optimize
