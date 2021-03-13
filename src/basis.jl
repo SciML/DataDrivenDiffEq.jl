@@ -293,7 +293,7 @@ function (b::Basis)(x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray =
         res = zeros(eltype(x), length(b), size(x)[2])
     end
 
-    @inbounds for i in 1:size(x)[2]
+    map(1:size(x)[2]) do i
         res[:, i] .= b.f_(x[:, i], isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
     end
     return res
