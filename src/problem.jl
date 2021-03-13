@@ -1,10 +1,3 @@
-using DiffEqBase
-using DataDrivenDiffEq
-using DataInterpolations
-using LinearAlgebra
-
-include(joinpath(pwd(), "src" , "utils", "collocation.jl"))
-
 function _promote(args...)
     _type = Base.promote_eltype(args...)
     return map(x->convert.(_type, x), args)
