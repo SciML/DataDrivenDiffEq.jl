@@ -38,6 +38,12 @@ export TriweightKernel, TricubeKernel, GaussianKernel, CosineKernel
 export LogisticKernel, SigmoidKernel, SilvermanKernel
 export collocate_data
 
+include("./utils/utils.jl")
+export AIC, AICC, BIC
+export optimal_shrinkage, optimal_shrinkage!
+export savitzky_golay
+export burst_sampling, subsample
+
 
 
 
