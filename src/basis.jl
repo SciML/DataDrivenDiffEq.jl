@@ -4,14 +4,18 @@ using ModelingToolkit: value, operation, arguments, istree, get_observed
 """
 $(TYPEDEF)
 
-A basis over the variables `u` with parameters `p` and independent variable `iv`.
-It extends an `AbstractSystem` as defined in `ModelingToolkit.jl`.
-`f` can either be a Julia function which is able to use ModelingToolkit variables or
+A basis over the states with parameters , independent variable  and possible exogenous controls.
+It extends an `AbstractSystem` as defined in `ModelingToolkit.jl`. `f` can either be a Julia function which is able to use ModelingToolkit variables or
 a vector of `eqs`.
-It can be called with the typical DiffEq signature, meaning out of place with `f(u,p,t)`
-or in place with `f(du, u, p, t)`.
+It can be called with the typical SciML signature, meaning out of place with `f(u,p,t)`
+or in place with `f(du, u, p, t)`. If control inputs are present, it is assumed that no control corresponds to
+zero for all inputs. The corresponding function calls are `f(u,p,t,inputs)` and `f(du,u,p,t,inputs)` and need to
+be specified fully.
+
 If `linear_independent` is set to `true`, a linear independent basis is created from all atom function in `f`.
+
 If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
+
 Additional keyworded arguments include `name`, which can be used to name the basis, and
 `observed` for defining observeables.
 
@@ -47,6 +51,8 @@ mutable struct Basis <: ModelingToolkit.AbstractSystem
     eqs::Vector{Equation}
     """Dependent (state) variables"""
     states::Vector
+    """Control variables"""
+    controls::Vector
     """Parameters"""
     ps::Vector
     """Observed"""
@@ -61,11 +67,204 @@ mutable struct Basis <: ModelingToolkit.AbstractSystem
     systems::Vector{Basis}
 end
 
+# Helper to build function
+
+function _build_ddd_function(rhs, states, parameters, iv, eval_expression::Bool = false)
+
+    if eval_expression
+        f_oop, f_iip = eval.(build_function(rhs, value.(states), value.(parameters), [value(iv)], expression = Val{true}))
+    else
+        f_oop, f_iip = build_function(rhs, value.(states), value.(parameters), [value(iv)], expression = Val{false})
+    end
+
+    function f(
+        u::AbstractVector{T} where T,
+        p::AbstractVector{T} where T,
+        t::T where T
+    )
+        return f_oop(u, p, t, )
+    end
+
+    function f(
+        du::AbstractVector{T} where T,
+        u::AbstractVector{T} where T,
+        p::AbstractVector{T} where T,
+        t::T where T
+    )
+        return f_iip(du, u, p, t)
+    end
+
+    function f(
+        x::AbstractMatrix{T} where T,
+        p::AbstractVector{T} where T,
+        t::AbstractVector{T} where T
+    )
+        @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
+
+        return hcat([f(x[:,i], p, t[i]) for i in 1:size(x, 2)]...)
+
+    end
+
+
+    function f(
+        y::AbstractMatrix{T} where T,
+        x::AbstractMatrix{T} where T,
+        p::AbstractVector{T} where T,
+        t::AbstractVector{T} where T
+    )
+        @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
+        @assert size(x, 2) == size(y, 2) "Measurements and preallocated output must be of equal length!"
+
+        @inbounds for i = 1:size(x, 2)
+            @views f(y[:, i], x[:, i], p, t[i])
+        end
+
+        return
+    end
+
+
+    # Dispatch on DiffEqBase.NullParameters
+    f(u,p::DiffEqBase.NullParameters, t) = f(u,[], t)
+    f(du, u,p::DiffEqBase.NullParameters, t) = f(du, u,[], t)
+
+
+    return f
+end
+
+
+function _build_ddd_function(
+    rhs,
+    states,
+    parameters,
+    iv,
+    controls,
+    eval_expression::Bool = false,
+)
+
+    isempty(controls) &&
+        return _build_ddd_function(rhs, states, parameters, iv, eval_expression)
+
+    # Assumes zero control is zero!
+
+    if eval_expression
+        c_oop, c_iip =
+            eval.(
+                build_function(
+                    rhs,
+                    value.(states),
+                    value.(parameters),
+                    [value(iv)],
+                    value.(controls),
+                    expression = Val{true},
+                ),
+            )
+    else
+        c_oop, c_iip = build_function(
+            rhs,
+            value.(states),
+            value.(parameters),
+            [value(iv)],
+            value.(controls),
+            expression = Val{false},
+        )
+    end
+
+    function f(
+        u::AbstractVector{T} where T,
+        p::AbstractVector{T} where T,
+        t::T where T,
+        c::AbstractVector{T} where T = zeros(eltype(u), size(controls)...),
+    )
+        return c_oop(u, p, t, c)
+    end
+
+    function f(
+        du::AbstractVector{T} where T,
+        u::AbstractVector{T} where T,
+        p::AbstractVector{T} where T,
+        t::T where T,
+        c::AbstractVector{T} where T= zeros(eltype(u), size(controls)...),
+    )
+        return c_iip(du, u, p, t, c)
+    end
+
+
+    function f(
+        x::AbstractMatrix{T} where T,
+        p::AbstractVector{T} where T,
+        t::AbstractVector{T} where T
+    )
+        @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
+
+        return hcat([f(x[:,i], p, t[i]) for i in 1:size(x, 2)]...)
+
+    end
+
+    function f(
+        y::AbstractMatrix{T} where T,
+        x::AbstractMatrix{T} where T,
+        p::AbstractVector{T} where T,
+        t::AbstractVector{T} where T
+    )
+        @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
+        @assert size(x, 2) == size(y, 2) "Measurements and preallocated output must be of equal length!"
+
+        @inbounds for i = 1:size(x, 2)
+            @views f(y[:, i], x[:, i], p, t[i])
+        end
+
+        return
+    end
+
+
+    function f(
+        x::AbstractMatrix{T} where T,
+        p::AbstractVector{T} where T,
+        t::AbstractVector{T} where T,
+        u::AbstractMatrix{T} where T
+    )
+        @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
+        @assert size(x, 2) == size(u, 2) "Measurements and inputs must be of equal length!"
+
+
+        return hcat([f(x[:,i], p, t[i], u[:, i]) for i in 1:size(x, 2)]...)
+
+    end
+
+    function f(
+        y::AbstractMatrix{T} where T,
+        x::AbstractMatrix{T} where T,
+        p::AbstractVector{T} where T,
+        t::AbstractVector{T} where T,
+        u::AbstractMatrix{T} where T
+    )
+        @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
+        @assert size(x, 2) == size(y, 2) "Measurements and preallocated output must be of equal length!"
+        @assert size(x, 2) == size(u, 2) "Measurements and inputs must be of equal length!"
+
+        @inbounds for i = 1:size(x, 2)
+            @views f(y[:, i], x[:, i], p, t[i], u[:, i])
+        end
+
+        return
+    end
+
+    # Dispatch on DiffEqBase.NullParameters
+    f(u,p::DiffEqBase.NullParameters, t) = f(u,[], t)
+    f(du, u,p::DiffEqBase.NullParameters, t) = f(du, u,[], t)
+
+
+    return f
+end
+
 ## Constructors
 
-function Basis(eqs::AbstractVector, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
-    simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = false,
-    observed = [],
+function Basis(eqs::AbstractVector, states::AbstractVector;
+    parameters::AbstractVector = [], iv = nothing,
+    controls::AbstractVector = [], observed::AbstractVector = [],
+    name = gensym(:Basis),
+    simplify = false, linear_independent = false,
+    eval_expression = false,
     kwargs...)
 
     if linear_independent
@@ -77,64 +276,43 @@ function Basis(eqs::AbstractVector, states::AbstractVector; parameters::Abstract
     isnothing(iv) && (iv = Num(Variable(:t)))
     unique!(eqs, !simplify)
 
-    if eval_expression
-        f_oop, f_iip = eval.(build_function(eqs_, value.(states), value.(parameters), [value(iv)], expression = Val{true}))
-    else
-        f_oop, f_iip = build_function(eqs_, value.(states), value.(parameters), [value(iv)], expression = Val{false})
-    end
+    f = _build_ddd_function(eqs, states, parameters, iv, controls, eval_expression)
 
     eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
-    f_(u,p,t) = f_oop(u,p,t)
-    f_(du, u, p, t) = f_iip(du, u, p, t)
-
-    return Basis(eqs, value.(states), value.(parameters), observed, value(iv), f_, name, Basis[])
+    return Basis(eqs, value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[])
 end
 
 
 
-function Basis(eqs::AbstractVector{Equation}, states::AbstractVector; parameters::AbstractArray = [], iv = nothing,
-    simplify = false, linear_independent = false, name = gensym(:Basis), eval_expression = false,
-    observed = [],
+function Basis(eqs::AbstractVector{Equation}, states::AbstractVector;
     kwargs...)
 
+    # Split the equation in rhs and lhs
     lhs = [x.lhs for x in eqs]
     rhs = Num.([x.rhs for x in eqs])
 
-    if linear_independent
-        rhs = create_linear_independent_eqs(rhs, simplify)
-    else
-        rhs = simplify ? ModelingToolkit.simplify.(rhs) : rhs
-    end
-
-    isnothing(iv) && (iv = Num(Variable(:t)))
-    unique!(rhs, !simplify)
-
-    if eval_expression
-        f_oop, f_iip = eval.(build_function(rhs, value.(states), value.(parameters), [value(iv)], expression = Val{true}))
-    else
-        f_oop, f_iip = build_function(rhs, value.(states), value.(parameters), [value(iv)], expression = Val{false})
-    end
-
-    eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(rhs)]
-
-    f_(u,p,t) = f_oop(u,p,t)
-    f_(du, u, p, t) = f_iip(du, u, p, t)
-
-    return Basis(eqs, value.(states), value.(parameters), observed, value(iv), f_, name, Basis[])
+    return Basis(rhs, states; kwargs...)
 end
 
 
-function Basis(f::Function, states::AbstractVector; parameters::AbstractArray = [], iv = nothing, kwargs...)
+function Basis(f::Function, states::AbstractVector; parameters::AbstractVector = [], controls::AbstractVector = [],
+     iv = nothing, kwargs...)
 
     isnothing(iv) && (iv = Num(Variable(:t)))
 
     try
-        eqs = f(states, parameters, iv)
-        return Basis(eqs, states, parameters = parameters, iv = iv; kwargs...)
+        eqs = isempty(controls) ? f(states, parameters, iv) : f(states, parameters, iv, controls)
+        return Basis(eqs, states, parameters = parameters, iv = iv, controls = controls; kwargs...)
     catch e
         rethrow(e)
     end
+end
+
+function Basis(n::Int)
+    @parameters t
+    @variables u[1:n](t)
+    return Basis(u, u, iv = t)
 end
 
 ## Printing
@@ -215,10 +393,74 @@ end
     $(SIGNATURES)
 
     Returns the internal function representing the dynamics of the `Basis`. This can be called either inplace or out-of-place
-    with the typical SciML signature `f(u,p,t)` or `f(du,u,p,t)`.
+    with the typical SciML signature `f(u,p,t)` or `f(du,u,p,t)`. If control variables are defined, the function can also be called
+    by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
 """
 function dynamics(b::Basis)
     return get_f(b)
+end
+
+"""
+Returns the control variables of the `Basis`.
+
+$(SIGNATURES)
+"""
+ModelingToolkit.controls(b::Basis) = b.controls
+
+## Callable
+
+# OOP
+function (b::Basis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T = parameters(b),
+    t::T where T <: Number = independent_variable(b))
+    return b.f(x,p,t)
+end
+
+function (b::Basis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T,
+    t::T where T <: Number , u::AbstractVector{T} where T)
+    return b.f(x,p,t, u)
+end
+
+function (b::Basis)(x::AbstractMatrix{T} where T)
+    t = independent_variable(b)
+    return b.f(x,parameters(b),[t for i in 1:size(x,2)])
+end
+
+function (b::Basis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
+    t = independent_variable(b)
+    return b.f(x,p,[t for i in 1:size(x,2)])
+end
+
+function (b::Basis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
+    t::AbstractVector{T} where T <: Number, )
+    return b.f(x,p,t)
+end
+
+
+function (b::Basis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
+    t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
+    return b.f(x,p,t, u)
+end
+
+# IIP
+function (b::Basis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T)
+    t = independent_variable(b)
+    return b.f(y,x,parameters(b),[t for i in 1:size(x,2)])
+end
+
+function (b::Basis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
+    t = independent_variable(b)
+    return b.f(y,x,p,[t for i in 1:size(x,2)])
+end
+
+function (b::Basis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
+    t::AbstractVector{T} where T <: Number, )
+    return b.f(y,x,p,t)
+end
+
+
+function (b::Basis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
+    t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
+    return b.f(y,x,p,t, u)
 end
 
 
@@ -237,20 +479,10 @@ Base.iterate(x::Basis, id) = iterate(equations(x), id)
 
 function update!(b::Basis, eval_expression = false)
 
-    if eval_expression
-        f_oop, f_iip = eval.(ModelingToolkit.build_function([bi.rhs for bi in equations(b)],
-            states(b), parameters(b), [independent_variable(b)],
-            expression = Val{true}))
-    else
-        f_oop, f_iip = ModelingToolkit.build_function([bi.rhs for bi in equations(b)],
-            states(b), parameters(b), [independent_variable(b)],
-            expression = Val{false})
-    end
+    b.f = _build_ddd_function([bi.rhs for bi in equations(b)],
+        states(b), parameters(b), [independent_variable(b)],
+        controls(b), eval_expression)
 
-    f_(u, p, t) = f_oop(u, p, t)
-    f_(du, u, p, t) = f_iip(du, u, p, t)
-
-    b.f = f_
     return
 end
 
@@ -349,8 +581,11 @@ function Base.merge(x::Basis, y::Basis; eval_expression = false)
     b =  unique(vcat([xi.rhs  for xi ∈ equations(x)], [xi.rhs  for xi ∈ equations(y)]))
     vs = unique(vcat(states(x), states(y)))
     ps = unique(vcat(parameters(x), parameters(y)))
+
+    c = unique(vcat(controls(x), controls(y)))
     observed = unique(vcat(get_observed(x), get_observed(y)))
-    return Basis(Num.(b), vs, parameters = ps, observed = observed, eval_expression = eval_expression)
+
+    return Basis(Num.(b), vs, parameters = ps, controls = c, observed = observed, eval_expression = eval_expression)
 end
 
 """
@@ -362,6 +597,7 @@ function Base.merge!(x::Basis, y::Basis; eval_expression = false)
     push!(x, map(x->x.rhs, equations(y)))
     x.states = unique(vcat(states(x),states(y)))
     x.ps = unique(vcat(parameters(x), parameters(y)))
+    x.controls = unique(vcat(controls(x), controls(y)))
     x.observed = unique(vcat(get_observed(x), get_observed(y)))
     update!(x, eval_expression)
     return
@@ -385,39 +621,39 @@ free_parameters(b::Basis; operations = [+]) = count_operation([xi.rhs for xi in 
 
 ## Callable struct
 
-(b::Basis)(u, p::DiffEqBase.NullParameters, t) = b(u, [], t)
-(b::Basis)(du, u, p::DiffEqBase.NullParameters, t) = b(du, u, [], t)
-(b::Basis)(u::AbstractVector,  p::AbstractArray = [], t = nothing) = b.f(u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
-(b::Basis)(du::AbstractVector, u::AbstractVector, p::AbstractArray = [], t = nothing) = b.f(du, u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
-
-
-function (b::Basis)(x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray = [])
-    isempty(t) ? nothing : @assert size(x, 2) == length(t)
-
-    if (isempty(p) || eltype(p) <: Num) && !isempty(parameters(b))
-        pi = isempty(p) ? parameters(b) : p
-        res = Array{Any}(undef,length(b), size(x)[2])
-    else
-        pi = p
-        res = zeros(eltype(x), length(b), size(x)[2])
-    end
-
-    @inbounds for i in 1:size(x)[2]
-        res[:, i] .= b.f(x[:, i], isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
-    end
-    return res
-end
-
-function (b::Basis)(y::AbstractMatrix, x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray = [])
-    @assert size(x, 2) == size(y, 2) "Provide consistent arrays."
-    @assert size(y, 1) == length(b) "Provide consistent arrays."
-    isempty(t) ? nothing : @assert size(x, 2) == length(t)
-
-    @inbounds for i in 1:size(x, 2)
-        b.f(view(y, :, i), view(x, :, i), isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
-    end
-end
-
+#(b::Basis)(u, p::DiffEqBase.NullParameters, t) = b(u, [], t)
+#(b::Basis)(du, u, p::DiffEqBase.NullParameters, t) = b(du, u, [], t)
+#(b::Basis)(u::AbstractVector,  p::AbstractArray = [], t = nothing) = b.f(u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
+#(b::Basis)(du::AbstractVector, u::AbstractVector, p::AbstractArray = [], t = nothing) = b.f(du, u, isempty(p) ? parameters(b) : p, isnothing(t) ? zero(eltype(u)) : t)
+#
+#
+#function (b::Basis)(x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray = [])
+#    isempty(t) ? nothing : @assert size(x, 2) == length(t)
+#
+#    if (isempty(p) || eltype(p) <: Num) && !isempty(parameters(b))
+#        pi = isempty(p) ? parameters(b) : p
+#        res = Array{Any}(undef,length(b), size(x)[2])
+#    else
+#        pi = p
+#        res = zeros(eltype(x), length(b), size(x)[2])
+#    end
+#
+#    @inbounds for i in 1:size(x)[2]
+#        res[:, i] .= b.f(x[:, i], isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
+#    end
+#    return res
+#end
+#
+#function (b::Basis)(y::AbstractMatrix, x::AbstractMatrix, p::AbstractArray = [], t::AbstractArray = [])
+#    @assert size(x, 2) == size(y, 2) "Provide consistent arrays."
+#    @assert size(y, 1) == length(b) "Provide consistent arrays."
+#    isempty(t) ? nothing : @assert size(x, 2) == length(t)
+#
+#    @inbounds for i in 1:size(x, 2)
+#        b.f(view(y, :, i), view(x, :, i), isempty(p) ? parameters(b) : p, isempty(t) ? zero(eltype(x)) : t[i])
+#    end
+#end
+#
 ## Derivatives
 
 """
@@ -425,19 +661,15 @@ end
 
     Returns a function representing the jacobian matrix / gradient of the `Basis` with respect to the
     dependent variables as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
+    If control variables are defined, the function can also be called by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
 """
 function jacobian(x::Basis, eval_expression = false)
 
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], states(x))
 
-    if eval_expression
-        f_oop, f_iip = eval.(ModelingToolkit.build_function(expand_derivatives.(j), states(x), parameters(x), [independent_variable(x)], expression = Val{true}))
-    else
-        f_oop, f_iip = ModelingToolkit.build_function(expand_derivatives.(j), states(x), parameters(x), [independent_variable(x)], expression = Val{false})
-    end
-
-    jac(u, p, t) = f_oop(u, p, t)
-    jac(du, u, p, t) = f_iip(du, u, p, t)
+    jac  = _build_ddd_function(expand_derivatives.(j),
+        states(x), parameters(x), independent_variable(x),
+        controls(x), eval_expression)
 
     return jac
 end

@@ -14,7 +14,7 @@ using Compat
 using DocStringExtensions
 
 
-@reexport using ModelingToolkit: states, parameters, independent_variable, observed
+@reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls
 
 
 include("./basis.jl")
