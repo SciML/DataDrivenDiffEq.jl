@@ -15,6 +15,8 @@ const GROUP = get(ENV, "GROUP", "All")
 @time begin
     if GROUP == "All" || GROUP == "DataDrivenDiffEq" || GROUP == "Standard"
         include("./basis.jl")
+        include("./problem.jl")
+
         #include("./koopman.jl")
         #include("./sindy.jl")
         #include("./isindy.jl")
