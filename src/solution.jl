@@ -18,3 +18,13 @@ function Base.show(io::IO, s::AbstractDataDrivenSolution)
     println(io, string("Retcode: ", s.retcode))
     return
 end
+
+#function _build_discrete_solution(basis, prob, alg, retcode, o)
+#    # Apply the error metrics
+#    return DataDrivenSolution(basis, prob, alg, retcode, o, metrics)
+#end
+#
+#function _build_continuous_solution(basis, prob, alg, retcode, o)
+#    # Apply the error metrics
+#    return DataDrivenSolution(basis, prob, alg, retcode, o, metrics)
+#end
