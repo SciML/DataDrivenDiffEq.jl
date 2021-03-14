@@ -6,7 +6,6 @@ end
 _isfun(x) = false
 _isfun(x::F) where F <: Function = true
 
-abstract type AbstractDataDrivenProblem end
 
 """
 $(TYPEDEF)
@@ -150,7 +149,7 @@ check_domain(x) =  any(isnan.(x) || isinf.(x))
 # Check for validity
 
 """
-$(METHODS)
+$(SIGNATURES)
 
 Checks if a `DataDrivenProblem` is valid by checking if the data contains `NaN`, `Inf` and
 if the number of measurements is consistent.

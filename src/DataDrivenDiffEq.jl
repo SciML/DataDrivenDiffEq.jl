@@ -17,13 +17,20 @@ using DocStringExtensions
 @reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls
 @reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
 
-# Collect the DataInterpolations Methods into an Interpolation Type
+# Basis and Koopman
 abstract type AbstractBasis <: ModelingToolkit.AbstractSystem end
 abstract type AbstractKoopman <: AbstractBasis end
+# Collect the DataInterpolations Methods into an Interpolation Type
 abstract type AbstractInterpolationMethod end
 abstract type CollocationKernel end
 
+# Algortihms for Koopman
 abstract type AbstractKoopmanAlgorithm end
+
+# Problem and solution
+abstract type AbstractDataDrivenProblem end
+abstract type AbstractDataDrivenSolution end
+
 
 ## Basis
 
@@ -59,6 +66,17 @@ export update!
 
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD
+
+## Problem and Solution
+include("./problem.jl")
+export DataDrivenProblem
+export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem
+export has_timepoints, has_inputs, has_observations, has_derivatives
+export is_valid
+
+include("./solution.jl")
+export DataDrivenSolution
+
 
 ##
 
