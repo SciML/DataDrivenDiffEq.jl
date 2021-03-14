@@ -1,5 +1,3 @@
-abstract type AbstractKoopmanAlgorithm end;
-
 """
     DMDPINV()
 

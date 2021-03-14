@@ -6,7 +6,7 @@ using ModelingToolkit
 
 using QuadGK
 using Statistics
-using DSP
+#using DSP
 using DataInterpolations
 
 using Reexport
@@ -18,14 +18,19 @@ using DocStringExtensions
 @reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
 
 # Collect the DataInterpolations Methods into an Interpolation Type
+abstract type AbstractBasis <: ModelingToolkit.AbstractSystem end
+abstract type AbstractKoopman <: AbstractBasis end
 abstract type AbstractInterpolationMethod end
 abstract type CollocationKernel end
+
+abstract type AbstractKoopmanAlgorithm end
+
+## Basis
 
 include("./basis.jl")
 export Basis
 export jacobian
 export free_parameters
-
 
 include("./utils/basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis
@@ -41,11 +46,21 @@ export collocate_data
 include("./utils/utils.jl")
 export AIC, AICC, BIC
 export optimal_shrinkage, optimal_shrinkage!
-export savitzky_golay
 export burst_sampling, subsample
 
+## Koopman
 
+include("./koopman/type.jl")
+export Koopman
+export operator, generator
+export is_stable, is_discrete, is_continuous
+export modes, frequencies, outputmap, updatable
+export update!
 
+include("./koopman/algorithms.jl")
+export DMDPINV, DMDSVD, TOTALDMD
+
+##
 
 #include("./optimizers/Optimize.jl")
 #using .Optimize

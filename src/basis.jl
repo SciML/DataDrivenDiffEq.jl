@@ -46,7 +46,7 @@ same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
 
 """
-mutable struct Basis <: ModelingToolkit.AbstractSystem
+mutable struct Basis <: AbstractBasis
     """The equations of the basis"""
     eqs::Vector{Equation}
     """Dependent (state) variables"""
@@ -396,7 +396,7 @@ end
     with the typical SciML signature `f(u,p,t)` or `f(du,u,p,t)`. If control variables are defined, the function can also be called
     by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
 """
-function dynamics(b::Basis)
+function dynamics(b::AbstractBasis)
     return get_f(b)
 end
 
@@ -405,60 +405,60 @@ Returns the control variables of the `Basis`.
 
 $(SIGNATURES)
 """
-ModelingToolkit.controls(b::Basis) = b.controls
+ModelingToolkit.controls(b::AbstractBasis) = b.controls
 
 ## Callable
 
 # OOP
-function (b::Basis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T = parameters(b),
+function (b::AbstractBasis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T = parameters(b),
     t::T where T <: Number = independent_variable(b))
     return b.f(x,p,t)
 end
 
-function (b::Basis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T,
+function (b::AbstractBasis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T,
     t::T where T <: Number , u::AbstractVector{T} where T)
     return b.f(x,p,t, u)
 end
 
-function (b::Basis)(x::AbstractMatrix{T} where T)
+function (b::AbstractBasis)(x::AbstractMatrix{T} where T)
     t = independent_variable(b)
     return b.f(x,parameters(b),[t for i in 1:size(x,2)])
 end
 
-function (b::Basis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
+function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
     t = independent_variable(b)
     return b.f(x,p,[t for i in 1:size(x,2)])
 end
 
-function (b::Basis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
+function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number, )
     return b.f(x,p,t)
 end
 
 
-function (b::Basis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
+function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
     return b.f(x,p,t, u)
 end
 
 # IIP
-function (b::Basis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T)
+function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T)
     t = independent_variable(b)
     return b.f(y,x,parameters(b),[t for i in 1:size(x,2)])
 end
 
-function (b::Basis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
+function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
     t = independent_variable(b)
     return b.f(y,x,p,[t for i in 1:size(x,2)])
 end
 
-function (b::Basis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
+function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number, )
     return b.f(y,x,p,t)
 end
 
 
-function (b::Basis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
+function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
     return b.f(y,x,p,t, u)
 end
@@ -466,18 +466,18 @@ end
 
 ## Information and Iteration
 
-Base.length(x::Basis) = length(x.eqs)
-Base.size(x::Basis) = size(x.eqs)
+Base.length(x::AbstractBasis) = length(x.eqs)
+Base.size(x::AbstractBasis) = size(x.eqs)
 
-Base.getindex(x::Basis, idx) = getindex(equations(x), idx)
-Base.firstindex(x::Basis) = firstindex(equations(x))
-Base.lastindex(x::Basis) = lastindex(equations(x))
-Base.iterate(x::Basis) = iterate(equations(x))
-Base.iterate(x::Basis, id) = iterate(equations(x), id)
+Base.getindex(x::AbstractBasis, idx) = getindex(equations(x), idx)
+Base.firstindex(x::AbstractBasis) = firstindex(equations(x))
+Base.lastindex(x::AbstractBasis) = lastindex(equations(x))
+Base.iterate(x::AbstractBasis) = iterate(equations(x))
+Base.iterate(x::AbstractBasis, id) = iterate(equations(x), id)
 
 ## Internal update
 
-function update!(b::Basis, eval_expression = false)
+function update!(b::AbstractBasis, eval_expression = false)
 
     b.f = _build_ddd_function([bi.rhs for bi in equations(b)],
         states(b), parameters(b), [independent_variable(b)],
