@@ -1,11 +1,12 @@
 module Optimize
 
 using LinearAlgebra
-using ProximalOperators
-
+using DocStringExtensions
 
 abstract type AbstractOptimizer end;
 abstract type AbstractSubspaceOptimizer end;
+
+abstract type AbstractProximalOperator end;
 
 # Pareto
 function evaluate_pareto!(current_parameter, tmp_parameter, fg::Function, args...)
@@ -20,8 +21,17 @@ end
 # Pareto
 export evaluate_pareto!
 
+@inline function clip_by_threshold!(x::AbstractArray, λ::T) where T <: Real
+    for i in eachindex(x)
+        x[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
+    end
+    return
+end
 
-include("./strridge.jl")
+include("./proximals.jl")
+export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
+
+include("./stlsq.jl")
 include("./admm.jl")
 include("./sr3.jl")
 
@@ -29,7 +39,7 @@ include("./sr3.jl")
 include("./adm.jl")
 
 export init, init!, fit!, set_threshold!, get_threshold
-export STRRidge, ADMM, SR3
+export STLSQ, ADMM, SR3
 export ADM
 
 end
