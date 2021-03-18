@@ -77,6 +77,8 @@ export is_valid
 include("./solution.jl")
 export DataDrivenSolution
 
+include("./optimizers/Optimize.jl")
+
 
 ##
 

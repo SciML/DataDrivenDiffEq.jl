@@ -17,60 +17,74 @@ $(FIELDS)
 ```julia
 opt = STLQS()
 opt = STLQS(1e-1)
+opt = STLQS(Float32[1e-2; 1e-1])
 ```
 ## Note
 This was formally `STRRidge` and has been renamed.
 """
-mutable struct STLSQ{T} <: AbstractOptimizer where T <: Real
+mutable struct STLSQ{T} <: AbstractOptimizer{T}
     """Sparsity threshold"""
     λ::T
 
-    function STLSQ(threshold = 1e-1)
-        @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
+    function STLSQ(threshold::T = 1e-1) where T
+        @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
 
         return new{typeof(threshold)}(threshold)
     end
+
 end
 
+function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
+    maxiter = maximum(size(A)), abstol::U = eps(eltype(T)),
+    progress = nothing) where {T,U}
 
-function set_threshold!(opt::STLSQ, threshold)
-    @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
-    opt.λ = threshold
-end
-
-get_threshold(opt::STLSQ) = opt.λ
-
-init(o::STLSQ, A::AbstractArray, Y::AbstractArray) = A \ Y
-init!(X::AbstractArray, o::STLSQ, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
-
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::STLSQ; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
-
-    smallinds = abs.(X) .<= opt.λ
+    smallinds = abs.(X) .<= λ
     biginds = @. ! smallinds[:, 1]
 
     x_i = similar(X)
     x_i .= X
 
-    iters = 0
+    xzero = zero(eltype(X))
+    obj = xzero
+    sparsity = xzero
+    conv_measure = xzero
 
-    for i in 1:maxiter
+    iters = 0
+    converged = false
+
+
+    while (iters < maxiter) && !converged
         iters += 1
 
-        smallinds .= abs.(X) .<= opt.λ
-        X[smallinds] .= zero(eltype(X))
+        @views smallinds .= abs.(X) .<= λ
+        @views X[smallinds] .= xzero
+
         @views for j in 1:size(Y, 2)
             @. biginds = ! smallinds[:, j]
             X[biginds, j] .= A[:, biginds] \ Y[:,j]
         end
 
-        if norm(x_i .- X, 2) < convergence_error
-            break
-        else
-            x_i .= X
+        conv_measure = norm(x_i .- X, 2)
+
+        if isa(progress, Progress)
+            @views obj = norm(Y - A*X, 2)
+            @views sparsity = norm(X, 0)
+
+            ProgressMeter.next!(
+            progress;
+            showvalues = [
+                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
+                (:Convergence, conv_measure)
+            ]
+            )
         end
 
+        if conv_measure < abstol
+            converged = true
+        else
+            @views x_i .= X
+        end
     end
 
-    clip_by_threshold!(X, get_threshold(opt))
-    return iters
+    return
 end

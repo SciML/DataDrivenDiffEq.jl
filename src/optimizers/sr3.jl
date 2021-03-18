@@ -23,38 +23,28 @@ Opposed to the original formulation, we use `ν` as a relaxation parameter,
 as given in [Champion et. al., 2019](https://arxiv.org/abs/1906.10612). In the standard case of
 hard thresholding the sparsity is interpreted as `λ = threshold^2 / 2`, otherwise `λ = threshold`.
 """
-mutable struct SR3{T,P} <: AbstractOptimizer where {T <: Real, P <: AbstractProximalOperator}
+mutable struct SR3{T, V, P <: AbstractProximalOperator} <: AbstractOptimizer{T}
    """Sparsity threshold"""
    λ::T
    """Relaxation parameter"""
-   ν::T
+   ν::V
    """Proximal operator"""
    R::P
 
-   function SR3(threshold = 1e-1, ν = 1.0, R = HardThreshold())
-       @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
-       @assert ν > zero(eltype(threshold)) "Relaxation must be positive definite"
+   function SR3(threshold::T = 1e-1, ν::V = 1.0, R::P = HardThreshold()) where {T,V,P}
+      @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
+      @assert ν > zero(V) "Relaxation must be positive definite"
 
-       λ = isa(R, HardThreshold) ? threshold^2 /2 : threshold
-       return new{typeof(λ), typeof(R)}(λ, ν, R)
+       λ = isa(R, HardThreshold) ? threshold.^2 /2 : threshold
+       return new{T, V, P}(λ, ν, R)
    end
 end
 
-function set_threshold!(opt::SR3, threshold)
-   @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
-
-   opt.λ =  isa(opt.R, HardThreshold) ? threshold^2 /2 : threshold
-   return
-end
-
-get_threshold(opt::SR3) = opt.λ/opt.ν
-
-init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
-init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
-
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
+function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
+    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing)  where {T, V, R}
 
    n, m = size(A)
+   ν = opt.ν
    W = copy(X)
 
    # Init matrices
@@ -62,27 +52,50 @@ function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; ma
    X̂ = A'*Y
 
    w_i = similar(W)
-   w_i .= W
+   @views w_i .= W
    iters = 0
 
-   for i in 1:maxiter
+   iters = 0
+   converged = false
+
+   xzero = zero(eltype(X))
+   obj = xzero
+   sparsity = xzero
+   conv_measure = xzero
+
+   while (iters < maxiter) && !converged
        iters += 1
 
        # Solve ridge regression
-       @views ldiv!(X, H, X̂ .+ W*opt.ν)
+       @views ldiv!(X, H, X̂ .+ W*ν)
        #X .= H*(X̂ .+ W*opt.ν)
        # Proximal
-       @views opt.R(W, X, get_threshold(opt))
+       @views opt.R(W, X, λ)
 
-       if norm(w_i .- W, 2)*opt.ν < convergence_error
-           break
-       else
-           w_i .= W
+       @views conv_measure = norm(w_i .- W, 2)
+
+       if isa(progress, Progress)
+           @views obj = norm(Y .- A*W, 2)
+           @views sparsity = norm(W, 0)
+
+           ProgressMeter.next!(
+           progress;
+           showvalues = [
+               (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
+               (:Convergence, conv_measure)
+           ]
+           )
        end
 
+
+       if conv_measure < abstol
+           converged = true
+       else
+           @views w_i .= W
+       end
    end
    # We really search for W here
-   X .= W
-   clip_by_threshold!(X, get_threshold(opt))
+   @views X .= W
+   @views clip_by_threshold!(X, λ)
    return iters
 end

@@ -1,6 +1,7 @@
 """
 $(TYPEDEF)
-`ADMM` is an implementation of Lasso using the alternating direction methods of multipliers and loosely based on [this implementation](https://web.stanford.edu/~boyd/papers/admm/lasso/lasso.html).
+`ADMM` is an implementation of Lasso using the alternating direction methods of multipliers and
+loosely based on [this implementation](https://web.stanford.edu/~boyd/papers/admm/lasso/lasso.html).
 It solves the following problem
 ```math
 \\min_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|x\\|_1
@@ -13,64 +14,77 @@ opt = ADMM()
 opt = ADMM(1e-1, 2.0)
 ```
 """
-mutable struct ADMM{T} <: AbstractOptimizer where T <: Real
+mutable struct ADMM{T, R} <: AbstractOptimizer{T}
     """Sparsity threshold"""
     λ::T
     """Augmented Lagrangian parameter"""
-    ρ::T
+    ρ::R
 
 
-    function ADMM(threshold = 1e-1, ρ = 1.0)
-        @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
-
-        return new{typeof(threshold)}(threshold, ρ)
+    function ADMM(threshold::T = 1e-1, ρ::R = 1.0) where {T, R}
+        @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
+        @assert zero(R) < ρ "Augemented lagrangian parameter should be positive definite"
+        return new{T, R}(threshold, ρ)
     end
 end
 
+function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
+    maxiter::Int64 = maximum(size(A)), abstol::U = eps(eltype(T)), progress = nothing)  where {T, H, U}
 
-function set_threshold!(opt::ADMM, threshold)
-    @assert threshold > zero(eltype(threshold)) "Threshold must be positive definite"
-
-    opt.λ = threshold*opt.ρ
-end
-
-get_threshold(opt::ADMM) = opt.λ/opt.ρ
-
-init(o::ADMM, A::AbstractArray, Y::AbstractArray) =  A \ Y
-init!(X::AbstractArray, o::ADMM, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
-
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADMM; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
     n, m = size(A)
 
-    x̂ = deepcopy(X)
-    ŷ = zero(X)
+    ρ = opt.ρ
 
-    P = I(m)/opt.ρ - (A' * pinv(opt.ρ*I(n) + A*A') *A)/opt.ρ
-    c = P*(A'*Y)
+    x_i = zero(X)
+    u = zero(X)
+    z = zero(X)
+
+    @views x_i .= X
+
+    P = A'A .+ Diagonal(ρ .* ones(eltype(X),m))
+    P = cholesky!(P)
+    c = A'*Y
 
     R = SoftThreshold()
 
-    x_i = similar(X)
-    x_i .= X
-
     iters = 0
+    converged = false
 
-    @views for i in 1:maxiter
+    xzero = zero(eltype(X))
+    obj = xzero
+    sparsity = xzero
+    conv_measure = xzero
+
+
+    while (iters < maxiter) && !converged
         iters += 1
 
-        x̂ .= P*(opt.ρ.*X .- ŷ) .+ c
-        R(X,  x̂ .+ ŷ./opt.ρ, get_threshold(opt))
-        ŷ .= ŷ .+ opt.ρ.*(x̂ .- X)
+        @views ldiv!(z, P, c .+ ρ .* (z .- u))
+        @views R(X, z .+ u, λ ./ ρ)
+        @views u .= u .+ z .- X
 
-        if norm(x_i .- X, 2) < convergence_error
-            break
-        else
-            x_i .= X
+        @views conv_measure = norm(x_i .- X, 2)
+
+        if isa(progress, Progress)
+            @views obj = norm(Y .- A*X, 2)
+            @views sparsity = norm(X, 0)
+
+            ProgressMeter.next!(
+            progress;
+            showvalues = [
+                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
+                (:Convergence, conv_measure)
+            ]
+            )
         end
 
+
+        if conv_measure < abstol
+            converged = true
+        else
+            @views x_i .= X
+        end
     end
-
-
-    clip_by_threshold!(X, get_threshold(opt))
-    return iters
+    @views clip_by_threshold!(X, λ)
+    return
 end
