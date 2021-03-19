@@ -55,6 +55,10 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
     sparsity = xzero
     conv_measure = xzero
 
+    _progress = isa(progress, Progress)
+    initial_prog = _progress ? progress.counter : 0
+
+
 
     while (iters < maxiter) && !converged
         iters += 1
@@ -65,7 +69,7 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
 
         @views conv_measure = norm(x_i .- X, 2)
 
-        if isa(progress, Progress)
+        if _progress
             @views obj = norm(Y .- A*X, 2)
             @views sparsity = norm(X, 0)
 
@@ -81,6 +85,15 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
 
         if conv_measure < abstol
             converged = true
+
+            if _progress
+
+                ProgressMeter.update!(
+                progress,
+                initial_prog + maxiter
+                )
+            end
+
         else
             @views x_i .= X
         end

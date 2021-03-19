@@ -11,7 +11,7 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     λ = opt.λ
 
     if progress
-        progress =  Progress(maxiter*length(λ), 1, "Solving sparse regression...")
+        progress =  init_progress(opt, X, A, Y, maxiter)
     else
         progress = nothing
     end
@@ -38,7 +38,7 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     λ = opt.λ
 
     if progress
-        progress =  Progress(maxiter*length(λ), 1, "Solving sparse regression...")
+        progress =  init_progress(opt, X, A, Y, maxiter)
     else
         progress = nothing
     end

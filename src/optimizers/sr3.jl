@@ -63,6 +63,10 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
    sparsity = xzero
    conv_measure = xzero
 
+   _progress = isa(progress, Progress)
+   initial_prog = _progress ? progress.counter : 0
+
+
    while (iters < maxiter) && !converged
        iters += 1
 
@@ -74,9 +78,9 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
 
        @views conv_measure = norm(w_i .- W, 2)
 
-       if isa(progress, Progress)
-           @views obj = norm(Y .- A*W, 2)
-           @views sparsity = norm(W, 0)
+       if _progress
+           @views obj = norm(Y - A*X, 2)
+           @views sparsity = norm(X, 0)
 
            ProgressMeter.next!(
            progress;
@@ -90,6 +94,15 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
 
        if conv_measure < abstol
            converged = true
+
+           if _progress
+
+               ProgressMeter.update!(
+               progress,
+               initial_prog + maxiter
+               )
+           end
+           
        else
            @views w_i .= W
        end

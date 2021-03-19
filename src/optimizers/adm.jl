@@ -54,7 +54,14 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
 
     nspaces = _assemble_ns(A, Y)
 
+    _progress = isa(progress, Progress)
+    initial_prog = 0
+
+
     @inbounds for i in 1:my
+
+        # We need to update for eachcol
+        initial_prog = _progress ? progress.counter : 0
 
         # Add the current data to the regressor
         θ = nspaces[i]'
@@ -69,6 +76,7 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
         q = deepcopy(Q[:, 1])
 
         for (j,qi) in enumerate(eachcol(Q))
+
             iters = 0
             converged = false
 
@@ -79,8 +87,8 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
                 @views mul!(q, N, x)
                 @views normalize!(q, 2)
 
-                if isa(progress, Progress)
-                    @views sparsity, obj = f(q,θ)
+                if _progress
+                    @views sparsity, obj = f(q,θ')
 
                     ProgressMeter.next!(
                     progress;
@@ -108,22 +116,31 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
             if j == 1
                 X[:,i] .= q
             else
-                evaluate_pareto!(view(X, :, i), view(q, :), fg, view(θ', :, :))
+                evaluate_pareto!(X[:, i], q , fg, θ')
             end
         end
 
-        if isa(progress, Progress)
-            @views sparsity, obj = f(X,θ)
+        if _progress
+            @views sparsity, obj = f(X[:, i],θ')
+
+
+            ProgressMeter.update!(
+                progress,
+                initial_prog + maxiter -1
+            )
 
             ProgressMeter.next!(
             progress;
             showvalues = [
                 (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
-                (:Convergence, conv_measure), (:Column, (i, my))
-            ]
+                (:Convergence, conv_measure), (:Measurementcolumn, (i, my)),
+                (:Subspacecolumn, (mq, mq))
+                ]
             )
         end
     end
+
+
 
     return
 end

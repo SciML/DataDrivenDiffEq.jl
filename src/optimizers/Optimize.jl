@@ -79,6 +79,7 @@ end
 @inline _assemble_ns(A::AbstractMatrix, b::AbstractVector) = [hcat(map(i->b[i].*A[i,:], 1:size(A,1))...)' A]
 @inline _assemble_ns(A::AbstractMatrix, B::AbstractMatrix) = map(x->_assemble_ns(A, x), eachcol(B))
 
+
 # Evaluate the results for pareto
 # Evaluate F
 # At least one result
@@ -121,6 +122,23 @@ include("./sr3.jl")
 
 #Nullspace for implicit sindy
 include("./adm.jl")
+
+
+# Init the progressmeters
+# For a general optimizer
+default_prg_msg() = "Solving sparse regression..."
+
+function init_progress(opt::AbstractOptimizer, X, A, Y, maxiter)
+    Progress(
+        maxiter*length(opt.λ), 1, default_prg_msg()
+    )
+end
+
+function init_progress(opt::ADM, X, A, Y, maxiter)
+    Progress(
+        maxiter*length(opt.λ)*size(Y, 2), 1, default_prg_msg()
+    )
+end
 
 include("./sparseregression.jl")
 export sparse_regression!
