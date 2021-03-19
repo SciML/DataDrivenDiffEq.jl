@@ -8,7 +8,7 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     maxiter::Int = maximum(size(A)),
     abstol = eps(eltype(T)), progress::Bool = false) where T <: Number
 
-    λ = opt.λ
+    λ = get_threshold(opt)
 
     if progress
         progress =  init_progress(opt, X, A, Y, maxiter)
@@ -33,9 +33,8 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
 
     # TODO Tmp Result
     X_tmp = deepcopy(X)
-    X_opt = deepcopy(X)
 
-    λ = opt.λ
+    λ = get_threshold(opt)
 
     if progress
         progress =  init_progress(opt, X, A, Y, maxiter)
@@ -46,10 +45,10 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     @views for (i,λi) in enumerate(λ)
         opt(X_tmp, A, Y, λi, maxiter = maxiter, abstol = abstol, progress = progress)
         for j in 1:size(Y, 2)
-            evaluate_pareto!(view(X_opt, :, j), view(X_tmp, :, j), fg, view(A, :, :), view(Y, :, j))
+            if evaluate_pareto!(view(X, :, j), view(X_tmp, :, j), fg, view(A, :, :), view(Y, :, j))
+                clip_by_threshold!(X[:, j], λi)
+            end
         end
     end
-
-    X .= X_opt
     return
 end

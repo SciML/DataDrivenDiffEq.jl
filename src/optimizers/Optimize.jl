@@ -57,9 +57,15 @@ $(SIGNATURES)
 Initialize the optimizer with the least square solution for explicit and `zeros` for implicit optimization.
 """
 init(o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) = A \ Y
-init(X::AbstractArray, o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 
 init(o::AbstractSubspaceOptimizer, A::AbstractArray, Y::AbstractArray) = zeros(eltype(A), 2*size(A,2), size(Y, 2))
+
+"""
+$(SIGNATURES)
+
+Initialize the optimizer with the least square solution for explicit and `zeros` for implicit optimization in place.
+"""
+init!(X::AbstractArray, o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
 init!(X::AbstractArray, o::AbstractSubspaceOptimizer, A::AbstractArray, Y::AbstractArray) =  zeros(eltype(A), 2*size(A,2), size(Y, 2))
 
 """
@@ -122,6 +128,7 @@ include("./sr3.jl")
 
 #Nullspace for implicit sindy
 include("./adm.jl")
+include("./implicit.jl")
 
 
 # Init the progressmeters
@@ -146,6 +153,6 @@ export sparse_regression!
 
 export init, init!, fit!, set_threshold!, get_threshold
 export STLSQ, ADMM, SR3
-export ADM
+export ADM, ImplicitOptimizer
 
 end
