@@ -1,13 +1,3 @@
-# Pareto
-function evaluate_pareto!(current_parameter, tmp_parameter, fg::Function, args...)
-    if fg(tmp_parameter, args...) < fg(current_parameter, args...)
-        current_parameter .= tmp_parameter
-        return true
-    else
-        return false
-    end
-end
-
 
 """
 $(SIGNATURES)
@@ -34,8 +24,8 @@ end
 function sparse_regression!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::AbstractOptimizer{T};
     maxiter::Int = maximum(size(A)),
     abstol = eps(eltype(T)), progress::Bool = false,
-    f::Function = (x, A, y)->[norm(A, 0); norm(y .- A*x, 2)],
-    g::Function = f->norm(f)) where T <: AbstractVector
+    f::Function = F(opt),
+    g::Function = G(opt)) where T <: AbstractVector
 
     # Closure for the pareto function
     fg(x, A, y) = (g∘f)(x, A, y)
@@ -61,6 +51,5 @@ function sparse_regression!(X::AbstractArray, A::AbstractArray, Y::AbstractArray
     end
 
     X .= X_opt
-
     return
 end
