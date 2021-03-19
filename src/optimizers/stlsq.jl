@@ -34,6 +34,8 @@ mutable struct STLSQ{T} <: AbstractOptimizer{T}
 
 end
 
+Base.summary(::STLSQ) = "STLSQ"
+
 function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
     maxiter = maximum(size(A)), abstol::U = eps(eltype(T)),
     progress = nothing) where {T,U}

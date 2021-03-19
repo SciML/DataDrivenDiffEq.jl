@@ -24,6 +24,7 @@ mutable struct ADM{T} <: AbstractSubspaceOptimizer{T}
     end
 end
 
+Base.summary(::ADM) = "ADM"
 
 function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
     maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing,

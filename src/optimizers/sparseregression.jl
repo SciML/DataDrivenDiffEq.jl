@@ -2,7 +2,12 @@
 """
 $(SIGNATURES)
 
-Implements a sparse regression, given an `AbstractOptimizer`.
+Implements a sparse regression, given an `AbstractOptimizer` or `AbstractSubspaceOptimizer`.
+`maxiter` indicate the maximum iterations for each call of the optimizer, `abstol` the absolute tolerance of
+the difference between iterations in the 2 norm. If the optimizer is called with a `Vector` of thresholds, each `maxiter` indicates
+the maximum iterations for each threshold.
+
+If `progress` is set to `true`, a progressbar will be available.
 """
 function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     maxiter::Int = maximum(size(A)),

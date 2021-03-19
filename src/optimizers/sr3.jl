@@ -40,6 +40,8 @@ mutable struct SR3{T, V, P <: AbstractProximalOperator} <: AbstractOptimizer{T}
    end
 end
 
+Base.summary(::SR3) = "SR3"
+
 function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
     maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing)  where {T, V, R}
 
@@ -102,7 +104,7 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
                initial_prog + maxiter
                )
            end
-           
+
        else
            @views w_i .= W
        end

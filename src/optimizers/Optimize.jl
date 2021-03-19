@@ -120,7 +120,8 @@ end
 include("./proximals.jl")
 export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
 
-include("./history.jl")
+# Remove the trace right now
+#include("./history.jl")
 
 include("./stlsq.jl")
 include("./admm.jl")
@@ -133,17 +134,17 @@ include("./implicit.jl")
 
 # Init the progressmeters
 # For a general optimizer
-default_prg_msg() = "Solving sparse regression..."
+default_prg_msg(o::AbstractOptimizer) = summary(o)
 
 function init_progress(opt::AbstractOptimizer, X, A, Y, maxiter)
     Progress(
-        maxiter*length(opt.λ), 1, default_prg_msg()
+        maxiter*length(get_threshold(opt)), default_prg_msg(opt)
     )
 end
 
-function init_progress(opt::ADM, X, A, Y, maxiter)
+function init_progress(opt::AbstractSubspaceOptimizer, X, A, Y, maxiter)
     Progress(
-        maxiter*length(opt.λ)*size(Y, 2), 1, default_prg_msg()
+        maxiter*length(get_threshold(opt))*size(Y, 2), default_prg_msg(opt)
     )
 end
 

@@ -35,6 +35,9 @@ mutable struct ImplicitOptimizer{T} <: AbstractSubspaceOptimizer{T}
     end
 end
 
+
+Base.summary(opt::ImplicitOptimizer) = "Implicit Optimizer using "*summary(opt.o)
+
 get_threshold(opt::ImplicitOptimizer) = get_threshold(opt.o)
 
 function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
@@ -72,9 +75,16 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
     x_opt = zeros(eltype(X), mθ, mθ)
     inds = [false for _ in 1:mθ]
 
+    _progress = isa(progress, Progress)
+    initial_prog = 0
+
     for i in 1:size(nspaces, 1)
+
         # Current nullspace
         θ = nspaces[i]'
+
+        # Set progress -1 and
+        initial_prog = _progress ? progress.counter : 0
 
         # Set the current result to zero
         for j in 1:mθ
@@ -83,13 +93,33 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
             x_tmp[j] = 1
             # Solve explicit problem
             @views x_tmp[inds, :] .= init(exopt, θ[inds, :]', θ[j:j, :]')
-            @views exopt(x_tmp[inds, :], θ[inds, :]', θ[j:j, :]',λ, maxiter = maxiter, abstol = abstol)
+            @views exopt(x_tmp[inds, :], θ[inds, :]', θ[j:j, :]',λ,
+                maxiter = maxiter, abstol = abstol)
+
             if j == 1
                 X[:, i] .= x_tmp[:, 1]
             else
                 evaluate_pareto!(X[:, i], x_tmp[:, 1] , fg, θ')
             end
         end
+
+        if _progress
+            @views sparsity, obj = f(X[:, i],θ')
+
+            ProgressMeter.update!(
+            progress,
+            initial_prog + maxiter -1
+            )
+            ProgressMeter.next!(
+            progress;
+            showvalues = [
+                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
+                (:Measurementcolumn, (i, my))
+                ]
+                )
+        end
+
+
     end
     clip_by_threshold!(X, λ)
     return

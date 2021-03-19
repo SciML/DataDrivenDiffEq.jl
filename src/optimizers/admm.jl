@@ -28,6 +28,8 @@ mutable struct ADMM{T, R} <: AbstractOptimizer{T}
     end
 end
 
+Base.summary(::ADMM) = "ADMM"
+
 function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
     maxiter::Int64 = maximum(size(A)), abstol::U = eps(eltype(T)), progress = nothing)  where {T, H, U}
 
