@@ -1,5 +1,5 @@
 using DataDrivenDiffEq
-#using DataDrivenDiffEq.Optimize
+using DataDrivenDiffEq.Optimize
 using ModelingToolkit
 using LinearAlgebra
 using SafeTestsets
@@ -21,7 +21,7 @@ const GROUP = get(ENV, "GROUP", "All")
         #include("./sindy.jl")
         #include("./isindy.jl")
         #include("./utils.jl")
-        #include("./optimize.jl")
+        include("./optimize.jl")
     end
 
     # These are excluded right now, until the deps are figured out

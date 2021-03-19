@@ -8,6 +8,7 @@
     p = [2.7]
     u(u, p, t) = [p[1] * u[1] - 3.0 * t]
     U = hcat(map(i -> u(X[:, i], p, t[i]), 1:length(t))...)
+    
     @testset "DiscreteProblem" begin
         p1 = DiscreteDataDrivenProblem(X)
         p2 = DiscreteDataDrivenProblem(X, t)
