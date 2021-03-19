@@ -4,11 +4,11 @@ $(SIGNATURES)
 
 Implements a sparse regression, given an `AbstractOptimizer`.
 """
-function sparse_regression!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::AbstractOptimizer{T};
+function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     maxiter::Int = maximum(size(A)),
     abstol = eps(eltype(T)), progress::Bool = false) where T <: Number
 
-    λ = first(opt.λ)
+    λ = opt.λ
 
     if progress
         progress =  Progress(maxiter*length(λ), 1, "Solving sparse regression...")
@@ -21,7 +21,7 @@ function sparse_regression!(X::AbstractArray, A::AbstractArray, Y::AbstractArray
     return
 end
 
-function sparse_regression!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::AbstractOptimizer{T};
+function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     maxiter::Int = maximum(size(A)),
     abstol = eps(eltype(T)), progress::Bool = false,
     f::Function = F(opt),

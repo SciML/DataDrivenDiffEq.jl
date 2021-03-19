@@ -12,15 +12,36 @@ abstract type AbstractProximalOperator end;
 abstract type AbstractOptimizer{T} end;
 abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end;
 
+# Dispatch on vector
+function (opt::AbstractOptimizer{T} where T)(
+        X::AbstractArray, A::AbstractArray, Y::AbstractVector{V} where V,
+        args...; kwargs...
+    )
+    Y = reshape(Y, 1, length(Y))
+    return opt(X, A, Y, args...; kwargs...)
+end
+
+function (opt::AbstractOptimizer{T} where T)(
+        X::AbstractArray, A::AbstractArray, Y::Adjoint{V, AbstractVector{V}} where V,
+        args...; kwargs...
+    )
+    Y = reshape(Y, 1, length(Y))
+    return opt(X, A, Y, args...; kwargs...)
+end
 
 """
 $(SIGNATURES)
 
 Set the threshold(s) of an optimizer to (a) specific value(s).
 """
-function set_threshold!(opt::AbstractOptimizer{T}, threshold::T) where T
+function set_threshold!(opt::AbstractOptimizer{T}, threshold::T) where T <: AbstractVector
     @assert all(threshold .> zero(T)) "Threshold must be positive definite"
     opt.λ .= threshold
+end
+
+function set_threshold!(opt::AbstractOptimizer{T}, threshold::T) where T <: Number
+    @assert all(threshold .> zero(T)) "Threshold must be positive definite"
+    opt.λ = threshold
 end
 
 """
@@ -33,10 +54,13 @@ get_threshold(opt::AbstractOptimizer) = opt.λ
 """
 $(SIGNATURES)
 
-Initialize the optimizer with the least square solution.
+Initialize the optimizer with the least square solution for explicit and `zeros` for implicit optimization.
 """
 init(o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) = A \ Y
 init(X::AbstractArray, o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
+
+init(o::AbstractSubspaceOptimizer, A::AbstractArray, Y::AbstractArray) = zeros(eltype(A), 2*size(A,2), size(Y, 2))
+init!(X::AbstractArray, o::AbstractSubspaceOptimizer, A::AbstractArray, Y::AbstractArray) =  zeros(eltype(A), 2*size(A,2), size(Y, 2))
 
 """
 $(SIGNATURES)
@@ -44,7 +68,7 @@ $(SIGNATURES)
 Clips the solution by the given threshold `λ` and ceils the entries to the corresponding decimal.
 """
 @inline function clip_by_threshold!(x::AbstractArray, λ::T) where T <: Real
-    dplace = ceil(Int, -log10(λ))+1
+    dplace = ceil(Int, -log10(λ))
     for i in eachindex(x)
         x[i] = abs(x[i]) < λ ? zero(eltype(x)) : round(x[i], digits = dplace)
     end

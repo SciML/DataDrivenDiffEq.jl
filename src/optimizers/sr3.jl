@@ -97,5 +97,5 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
    # We really search for W here
    @views X .= W
    @views clip_by_threshold!(X, λ)
-   return iters
+   return
 end
