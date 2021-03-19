@@ -1,5 +1,9 @@
+"""
+$(DocStringExtensions.README)
+"""
 module DataDrivenDiffEq
 
+using DocStringExtensions
 using LinearAlgebra
 using DiffEqBase
 using ModelingToolkit
