@@ -1,3 +1,5 @@
+using Test
+
 @testset "Explicit Optimizer" begin
     x = 10.0*[1 -2 3; 5 0.5 8; 1.1 2.7 5]
     A = [0.6 0 -0.1; 0.1 -8.0 0; 0.9 0 -0.8]
@@ -54,16 +56,15 @@
 end
 
 @testset "Implicit Optimizer" begin
-
-    @testset "ADM Implicit" begin
+    opts = [ADM(exp10.(-3:0.1:-1)); ImplicitOptimizer(exp10.(-3:0.1:-1))]
+    @testset "Implicit" begin
         x = 10.0*randn(3, 100)
         A = Float64[0 1 0; 0 0 1; 1 0 0]
         # System
         # dx + dx*x = A*x
         Z = A*x ./ ( 1 .+ x) # Measurements
         z = reshape(Z[1,:], 1, 100)
-        opt = ADM(exp10.(-3:0.1:-1))
-        isa(opt, Optimize.AbstractOptimizer)
+
         Ξref = Float64[
             1. 1. 1. ;
             1. 0  0 ;
@@ -75,19 +76,21 @@ end
             0 1 0
         ]
         θ = [ones(1,size(x,2)); x]
-        Ξ = init(opt, θ', Z')
-        opt(Ξ,θ',Z')
-        Ξ .= abs.(Ξ ./ Ξ[1,1])
-        @test Ξ ≈ Ξref
+        for opt in opts
+            Ξ = init(opt, θ', Z')
+            opt(Ξ,θ',Z')
+            Ξ .= abs.(Ξ ./ Ξ[1,1])
+            @test Ξ ≈ Ξref
 
-        Ξ = init(opt, θ', z')
-        opt(Ξ,θ',z')
-        Ξ .= abs.(Ξ ./ Ξ[1,1])
-        @test Ξ ≈ Ξref[:, 1]
-        Ξ = init(opt, θ', z')
-        sparse_regression!(Ξ,θ',z', opt)
-        Ξ .= abs.(Ξ ./ Ξ[1,1])
-        @test Ξ ≈ Ξref[:, 1]
+            Ξ = init(opt, θ', z')
+            opt(Ξ,θ',z')
+            Ξ .= abs.(Ξ ./ Ξ[1,1])
+            @test Ξ ≈ Ξref[:, 1]
+            Ξ = init(opt, θ', z')
+            sparse_regression!(Ξ,θ',z', opt)
+            Ξ .= abs.(Ξ ./ Ξ[1,1])
+            @test Ξ ≈ Ξref[:, 1]
+        end
     end
 
     @testset "ADM Explicit" begin
@@ -97,8 +100,6 @@ end
         # dx + dx*x = A*x
         Z = A*x # Measurements
         z = reshape(Z[1,:], 1, 100)
-        opt = ADM(exp10.(-3:0.1:-1))
-        isa(opt, Optimize.AbstractOptimizer)
         Ξref = Float64[
             1. 1. 1. ;
             0 0  0 ;
@@ -110,18 +111,20 @@ end
             0 1 0
         ]
         θ = [ones(1,size(x,2)); x]
-        Ξ = init(opt, θ', Z')
-        opt(Ξ,θ',Z')
-        Ξ .= abs.(Ξ ./ Ξ[1,1])
-        @test Ξ ≈ Ξref
+        for opt in opts
+            Ξ = init(opt, θ', Z')
+            opt(Ξ,θ',Z')
+            Ξ .= abs.(Ξ ./ Ξ[1,1])
+            @test Ξ ≈ Ξref
 
-        Ξ = init(opt, θ', z')
-        opt(Ξ,θ',z')
-        Ξ .= abs.(Ξ ./ Ξ[1,1])
-        @test Ξ ≈ Ξref[:, 1]
-        Ξ = init(opt, θ', z')
-        sparse_regression!(Ξ,θ',z', opt)
-        Ξ .= abs.(Ξ ./ Ξ[1,1])
-        @test Ξ ≈ Ξref[:, 1]
+            Ξ = init(opt, θ', z')
+            opt(Ξ,θ',z')
+            Ξ .= abs.(Ξ ./ Ξ[1,1])
+            @test Ξ ≈ Ξref[:, 1]
+            Ξ = init(opt, θ', z')
+            sparse_regression!(Ξ,θ',z', opt)
+            Ξ .= abs.(Ξ ./ Ξ[1,1])
+            @test Ξ ≈ Ξref[:, 1]
+        end
     end
 end
