@@ -82,8 +82,8 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
             inds[j] = false
             x_tmp[j] = 1
             # Solve explicit problem
-            x_tmp[inds, :] .= init(exopt, θ[inds, :]', θ[j:j, :]')
-            exopt(x_tmp[inds, :], θ[inds, :]', θ[j:j, :]',λ, maxiter = maxiter, abstol = abstol)
+            @views x_tmp[inds, :] .= init(exopt, θ[inds, :]', θ[j:j, :]')
+            @views exopt(x_tmp[inds, :], θ[inds, :]', θ[j:j, :]',λ, maxiter = maxiter, abstol = abstol)
             if j == 1
                 X[:, i] .= x_tmp[:, 1]
             else
@@ -91,5 +91,6 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
             end
         end
     end
+    clip_by_threshold!(X, λ)
     return
 end

@@ -105,7 +105,7 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
                 if conv_measure < abstol
                     converged = true
                 else
-                    @views q .= qi
+                    q .= qi
                 end
             end
          end

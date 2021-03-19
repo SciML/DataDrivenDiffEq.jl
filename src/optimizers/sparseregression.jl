@@ -42,8 +42,8 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
         progress = nothing
     end
 
-    @views for (i,λi) in enumerate(λ)
-        opt(X_tmp, A, Y, λi, maxiter = maxiter, abstol = abstol, progress = progress)
+    for (i,λi) in enumerate(λ)
+        @views opt(X_tmp, A, Y, λi, maxiter = maxiter, abstol = abstol, progress = progress)
         for j in 1:size(Y, 2)
             if evaluate_pareto!(view(X, :, j), view(X_tmp, :, j), fg, view(A, :, :), view(Y, :, j))
                 clip_by_threshold!(X[:, j], λi)
