@@ -234,9 +234,11 @@ function is_valid(x::DataDrivenProblem)
     # Check for nans, infs
     check_domain(x.X) && return false
     check_domain(x.DX) && return false
-    size(x.X) != size(x.DX) && return false
+    # Checks only if 1 measurement is there
+    size(x.X,2) != size(x.DX,2) && return false
 
     if is_discrete(x)
+        # We assume to have measurements for all states here
         !isequal(x.X[:, 2:end], x.DX[:, 1:end-1]) && return false
     end
 
