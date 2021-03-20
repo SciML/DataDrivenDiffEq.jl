@@ -94,18 +94,6 @@ function DataDrivenProblem(X::AbstractMatrix;
     return DataDrivenProblem(X,t,DX,Y,U,p,is_discrete)
 end
 
-#function DataDrivenProblem(X::AbstractMatrix;
-#    t::AbstractVector = Array{eltype(X)}(0, size(X, 2)),
-#    DX::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
-#    Y::AbstractMatrix = Array{eltype(X)}(undef, 0,0),
-#    U::F = (u,p,t)->[zero(eltype(X))],
-#    p::AbstractVector = Array{eltype(X)}(undef, 0),
-#    is_discrete::Bool = true) where F <: Function
-#
-#    u_ = hcat(map(i->U(X[:,i], p, t[i]), 1:size(X,2)...))
-#
-#    return DataDrivenProblem(X, t, DX, Y, u_, p, is_discrete)
-#end
 
 ## Discrete Constructors
 """

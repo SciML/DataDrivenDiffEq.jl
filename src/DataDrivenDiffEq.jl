@@ -74,10 +74,17 @@ export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem
 export has_timepoints, has_inputs, has_observations, has_derivatives
 export is_valid
 
+include("./optimizers/Optimize.jl")
+export sparse_regression!
+export set_threshold!, get_threshold
+export STLSQ, ADMM, SR3
+export ADM, ImplicitOptimizer
+export SoftThreshold, HardThreshold, ClippedAbsoluteDeviation
+
 include("./solution.jl")
 export DataDrivenSolution
 
-include("./optimizers/Optimize.jl")
+include("./solve/sindy.jl")
 
 
 ##

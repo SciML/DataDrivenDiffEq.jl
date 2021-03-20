@@ -150,9 +150,7 @@ end
 
 include("./sparseregression.jl")
 export sparse_regression!
-
-
-export init, init!, fit!, set_threshold!, get_threshold
+export init, init!, set_threshold!, get_threshold
 export STLSQ, ADMM, SR3
 export ADM, ImplicitOptimizer
 

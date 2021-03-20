@@ -11,7 +11,7 @@ If `progress` is set to `true`, a progressbar will be available.
 """
 function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     maxiter::Int = maximum(size(A)),
-    abstol = eps(eltype(T)), progress::Bool = false) where T <: Number
+    abstol = eps(eltype(T)), progress::Bool = false, kwargs...) where T <: Number
 
     λ = get_threshold(opt)
 
@@ -30,7 +30,7 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     maxiter::Int = maximum(size(A)),
     abstol = eps(eltype(T)), progress::Bool = false,
     f::Function = F(opt),
-    g::Function = G(opt)) where T <: AbstractVector
+    g::Function = G(opt), kwargs...) where T <: AbstractVector
 
     # Closure for the pareto function
     fg(x, A, y) = (g∘f)(x, A, y)

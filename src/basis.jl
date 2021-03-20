@@ -127,6 +127,9 @@ function _build_ddd_function(rhs, states, parameters, iv, eval_expression::Bool 
     f(u,p::DiffEqBase.NullParameters, t) = f(u,[], t)
     f(du, u,p::DiffEqBase.NullParameters, t) = f(du, u,[], t)
 
+    # And on the controls
+    f(u,p,t,input) = f(u,p,t)
+    f(du,u,p,t,input) = f(du,u,p,t)
 
     return f
 end
