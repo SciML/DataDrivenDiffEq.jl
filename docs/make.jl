@@ -20,7 +20,7 @@ makedocs(
         #    "koopman/edmd.md",
         #    "koopman/dmdc.md",
         #    "koopman/algorithms.md"
-        ],
+        #],
         #"Sparse Identification" => Any[
         #    "sparse_identification/sindy.md",
         #    "sparse_identification/isindy.md",
