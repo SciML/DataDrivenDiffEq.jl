@@ -12,8 +12,9 @@ makedocs(
                              canonical="https://datadriven.sciml.ai/stable/"),
     pages=[
         "Home" => "index.md",
-        "Getting Started" => "quickstart.md",
-        "Basis" => "basis.md",
+        "Getting Started" => "quickstart.md"
+        ]
+        #"Basis" => "basis.md",
         #"Koopman Operators" => Any[
         #    "koopman/koopman.md",
         #    "koopman/dmd.md",
@@ -26,10 +27,10 @@ makedocs(
         #    "sparse_identification/isindy.md",
         #    "sparse_identification/optimizers.md"
         #],
-        "Utilities" => "utils.md",
-        "Contributing" => "contributions.md",
-        "Extended Examples" => "extended_examples.md"
-    ]
+        #"Utilities" => "utils.md",
+        #"Contributing" => "contributions.md",
+        #"Extended Examples" => "extended_examples.md"
+    #]
 )
 
 deploydocs(
