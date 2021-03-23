@@ -54,7 +54,7 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
    X̂ = A'*Y
 
    w_i = similar(W)
-   @views w_i .= W
+   w_i .= W
    iters = 0
 
    iters = 0
@@ -73,12 +73,11 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
        iters += 1
 
        # Solve ridge regression
-       @views ldiv!(X, H, X̂ .+ W*ν)
-       #X .= H*(X̂ .+ W*opt.ν)
+       ldiv!(X, H, X̂ .+ W*ν)
        # Proximal
-       @views opt.R(W, X, λ)
+       opt.R(W, X, λ)
 
-       @views conv_measure = norm(w_i .- W, 2)
+       conv_measure = norm(w_i .- W, 2)
 
        if _progress
            @views obj = norm(Y - A*X, 2)
@@ -106,11 +105,11 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
            end
 
        else
-           @views w_i .= W
+           w_i .= W
        end
    end
    # We really search for W here
-   @views X .= W
-   @views clip_by_threshold!(X, λ)
+   X .= W
+   clip_by_threshold!(X, λ)
    return
 end

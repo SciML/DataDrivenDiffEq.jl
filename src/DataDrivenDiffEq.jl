@@ -17,8 +17,9 @@ using DocStringExtensions
 @reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls
 @reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
 
+using ModelingToolkit: AbstractSystem
 # Basis and Koopman
-abstract type AbstractBasis <: ModelingToolkit.AbstractSystem end
+abstract type AbstractBasis <: AbstractSystem end
 abstract type AbstractKoopman <: AbstractBasis end
 # Collect the DataInterpolations Methods into an Interpolation Type
 abstract type AbstractInterpolationMethod end

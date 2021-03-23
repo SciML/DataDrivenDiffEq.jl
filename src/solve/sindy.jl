@@ -27,7 +27,7 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.A
     @assert is_valid(p) "The problem seems to be ill-defined. Please check the problem definition."
 
     # Evaluate the basis
-    @views θ = b(DataDrivenDiffEq.get_oop_args(p)...)
+    θ = b(DataDrivenDiffEq.get_oop_args(p)...)
 
     # Normalize via p norm
     scales = ones(dType, size(θ, 1))
@@ -40,10 +40,10 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.A
     # Init the coefficient matrix
     Ξ = DataDrivenDiffEq.Optimize.init(opt, θ', p.DX')
     # Solve
-    @views Optimize.sparse_regression!(Ξ, θ', p.DX', opt; kwargs...)
+    Optimize.sparse_regression!(Ξ, θ', p.DX', opt; kwargs...)
 
     normalize ? rescale_xi!(Ξ, scales, round) : nothing
-
+    return Ξ
     # Build solution Basis
     return build_solution(
         p, Ξ, opt, b

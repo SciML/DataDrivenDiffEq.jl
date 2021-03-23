@@ -61,10 +61,10 @@ function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
     while (iters < maxiter) && !converged
         iters += 1
 
-        @views smallinds .= abs.(X) .<= λ
-        @views X[smallinds] .= xzero
+        smallinds .= abs.(X) .<= λ
+        X[smallinds] .= xzero
 
-        @views for j in 1:size(Y, 2)
+        for j in 1:size(Y, 2)
             @. biginds = ! smallinds[:, j]
             X[biginds, j] .= A[:, biginds] \ Y[:,j]
         end
@@ -72,8 +72,8 @@ function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
         conv_measure = norm(x_i .- X, 2)
 
         if _progress
-            @views obj = norm(Y - A*X, 2)
-            @views sparsity = norm(X, 0)
+            obj = norm(Y - A*X, 2)
+            sparsity = norm(X, 0)
 
             ProgressMeter.next!(
             progress;
@@ -97,7 +97,7 @@ function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
 
 
         else
-            @views x_i .= X
+            x_i .= X
         end
     end
 

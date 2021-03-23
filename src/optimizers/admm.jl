@@ -41,7 +41,7 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
     u = zero(X)
     z = zero(X)
 
-    @views x_i .= X
+    x_i .= X
 
     P = A'A .+ Diagonal(ρ .* ones(eltype(X),m))
     P = cholesky!(P)
@@ -65,15 +65,15 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
     while (iters < maxiter) && !converged
         iters += 1
 
-        @views ldiv!(z, P, c .+ ρ .* (z .- u))
-        @views R(X, z .+ u, λ ./ ρ)
-        @views u .= u .+ z .- X
+        ldiv!(z, P, c .+ ρ .* (z .- u))
+        R(X, z .+ u, λ ./ ρ)
+        u .= u .+ z .- X
 
-        @views conv_measure = norm(x_i .- X, 2)
+        conv_measure = norm(x_i .- X, 2)
 
         if _progress
-            @views obj = norm(Y .- A*X, 2)
-            @views sparsity = norm(X, 0)
+            obj = norm(Y .- A*X, 2)
+            sparsity = norm(X, 0)
 
             ProgressMeter.next!(
             progress;
@@ -97,9 +97,9 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
             end
 
         else
-            @views x_i .= X
+            x_i .= X
         end
     end
-    @views clip_by_threshold!(X, λ)
+    clip_by_threshold!(X, λ)
     return
 end
