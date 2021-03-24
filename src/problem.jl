@@ -148,7 +148,10 @@ or an interpolation from `DataInterpolations.jl` wrapped by an `InterpolationMet
 """
 #ContinuousDataDrivenProblem(args...; kwargs...) = DataDrivenProblem(args...; kwargs...,  is_discrete = false)
 
-function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, collocation = InterpolationMethod();kwargs...)
+function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, collocation = nothing ;kwargs...)
+    if isnothing(collocation)
+        return DataDrivenProblem(X, t = t, is_discrete = false; kwargs...)
+    end
     dx, x = collocate_data(X, t, collocation)
     return DataDrivenProblem(x, t = t, DX = dx, is_discrete = false; kwargs...)
 end
@@ -159,6 +162,7 @@ function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::F,
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U_DX::AbstractMatrix; kwargs...)
+    println()
     size(X) == size(U_DX) && DataDrivenProblem(X, t = t, DX = U_DX, is_discrete = false; kwargs...)
     ContinuousDataDrivenProblem(X, t, InterpolationMethod(), U = U_DX, is_discrete = false; kwargs...)
 end
@@ -256,6 +260,16 @@ end
 function get_oop_args(x::DataDrivenProblem)
     returns = []
     @inbounds for f in (:X, :p, :t, :U)
+        x_ = getfield(x, f)
+        push!(returns, x_)
+    end
+    return returns
+end
+
+function get_implicit_oop_args(x::DataDrivenProblem)
+    returns = []
+    push!(returns, [x.X; x.DX])
+    @inbounds for f in (:p, :t, :U)
         x_ = getfield(x, f)
         push!(returns, x_)
     end
