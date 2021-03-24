@@ -39,7 +39,7 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     # TODO Tmp Result
     X_tmp = deepcopy(X)
 
-    λ = get_threshold(opt)
+    λ = sort(get_threshold(opt))
 
     if progress
         progress =  init_progress(opt, X, A, Y, maxiter)
@@ -47,12 +47,12 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
         progress = nothing
     end
 
-    for (i,λi) in enumerate(λ)
+    @views for (i,λi) in enumerate(λ)
+        init!(X_tmp, opt, A, Y)
         opt(X_tmp, A, Y, λi, maxiter = maxiter, abstol = abstol, progress = progress)
+        all(X_tmp .== zero(eltype(X))) && break # Increasing the threshold makes no sense
         for j in 1:size(Y, 2)
-            if evaluate_pareto!(view(X, :, j), view(X_tmp, :, j), fg, view(A, :, :), view(Y, :, j))
-                clip_by_threshold!(X[:, j], λi)
-            end
+            evaluate_pareto!(X[:, j], X_tmp[:, j], fg, A, Y[:,j])
         end
     end
     return

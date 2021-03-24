@@ -82,7 +82,7 @@ function _build_ddd_function(rhs, states, parameters, iv, eval_expression::Bool 
         p::AbstractVector{T} where T,
         t::T where T
     )
-        return f_oop(u, p, t, )
+        return f_oop(u, p, t)
     end
 
     function f(
@@ -774,7 +774,7 @@ function remove_constant_factor(x)
     # Count the number of operations
     n_ops = count_operation(x, *, false)+1
     # Create a new array
-    ops = Array{Any}(undef, n_ops)
+    ops = Array{Num}(undef, n_ops)
     @views split_term!(ops, x, [*])
     filter!(x->!isa(x, Number), ops)
     return Num(prod(ops))
@@ -791,7 +791,7 @@ function create_linear_independent_eqs(o::AbstractVector, simplify_eqs::Bool = f
     remove_constant_factor!(o)
     n_ops = [count_operation(bi, +, false) for bi in o]
     n_x = sum(n_ops) + length(o)
-    u_o = Array{Any}(undef, n_x)
+    u_o = Array{Num}(undef, n_x)
     ind_lo, ind_up = 0, 0
     for i in eachindex(o)
         ind_lo = i > 1 ? sum(n_ops[1:i-1]) + i : 1
