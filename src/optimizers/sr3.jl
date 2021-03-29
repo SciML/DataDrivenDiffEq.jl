@@ -36,7 +36,14 @@ mutable struct SR3{T, V, P <: AbstractProximalOperator} <: AbstractOptimizer{T}
       @assert ν > zero(V) "Relaxation must be positive definite"
 
        λ = isa(R, HardThreshold) ? threshold.^2 /2 : threshold
-       return new{T, V, P}(λ, ν, R)
+       return new{typeof(λ), V, P}(λ, ν, R)
+   end
+
+   function SR3(threshold::T = 1e-1, R::P = HardThreshold()) where {T,P}
+      @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
+       λ = isa(R, HardThreshold) ? threshold.^2 /2 : threshold
+       ν = one(eltype(λ))
+       return new{typeof(λ), eltype(λ), P}(λ, ν, R)
    end
 end
 
@@ -82,7 +89,7 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
 
        if _progress
            @views obj = norm(Y - A*X, 2)
-           @views sparsity = norm(X, 0)
+           @views sparsity = norm(X, 0, λ)
 
            ProgressMeter.next!(
            progress;
@@ -97,13 +104,13 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
        if conv_measure < abstol
            converged = true
 
-           if _progress
+           #if _progress
 
-               ProgressMeter.update!(
-               progress,
-               initial_prog + maxiter
-               )
-           end
+            #   ProgressMeter.update!(
+            #   progress,
+            #   initial_prog + maxiter
+            #   )
+           #end
 
        else
            w_i .= W

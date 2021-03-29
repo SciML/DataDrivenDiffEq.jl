@@ -85,13 +85,12 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
             maxiter = maxiter, abstol = abstol)
 
         if _progress
-            @views sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j])
+            @views sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j], λ)
 
             ProgressMeter.next!(
             progress;
             showvalues = [
-                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
-                (:Measurementcolumn, (i, my))
+                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity)
                 ]
                 )
         end

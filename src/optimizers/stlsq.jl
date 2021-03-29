@@ -73,7 +73,7 @@ function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
 
         if _progress
             obj = norm(Y - A*X, 2)
-            sparsity = norm(X, 0)
+            sparsity = norm(X, 0, λ)
 
             ProgressMeter.next!(
             progress;
@@ -87,13 +87,13 @@ function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
         if conv_measure < abstol
             converged = true
 
-            if _progress
+            _progress ? (progress.counter = initial_prog + maxiter) : nothing
 
-                ProgressMeter.update!(
-                progress,
-                initial_prog + maxiter
-                )
-            end
+            #    ProgressMeter.update!(
+            #    progress,
+            #    initial_prog + maxiter
+            #    )
+            #end
 
 
         else

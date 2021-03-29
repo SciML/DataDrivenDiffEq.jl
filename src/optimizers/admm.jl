@@ -73,7 +73,7 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
 
         if _progress
             obj = norm(Y .- A*X, 2)
-            sparsity = norm(X, 0)
+            sparsity = norm(X, 0, λ)
 
             ProgressMeter.next!(
             progress;

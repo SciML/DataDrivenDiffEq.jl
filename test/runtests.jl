@@ -17,11 +17,11 @@ const GROUP = get(ENV, "GROUP", "All")
         include("./basis.jl")
         include("./problem.jl")
 
+        include("./sindy.jl")
         #include("./koopman.jl")
-        #include("./sindy.jl")
         #include("./isindy.jl")
         #include("./utils.jl")
-        include("./optimize.jl")
+        #include("./optimize.jl")
     end
 
     # These are excluded right now, until the deps are figured out

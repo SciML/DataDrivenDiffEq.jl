@@ -270,6 +270,8 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
     eval_expression = false,
     kwargs...)
 
+    eqs = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
+
     if linear_independent
         eqs_ = create_linear_independent_eqs(eqs, simplify)
     else
@@ -287,15 +289,32 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
 end
 
 
-
 function Basis(eqs::AbstractVector{Equation}, states::AbstractVector;
+    parameters::AbstractVector = [], iv = nothing,
+    controls::AbstractVector = [], observed::AbstractVector = [],
+    name = gensym(:Basis),
+    simplify = false, linear_independent = false,
+    eval_expression = false,
     kwargs...)
 
-    # Split the equation in rhs and lhs
     lhs = [x.lhs for x in eqs]
-    rhs = Num.([x.rhs for x in eqs])
+    # We filter out 0s
+    eqs_ = [Num(x.rhs) for x in eqs if ~isequal(Num(x),zero(Num))]
+    if linear_independent
+        eqs_ = create_linear_independent_eqs(eqs_, simplify)
+    else
+        eqs_ = simplify ? ModelingToolkit.simplify.(eqs_) : eqs_
+    end
 
-    return Basis(rhs, states; kwargs...)
+    isnothing(iv) && (iv = Num(Variable(:t)))
+    unique!(eqs_, !simplify)
+
+    f = _build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
+
+    eqs = [lhs[i] ~ eq for (i,eq) ∈ enumerate(eqs_)]
+
+    return Basis(eqs, value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[])
+
 end
 
 

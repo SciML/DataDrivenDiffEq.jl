@@ -21,13 +21,15 @@ end
 
 # Main
 function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.AbstractOptimizer;
-    normalize::Bool = false, denoise::Bool = false,
+    normalize::Bool = false, denoise::Bool = false, maxiter::Int = 0,
     round::Bool = true, kwargs...) where {dType <: Number}
     # Check the validity
     @assert is_valid(p) "The problem seems to be ill-defined. Please check the problem definition."
 
     # Evaluate the basis
     θ = b(DataDrivenDiffEq.get_oop_args(p)...)
+
+    maxiter = maxiter <= 0 ? maximum(size(θ)) : maxiter
 
     # Normalize via p norm
     scales = ones(dType, size(θ, 1))
@@ -43,12 +45,13 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.A
     Optimize.sparse_regression!(Ξ, θ', p.DX', opt; kwargs...)
 
     normalize ? rescale_xi!(Ξ, scales, round) : nothing
-    return Ξ
+
     # Build solution Basis
     return build_solution(
         p, Ξ, opt, b
     )
 end
+
 
 function _isin(x::Num, y)
     vs = get_variables(y)
@@ -73,17 +76,21 @@ end
 
 
 function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis,
-    opt::Optimize.AbstractSubspaceOptimizer, implicits::Vector{Num};
-    normalize::Bool = false, denoise::Bool = false,
+    opt::Optimize.AbstractSubspaceOptimizer, implicits::Vector{Num} = Num[];
+    normalize::Bool = false, denoise::Bool = false, maxiter::Int = 0,
     round::Bool = true, kwargs...) where {dType <: Number}
     # Check the validity
     @assert is_valid(p) "The problem seems to be ill-defined. Please check the problem definition."
-    @assert length(implicits) == size(p.DX, 1) "Please provide enought implicit variables for the given problem."
+    if !isempty(implicits)
+        @assert length(implicits) == size(p.DX, 1) "Please provide enought implicit variables for the given problem."
+    end
     # Check for the variables
     @assert all(any.(eachrow(_isin(implicits, states(b)))))
 
     # Evaluate the basis
     θ = b(DataDrivenDiffEq.get_implicit_oop_args(p)...)
+
+    maxiter = maxiter <= 0 ? maximum(size(θ)) : maxiter
 
     # Normalize via p norm
     scales = ones(dType, size(θ, 1))
@@ -97,17 +104,24 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis,
     Ξ = DataDrivenDiffEq.Optimize.init(opt, θ', p.DX')
     # Find the implict variables in the equations and
     # eliminite duplictes
-    inds = _ind_matrix(implicits, [eq.rhs for eq in equations(b)])
-
+    if !isempty(implicits)
+        inds = _ind_matrix(implicits, [eq.rhs for eq in equations(b)])
+    else
+        inds = ones(Bool, 1, length(b))
+    end
+    offset = 0
     # Solve for each implicit variable
     @views for i in 1:size(inds, 1)
-        Optimize.sparse_regression!(Ξ[inds[i,:], i:i], θ[inds[i,:],:]', p.DX[i:i, :]', opt; kwargs...)
+        # Initial progress offset
+        offset = maxiter*i
+        println(i)
+        Optimize.sparse_regression!(Ξ[inds[i,:], i:i], θ[inds[i,:],:]', p.DX[i:i, :]', opt; maxiter = maxiter,
+         progress_outer = size(inds, 1), progress_offset = offset, kwargs...)
     end
 
     normalize ? rescale_xi!(Ξ, scales, round) : nothing
-    return Ξ
     # Build solution Basis
-    return build_implicit_solution(
-        p, Ξ, opt, b, du
+    return build_solution(
+        p, Ξ, opt, b, implicits
     )
 end

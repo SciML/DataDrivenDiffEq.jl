@@ -13,6 +13,9 @@ abstract type AbstractProximalOperator end;
 abstract type AbstractOptimizer{T} end;
 abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end;
 
+# Overload the norm
+LinearAlgebra.norm(x, p, λ) = norm(x[abs.(x) .> λ], p)
+
 # Dispatch on vector
 function (opt::AbstractOptimizer{T} where T)(
         X::AbstractArray, A::AbstractArray, Y::AbstractVector{V} where V,
@@ -88,8 +91,10 @@ G(opt::AbstractOptimizer{T} where T) = f->f[1] == 0 ? Inf : norm(f, 2)
 G(opt::AbstractSubspaceOptimizer{T} where T) = f->f[1] <= 2 ? Inf : norm(f, 2)
 # Evaluate F
 function F(opt::AbstractOptimizer{T} where T)
-    f(x, A, y) = [norm(x, 0); norm(y .- A*x, 2)] # explicit
+    f(x, A, y::AbstractArray) = [norm(x, 0); norm(y .- A*x, 2)] # explicit
+    f(x, A, y::AbstractArray, λ) = [norm(x, 0, λ); norm(y .- A*x, 2, λ)]
     f(x, A) = [norm(x,0); norm(A*x, 2)] # implicit
+    f(x, A, λ::Number) = [norm(x,0,λ); norm(A*x, 2,λ)] # implicit
     return f
 end
 
@@ -122,17 +127,12 @@ include("./implicit.jl")
 # For a general optimizer
 default_prg_msg(o::AbstractOptimizer) = summary(o)
 
-function init_progress(opt::AbstractOptimizer, X, A, Y, maxiter)
+function init_progress(opt::AbstractOptimizer, X, A, Y, maxiters, start)
     Progress(
-        maxiter*length(get_threshold(opt)), default_prg_msg(opt)
+        maxiters, default_prg_msg(opt), start
     )
 end
 
-function init_progress(opt::AbstractSubspaceOptimizer, X, A, Y, maxiter)
-    Progress(
-        maxiter*length(get_threshold(opt))*size(Y, 2), default_prg_msg(opt)
-    )
-end
 
 include("./sparseregression.jl")
 export sparse_regression!
