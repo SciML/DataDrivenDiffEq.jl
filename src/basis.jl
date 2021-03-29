@@ -726,7 +726,7 @@ end
 count_operation(x::Number, op::Function, nested::Bool = true) = 0
 count_operation(x::Sym, op::Function, nested::Bool = true) = 0
 count_operation(x::Num, op::Function, nested::Bool = true) = count_operation(value(x), op, nested)
-
+count_operation(x::AbstractArray, op::Function, nested::Bool = true) = [count_operation(xi, op, nested) for xi in x]
 function count_operation(x, op::Function, nested::Bool = true)
     if operation(x)== op
         if is_unary(op)
@@ -791,33 +791,36 @@ function remove_constant_factor(x)
     # Return, if the function is nested
     istree(x) || return x
     # Count the number of operations
-    n_ops = count_operation(x, *, false)+1
+    n_ops = count_operation(x, [*], false)+1
     # Create a new array
-    ops = Array{Num}(undef, n_ops)
+    ops = Array{Any}(undef, n_ops)
     @views split_term!(ops, x, [*])
     filter!(x->!isa(x, Number), ops)
     return Num(prod(ops))
 end
 
-function remove_constant_factor!(o::AbstractArray)
+function remove_constant_factor(o::AbstractArray)
+    oi = Array{Any}(undef, size(o))
     for i in eachindex(o)
-        o[i] = remove_constant_factor(o[i])
+        oi[i] = remove_constant_factor(o[i])
     end
+    return Num.(oi)
 end
 
-function create_linear_independent_eqs(o::AbstractVector, simplify_eqs::Bool = false)
-    o .= simplify.(o)
-    remove_constant_factor!(o)
-    n_ops = [count_operation(bi, +, false) for bi in o]
+function create_linear_independent_eqs(ops::AbstractVector, simplify_eqs::Bool = false)
+    o = simplify.(ops)
+    o = remove_constant_factor(o)
+    n_ops = [count_operation(oi, +, false) for oi in o]
     n_x = sum(n_ops) + length(o)
-    u_o = Array{Num}(undef, n_x)
+    u_o = Array{Any}(undef, n_x)
     ind_lo, ind_up = 0, 0
     for i in eachindex(o)
         ind_lo = i > 1 ? sum(n_ops[1:i-1]) + i : 1
         ind_up = sum(n_ops[1:i]) + i
+
         @views split_term!(u_o[ind_lo:ind_up], o[i], [+])
     end
-    remove_constant_factor!(u_o)
+    u_o = remove_constant_factor(u_o)
     unique!(u_o)
     return simplify_eqs ? simplify.(Num.(u_o)) : Num.(u_o)
 end

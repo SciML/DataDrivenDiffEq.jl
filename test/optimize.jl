@@ -56,13 +56,14 @@ using Test
 end
 
 @testset "Implicit Optimizer" begin
-    opts = [ADM(exp10.(-3:0.1:-1)); ImplicitOptimizer(exp10.(-3:0.1:-1))]
+    opts = [ImplicitOptimizer(1e-1)]
     @testset "Implicit" begin
         x = 10.0*randn(3, 100)
         A = Float64[0 1 0; 0 0 1; 1 0 0]
         # System
         # dx + dx*x = A*x
-        Z = A*x ./ ( 1 .+ x) # Measurements
+        Z = A*x
+        Z .= Z .* ( 1 .+ x) # Measurements
         z = reshape(Z[1,:], 1, 100)
 
         Ξref = Float64[
@@ -75,7 +76,7 @@ end
             1 0  0;
             0 1 0
         ]
-        θ = [ones(1,size(x,2)); x]
+        θ = [ones(1,size(x,2)); x; z; z.*x[1]; z.*x[2]; z.*x[3]]
         for opt in opts
             Ξ = init(opt, θ', Z')
             opt(Ξ,θ',Z')

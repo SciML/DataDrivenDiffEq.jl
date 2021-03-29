@@ -14,10 +14,15 @@ const GROUP = get(ENV, "GROUP", "All")
 
 @time begin
     if GROUP == "All" || GROUP == "DataDrivenDiffEq" || GROUP == "Standard"
-        include("./basis.jl")
-        include("./problem.jl")
+        @testset "Basis" begin include("./basis/basis.jl") end
+        @testset "Basis Generators" begin include("./basis/generators.jl") end
+        @testset "DataDrivenProblem" begin include("./problem.jl") end
 
-        include("./sindy.jl")
+        @testset "Sparse Identification" begin
+            @testset "Pendulum" begin include("./sindy/pendulum.jl") end
+            @testset "Michaelis Menten" begin include("./sindy/michaelis_menten.jl") end
+        end
+
         #include("./koopman.jl")
         #include("./isindy.jl")
         #include("./utils.jl")
