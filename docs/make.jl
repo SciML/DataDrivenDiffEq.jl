@@ -11,8 +11,8 @@ makedocs(
                              assets = ["assets/favicon.ico"],
                              canonical="https://datadriven.sciml.ai/stable/"),
     pages=[
-        "Home" => "index.md",
-        "Getting Started" => "quickstart.md"
+        #"Home" => "index.md",
+        #"Getting Started" => "quickstart.md"
         ]
         #"Basis" => "basis.md",
         #"Koopman Operators" => Any[
