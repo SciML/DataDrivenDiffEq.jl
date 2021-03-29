@@ -79,7 +79,7 @@ include("./optimizers/Optimize.jl")
 export sparse_regression!
 export set_threshold!, get_threshold
 export STLSQ, ADMM, SR3
-export ADM, ImplicitOptimizer
+export ImplicitOptimizer
 export SoftThreshold, HardThreshold, ClippedAbsoluteDeviation
 
 include("./solution.jl")

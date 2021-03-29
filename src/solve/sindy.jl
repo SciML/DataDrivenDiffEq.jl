@@ -49,3 +49,65 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.A
         p, Ξ, opt, b
     )
 end
+
+function _isin(x::Num, y)
+    vs = get_variables(y)
+    any(isequal(x, yi) for yi in vs)
+end
+
+function _isin(x::Vector{Num}, y::Vector)
+    [_isin(xi, yi) for xi in x, yi in y]
+end
+
+function _ind_matrix(x::Vector{Num}, y::Vector)
+    isins = _isin(x, y)
+    inds = ones(Bool, size(isins)) # We take all
+    excludes = zeros(Bool, length(x))
+    for i in 1:length(x)
+        excludes .= true
+        excludes[i] = false
+        inds[i, :] .= inds[i, :] .* sum(eachrow(isins[excludes, :]))
+    end
+    return .~ inds
+end
+
+
+function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis,
+    opt::Optimize.AbstractSubspaceOptimizer, implicits::Vector{Num};
+    normalize::Bool = false, denoise::Bool = false,
+    round::Bool = true, kwargs...) where {dType <: Number}
+    # Check the validity
+    @assert is_valid(p) "The problem seems to be ill-defined. Please check the problem definition."
+    @assert length(implicits) == size(p.DX, 1) "Please provide enought implicit variables for the given problem."
+    # Check for the variables
+    @assert all(any.(eachrow(_isin(implicits, states(b)))))
+
+    # Evaluate the basis
+    θ = b(DataDrivenDiffEq.get_implicit_oop_args(p)...)
+
+    # Normalize via p norm
+    scales = ones(dType, size(θ, 1))
+
+    normalize ? normalize_theta!(scales, θ) : nothing
+
+    # Denoise via optimal shrinkage
+    denoise ? optimal_shrinkage!(θ') : nothing
+
+    # Init the coefficient matrix
+    Ξ = DataDrivenDiffEq.Optimize.init(opt, θ', p.DX')
+    # Find the implict variables in the equations and
+    # eliminite duplictes
+    inds = _ind_matrix(implicits, [eq.rhs for eq in equations(b)])
+
+    # Solve for each implicit variable
+    @views for i in 1:size(inds, 1)
+        Optimize.sparse_regression!(Ξ[inds[i,:], i:i], θ[inds[i,:],:]', p.DX[i:i, :]', opt; kwargs...)
+    end
+
+    normalize ? rescale_xi!(Ξ, scales, round) : nothing
+    return Ξ
+    # Build solution Basis
+    return build_implicit_solution(
+        p, Ξ, opt, b, du
+    )
+end

@@ -1,6 +1,7 @@
 module Optimize
 
 using LinearAlgebra
+using Statistics
 
 using ProgressMeter
 using DocStringExtensions
@@ -58,7 +59,7 @@ Initialize the optimizer with the least square solution for explicit and `zeros`
 """
 init(o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) = A \ Y
 
-init(o::AbstractSubspaceOptimizer, A::AbstractArray, Y::AbstractArray) = zeros(eltype(A), 2*size(A,2), size(Y, 2))
+init(o::AbstractSubspaceOptimizer, A::AbstractArray, Y::AbstractArray) = zeros(eltype(A), size(A, 2), size(Y, 2))
 
 """
 $(SIGNATURES)
@@ -66,44 +67,29 @@ $(SIGNATURES)
 Initialize the optimizer with the least square solution for explicit and `zeros` for implicit optimization in place.
 """
 init!(X::AbstractArray, o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
-init!(X::AbstractArray, o::AbstractSubspaceOptimizer, A::AbstractArray, Y::AbstractArray) =  zeros(eltype(A), 2*size(A,2), size(Y, 2))
 
 """
 $(SIGNATURES)
 
 Clips the solution by the given threshold `λ` and ceils the entries to the corresponding decimal.
 """
-@inline function clip_by_threshold!(x::AbstractArray, λ::T) where T <: Real
+@inline function clip_by_threshold!(x::AbstractArray, λ::T, rounding::Bool = true) where T <: Real
     dplace = ceil(Int, -log10(λ))
     for i in eachindex(x)
-        x[i] = abs(x[i]) < λ ? zero(eltype(x)) : round(x[i], digits = dplace)
+        x[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
+        x[i] = rounding ? round(x[i], digits = dplace) : x[i]
     end
     return
 end
 
-# Used to assemble the nullspace for regression
-@inline _assemble_ns(A::AbstractMatrix, b::AbstractVector) = [hcat(map(i->b[i].*A[i,:], 1:size(A,1))...)' A]
-@inline _assemble_ns(A::AbstractMatrix, B::AbstractMatrix) = map(x->_assemble_ns(A, x), eachcol(B))
-
 
 # Evaluate the results for pareto
+G(opt::AbstractOptimizer{T} where T) = f->f[1] == 0 ? Inf : norm(f, 2)
+G(opt::AbstractSubspaceOptimizer{T} where T) = f->f[1] <= 2 ? Inf : norm(f, 2)
 # Evaluate F
-# At least one result
-@inline G(opt::AbstractOptimizer{T} where T) = @views f->f[1] == 0 ? Inf : norm(f, 2)
-# At least two results ( implict )
-@inline G(opt::AbstractSubspaceOptimizer{T} where T) = @views f->f[1] <= 1 ? Inf : norm(f)
-
-# Evaluate the regression
-@inline F(opt::AbstractOptimizer{T} where T) = @views (x, A, y)->[norm(x, 0); norm(y .- A*x, 2)]
-
-function F(opt::AbstractSubspaceOptimizer{T} where T)
-    # For all inputs
-    @views function f(x,A,y)
-        reg = _assemble_ns(A, y)
-        return [norm(x,0); norm(map(i->norm(reg[i]*x[:, i], 2), 1:size(y,2)), 2)]
-    end
-    # Just ns and regression
-    @views f(x, A) = [norm(x, 0); norm(A*x, 2)]
+function F(opt::AbstractOptimizer{T} where T)
+    f(x, A, y) = [norm(x, 0); norm(y .- A*x, 2)] # explicit
+    f(x, A) = [norm(x,0); norm(A*x, 2)] # implicit
     return f
 end
 
@@ -128,7 +114,7 @@ include("./admm.jl")
 include("./sr3.jl")
 
 #Nullspace for implicit sindy
-include("./adm.jl")
+#include("./adm.jl")
 include("./implicit.jl")
 
 
@@ -152,6 +138,6 @@ include("./sparseregression.jl")
 export sparse_regression!
 export init, init!, set_threshold!, get_threshold
 export STLSQ, ADMM, SR3
-export ADM, ImplicitOptimizer
+export ImplicitOptimizer
 
 end

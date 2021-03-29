@@ -28,11 +28,6 @@ mutable struct ImplicitOptimizer{T} <: AbstractSubspaceOptimizer{T}
         return new{T}(opt)
     end
 
-    # ADM is already implicit
-    function ImplicitOptimizer(opt::ADM)
-        @info "ADM is already implict. Return ADM."
-        return ADM
-    end
 end
 
 
@@ -41,7 +36,8 @@ Base.summary(opt::ImplicitOptimizer) = "Implicit Optimizer using "*summary(opt.o
 get_threshold(opt::ImplicitOptimizer) = get_threshold(opt.o)
 
 function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
-    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing,
+    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)),
+    rtol::V = zero(eltype(T)),progress = nothing,
     f::Function = F(opt),
     g::Function = G(opt))  where {T, V}
 
@@ -50,14 +46,15 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
     n,m = size(A)
     ny, my = size(Y)
     nx, mx = size(X)
-    half_size = Int64(round(nx/2))
     nq, mq = 0,0
 
     # Closure for the pareto function
-    fg(x, A) = (g∘f)(x, A)
+    fg(x, A, y) = (g∘f)(x, A, y)
+    fg(x, A) = (g∘f)(x,A)
 
     xzero = zero(eltype(X))
     xone = one(eltype(X))
+
     obj = xzero
     sparsity = xzero
     conv_measure = xzero
@@ -65,51 +62,31 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
     iters = 0
     converged = false
 
-    max_ind = 0
-
-    nspaces = _assemble_ns(A, Y)
-    nθ, mθ = size(nspaces[1])
-
     # Build a quadratic matrix
-    x_tmp = zeros(eltype(X), mθ, 1)
-    x_opt = zeros(eltype(X), mθ, mθ)
-    inds = [false for _ in 1:mθ]
+    x_tmp = zeros(eltype(X), m, m) # The temporary solution
+    x_opt = zeros(eltype(X), m, m) # All solutions
+    inds = [false for _ in 1:m]
 
     _progress = isa(progress, Progress)
-    initial_prog = 0
 
-    for i in 1:size(nspaces, 1)
+    # Set progress -1 and
+    initial_prog = _progress ? progress.counter : 0
 
-        # Current nullspace
-        θ = nspaces[i]'
+    # Iterate over all columns of A ( which represent the lhs )
+    for j in 1:m
+        inds .= true
+        inds[j] = false
+        x_tmp[j, j] = -one(eltype(X)) # We set this to -1 for the lhs
+        # Solve explicit problem
+        x_tmp[inds, j:j] .= init(exopt, A[:, inds], A[:, j:j])
 
-        # Set progress -1 and
-        initial_prog = _progress ? progress.counter : 0
-
-        # Set the current result to zero
-        for j in 1:mθ
-            inds .= true
-            inds[j] = false
-            x_tmp[j] = 1
-            # Solve explicit problem
-            @views x_tmp[inds, :] .= init(exopt, θ[inds, :]', θ[j:j, :]')
-            @views exopt(x_tmp[inds, :], θ[inds, :]', θ[j:j, :]',λ,
-                maxiter = maxiter, abstol = abstol)
-
-            if j == 1
-                X[:, i] .= x_tmp[:, 1]
-            else
-                evaluate_pareto!(X[:, i], x_tmp[:, 1] , fg, θ')
-            end
-        end
+        # Use optimizer
+        @views exopt(x_tmp[inds, j:j], A[:, inds], A[:, j:j],λ,
+            maxiter = maxiter, abstol = abstol)
 
         if _progress
-            @views sparsity, obj = f(X[:, i],θ')
+            @views sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j])
 
-            ProgressMeter.update!(
-            progress,
-            initial_prog + maxiter -1
-            )
             ProgressMeter.next!(
             progress;
             showvalues = [
@@ -118,9 +95,29 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
                 ]
                 )
         end
-
-
     end
-    clip_by_threshold!(X, λ)
-    return
+
+    # Reduce the solution size to linear independent columns
+    qrx = qr(x_tmp, Val(true))
+    _r = abs.(diag(qrx.R))
+    r = findlast(_r .>= rtol*first(_r))
+    r = min(r, rank(x_tmp))
+    idx = sort(qrx.p[1:r])
+    x_tmp = x_tmp[:, idx]
+
+    # Indicate if already used
+    _included = zeros(Bool, my, r)
+    for i in 1:my, j in 1:r
+        # Check, if already included
+        any(_included[:, j]) && continue
+        # Selector
+        inds .= true; inds[j] = false
+        if @views evaluate_pareto!(X[inds, i], x_tmp[inds, j], fg, A[:, inds], A[:, j])
+            X[j,i] = x_tmp[j,j]
+            _included[i,j] = true
+        end
+    end
+
+    rank(X'X) < my ? (@warn "$opt @ $λ has found illconditioned equations. Vary the threshold or relative tolerance.") : nothing
+    return X, x_tmp
 end

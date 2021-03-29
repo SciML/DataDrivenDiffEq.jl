@@ -50,7 +50,8 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
    W = copy(X)
 
    # Init matrices
-   H = cholesky(A'*A+I(m)*opt.ν)
+   H = A'*A+I(m)*ν
+   H = cholesky!(H)
    X̂ = A'*Y
 
    w_i = similar(W)
