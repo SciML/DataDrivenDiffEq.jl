@@ -14,12 +14,16 @@ dt = 0.1
 prob = ODEProblem(pendulum, u0, tspan)
 sol = solve(prob, Tsit5(), saveat=dt)
 
+X = sol[:,:]
+t = sol.t
 DX = similar(sol[:,:])
 for (i, xi) in enumerate(eachcol(sol[:,:]))
     DX[:,i] = pendulum(xi, [], 0.0)
 end
 
 @testset "Ideal data" begin
+
+
     dd_prob = ContinuousDataDrivenProblem(
         X, t, DX = DX
         )
@@ -32,7 +36,7 @@ end
 
 
     for opt in opts
-        res = solve(ddprob, basis, opt, maxiter = 10000)
+        res = solve(dd_prob, basis, opt, maxiter = 10000)
         m = metrics(res)
         @test m.Sparsity == 4
         @test m.Error ./ size(X, 2) < 3e-1
@@ -40,8 +44,10 @@ end
     end
 end
 
+
+X = X .+ 1e-1*randn(size(X))
+
 @testset "Noisy data" begin
-    X = X .+ 1e-1*randn(size(X))
 
     dd_prob_noisy = ContinuousDataDrivenProblem(
         X, t, SigmoidKernel()
@@ -54,8 +60,7 @@ end
 
 
     for opt in opts
-        res = solve(ddprob, basis, opt, maxiter = 50000, denoise = true, normalize = true)
-
+        res = solve(dd_prob_noisy, basis, opt, maxiter = 50000, denoise = true, normalize = true)
         @test m.Sparsity <= 4
         @test m.Error ./ size(X, 2) < 5e-1
         @test m.AICC < 0.0

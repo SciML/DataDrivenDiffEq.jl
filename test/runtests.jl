@@ -4,8 +4,8 @@ using ModelingToolkit
 using LinearAlgebra
 using SafeTestsets
 
-#@info "Loading OrdinaryDiffEq"
-#using OrdinaryDiffEq
+@info "Loading OrdinaryDiffEq"
+using OrdinaryDiffEq
 using Test
 @info "Finished loading packages"
 
@@ -18,6 +18,8 @@ const GROUP = get(ENV, "GROUP", "All")
         @testset "Basis Generators" begin include("./basis/generators.jl") end
         @testset "DataDrivenProblem" begin include("./problem.jl") end
 
+        # TODO Fail right now because of scoping.
+        # Should be a quick fix tomorrow
         @testset "Sparse Identification" begin
             @testset "Pendulum" begin include("./sindy/pendulum.jl") end
             @testset "Michaelis Menten" begin include("./sindy/michaelis_menten.jl") end
@@ -25,7 +27,7 @@ const GROUP = get(ENV, "GROUP", "All")
 
         #include("./koopman.jl")
         #include("./isindy.jl")
-        #include("./utils.jl")
+        include("./utils.jl")
         #include("./optimize.jl")
     end
 

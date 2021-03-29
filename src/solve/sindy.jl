@@ -114,7 +114,6 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis,
     @views for i in 1:size(inds, 1)
         # Initial progress offset
         offset = maxiter*i
-        println(i)
         Optimize.sparse_regression!(Ξ[inds[i,:], i:i], θ[inds[i,:],:]', p.DX[i:i, :]', opt; maxiter = maxiter,
          progress_outer = size(inds, 1), progress_offset = offset, kwargs...)
     end
