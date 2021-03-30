@@ -141,30 +141,48 @@ end
 
 
 """
-```julia
-u′,u = collocate_data(data,tpoints,kernel=SigmoidKernel())
-u′,u = collocate_data(data,tpoints,tpoints_sample,interp,args...)
-```
+$(SIGNATURES)
+
+Unified interface for collocation techniques. The input can either be
+a `CollocationKernel` (see list below) or a wrapped `InterpolationMethod` from
+[DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl).
+
 Computes a non-parametrically smoothed estimate of `u'` and `u`
 given the `data`, where each column is a snapshot of the timeseries at
 `tpoints[i]`.
-For kernels, the following exist:
-- EpanechnikovKernel
-- UniformKernel
-- TriangularKernel
-- QuarticKernel
-- TriweightKernel
-- TricubeKernel
-- GaussianKernel
-- CosineKernel
-- LogisticKernel
-- SigmoidKernel
-- SilvermanKernel
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631937/
-Additionally, we can use interpolation methods from
-[DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl) to generate
-data from intermediate timesteps. In this case, pass any of the methods like
-`QuadraticInterpolation` as `interp`, and the timestamps to sample from as `tpoints_sample`.
+
+# Examples
+```julia
+u′,u = collocate_data(data,tpoints,kernel=SigmoidKernel())
+u′,u = collocate_data(data,tpoints,tpoints_sample,interp,args...)
+u′,u = collocate_data(data,tpoints,interp)
+```
+
+# Collocation Kernels
+See [this paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631937/) for more information.
++ EpanechnikovKernel
++ UniformKernel
++ TriangularKernel
++ QuarticKernel
++ TriweightKernel
++ TricubeKernel
++ GaussianKernel
++ CosineKernel
++ LogisticKernel
++ SigmoidKernel
++ SilvermanKernel
+
+# Interpolation Methods
+See [DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl) for more information.
++ ConstantInterpolation
++ LinearInterpolation
++ QuadraticInterpolation
++ LagrangeInterpolation
++ QuadraticSpline
++ CubicSpline
++ BSplineInterpolation
++ BSplineApprox
++ Curvefit
 """
 function collocate_data(data,tpoints,kernel=TriangularKernel())
   _one = oneunit(first(data))
