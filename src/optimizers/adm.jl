@@ -15,16 +15,16 @@ ADM(λ = 0.1)
 
 ## Note
 While useable for implicit problems, a better choice in general is given by the
-`ImplicitOptimizer` which tends to be more robust. 
+`ImplicitOptimizer` which tends to be more robust.
 """
 mutable struct ADM{T} <: AbstractSubspaceOptimizer{T}
     """Sparsity threshold"""
     λ::T
 
-    function ADM(threshold = 1e-1)
-        @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
+    function ADM(threshold::T = 1e-1) where T
+        @assert all(one(eltype(T)) .> threshold .> zero(eltype(T))) "Threshold must be positive definite and less than 1"
 
-        return new{typeof(threshold)}(threshold)
+        return new{T}(threshold)
     end
 end
 
@@ -113,7 +113,7 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
     @views for i in 1:my, j in 1:r
         # Check, if already included
         any(_included[:, j]) && continue
-        if evaluate_pareto!(X[:, i], Q[:,r] , fg, A, λ)
+        if @views evaluate_pareto!(X[:, i], Q[:,r] , fg, A, λ)
             _included[i,j] = true
         end
     end
@@ -133,6 +133,10 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
             (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
             ]
         )
+    end
+
+    if rank(X'X) < my
+        @warn "$opt @ $λ has found illconditioned equations. Vary the threshold or relative tolerance."
     end
 
     return

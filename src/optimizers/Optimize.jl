@@ -76,7 +76,7 @@ $(SIGNATURES)
 
 Clips the solution by the given threshold `λ` and ceils the entries to the corresponding decimal.
 """
-@inline function clip_by_threshold!(x::AbstractArray, λ::T, rounding::Bool = true) where T <: Real
+function clip_by_threshold!(x::AbstractArray, λ::T, rounding::Bool = true) where T <: Real
     dplace = ceil(Int, -log10(λ))
     for i in eachindex(x)
         x[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
@@ -101,7 +101,9 @@ end
 # Pareto
 function evaluate_pareto!(current_parameter, tmp_parameter, fg::Function, args...)
     if fg(tmp_parameter, args...) < fg(current_parameter, args...)
-        current_parameter .= tmp_parameter
+        for i in eachindex(current_parameter)
+            current_parameter[i] = tmp_parameter[i]
+        end
         return true
     else
         return false

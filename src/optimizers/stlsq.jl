@@ -38,7 +38,7 @@ Base.summary(::STLSQ) = "STLSQ"
 
 function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
     maxiter = maximum(size(A)), abstol::U = eps(eltype(T)),
-    progress = nothing) where {T,U}
+    progress = nothing, kwargs...) where {T,U}
 
     smallinds = abs.(X) .<= λ
     biginds = @. ! smallinds[:, 1]
@@ -58,7 +58,7 @@ function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
     initial_prog = _progress ? progress.counter : 0
 
 
-    while (iters < maxiter) && !converged
+    @views while (iters < maxiter) && !converged
         iters += 1
 
         smallinds .= abs.(X) .<= λ

@@ -42,7 +42,7 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.A
     # Init the coefficient matrix
     Ξ = DataDrivenDiffEq.Optimize.init(opt, θ', p.DX')
     # Solve
-    Optimize.sparse_regression!(Ξ, θ', p.DX', opt; kwargs...)
+    @views Optimize.sparse_regression!(Ξ, θ', p.DX', opt; kwargs...)
 
     normalize ? rescale_xi!(Ξ, scales, round) : nothing
 
@@ -75,15 +75,13 @@ function _ind_matrix(x::Vector{Num}, y::Vector)
 end
 
 
-function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis,
+@views function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis,
     opt::Optimize.AbstractSubspaceOptimizer, implicits::Vector{Num} = Num[];
     normalize::Bool = false, denoise::Bool = false, maxiter::Int = 0,
     round::Bool = true, kwargs...) where {dType <: Number}
     # Check the validity
     @assert is_valid(p) "The problem seems to be ill-defined. Please check the problem definition."
-    if !isempty(implicits)
-        @assert length(implicits) == size(p.DX, 1) "Please provide enought implicit variables for the given problem."
-    end
+
     # Check for the variables
     @assert all(any.(eachrow(_isin(implicits, states(b)))))
 
@@ -113,7 +111,7 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis,
     # Solve for each implicit variable
     @views for i in 1:size(inds, 1)
         # Initial progress offset
-        offset = maxiter*i
+        offset = i*length(get_threshold(opt))
         Optimize.sparse_regression!(Ξ[inds[i,:], i:i], θ[inds[i,:],:]', p.DX[i:i, :]', opt; maxiter = maxiter,
          progress_outer = size(inds, 1), progress_offset = offset, kwargs...)
     end

@@ -31,7 +31,7 @@ end
 Base.summary(::ADMM) = "ADMM"
 
 function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
-    maxiter::Int64 = maximum(size(A)), abstol::U = eps(eltype(T)), progress = nothing)  where {T, H, U}
+    maxiter::Int64 = maximum(size(A)), abstol::U = eps(eltype(T)), progress = nothing, kwargs...)  where {T, H, U}
 
     n, m = size(A)
 
@@ -62,7 +62,7 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
 
 
 
-    while (iters < maxiter) && !converged
+    @views while (iters < maxiter) && !converged
         iters += 1
 
         ldiv!(z, P, c .+ ρ .* (z .- u))

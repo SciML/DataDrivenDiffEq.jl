@@ -22,7 +22,7 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
         progress = nothing
     end
 
-    opt(X, A, Y, λ, maxiter = maxiter, abstol = abstol, progress = progress)
+    @views opt(X, A, Y, λ, maxiter = maxiter, abstol = abstol, progress = progress)
 
     return
 end
@@ -39,22 +39,42 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     #return fg
 
     # TODO Tmp Result
-    X_tmp = deepcopy(X)
+    X_tmp = similar(X)
+    X_tmp .= X
 
     λ = sort(get_threshold(opt))
 
     if progress
-        progress =  init_progress(opt, X, A, Y, maxiter*length(λ)*progress_outer, progress_offset)
+        progress =  init_progress(opt, X, A, Y, length(λ)*progress_outer, progress_offset)
     else
         progress = nothing
     end
 
+    obj = zero(eltype(X))
+    objtmp = zero(eltype(X))
+    sparsity = zero(eltype(X))
+    sparsitytmp = zero(eltype(X))
+
     @views for (i,λi) in enumerate(λ)
         init!(X_tmp, opt, A, Y)
-        opt(X_tmp, A, Y, λi, maxiter = maxiter, abstol = abstol, progress = progress)
+        opt(X_tmp, A, Y, λi, maxiter = maxiter, abstol = abstol, f = f, g = g)
         all(X_tmp .== zero(eltype(X))) && break # Increasing the threshold makes no sense
-        for j in 1:size(Y, 2)
+
+        @views for j in 1:size(Y, 2)
             evaluate_pareto!(X[:, j], X_tmp[:, j], fg, A, Y[:,j])
+        end
+
+        if !isnothing(progress)
+            sparsity, obj = f(X, A, Y)
+            sparsitytmp, objtmp = f(X_tmp, A, Y)
+
+            ProgressMeter.next!(
+            progress;
+            showvalues = [
+                (:Threshold, λi), (Symbol("Best Objective"), obj), (Symbol("Best Sparsity"), sparsity),
+                (Symbol("Current Objective"), objtmp), (Symbol("Current Sparsity"), sparsitytmp)
+            ]
+            )
         end
     end
     return

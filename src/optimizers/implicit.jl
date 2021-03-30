@@ -73,7 +73,7 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
     initial_prog = _progress ? progress.counter : 0
 
     # Iterate over all columns of A ( which represent the lhs )
-    for j in 1:m
+    @views for j in 1:m
         inds .= true
         inds[j] = false
         x_tmp[j, j] = -one(eltype(X)) # We set this to -1 for the lhs
@@ -85,7 +85,7 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
             maxiter = maxiter, abstol = abstol)
 
         if _progress
-            @views sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j], λ)
+            sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j], λ)
 
             ProgressMeter.next!(
             progress;
@@ -96,7 +96,9 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
         end
     end
 
+
     # Reduce the solution size to linear independent columns
+
     qrx = qr(x_tmp, Val(true))
     _r = abs.(diag(qrx.R))
     r = findlast(_r .>= rtol*first(_r))
@@ -106,7 +108,7 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
 
     # Indicate if already used
     _included = zeros(Bool, my, r)
-    for i in 1:my, j in 1:r
+    @views for i in 1:my, j in 1:r
         # Check, if already included
         any(_included[:, j]) && continue
         # Selector
@@ -117,6 +119,9 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
         end
     end
 
-    rank(X'X) < my ? (@warn "$opt @ $λ has found illconditioned equations. Vary the threshold or relative tolerance.") : nothing
-    return X, x_tmp
+    if rank(X'X) < my
+        @warn "$opt @ $λ has found illconditioned equations. Vary the threshold or relative tolerance."
+    end
+
+    return
 end

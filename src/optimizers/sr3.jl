@@ -50,7 +50,7 @@ end
 Base.summary(::SR3) = "SR3"
 
 function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
-    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing)  where {T, V, R}
+    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing, kwargs...)  where {T, V, R}
 
    n, m = size(A)
    ν = opt.ν
@@ -77,7 +77,7 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
    initial_prog = _progress ? progress.counter : 0
 
 
-   while (iters < maxiter) && !converged
+   @views while (iters < maxiter) && !converged
        iters += 1
 
        # Solve ridge regression
@@ -88,8 +88,8 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
        conv_measure = norm(w_i .- W, 2)
 
        if _progress
-           @views obj = norm(Y - A*X, 2)
-           @views sparsity = norm(X, 0, λ)
+           obj = norm(Y - A*X, 2)
+           sparsity = norm(X, 0, λ)
 
            ProgressMeter.next!(
            progress;
@@ -118,6 +118,6 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
    end
    # We really search for W here
    X .= W
-   clip_by_threshold!(X, λ)
+   @views clip_by_threshold!(X, λ)
    return
 end
