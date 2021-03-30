@@ -726,7 +726,7 @@ end
 count_operation(x::Number, op::Function, nested::Bool = true) = 0
 count_operation(x::Sym, op::Function, nested::Bool = true) = 0
 count_operation(x::Num, op::Function, nested::Bool = true) = count_operation(value(x), op, nested)
-count_operation(x::AbstractArray, op::Function, nested::Bool = true) = [count_operation(xi, op, nested) for xi in x]
+
 function count_operation(x, op::Function, nested::Bool = true)
     if operation(x)== op
         if is_unary(op)

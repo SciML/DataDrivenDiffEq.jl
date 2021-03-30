@@ -3,6 +3,7 @@ using DataDrivenDiffEq.Optimize
 using ModelingToolkit
 using LinearAlgebra
 using SafeTestsets
+using Random
 
 @info "Loading OrdinaryDiffEq"
 using OrdinaryDiffEq
@@ -10,7 +11,6 @@ using Test
 @info "Finished loading packages"
 
 const GROUP = get(ENV, "GROUP", "All")
-
 
 @time begin
     if GROUP == "All" || GROUP == "DataDrivenDiffEq" || GROUP == "Standard"

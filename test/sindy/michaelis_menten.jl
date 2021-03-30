@@ -32,15 +32,17 @@ basis = Basis([h; h .* u[2]], u)
     # Build a linear basis in the output
     opt = ImplicitOptimizer(2e-1)
     res = solve(prob, basis, opt, normalize = false, denoise = false)
-    @test DataDrivenDiffEq.metrics(res).Error < 1e-1
-    @test DataDrivenDiffEq.metrics(res).AICC < 23.0
-    @test DataDrivenDiffEq.metrics(res).Sparsity == 4
+    m = metrics(res)
+    @test m.Error < 1e-1
+    @test m.AICC < 23.0
+    @test m.Sparsity == 4
 
     opt = ImplicitOptimizer(1e-3:1e-3:5e-1)
     res = solve(prob, basis, opt, normalize = false, denoise = false)
-    @test DataDrivenDiffEq.metrics(res).Error < 1e-1
-    @test DataDrivenDiffEq.metrics(res).AICC < 23.0
-    @test DataDrivenDiffEq.metrics(res).Sparsity == 4
+    m = metrics(res)
+    @test m.Error < 1e-1
+    @test m.AICC < 23.0
+    @test m.Sparsity == 4
 end
 
 X = X .+ 1e-3*randn(size(X))
@@ -52,13 +54,15 @@ X = X .+ 1e-3*randn(size(X))
     # Build a linear basis in the output
     opt = ImplicitOptimizer(2e-1)
     res = solve(prob, basis, opt, normalize = false, denoise = false)
-    @test DataDrivenDiffEq.metrics(res).Error < 1e-1
-    @test DataDrivenDiffEq.metrics(res).AICC < 35.0
-    @test DataDrivenDiffEq.metrics(res).Sparsity == 4
+    m = metrics(res)
+    @test m.Error < 1e-1
+    @test m.AICC < 35.0
+    @test m.Sparsity == 4
 
     opt = ImplicitOptimizer(1e-3:1e-3:5e-1)
     res = solve(prob, basis, opt, normalize = false, denoise = false)
-    @test DataDrivenDiffEq.metrics(res).Error < 1e-1
-    @test DataDrivenDiffEq.metrics(res).AICC < 35.0
-    @test DataDrivenDiffEq.metrics(res).Sparsity == 4
+    m = metrics(res)
+    @test m.Error < 1e-1
+    @test m.AICC < 35.0
+    @test m.Sparsity == 4
 end

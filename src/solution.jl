@@ -1,4 +1,12 @@
+"""
+$(TYPEDEF)
 
+The solution to a `DataDrivenProblem` derived via a certain algorithm.
+The solution is represented via an `AbstractBasis`, which makes it callable.
+
+# Fields
+$(FIELDS)
+"""
 struct DataDrivenSolution{R <: AbstractBasis, S, P , A, O,M} <: AbstractDataDrivenSolution
     """Result"""
     res::R # The result

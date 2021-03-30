@@ -56,6 +56,15 @@ export AIC, AICC, BIC
 export optimal_shrinkage, optimal_shrinkage!
 export burst_sampling, subsample
 
+## Sparse Regression
+
+include("./optimizers/Optimize.jl")
+@reexport using DataDrivenDiffEq.Optimize: sparse_regression!
+@reexport using DataDrivenDiffEq.Optimize: set_threshold!, get_threshold
+@reexport using DataDrivenDiffEq.Optimize: STLSQ, ADMM, SR3
+@reexport using DataDrivenDiffEq.Optimize: ImplicitOptimizer
+@reexport using DataDrivenDiffEq.Optimize: SoftThreshold, HardThreshold, ClippedAbsoluteDeviation
+
 ## Koopman
 
 include("./koopman/type.jl")
@@ -75,15 +84,9 @@ export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem
 export has_timepoints, has_inputs, has_observations, has_derivatives
 export is_valid
 
-include("./optimizers/Optimize.jl")
-export sparse_regression!
-export set_threshold!, get_threshold
-export STLSQ, ADMM, SR3
-export ImplicitOptimizer
-export SoftThreshold, HardThreshold, ClippedAbsoluteDeviation
-
 include("./solution.jl")
 export DataDrivenSolution
+export result, parameters, parameter_map, metrics, algorithm, inputs
 
 include("./solve/sindy.jl")
 

@@ -39,7 +39,7 @@ mutable struct SR3{T, V, P <: AbstractProximalOperator} <: AbstractOptimizer{T}
        return new{typeof(λ), V, P}(λ, ν, R)
    end
 
-   function SR3(threshold::T = 1e-1, R::P = HardThreshold()) where {T,P <: AbstractProximalOperator}
+   function SR3(threshold::T , R::P) where {T,P <: AbstractProximalOperator}
       @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
        λ = isa(R, HardThreshold) ? threshold.^2 /2 : threshold
        ν = one(eltype(λ))
