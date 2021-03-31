@@ -37,7 +37,7 @@ get_threshold(opt::ImplicitOptimizer) = get_threshold(opt.o)
 
 function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
     maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)),
-    rtol::V = zero(eltype(T)),progress = nothing,
+    rtol::V = zero(T) ,progress = nothing,
     f::Function = F(opt),
     g::Function = G(opt))  where {T, V}
 
@@ -98,17 +98,12 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
 
 
     # Reduce the solution size to linear independent columns
-
-    qrx = qr(x_tmp, Val(true))
-    _r = abs.(diag(qrx.R))
-    r = findlast(_r .>= rtol*first(_r))
-    r = min(r, rank(x_tmp))
-    idx = sort(qrx.p[1:r])
-    x_tmp = x_tmp[:, idx]
+    # TODO Make this a function and more stable
+    @views x_tmp = linear_independent_columns(x_tmp, rtol)
 
     # Indicate if already used
-    _included = zeros(Bool, my, r)
-    @views for i in 1:my, j in 1:r
+    _included = zeros(Bool, my, size(x_tmp, 2))
+    @views for i in 1:my, j in 1:size(x_tmp, 2)
         # Check, if already included
         any(_included[:, j]) && continue
         # Selector

@@ -100,17 +100,12 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
     clip_by_threshold!(Q, λ)
 
     # Reduce the solution size to linear independent columns
-    qrx = qr(Q, Val(true))
-    _r = abs.(diag(qrx.R))
-    r = findlast(_r .>= rtol*first(_r))
-    r = min(r, rank(Q))
-    idx = sort(qrx.p[1:r])
-    Q = Q[:, idx]
+    @views Q = linear_independent_columns(Q, rtol)
 
     # Indicate if already used
-    _included = zeros(Bool, my, r)
+    _included = zeros(Bool, my, size(Q, 2))
 
-    @views for i in 1:my, j in 1:r
+    @views for i in 1:my, j in 1:size(Q, 2)
         # Check, if already included
         any(_included[:, j]) && continue
         if @views evaluate_pareto!(X[:, i], Q[:,r] , fg, A, λ)
