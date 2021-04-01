@@ -30,28 +30,30 @@ mutable struct Koopman{O,M,G,T} <: AbstractKoopman
 end
 
 
-function Koopman(eqs::AbstractVector, states::AbstractVector,
-    K::AbstractMatrix = Diagonal(ones(eltype(states), size(eqs)...)),
-    C::AbstractMatrix = Diagonal(ones(eltype(states), size(eqs)...)),
-    Q::AbstractMatrix = Diagonal(ones(eltype(states), size(eqs)...)),
-    P::AbstractMatrix = Diagonal(ones(eltype(states), size(eqs)...));
+function Koopman(eqs::AbstractVector{Num}, states::AbstractVector{Num};
+    K::O = diagm(ones(eltype(states), length(eqs))),
+    C::AbstractMatrix = diagm(ones(eltype(states), length(eqs))),
+    Q::AbstractMatrix = zeros(eltype(states), 0,0),
+    P::AbstractMatrix = zeros(eltype(states), 0,0),
     parameters::AbstractVector = [], iv = nothing,
     controls::AbstractVector = [], observed::AbstractVector = [],
     name = gensym(:Koopman), is_discrete::Bool = true,
     simplify = false, linear_independent = false,
     eval_expression = false,
-    kwargs...)
+    kwargs...) where O <: Union{AbstractMatrix, Eigen, Factorization}
 
+
+    eqs_ = C*real.(Matrix(K))*eqs
     if linear_independent
-        eqs_ = create_linear_independent_eqs(eqs, simplify)
+        eqs_ = create_linear_independent_eqs(eqs_, simplify)
     else
-        eqs_ = simplify ? ModelingToolkit.simplify.(eqs) : eqs
+        eqs_ = simplify ? ModelingToolkit.simplify.(eqs_) : eqs_
     end
 
     isnothing(iv) && (iv = Num(Variable(:t)))
-    unique!(eqs, !simplify)
+    unique!(eqs_, !simplify)
 
-    f = DataDrivenDiffEq._build_ddd_function(eqs, states, parameters, iv, controls, eval_expression)
+    f = DataDrivenDiffEq._build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
 
     eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
@@ -60,8 +62,20 @@ function Koopman(eqs::AbstractVector, states::AbstractVector,
     is_discrete, K, C, Q, P)
 end
 
+function Koopman(K::AbstractMatrix{T}; kwargs...) where T <: Real
+    n, m = size(K)
+    @variables x[1:n]
+    Koopman(x, x, K = K ,kwargs...)
+end
 
-Base.Matrix(k::AbstractKoopman) = Matrix(k.K)
+function Koopman(K::Eigen; kwargs...)
+    n = length(K.values)
+    @variables x[1:n]
+    Koopman(x, x, K = K ; kwargs...)
+end
+
+# We assume that we only have real valued observed
+Base.Matrix(k::AbstractKoopman) = real.(Matrix(k.K))
 
 """
 $(SIGNATURES)
@@ -82,7 +96,7 @@ $(SIGNATURES)
 
 Return the eigendecomposition of the `AbstractKoopmanOperator`.
 """
-LinearAlgebra.eigen(k::AbstractKoopman) = eigen(k.K)
+LinearAlgebra.eigen(k::AbstractKoopman) = isa(k.K, Eigen) ? k.K : eigen(k.K)
 
 """
 $(SIGNATURES)
@@ -148,7 +162,7 @@ Returns `true` if either:
 + the Koopman operator has just eigenvalues with magnitude less than one or
 + the Koopman generator has just eigenvalues with a negative real part
 """
-is_stable(k::AbstractKoopman) = is_discrete(k) ? all(abs.(eigvals(k)) .< one(eltype(k.K))) : all(real.(eigvals(k)) .< zero(eltype(k.K)))
+is_stable(k::AbstractKoopman) = is_discrete(k) ? all(real.(eigvals(k)) .< real.(one(eltype(k.K)))) : all(real.(eigvals(k)) .< zero(eltype(k.K)))
 
 """
 $(SIGNATURES)

@@ -339,7 +339,7 @@ end
 
 ## Printing
 
-@inline function Base.print(io::IO, x::Basis)
+@inline function Base.print(io::IO, x::AbstractBasis)
     state = states(x)
     ps = parameters(x)
     Base.printstyled(io, "Model $(nameof(x)) with $(length(x)) equations\n"; bold=true)
@@ -376,7 +376,7 @@ end
     end
 end
 
-@inline function Base.println(io::IO, x::Basis, fullview::DataType = Val{false})
+@inline function Base.println(io::IO, x::AbstractBasis, fullview::DataType = Val{false})
     fullview == Val{false} && return print(io, x)
 
     state = states(x)
@@ -482,7 +482,7 @@ end
 
 function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
-    return b.f(y,x,p,t, u)
+    return b.f(y,x,p,t,u)
 end
 
 
