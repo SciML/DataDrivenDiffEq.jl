@@ -11,21 +11,21 @@ U = hcat(map(i -> u_(X[:, i], p, t[i]), 1:length(t))...)
 @testset "DiscreteProblem" begin
     p1 = DiscreteDataDrivenProblem(X)
     p2 = DiscreteDataDrivenProblem(X, t)
-    p3 = DiscreteDataDrivenProblem(X[:, 1:end-1], t[1:end-1], X[:, 2:end])
+    p3 = DiscreteDataDrivenProblem(X[:, 1:end-1], t[1:end], X[:, 2:end])
     p4 = DiscreteDataDrivenProblem(X, t, U)
-    p5 = DiscreteDataDrivenProblem(X[:, 1:end-1], t[1:end-1], X[:, 2:end], U[:, 1:end-1])
+    p5 = DiscreteDataDrivenProblem(X[:, 1:end-1], t[1:end], X[:, 2:end], U[:, 1:end])
     p6 = DiscreteDataDrivenProblem(X, t, DX, u_, p = p)
 
     @test is_valid(p1)
     @test is_discrete(p1)
-    @test !is_valid(p2)
+    @test is_valid(p2)
     @test is_valid(p3)
     @test isequal(p3.X, p1.X)
-    @test !is_valid(p4)
+    @test is_valid(p4)
     @test is_valid(p5)
     @test !is_continuous(p5)
     @test !is_valid(p6)
-    @test isequal(p5.U, p6.U[:, 1:end-1])
+    @test isequal(p5.U, p6.U)
 end
 
 @testset "ContinuousProblem" begin

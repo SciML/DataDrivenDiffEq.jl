@@ -112,7 +112,7 @@ end
 function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U_DX::AbstractMatrix; kwargs...)
     # We assume that if the size is equal, we have the next state measurements
     size(X, 1) == size(U_DX, 1) && return DataDrivenProblem(X, t=t, DX = U_DX, is_discrete = true; kwargs...)
-    return DataDrivenProblem(X[:, 1:end-1], t=t, DX = X[:, 2:end], U = U_DX[:, 1:(size(X, 2)-1)], is_discrete = true; kwargs...)
+    return DataDrivenProblem(X[:, 1:end-1], t=t, DX = X[:, 2:end], U = U_DX , is_discrete = true; kwargs...)
 end
 
 function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix, U::AbstractMatrix; kwargs...)
@@ -235,11 +235,19 @@ function is_valid(x::DataDrivenProblem)
     end
 
     if has_timepoints(x)
-        length(x.t) != size(x.X, 2) && return false
+        if is_continuous(x)
+            length(x.t) != size(x.X, 2) && return false
+        else
+            length(x.t)-1 != size(x.X, 2) && return false
+        end
     end
 
     if has_inputs(x) && isa(x.U, AbstractMatrix)
-        size(x.X, 2) != size(x.U, 2) && return false
+        if is_continuous(x)
+            size(x.X, 2) != size(x.U, 2) && return false
+        else
+            size(x.X, 2)+1 != size(x.U, 2) && return false
+        end
         check_domain(x.U) && return false
     end
 
