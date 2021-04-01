@@ -22,12 +22,12 @@ end
 @variables u[1:2]
 h = [monomial_basis(u[1:1], 4)...]
 basis = Basis([h; h .* u[2]], u)
-prob = ContinuousDataDrivenProblem(X, ts, DX = DX)
 
 @testset "Ideal data" begin
 
-    # Build a linear basis in the output
-    #opts = [ImplicitOptimizer(2e-1);ImplicitOptimizer(1e-3:1e-3:5e-1)]
+    prob = ContinuousDataDrivenProblem(X, ts, DX = DX)
+
+    opts = [ImplicitOptimizer(2e-1);ImplicitOptimizer(1e-3:1e-3:5e-1)]
     for opt in [ImplicitOptimizer(5e-1);ImplicitOptimizer(1e-3:1e-3:5e-1)]
         res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000)
         m = metrics(res)
@@ -36,7 +36,7 @@ prob = ContinuousDataDrivenProblem(X, ts, DX = DX)
         @test m.Sparsity == 4
     end
 
-    for opt in [ADM(5e-1); ADM(1e-2:1e-2:5e-1)]
+    for opt in [ADM(5e-1); ADM(4e-1:1e-3:5e-1)]
         res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000)
         m = metrics(res)
         @test m.Error < 8e-1
@@ -65,7 +65,7 @@ X = X .+ 1e-3*randn(size(X))
     # ADM does not play well with the interpolation
     prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel())
 
-    for opt in [ADM(4e-1);ADM(1e-1:1e-1:4e-1)]
+    for opt in [ADM(4e-1)]
         res = solve(prob, basis, opt, normalize = false, denoise = false)
         m = metrics(res)
         @test m.Error < 5e-1

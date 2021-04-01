@@ -37,7 +37,7 @@ get_threshold(opt::ImplicitOptimizer) = get_threshold(opt.o)
 
 function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
     maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)),
-    rtol::V = zero(T) ,progress = nothing,
+    rtol::V = zero(eltype(T)) ,progress = nothing,
     f::Function = F(opt),
     g::Function = G(opt))  where {T, V}
 

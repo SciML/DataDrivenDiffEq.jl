@@ -32,7 +32,7 @@ Base.summary(::ADM) = "ADM"
 
 function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
     maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing,
-    rtol::V = convert(eltype(T), 0.0),
+    rtol::V = zero(eltype(T)),
     atol::V = convert(eltype(T), 0.99),
     f::Function = F(opt), g::Function = G(opt))  where {T, V}
 
@@ -48,7 +48,7 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
     # Init all variables
     R = SoftThreshold()
 
-    xzero = zero(eltype(X))
+    xzero = zero(eltype(T))
     obj = xzero
     sparsity = xzero
     conv_measure = xzero
@@ -108,7 +108,7 @@ function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
     @views for i in 1:my, j in 1:size(Q, 2)
         # Check, if already included
         any(_included[:, j]) && continue
-        if @views evaluate_pareto!(X[:, i], Q[:,r] , fg, A, λ)
+        if @views evaluate_pareto!(X[:, i], Q[:,j] , fg, A, λ)
             _included[i,j] = true
         end
     end
