@@ -9,160 +9,28 @@ using DataDrivenDiffEq
 @parameters w[1:2] t
 @variables u[1:2](t)
 
-Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)</code></pre><p><strong>Note</strong></p><p>The keyword argument <code>eval_expression</code> controls the function creation behavior. <code>eval_expression=true</code> means that <code>eval</code> is used, so normal world-age behavior applies (i.e. the functions cannot be called from the function that generates them). If <code>eval_expression=false</code>, then construction via GeneralizedGenerated.jl is utilized to allow for same world-age evaluation. However, this can cause Julia to segfault on sufficiently large basis functions. By default eval_expression=false.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/a63385aefca35d1ea88ae6bbd11daa5d5f906101/src/basis.jl#L4">source</a></section></article><h2 id="Example-1"><a class="docs-heading-anchor" href="#Example-1">Example</a><a class="docs-heading-anchor-permalink" href="#Example-1" title="Permalink"></a></h2><p>We start by crearting some variables and parameters using <code>ModelingToolkit</code>.</p><pre><code class="language-julia">using LinearAlgebra
+Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)</code></pre><p><strong>Note</strong></p><p>The keyword argument <code>eval_expression</code> controls the function creation behavior. <code>eval_expression=true</code> means that <code>eval</code> is used, so normal world-age behavior applies (i.e. the functions cannot be called from the function that generates them). If <code>eval_expression=false</code>, then construction via GeneralizedGenerated.jl is utilized to allow for same world-age evaluation. However, this can cause Julia to segfault on sufficiently large basis functions. By default eval_expression=false.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/3973bd99906d5d4f6a074567178f691413fc7319/src/basis.jl#L4">source</a></section></article><h2 id="Example-1"><a class="docs-heading-anchor" href="#Example-1">Example</a><a class="docs-heading-anchor-permalink" href="#Example-1" title="Permalink"></a></h2><p>We start by crearting some variables and parameters using <code>ModelingToolkit</code>.</p><pre><code class="language-">using LinearAlgebra
 using DataDrivenDiffEq
 using Plots
 using ModelingToolkit
 
 @variables u[1:3]
-@parameters w[1:2]</code></pre><pre><code class="language-none">(Symbolics.Num[w₁, w₂],)</code></pre><p>To define a basis, simply write down the equations you want to be included as a <code>Vector</code>. Possible used parameters have to be given to the constructor.</p><pre><code class="language-julia">h = [u[1]; u[2]; cos(w[1]*u[2]+w[2]*u[3])]
-b = Basis(h, u, parameters = w)</code></pre><p>\begin{align} \varphi{<em>1} =&amp; u{</em>1} \
-\varphi{<em>2} =&amp; u{</em>2} \
-\varphi{<em>3} =&amp; \cos\left( u{</em>2} w{<em>1} + u{</em>3} w{_2} \right) \end{align}</p><p><code>Basis</code> are callable with the signature of functions to be used in <code>DifferentialEquations</code>. So, the function value at a single point looks like:</p><pre><code class="language-julia">x = b([1;2;3])</code></pre><pre><code class="language-none">3-element Array{Any,1}:
- 1
- 2
-  cos(2w₁ + 3w₂)</code></pre><p>Or, in place</p><pre><code class="language-julia">dx = similar(x)
-b(dx, [1;2;3])</code></pre><pre><code class="language-none">┌ Warning: `sys.name` like `sys.f_` is deprecated. Use getters like `get_f_` instead.
-│   caller = ip:0x0
-└ @ Core :-1</code></pre><p>Notice that since we did not use any numerical values for the parameters, the basis uses the symbolic values in the result.</p><p>To use numerical values, simply pass this on in the function call. Here, we evaluate over a trajectory with two parameters and 40 timestamps.</p><pre><code class="language-julia">X = randn(3, 40)
-Y = b(X, [2;4], 0:39)</code></pre><pre><code class="language-none">┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.f_` is deprecated. Use getters like `get_f_` instead.
-│   caller = ip:0x0
-└ @ Core :-1</code></pre><p>Suppose we want to add another equation, say <code>sin(u[1])</code>. A <code>Basis</code> behaves like an array, so we can simply</p><pre><code class="language-julia">push!(b, sin(u[1]))
-size(b)</code></pre><pre><code class="language-none">(4,)</code></pre><p>To ensure that a basis is well-behaved, functions already present are not included again.</p><pre><code class="language-julia">push!(b, sin(u[1]))
-size(b)</code></pre><pre><code class="language-none">(4,)</code></pre><p>We can also define functions of the independent variable and add them</p><pre><code class="language-julia">t = independent_variable(b)
+@parameters w[1:2]</code></pre><p>To define a basis, simply write down the equations you want to be included as a <code>Vector</code>. Possible used parameters have to be given to the constructor.</p><pre><code class="language-">h = [u[1]; u[2]; cos(w[1]*u[2]+w[2]*u[3])]
+b = Basis(h, u, parameters = w)</code></pre><p><code>Basis</code> are callable with the signature of functions to be used in <code>DifferentialEquations</code>. So, the function value at a single point looks like:</p><pre><code class="language-">x = b([1;2;3])</code></pre><p>Or, in place</p><pre><code class="language-">dx = similar(x)
+b(dx, [1;2;3])</code></pre><p>Notice that since we did not use any numerical values for the parameters, the basis uses the symbolic values in the result.</p><p>To use numerical values, simply pass this on in the function call. Here, we evaluate over a trajectory with two parameters and 40 timestamps.</p><pre><code class="language-">X = randn(3, 40)
+Y = b(X, [2;4], 0:39)
+nothing # hide</code></pre><p>Suppose we want to add another equation, say <code>sin(u[1])</code>. A <code>Basis</code> behaves like an array, so we can simply</p><pre><code class="language-">push!(b, sin(u[1]))
+size(b)</code></pre><p>To ensure that a basis is well-behaved, functions already present are not included again.</p><pre><code class="language-">push!(b, sin(u[1]))
+size(b)</code></pre><p>We can also define functions of the independent variable and add them</p><pre><code class="language-">t = independent_variable(b)
 push!(b, cos(t*π))
-println(b)</code></pre><pre><code class="language-none">┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.iv` is deprecated. Use getters like `get_iv` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.ps` is deprecated. Use getters like `get_ps` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.name` is deprecated. Use getters like `get_name` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-##Basis#253 : 5 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;]┌ Warning: `sys.name` like `sys.ps` is deprecated. Use getters like `get_ps` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-
-Parameters : SymbolicUtils.Sym{ModelingToolkit.Parameter{Real},Nothing}[w₁, w₂]
-┌ Warning: `sys.name` like `sys.iv` is deprecated. Use getters like `get_iv` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-
-Independent variable: t
-Equations
-φ₁ = u₁
-φ₂ = u₂
-φ₃ = cos(u₂*w₁ + u₃*w₂)
-φ₅ = sin(u₁)
-φ₅ = cos(πt)</code></pre><p>Additionally, we can iterate over a <code>Basis</code> using <code>[eq for eq in basis]</code> or index specific equations, like <code>basis[2]</code>.</p><p>We can also chain <code>Basis</code> via just using it in the constructor</p><pre><code class="language-julia">@variables x[1:2]
+println(b)</code></pre><p>Additionally, we can iterate over a <code>Basis</code> using <code>[eq for eq in basis]</code> or index specific equations, like <code>basis[2]</code>.</p><p>We can also chain <code>Basis</code> via just using it in the constructor</p><pre><code class="language-">@variables x[1:2]
 y = [sin(x[1]); cos(x[1]); x[2]]
 t = independent_variable(b)
 b2 = Basis(b(y, parameters(b), t), x, parameters = w, iv = t)
-println(b2)</code></pre><pre><code class="language-none">┌ Warning: `sys.name` like `sys.f_` is deprecated. Use getters like `get_f_` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.name` is deprecated. Use getters like `get_name` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-##Basis#278 : 5 dimensional basis in [&quot;x₁&quot;, &quot;x₂&quot;]┌ Warning: `sys.name` like `sys.ps` is deprecated. Use getters like `get_ps` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-
-Parameters : SymbolicUtils.Sym{ModelingToolkit.Parameter{Real},Nothing}[w₁, w₂]
-┌ Warning: `sys.name` like `sys.iv` is deprecated. Use getters like `get_iv` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-
-Independent variable: t
-Equations
-φ₁ = sin(x₁)
-φ₂ = cos(x₁)
-φ₃ = cos(w₁*cos(x₁) + w₂*x₂)
-φ₄ = sin(sin(x₁))
-φ₅ = cos(3.141592653589793getindex(t, 1))</code></pre><p>You can also use <code>merge</code> to create the union of two <code>Basis</code>:</p><pre><code class="language-julia">b3 = merge(b, b2)
-println(b3)</code></pre><pre><code class="language-none">┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.ps` is deprecated. Use getters like `get_ps` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.observed` is deprecated. Use getters like `get_observed` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.name` is deprecated. Use getters like `get_name` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-##Basis#285 : 10 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;, &quot;x₁&quot;, &quot;x₂&quot;]┌ Warning: `sys.name` like `sys.ps` is deprecated. Use getters like `get_ps` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-
-Parameters : SymbolicUtils.Sym{ModelingToolkit.Parameter{Real},Nothing}[w₁, w₂]
-┌ Warning: `sys.name` like `sys.iv` is deprecated. Use getters like `get_iv` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-
-Independent variable: t
-Equations
-φ₁ = u₁
-φ₂ = u₂
-φ₃ = cos(u₂*w₁ + u₃*w₂)
-φ₄ = sin(u₁)
-...
-φ₁₀ = cos(3.141592653589793getindex(t, 1))</code></pre><p>which combines all the used variables and parameters ( and assumes the same independent_variable ):</p><pre><code class="language-">variables(b)</code></pre><pre><code class="language-julia">parameters(b)</code></pre><pre><code class="language-none">2-element Array{SymbolicUtils.Sym{ModelingToolkit.Parameter{Real},Nothing},1}:
- w₁
- w₂</code></pre><p>If you have a function already defined as pure code, you can use this also to create a <code>Basis</code>. Only the signature has to be consistent, so use <code>f(u,p,t)</code>.</p><pre><code class="language-julia">f(u, p, t) = [u[1]; u[2]; cos(p[1]*u[2]+p[2]*u[3])]
+println(b2)</code></pre><p>You can also use <code>merge</code> to create the union of two <code>Basis</code>:</p><pre><code class="language-">b3 = merge(b, b2)
+println(b3)</code></pre><p>which combines all the used variables and parameters ( and assumes the same independent_variable ):</p><pre><code class="language-">variables(b)</code></pre><pre><code class="language-">parameters(b)</code></pre><p>If you have a function already defined as pure code, you can use this also to create a <code>Basis</code>. Only the signature has to be consistent, so use <code>f(u,p,t)</code>.</p><pre><code class="language-">f(u, p, t) = [u[1]; u[2]; cos(p[1]*u[2]+p[2]*u[3])]
 b_f = Basis(f, u, parameters = w)
-println(b_f)</code></pre><pre><code class="language-none">┌ Warning: `sys.name` like `sys.name` is deprecated. Use getters like `get_name` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.eqs` is deprecated. Use getters like `get_eqs` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-┌ Warning: `sys.name` like `sys.states` is deprecated. Use getters like `get_states` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-##Basis#292 : 3 dimensional basis in [&quot;u₁&quot;, &quot;u₂&quot;, &quot;u₃&quot;]┌ Warning: `sys.name` like `sys.ps` is deprecated. Use getters like `get_ps` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-
-Parameters : SymbolicUtils.Sym{ModelingToolkit.Parameter{Real},Nothing}[w₁, w₂]
-┌ Warning: `sys.name` like `sys.iv` is deprecated. Use getters like `get_iv` instead.
-│   caller = ip:0x0
-└ @ Core :-1
-
-Independent variable: t
-Equations
-φ₁ = u₁
-φ₂ = u₂
-φ₃ = cos(u₂*w₁ + u₃*w₂)</code></pre><p>This works for every function defined over <code>Num</code>s. So to create a <code>Basis</code> from a <code>Flux</code> model, simply extend the activations used:</p><pre><code class="language-julia">using Flux
+println(b_f)</code></pre><p>This works for every function defined over <code>Num</code>s. So to create a <code>Basis</code> from a <code>Flux</code> model, simply extend the activations used:</p><pre><code class="language-julia">using Flux
 NNlib.σ(x::Num) = 1 / (1+exp(-x))
 
 c = Chain(Dense(3,2,σ), Dense(2, 1, σ))
@@ -173,13 +41,13 @@ ps, re = Flux.destructure(c)
 g(u, p, t) = re(p)(u)
 b = Basis(g, u, parameters = p)</code></pre><h2 id="Functions-1"><a class="docs-heading-anchor" href="#Functions-1">Functions</a><a class="docs-heading-anchor-permalink" href="#Functions-1" title="Permalink"></a></h2><div class="admonition is-warning"><header class="admonition-header">Missing docstring.</header><div class="admonition-body"><p>Missing docstring for <code>jacobian</code>. Check Documenter&#39;s build log for details.</p></div></div><article class="docstring"><header><a class="docstring-binding" id="DataDrivenDiffEq.dynamics" href="#DataDrivenDiffEq.dynamics"><code>DataDrivenDiffEq.dynamics</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">dynamics(basis)
 
-Returns the internal function representing the dynamics of the `Basis`.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/a63385aefca35d1ea88ae6bbd11daa5d5f906101/src/basis.jl#L336-L340">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.push!" href="#Base.push!"><code>Base.push!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">push!(basis, eq, simplify_eqs = true; eval_expression = false)
+Returns the internal function representing the dynamics of the `Basis`.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/3973bd99906d5d4f6a074567178f691413fc7319/src/basis.jl#L336-L340">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.push!" href="#Base.push!"><code>Base.push!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">push!(basis, eq, simplify_eqs = true; eval_expression = false)
 
 Push the equations(s) in `eq` into the basis and update all internal fields accordingly.
-`eq` can either be a single equation or an array. If `simplify_eq` is true, the equation will be simplified.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/a63385aefca35d1ea88ae6bbd11daa5d5f906101/src/basis.jl#L212-L217">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.deleteat!" href="#Base.deleteat!"><code>Base.deleteat!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">deleteat!(basis, inds, eval_expression = false)
+`eq` can either be a single equation or an array. If `simplify_eq` is true, the equation will be simplified.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/3973bd99906d5d4f6a074567178f691413fc7319/src/basis.jl#L212-L217">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.deleteat!" href="#Base.deleteat!"><code>Base.deleteat!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">deleteat!(basis, inds, eval_expression = false)
 
-Delete the entries specified by `inds` and update the `Basis` accordingly.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/a63385aefca35d1ea88ae6bbd11daa5d5f906101/src/basis.jl#L201-L205">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.merge" href="#Base.merge"><code>Base.merge</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">merge(x::Basis, y::Basis; eval_expression = false)
+Delete the entries specified by `inds` and update the `Basis` accordingly.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/3973bd99906d5d4f6a074567178f691413fc7319/src/basis.jl#L201-L205">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.merge" href="#Base.merge"><code>Base.merge</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">merge(x::Basis, y::Basis; eval_expression = false)
 
-Return a new `Basis`, which is defined via the union of `x` and `y` .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/a63385aefca35d1ea88ae6bbd11daa5d5f906101/src/basis.jl#L232-L236">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.merge!" href="#Base.merge!"><code>Base.merge!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">merge!(x::Basis, y::Basis; eval_expression = false)
+Return a new `Basis`, which is defined via the union of `x` and `y` .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/3973bd99906d5d4f6a074567178f691413fc7319/src/basis.jl#L232-L236">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.merge!" href="#Base.merge!"><code>Base.merge!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">merge!(x::Basis, y::Basis; eval_expression = false)
 
-Updates `x` to include the union of both `x` and `y`.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/a63385aefca35d1ea88ae6bbd11daa5d5f906101/src/basis.jl#L245-L249">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../quickstart/">« Getting Started</a><a class="docs-footer-nextpage" href="../koopman/koopman/">Koopman Operators »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 19 March 2021 12:32">Friday 19 March 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Updates `x` to include the union of both `x` and `y`.</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/3973bd99906d5d4f6a074567178f691413fc7319/src/basis.jl#L245-L249">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../quickstart/">« Getting Started</a><a class="docs-footer-nextpage" href="../koopman/koopman/">Koopman Operators »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 3 April 2021 18:43">Saturday 3 April 2021</span>. Using Julia version 1.6.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
