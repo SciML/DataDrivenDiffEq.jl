@@ -485,13 +485,13 @@ function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} w
     return b.f(y,x,p,t,u)
 end
 
-function (b::AbstractBasis)(x::AbstractArray{T} where T, p::DiffEqBase.NullParameters, args...)
-    return b.f(x,parameters(b),args...)
-end
-
-function (b::AbstractBasis)(y::AbstractArray{T} where T, x::AbstractArray{T} where T, p::DiffEqBase.NullParameters, args...)
-    return b.f(y, x, parameters(b),args...)
-end
+#function (b::AbstractBasis)(x::AbstractArray{T} where T, p::DiffEqBase.NullParameters, args...)
+#    return b.f(x,parameters(b),args...)
+#end
+#
+#function (b::AbstractBasis)(y::AbstractArray{T} where T, x::AbstractArray{T} where T, p::DiffEqBase.NullParameters, args...)
+#    return b.f(y, x, parameters(b),args...)
+#end
 
 ## Information and Iteration
 
@@ -646,7 +646,7 @@ function (==)(x::Basis, y::Basis)
     return all(n)
 end
 
-free_parameters(b::Basis; operations = [+]) = count_operation([xi.rhs for xi in b.eqs], operations) + length(b.eqs)
+free_parameters(b::AbstractBasis; operations = [+]) = count_operation([xi.rhs for xi in b.eqs], operations) + length(b.eqs)
 
 ## Callable struct
 

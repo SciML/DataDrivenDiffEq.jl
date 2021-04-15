@@ -88,9 +88,9 @@ function Base.summary(io::IO, r::DataDrivenSolution)
     is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
     println(io, "Solution with $(length(r.res.eqs)) equations and $(length(r.ps)) parameters.")
     println(io, "Returncode: $(r.retcode)")
-    println(io, "Sparsity: $(r.metrics.Sparsity)")
-    println(io, "L2 Norm Error: $(r.metrics.Error)")
-    println(io, "AICC: $(r.metrics.AICC)")
+    haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
+    haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
+    haskey(r.metrics, :AICC) && println(io, "AICC: $(r.metrics.AICC)")
 end
 
 Base.print(io::IO, r::DataDrivenSolution) = summary(io, r)
@@ -124,6 +124,8 @@ function build_parametrized_eqs(X::AbstractMatrix, b::Basis)
     end
     return eqs, ps, p
 end
+
+
 
 # Explicit sindy
 function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis)
@@ -245,4 +247,74 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
     return DataDrivenSolution(
         res_, retcode, pnew, opt, Ξ, inputs, metrics
     )
+end
+
+function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
+    for i in eachindex(x)
+        x[i] = round(x[i], digits = digits)
+    end
+    return x
+end
+
+#function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::AbstractKoopmanAlgorithm)
+function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; digits::Int = 10)
+    # Build parameterized equations
+    Ξ = zeros(eltype(B), size(C,2), length(b))
+
+    Ξ[:, inds] .= real.(Matrix(k))
+    if !isempty(B)
+        Ξ[:, .! inds] .= B
+    end
+
+    # Transpose because of the nature of build_parametrized_eqs
+    eqs, ps, p_ = build_parametrized_eqs(_round!(C*Ξ, digits)', b)
+
+    # Build the lhs
+    if length(eqs) == length(states(b))
+        xs = states(b)
+        d = Differential(independent_variable(b))
+        eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
+    end
+
+    res_ = Koopman(eqs, states(b),
+        parameters = [parameters(b); p_],
+        controls = controls(b), iv = independent_variable(b),
+        K = k, C = C, Q = Q, P = P)
+
+
+    retcode = :success
+    pnew = [prob.p; ps]
+    # Equation space
+    X = prob.DX
+    X_, _, t, U = get_oop_args(prob)
+    Y = res_(X_, pnew, t, U)
+
+    # Build the metrics
+    error = norm(X-Y, 2)
+    k = free_parameters(res_)
+    aic = AICC(k, X, Y)
+    errors = zeros(eltype(X), sum(inds))
+    aiccs = zeros(eltype(X), sum(inds))
+    j = 1
+    for i in 1:size(X,1)
+        errors[i] = norm(X[i,:].-Y[i,:],2)
+        aiccs[i] = AICC(k, X[i:i, :], Y[i:i,:])
+    end
+
+    metrics = (
+        Error = error,
+        AICC = aic,
+        Errors = errors,
+        AICCs = aiccs,
+    )
+
+    inputs = (
+        Problem = prob,
+        Basis = b,
+    )
+
+    return DataDrivenSolution(
+        res_, retcode, pnew, alg, Ξ, inputs, metrics
+    )
+    return K
 end

@@ -1,6 +1,6 @@
 
 function DiffEqBase.solve(prob::DataDrivenProblem{dType}, alg::AbstractKoopmanAlgorithm;
-    B::AbstractArray = [], digits::Int = 10,
+    B::AbstractArray = [], digits::Int = 10, operator_only::Bool = false,
     kwargs...) where {dType <: Number}
     # Check the validity
     @assert is_valid(prob) "The problem seems to be ill-defined. Please check the problem definition."
@@ -12,9 +12,10 @@ function DiffEqBase.solve(prob::DataDrivenProblem{dType}, alg::AbstractKoopmanAl
 
     # Create a basis
     @variables x[1:size(X, 1)] u[1:size(U, 1)] t
+    b = Basis([x; u], x, controls = u, iv = t)
 
     inds = BitVector([i<=size(X, 1) ? true : false for i in 1:size(X, 1)+size(U,1)])
-    C = diagm(size(X, 1), size(X,1)+size(U,1), ones(dType, size(X,1)))
+    C = diagm(ones(dType, size(X,1)))
 
     # The input maps
     if !has_inputs(prob)
@@ -36,14 +37,13 @@ function DiffEqBase.solve(prob::DataDrivenProblem{dType}, alg::AbstractKoopmanAl
 
     end
 
+    operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return Koopman([x;u], x,
-        controls = u, iv = t,
-        s_idxs = inds, B = B,
-        K = k, C = C, Q = Q, P = P, digits = digits)
+    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits)
 end
 
-function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::AbstractKoopmanAlgorithm; digits::Int = 10,
+function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::AbstractKoopmanAlgorithm;
+    digits::Int = 10, operator_only::Bool = false,
     kwargs...) where {dType <: Number}
     # Check the validity
     @assert is_valid(prob) "The problem seems to be ill-defined. Please check the problem definition."
@@ -55,8 +55,7 @@ function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::Abstrac
     Ψ₁ = similar(Ψ₀)
 
     # Find the indexes of the control states
-    inds = .! _ind_matrix(Num.(states(b)), [eq.rhs for eq in equations(b)])
-    inds = any.(eachcol(inds))
+    inds = .! _isin(Num.(controls(b)), [eq.rhs for eq in equations(b)])[1,:]
 
     if is_continuous(prob)
         # Generate the differential mapping
@@ -88,14 +87,13 @@ function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::Abstrac
         Q = Ψ₁*Ψ₀'
         P = Ψ₀*Ψ₀'
         B = zeros(dType, 0, 0)
+
     end
 
     # Outpumap -> just the state dependent
-    C = prob.X / Ψ₀
+    C = prob.DX / Ψ₁[inds,:]
 
+    operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return Koopman(Num[eq.rhs for eq in equations(b)], Num.(states(b)),
-        controls = Num.(controls(b)), iv = independent_variable(b),
-        s_idxs = inds, B = B,
-        K = k, C = C, Q = Q, P = P, digits = digits)
+    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits)
 end

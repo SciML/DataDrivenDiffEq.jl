@@ -29,34 +29,21 @@ mutable struct Koopman{O,M,G,T} <: AbstractKoopman
     P::T
 end
 
-function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
-    for i in eachindex(x)
-        x[i] = round(x[i], digits = digits)
-    end
-    return x
-end
-
-function Koopman(eqs::AbstractVector{Num}, states::AbstractVector{Num};
+function Koopman(eqs::AbstractVector{Equation}, states::AbstractVector;
     K::O = diagm(ones(eltype(states), length(eqs))),
     C::AbstractMatrix = diagm(ones(eltype(K), length(eqs))),
     Q::AbstractMatrix = zeros(eltype(states), 0,0),
     P::AbstractMatrix = zeros(eltype(states), 0,0),
-    B::AbstractMatrix = zeros(eltype(states), 0, 0),
     parameters::AbstractVector = [], iv = nothing,
     controls::AbstractVector = [], observed::AbstractVector = [],
     name = gensym(:Koopman), is_discrete::Bool = true,
     digits::Int = 10, # Round all coefficients
     simplify = false, linear_independent = false,
-    eval_expression = false, s_idxs::BitVector = BitVector(), # Indicator for state eqs
+    eval_expression = false,
     kwargs...) where O <: Union{AbstractMatrix, Eigen, Factorization}
 
-    s_idxs = isempty(s_idxs) ? [true for i in 1:length(eqs)] : s_idxs
-
-    eqs_ = _round!(real.(C[:,s_idxs]*Matrix(K)), digits)*eqs[s_idxs]
-
-    if !isempty(B)
-        eqs_ += _round!(C[:, s_idxs]*B, digits)*eqs[.! s_idxs]
-    end
+    lhs = Num[x.lhs for x in eqs]
+    eqs_ = Num[x.rhs for x in eqs]
 
     if linear_independent
         eqs_ = create_linear_independent_eqs(eqs_, simplify)
@@ -69,45 +56,46 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector{Num};
 
     f = DataDrivenDiffEq._build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
 
-    D = Differential(iv)
-    eqs = [D(states[i]) ~ eq for (i,eq) ∈ enumerate(eqs_)]
+    eqs = [lhs[i] ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
     return Koopman{typeof(K), typeof(C), typeof(Q), typeof(P)}(eqs,
     value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[],
     is_discrete, K, C, Q, P)
 end
 
+function Koopman(eqs::AbstractVector{Num}, states::AbstractVector;
+    K::O = diagm(ones(eltype(states), length(eqs))),
+    C::AbstractMatrix = diagm(ones(eltype(K), length(eqs))),
+    Q::AbstractMatrix = zeros(eltype(states), 0,0),
+    P::AbstractMatrix = zeros(eltype(states), 0,0),
+    parameters::AbstractVector = [], iv = nothing,
+    controls::AbstractVector = [], observed::AbstractVector = [],
+    name = gensym(:Koopman), is_discrete::Bool = true,
+    digits::Int = 10, # Round all coefficients
+    simplify = false, linear_independent = false,
+    eval_expression = false,
+    kwargs...) where O <: Union{AbstractMatrix, Eigen, Factorization}
 
-#function Koopman(K::AbstractMatrix{T};
-#    B::AbstractMatrix = zeros(eltype(T), 0, 0), kwargs...) where T <: Real
-#    n, m = size(K)
-#    n_c, m_c = size(B)
-#
-#    if m_c > 0
-#        @variables x[1:n] u[1:m_c]
-#        Koopman([x; u], x, controls = u, K = K ,B = B,
-#            s_idxs = BitVector([i <= n ? true : false for i in 1:n+m_c]),
-#            kwargs...)
-#    else
-#        @variables x[1:n]
-#        Koopman(x, x, K = K, kwargs...)
-#    end
-#end
-#
-#function Koopman(K::Eigen;
-#    B::AbstractMatrix = zeros(eltype(T), 0, 0), kwargs...) where T <: Real
-#    n = length(K.values)
-#    n_c, m_c = size(B)
-#    if m_c > 0
-#        @variables x[1:n] u[1:m_c]
-#        Koopman([x; u], x, controls = u, K = K ,B = B,
-#            s_idxs = BitVector([i <= n ? true : false for i in 1:n+m_c]),
-#            kwargs...)
-#    else
-#        @variables x[1:n]
-#        Koopman(x, x, K = K, kwargs...)
-#    end
-#end
+    eqs_ = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
+
+    if linear_independent
+        eqs_ = create_linear_independent_eqs(eqs_, simplify)
+    else
+        eqs_ = simplify ? ModelingToolkit.simplify.(eqs_) : eqs_
+    end
+
+    isnothing(iv) && (iv = Num(Variable(:t)))
+    unique!(eqs_, !simplify)
+
+    f = DataDrivenDiffEq._build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
+    D = Differential(iv)
+
+    eqs = [D(states[i]) ~ eq for (i,eq) ∈ enumerate(eqs_)]
+
+    return Koopman{typeof(K), typeof(C), typeof(Q), typeof(P)}(eqs,
+    value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[],
+    is_discrete, K, C, Q, P)
+end
 
 
 
