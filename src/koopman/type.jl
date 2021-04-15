@@ -1,3 +1,35 @@
+"""
+$(TYPEDEF)
+
+A special basis over the states with parameters , independent variable  and possible exogenous controls.
+It extends an `AbstractBasis`, which also stores information about the lifted dynamics, specified by a sufficient
+matrix factorization, an output mapping and internal variables to update the equations. It can be called with the typical SciML signature, meaning out of place with `f(u,p,t)`
+or in place with `f(du, u, p, t)`. If control inputs are present, it is assumed that no control corresponds to
+zero for all inputs. The corresponding function calls are `f(u,p,t,inputs)` and `f(du,u,p,t,inputs)` and need to
+be specified fully.
+
+If `linear_independent` is set to `true`, a linear independent basis is created from all atom function in `f`.
+
+If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
+
+Additional keyworded arguments include `name`, which can be used to name the basis, and
+`observed` for defining observeables.
+
+
+
+# Fields
+$(FIELDS)
+
+## Note
+
+The keyword argument `eval_expression` controls the function creation
+behavior. `eval_expression=true` means that `eval` is used, so normal
+world-age behavior applies (i.e. the functions cannot be called from
+the function that generates them). If `eval_expression=false`,
+then construction via GeneralizedGenerated.jl is utilized to allow for
+same world-age evaluation. However, this can cause Julia to segfault
+on sufficiently large basis functions. By default eval_expression=false.
+"""
 mutable struct Koopman{O,M,G,T} <: AbstractKoopman
     """The equations of the basis"""
     eqs::Vector{Equation}
@@ -13,6 +45,8 @@ mutable struct Koopman{O,M,G,T} <: AbstractKoopman
     iv::Num
     """Internal function representation of the basis"""
     f::Function
+    """Associated lifting of the operator"""
+    lift::Function
     """Name of the basis"""
     name::Symbol
     """Internal systems"""
@@ -34,6 +68,7 @@ function Koopman(eqs::AbstractVector{Equation}, states::AbstractVector;
     C::AbstractMatrix = diagm(ones(eltype(K), length(eqs))),
     Q::AbstractMatrix = zeros(eltype(states), 0,0),
     P::AbstractMatrix = zeros(eltype(states), 0,0),
+    lift::Function = (X, args...)->identity(X),
     parameters::AbstractVector = [], iv = nothing,
     controls::AbstractVector = [], observed::AbstractVector = [],
     name = gensym(:Koopman), is_discrete::Bool = true,
@@ -59,7 +94,7 @@ function Koopman(eqs::AbstractVector{Equation}, states::AbstractVector;
     eqs = [lhs[i] ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
     return Koopman{typeof(K), typeof(C), typeof(Q), typeof(P)}(eqs,
-    value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[],
+    value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, lift, name, Basis[],
     is_discrete, K, C, Q, P)
 end
 
@@ -68,6 +103,7 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector;
     C::AbstractMatrix = diagm(ones(eltype(K), length(eqs))),
     Q::AbstractMatrix = zeros(eltype(states), 0,0),
     P::AbstractMatrix = zeros(eltype(states), 0,0),
+    lift::Function = (X, args...)->identity(X),
     parameters::AbstractVector = [], iv = nothing,
     controls::AbstractVector = [], observed::AbstractVector = [],
     name = gensym(:Koopman), is_discrete::Bool = true,
@@ -93,7 +129,7 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector;
     eqs = [D(states[i]) ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
     return Koopman{typeof(K), typeof(C), typeof(Q), typeof(P)}(eqs,
-    value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[],
+    value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, lift, name, Basis[],
     is_discrete, K, C, Q, P)
 end
 
@@ -101,6 +137,9 @@ end
 
 # We assume that we only have real valued observed
 Base.Matrix(k::AbstractKoopman) = real.(Matrix(k.K))
+
+# Get the lifting function
+lifting(k::AbstractKoopman) = k.lift
 
 """
 $(SIGNATURES)
@@ -189,6 +228,8 @@ Returns `true` if either:
 """
 is_stable(k::AbstractKoopman) = is_discrete(k) ? all(real.(eigvals(k)) .< real.(one(eltype(k.K)))) : all(real.(eigvals(k)) .< zero(eltype(k.K)))
 
+# TODO This does not work, since we are using the reduced basis instead of the
+# original, lifted dynamics...
 """
 $(SIGNATURES)
 
@@ -226,15 +267,3 @@ function update!(k::AbstractKoopman,
 
     return
 end
-
-#"""
-#    reduce_basis(k; threshold)
-#
-#Reduces the `basis` of the nonlinear Koopman using the 1-norm of each row
-#of the matrix `C*K`. Rows where the threshold is not reached are deleted.
-#"""
-#function reduce_basis(k::AbstractKoopman; threshold = 1e-5, kwargs...)
-#    b = k.output*k.operator
-#    inds = vec(sum(abs, b, dims = 1) .> threshold)
-#    return Basis(map(x->x.rhs, k.basis[inds]), variables(k.basis), parameters = parameters(k.basis), iv = independent_variable(k.basis), kwargs...)
-#end

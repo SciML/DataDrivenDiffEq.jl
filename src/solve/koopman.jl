@@ -55,7 +55,11 @@ function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::Abstrac
     Ψ₁ = similar(Ψ₀)
 
     # Find the indexes of the control states
-    inds = .! _isin(Num.(controls(b)), [eq.rhs for eq in equations(b)])[1,:]
+    if has_inputs(prob) && !isempty(controls((b)))
+        inds = .! _isin(Num.(controls(b)), [eq.rhs for eq in equations(b)])[1,:]
+    else
+        inds = [true for i in 1:length(b)]
+    end
 
     if is_continuous(prob)
         # Generate the differential mapping

@@ -279,7 +279,7 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
     res_ = Koopman(eqs, states(b),
         parameters = [parameters(b); p_],
         controls = controls(b), iv = independent_variable(b),
-        K = k, C = C, Q = Q, P = P)
+        K = k, C = C, Q = Q, P = P, lift = b.f)
 
 
     retcode = :success
