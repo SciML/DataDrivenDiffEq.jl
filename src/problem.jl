@@ -268,7 +268,11 @@ end
 function get_oop_args(x::DataDrivenProblem)
     returns = []
     @inbounds for f in (:X, :p, :t, :U)
-        x_ = getfield(x, f)
+        if f == :t && is_discrete(x)
+            x_ = getfield(x, f)[1:end-1]
+        else
+            x_ = getfield(x, f)
+        end
         push!(returns, x_)
     end
     return returns
@@ -278,7 +282,11 @@ function get_implicit_oop_args(x::DataDrivenProblem)
     returns = []
     push!(returns, [x.X; x.DX])
     @inbounds for f in (:p, :t, :U)
-        x_ = getfield(x, f)
+        if f == :t && is_discrete(x)
+            x_ = getfield(x, f)[1:end-1]
+        else
+            x_ = getfield(x, f)
+        end
         push!(returns, x_)
     end
     return returns

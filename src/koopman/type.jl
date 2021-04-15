@@ -47,14 +47,15 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector{Num};
     name = gensym(:Koopman), is_discrete::Bool = true,
     digits::Int = 10, # Round all coefficients
     simplify = false, linear_independent = false,
-    eval_expression = false,
+    eval_expression = false, s_idxs::BitVector = BitVector(), # Indicator for state eqs
     kwargs...) where O <: Union{AbstractMatrix, Eigen, Factorization}
 
-    eqs_ = _round!(real.(C*Matrix(K)), digits)*eqs
+    s_idxs = isempty(s_idxs) ? [true for i in 1:length(eqs)] : s_idxs
+
+    eqs_ = _round!(real.(C[:,s_idxs]*Matrix(K)), digits)*eqs[s_idxs]
 
     if !isempty(B)
-        controls = isempty(controls) ? (@variables u[1:size(B, 2)])[1] : controls
-        eqs_ += _round!(C*B, digits)*controls
+        eqs_ += _round!(C[:, s_idxs]*B, digits)*eqs[.! s_idxs]
     end
 
     if linear_independent
@@ -76,17 +77,37 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector{Num};
     is_discrete, K, C, Q, P)
 end
 
-function Koopman(K::AbstractMatrix{T}; kwargs...) where T <: Real
-    n, m = size(K)
-    @variables x[1:n]
-    Koopman(x, x, K = K ,kwargs...)
-end
 
-function Koopman(K::Eigen; kwargs...)
-    n = length(K.values)
-    @variables x[1:n]
-    Koopman(x, x, K = K ; kwargs...)
-end
+#function Koopman(K::AbstractMatrix{T};
+#    B::AbstractMatrix = zeros(eltype(T), 0, 0), kwargs...) where T <: Real
+#    n, m = size(K)
+#    n_c, m_c = size(B)
+#
+#    if m_c > 0
+#        @variables x[1:n] u[1:m_c]
+#        Koopman([x; u], x, controls = u, K = K ,B = B,
+#            s_idxs = BitVector([i <= n ? true : false for i in 1:n+m_c]),
+#            kwargs...)
+#    else
+#        @variables x[1:n]
+#        Koopman(x, x, K = K, kwargs...)
+#    end
+#end
+#
+#function Koopman(K::Eigen;
+#    B::AbstractMatrix = zeros(eltype(T), 0, 0), kwargs...) where T <: Real
+#    n = length(K.values)
+#    n_c, m_c = size(B)
+#    if m_c > 0
+#        @variables x[1:n] u[1:m_c]
+#        Koopman([x; u], x, controls = u, K = K ,B = B,
+#            s_idxs = BitVector([i <= n ? true : false for i in 1:n+m_c]),
+#            kwargs...)
+#    else
+#        @variables x[1:n]
+#        Koopman(x, x, K = K, kwargs...)
+#    end
+#end
 
 
 

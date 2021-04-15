@@ -12,10 +12,10 @@ end
 # Explicit rank
 function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where T <: Number
     U, S, V = svd(A)
-    r = min(length(S), truncation)
-    U = U[:, 1:r]
-    S = S[1:r]
-    V = V[:, 1:r]
+    r = [((i <= truncation && S[i] > zero(T)) ? true : false) for i in 1:length(S)]
+    U = U[:, r]
+    S = S[r]
+    V = V[:, r]
     return U, S, V
 end
 
@@ -104,7 +104,7 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray) wh
     # Input space svd
     Ũ, S̃, Ṽ = truncated_svd([X;U], x.truncation)
     # Output space svd
-    Û, Ŝ, V̂ = truncated_svd(Y, x.truncation)
+    Û, Ŝ, V̂ = svd(Y)
 
     # Split the svd
     U₁, U₂ = Ũ[1:nx,:], Ũ[nx+1:end,:]

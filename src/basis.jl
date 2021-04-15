@@ -453,7 +453,7 @@ function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} w
 end
 
 function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
-    t::AbstractVector{T} where T <: Number, )
+    t::AbstractVector{T} where T <: Number)
     return b.f(x,p,t)
 end
 
@@ -485,6 +485,13 @@ function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} w
     return b.f(y,x,p,t,u)
 end
 
+function (b::AbstractBasis)(x::AbstractArray{T} where T, p::DiffEqBase.NullParameters, args...)
+    return b.f(x,parameters(b),args...)
+end
+
+function (b::AbstractBasis)(y::AbstractArray{T} where T, x::AbstractArray{T} where T, p::DiffEqBase.NullParameters, args...)
+    return b.f(y, x, parameters(b),args...)
+end
 
 ## Information and Iteration
 
