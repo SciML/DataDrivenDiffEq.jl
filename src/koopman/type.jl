@@ -29,21 +29,34 @@ mutable struct Koopman{O,M,G,T} <: AbstractKoopman
     P::T
 end
 
+function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
+    for i in eachindex(x)
+        x[i] = round(x[i], digits = digits)
+    end
+    return x
+end
 
 function Koopman(eqs::AbstractVector{Num}, states::AbstractVector{Num};
     K::O = diagm(ones(eltype(states), length(eqs))),
-    C::AbstractMatrix = diagm(ones(eltype(states), length(eqs))),
+    C::AbstractMatrix = diagm(ones(eltype(K), length(eqs))),
     Q::AbstractMatrix = zeros(eltype(states), 0,0),
     P::AbstractMatrix = zeros(eltype(states), 0,0),
+    B::AbstractMatrix = zeros(eltype(states), 0, 0),
     parameters::AbstractVector = [], iv = nothing,
     controls::AbstractVector = [], observed::AbstractVector = [],
     name = gensym(:Koopman), is_discrete::Bool = true,
+    digits::Int = 10, # Round all coefficients
     simplify = false, linear_independent = false,
     eval_expression = false,
     kwargs...) where O <: Union{AbstractMatrix, Eigen, Factorization}
 
+    eqs_ = _round!(real.(C*Matrix(K)), digits)*eqs
 
-    eqs_ = C*real.(Matrix(K))*eqs
+    if !isempty(B)
+        controls = isempty(controls) ? (@variables u[1:size(B, 2)])[1] : controls
+        eqs_ += _round!(C*B, digits)*controls
+    end
+
     if linear_independent
         eqs_ = create_linear_independent_eqs(eqs_, simplify)
     else
@@ -55,7 +68,8 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector{Num};
 
     f = DataDrivenDiffEq._build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
 
-    eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs_)]
+    D = Differential(iv)
+    eqs = [D(states[i]) ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
     return Koopman{typeof(K), typeof(C), typeof(Q), typeof(P)}(eqs,
     value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[],
@@ -73,6 +87,8 @@ function Koopman(K::Eigen; kwargs...)
     @variables x[1:n]
     Koopman(x, x, K = K ; kwargs...)
 end
+
+
 
 # We assume that we only have real valued observed
 Base.Matrix(k::AbstractKoopman) = real.(Matrix(k.K))

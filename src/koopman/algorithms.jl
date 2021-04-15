@@ -1,3 +1,4 @@
+# Tolerance
 function truncated_svd(A::AbstractMatrix{T}, truncation::Real) where T <: Number
     truncation = min(truncation, one(T))
     U, S, V = svd(A)
@@ -8,7 +9,8 @@ function truncated_svd(A::AbstractMatrix{T}, truncation::Real) where T <: Number
     return U, S, V
 end
 
-function truncated_svd(A::AbstractMatrix, truncation::Int)
+# Explicit rank
+function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where T <: Number
     U, S, V = svd(A)
     r = min(length(S), truncation)
     U = U[:, 1:r]
@@ -16,6 +18,7 @@ function truncated_svd(A::AbstractMatrix, truncation::Int)
     V = V[:, 1:r]
     return U, S, V
 end
+
 
 """
 $(TYPEDEF)
@@ -40,6 +43,23 @@ function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray)
      return eigen(K)
  end
 
+# DMDC
+function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
+    nx, m = size(X)
+    nu, m = size(U)
+
+    K̃ = Y / [X;U]
+
+    K = K̃[:, 1:nx]
+    B = K̃[:, nx+1:end]
+
+    return eigen(K), B
+end
+
+# DMDC
+function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
+    return x(X, Y-B*U), B
+end
 
 """
 $(TYPEDEF)
@@ -73,8 +93,38 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where T <: Real
     Ã = U'B
     # Compute the modes
     λ, ω = eigen(Ã)
-    φ = Diagonal(xone ./ λ)*B*ω
+    φ = B*ω
     return Eigen(λ, φ)
+end
+
+# DMDc
+function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray) where T <: Real
+    nx, m = size(X)
+    nu, m = size(U)
+    # Input space svd
+    Ũ, S̃, Ṽ = truncated_svd([X;U], x.truncation)
+    # Output space svd
+    Û, Ŝ, V̂ = truncated_svd(Y, x.truncation)
+
+    # Split the svd
+    U₁, U₂ = Ũ[1:nx,:], Ũ[nx+1:end,:]
+
+    xone = one(eltype(X))
+    # Computed the reduced operator
+    C = Y*Ṽ*Diagonal(xone ./ S̃ ) # Common submatrix
+    # We do not project onto a reduced subspace here.
+    # This would mess up our initial conditions, since sometimes we have
+    # x1->x2, x2->x1
+    Ã = Û'C*U₁'Û
+    B̃ = C*U₂'
+    # Compute the modes
+    λ, ω = eigen(Ã)
+    φ = C*U₁'Û*ω
+    return Eigen(λ, φ), B̃
+end
+
+function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray) where T <: Real
+    return x(X, Y-B*U), B
 end
 
 """
@@ -98,4 +148,15 @@ TOTALDMD() = TOTALDMD(0.0, DMDPINV())
 function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray)
     _ , _, Q = truncated_svd([X; Y], x.truncation)
     return x.alg(X*Q, Y*Q)
+end
+
+function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
+    _ , _, Q = truncated_svd([X; Y], x.truncation)
+    return x.alg(X*Q, Y*Q, U*Q)
+end
+
+
+function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
+    _ , _, Q = truncated_svd([X; Y], x.truncation)
+    return x.alg(X*Q, (Y-B*U)*Q), B
 end
