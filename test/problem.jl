@@ -13,7 +13,7 @@ U = hcat(map(i -> u_(X[:, i], p, t[i]), 1:length(t))...)
     p2 = DiscreteDataDrivenProblem(X, t)
     p3 = DiscreteDataDrivenProblem(X[:, 1:end-1], t[1:end], X[:, 2:end])
     p4 = DiscreteDataDrivenProblem(X, t, U)
-    p5 = DiscreteDataDrivenProblem(X[:, 1:end-1], t[1:end], X[:, 2:end], U[:, 1:end])
+    p5 = DiscreteDataDrivenProblem(X[:, 1:end-1], t[1:end], X[:, 2:end], U[:, 1:end-1])
     p6 = DiscreteDataDrivenProblem(X, t, DX, u_, p = p)
 
     @test is_valid(p1)

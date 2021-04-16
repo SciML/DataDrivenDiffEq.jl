@@ -14,7 +14,7 @@ function DiffEqBase.solve(prob::DataDrivenProblem{dType}, alg::AbstractKoopmanAl
     @variables x[1:size(X, 1)] u[1:size(U, 1)] t
     b = Basis([x; u], x, controls = u, iv = t)
 
-    inds = BitVector([i<=size(X, 1) ? true : false for i in 1:size(X, 1)+size(U,1)])
+    inds = BitVector([ones(Bool, size(X,1)); zeros(Bool, size(U,1))])
     C = diagm(ones(dType, size(X,1)))
 
     # The input maps

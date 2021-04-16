@@ -25,6 +25,11 @@ const GROUP = get(ENV, "GROUP", "All")
             @testset "Michaelis Menten" begin include("./sindy/michaelis_menten.jl") end
         end
 
+        @testset "Koopman" begin
+            @testset "Linear Autonomous" begin include("./dmd/linear_autonomous.jl") end
+            @testset "Linear Forced" begin include("./dmd/linear_forced.jl") end
+        end
+
         #include("./koopman.jl")
         #include("./isindy.jl")
         include("./utils.jl")

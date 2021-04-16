@@ -90,7 +90,7 @@ export result, parameters, parameter_map, metrics, algorithm, inputs
 
 include("./solve/sindy.jl")
 include("./solve/koopman.jl")
-
+export solve
 
 ##
 

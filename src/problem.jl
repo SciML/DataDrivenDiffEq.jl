@@ -243,11 +243,7 @@ function is_valid(x::DataDrivenProblem)
     end
 
     if has_inputs(x) && isa(x.U, AbstractMatrix)
-        if is_continuous(x)
-            size(x.X, 2) != size(x.U, 2) && return false
-        else
-            size(x.X, 2)+1 != size(x.U, 2) && return false
-        end
+        size(x.X, 2) != size(x.U, 2) && return false
         check_domain(x.U) && return false
     end
 
