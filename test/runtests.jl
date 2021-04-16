@@ -28,6 +28,8 @@ const GROUP = get(ENV, "GROUP", "All")
         @testset "Koopman" begin
             @testset "Linear Autonomous" begin include("./dmd/linear_autonomous.jl") end
             @testset "Linear Forced" begin include("./dmd/linear_forced.jl") end
+            @testset "Nonlinear Autonomous" begin include("./dmd/nonlinear_autonomous.jl") end
+            @testset "Nonlinear Forced" begin include("./dmd/nonlinear_forced.jl") end
         end
 
         #include("./koopman.jl")

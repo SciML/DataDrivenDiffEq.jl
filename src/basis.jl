@@ -515,6 +515,12 @@ function update!(b::AbstractBasis, eval_expression = false)
     return
 end
 
+
+function Base.setindex!(x::AbstractBasis, idx, val, eval_expression = false)
+    setindex!(equations(x), idx, val)
+    update!(x, eval_expression)
+    return
+end
 ## Utilities
 
 function unique(b::AbstractArray{Num}, simplify_eqs = false)
