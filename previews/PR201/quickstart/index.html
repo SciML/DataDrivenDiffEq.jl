@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Quickstart · DataDrivenDiffEq.jl</title><link rel="canonical" href="https://datadriven.sciml.ai/stable/quickstart/"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/favicon.ico" rel="icon" type="image/x-icon"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">DataDrivenDiffEq.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../basis/">-</a></li><li><a class="tocitem" href="../contributions/">Contributions</a></li><li><a class="tocitem" href="../extended_examples/">Multiple Trajectories for Koopman Approximation</a></li><li><a class="tocitem" href="../">DataDrivenDiffEq.jl</a></li><li><a class="tocitem" href="../koopman/algorithms/">Algorithms for Estimation</a></li><li><a class="tocitem" href="../koopman/dmd/">Dynamic Mode Decomposition</a></li><li><a class="tocitem" href="../koopman/dmdc/">Dynamic Mode Decomposition with control</a></li><li><a class="tocitem" href="../koopman/edmd/">Extended Dynamic Mode Decomposition</a></li><li><a class="tocitem" href="../koopman/koopman/">Koopman Operators</a></li><li class="is-active"><a class="tocitem" href>Quickstart</a><ul class="internal"><li><a class="tocitem" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1"><span>Nonlinear Systems - Sparse Identification of Nonlinear Dynamics</span></a></li></ul></li><li><a class="tocitem" href="../sparse_identification/isindy/">Implicit Sparse Identification of Nonlinear Dynamics</a></li><li><a class="tocitem" href="../sparse_identification/optimizers/">Optimizer</a></li><li><a class="tocitem" href="../sparse_identification/sindy/">Sparse Identification of Nonlinear Dynamics</a></li><li><a class="tocitem" href="../utils/">Basis Generators</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Quickstart</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Quickstart</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/master/docs/src/quickstart.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Quickstart-1"><a class="docs-heading-anchor" href="#Quickstart-1">Quickstart</a><a class="docs-heading-anchor-permalink" href="#Quickstart-1" title="Permalink"></a></h1><p>In the following, we will use some of the techniques provided by <code>DataDrivenDiffEq</code> to infer some models.</p><h2 id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1"><a class="docs-heading-anchor" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1">Nonlinear Systems - Sparse Identification of Nonlinear Dynamics</a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1" title="Permalink"></a></h2><p>Okay, so far we can fit linear models via DMD and nonlinear models via EDMD. But what if we want to find a model of a nonlinear system <em>without moving to Koopman space</em>? Simple, we use <a href="https://www.pnas.org/content/113/15/3932">Sparse Identification of Nonlinear Dynamics</a> or <code>SINDy</code>.</p><p>As the name suggests, <code>SINDy</code> finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system</p><pre><code class="language-julia">using DataDrivenDiffEq
+using LinearAlgebra
+using ModelingToolkit
+using Plots
+using OrdinaryDiffEq
+using DataDrivenDiffEq.Optimize
+
+# Create a nonlinear pendulum
+function pendulum(u, p, t)
+    x = u[2]
+    y = -9.81sin(u[1]) - 0.3u[2]^3 -3.0*cos(u[1]) - 10.0*exp(-((t-5.0)/5.0)^2)
+    return [x;y]
+end
+
+u0 = [0.99π; -1.0]
+tspan = (0.0, 15.0)
+prob = ODEProblem(pendulum, u0, tspan)
+sol = solve(prob, Tsit5(), saveat = 0.1)
+
+# Create the data
+X = sol[:,:] .+ 0.2*randn(size(sol)...)
+DX = similar(sol[:,:])
+for (i, xi) in enumerate(eachcol(sol[:,:]))
+    DX[:,i] = pendulum(xi, [], sol.t[i])
+end
+ts = sol.t</code></pre><pre><code class="language-none">151-element Vector{Float64}:
+  0.0
+  0.1
+  0.2
+  0.3
+  0.4
+  0.5
+  0.6
+  0.7
+  0.8
+  0.9
+  ⋮
+ 14.2
+ 14.3
+ 14.4
+ 14.5
+ 14.6
+ 14.7
+ 14.8
+ 14.9
+ 15.0</code></pre><p>To estimate the system, we first create a <code>DataDrivenProblem</code> via feeding in the measurement data. Using different collocation techniques, it automatically provides the derivative. Additional control signals can be passed in as a function <code>(u,p,t)-&gt;control</code> or an array of measurements.</p><pre><code class="language-julia">prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel(),U = (u,p,t)-&gt;[exp(-((t-5.0)/5.0)^2)],p = ones(2))</code></pre><p><img src="../SINDy_Example_Data.png" alt/></p><p>Now we infer the systems structure. First we define a <code>Basis</code> which collects all possible candidate terms. Since we want to use <code>SINDy</code>, we call <code>solve</code> with an <code>Optimizer</code>, in this case <code>ADMM</code> which iterates different sparsity thresholds and returns a pareto optimal solution. Note that we include the control signal in the basis as an additional variable <code>c</code>.</p><pre><code class="language-julia">@variables u[1:2] c[1:1]
+@parameters w[1:2]
+h = Num[sin(w[1]*u[1]);cos(w[2]*u[1]); polynomial_basis(u, 5); c]
+basis = Basis(h, u, parameters = w, controls = c)
+λs = exp10.(-10:1:10)
+opt = ADMM(λs)
+res = solve(prob, basis, opt, progress = false, denoise = false, normalize = true, maxiter = 5000)</code></pre><pre><code class="language-none">Model ##Basis#308 with 2 equations
+States : u₁ u₂
+Parameters : 10
+Independent variable: t
+Equations
+Differential(t)(u₁) = p₃*u₂
+Differential(t)(u₂) = p₆ + c₁*p₁₀ + p₄*sin(u₁*w₁) + p₅*cos(u₁*w₂) + p₇*(u₁^5) + p₉*(u₂^3) + p₈*u₂*(u₁^4)</code></pre><p>which is the simple nonlinear pendulum with damping.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../koopman/koopman/">« Koopman Operators</a><a class="docs-footer-nextpage" href="../sparse_identification/isindy/">Implicit Sparse Identification of Nonlinear Dynamics »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 16 April 2021 09:17">Friday 16 April 2021</span>. Using Julia version 1.6.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
