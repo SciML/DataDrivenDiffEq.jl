@@ -4,12 +4,12 @@ Optimizer for finding a sparse implicit relationship via alternating the left ha
 solving the explicit problem, as introduced [here]().
 
 ```math
-\\min_{x} \\|x\\|_0 ~s.t.~Ax= 0
+\\argmin_{x} \\|x\\|_0 ~s.t.~Ax= 0
 ```
 
-
-#Fields
+# Fields
 $(FIELDS)
+
 # Example
 ```julia
 ADM()

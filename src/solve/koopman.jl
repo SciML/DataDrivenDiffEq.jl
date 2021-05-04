@@ -81,7 +81,6 @@ function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::Abstrac
 
         k, B = alg(Ψ₀[inds, :], Ψ₁[inds, :], Ψ₀[.!inds, :])
 
-
         Q = Ψ₁[inds, :]*Ψ₀'
         P = Ψ₀*Ψ₀'
 

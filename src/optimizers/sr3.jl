@@ -6,11 +6,13 @@ $(TYPEDEF)
 [Champion et. al., 2019](https://arxiv.org/abs/1906.10612). `SR3` contains a sparsification parameter `λ`, a relaxation `ν`.
 It solves the following problem
 ```math
-\\min_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda R(w) + \\frac{\\nu}{2}\\|x-w\\|_2
+\\argmin_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda R(w) + \\frac{\\nu}{2}\\|x-w\\|_2
 ```
 Where `R` is a proximal operator and the result is given by `w`.
-#Fields
+
+# Fields
 $(FIELDS)
+
 # Example
 ```julia
 opt = SR3()

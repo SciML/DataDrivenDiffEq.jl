@@ -3,10 +3,11 @@ $(TYPEDEF)
 Optimizer for finding a sparse basis vector in a subspace based on [this paper](https://arxiv.org/pdf/1412.4659.pdf).
 It solves the following problem
 ```math
-\\min_{x} \\|x\\|_0 ~s.t.~Ax= 0
+\\argmin_{x} \\|x\\|_0 ~s.t.~Ax= 0
 ```
-#Fields
+# Fields
 $(FIELDS)
+
 # Example
 ```julia
 ADM()

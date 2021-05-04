@@ -4,9 +4,9 @@ $(TYPEDEF)
 loosely based on [this implementation](https://web.stanford.edu/~boyd/papers/admm/lasso/lasso.html).
 It solves the following problem
 ```math
-\\min_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|x\\|_1
+\\argmin_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|x\\|_1
 ```
-#Fields
+# Fields
 $(FIELDS)
 # Example
 ```julia

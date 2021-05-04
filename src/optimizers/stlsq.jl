@@ -9,10 +9,12 @@ sequentially thresholded least squares iteration. `λ` is the threshold of the i
 It is based upon [this matlab implementation](https://github.com/eurika-kaiser/SINDY-MPC/utils/sparsifyDynamics.m).
 It solves the following problem
 ```math
-\\min_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|x\\|_2
+\\argmin_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|x\\|_2
 ```
-#Fields
+
+# Fields
 $(FIELDS)
+
 # Example
 ```julia
 opt = STLQS()
