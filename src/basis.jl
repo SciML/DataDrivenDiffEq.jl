@@ -609,6 +609,13 @@ function Base.push!(b::Basis, eq, simplify_eqs = true; eval_expression = false)
     return
 end
 
+function Base.push!(b::Basis, eq::Equation, simplify_eqs = true; eval_expression = false)
+    push!(equations(b), eq)
+    unique!(b, simplify_eqs, eval_expression = eval_expression)
+    return
+end
+
+
 """
     merge(x::Basis, y::Basis; eval_expression = false)
 
