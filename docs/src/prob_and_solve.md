@@ -2,8 +2,5 @@
 
 ```@docs
 DataDrivenProblem
-```
-
-```@docs
-solve
+DataDrivenSolution
 ```

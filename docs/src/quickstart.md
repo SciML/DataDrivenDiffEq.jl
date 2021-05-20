@@ -2,6 +2,79 @@
 
 In the following, we will use some of the techniques provided by `DataDrivenDiffEq` to infer some models.
 
+## Linear Systems via Dynamic Mode Decomposition
+
+```@example 4
+using DataDrivenDiffEq
+using LinearAlgebra
+using ModelingToolkit
+using OrdinaryDiffEq
+
+A = [0.9 -0.2; 0.0 0.2]
+u0 = [10.0; -10.0]
+tspan = (0.0, 11.0)
+
+f(u,p,t) = A*u
+
+sys = DiscreteProblem(f, u0, tspan)
+sol = solve(sys, FunctionMap())
+
+X = Array(sol)
+
+prob = DiscreteDataDrivenProblem(X, t = sol.t)
+
+res = solve(prob, DMDSVD(), digits = 1)
+system = result(res)
+println(system) # hide
+```
+
+```@example 4
+Matrix(system)
+```
+
+```@example 4
+res = solve(prob, DMDSVD(), digits = 1, operator_only = true)
+```
+
+
+## Nonlinear System with Extended Dynamic Mode Decomposition
+
+```@example 3
+using DataDrivenDiffEq
+using LinearAlgebra
+using ModelingToolkit
+using Plots
+using OrdinaryDiffEq
+
+function slow_manifold(du, u, p, t)
+    du[1] = p[1] * u[1]
+    du[2] = p[2] * (u[2] - u[1]^2)
+end
+
+u0 = [3.0; -2.0]
+tspan = (0.0, 5.0)
+p = [-0.8; -0.7]
+
+problem = ODEProblem(slow_manifold, u0, tspan, p)
+solution = solve(problem, Tsit5(), saveat = 0.01)
+DX = solution(solution.t, Val{1})[:, :]
+
+prob = ContinuousDataDrivenProblem(solution[:, :], solution.t, DX = DX)
+@variables u[1:2]
+Ψ = Basis([u; u[1]^2], u)
+res = solve(prob, Ψ, DMDPINV(), digits = 1)
+system = result(res)
+println(res) # hide
+println(system) # hide
+println(parameters(res)) # hide
+```
+
+The eigendecomposition of the Koopman operator can be accessed via [`operator`](@ref).
+
+```@example 3
+operator(system)
+```
+
 ## Nonlinear Systems - Sparse Identification of Nonlinear Dynamics
 
 Assume you have a set of measurements and want to find the underlying continuous, nonlinear dynamical system. The answer is : [Sparse Identification of Nonlinear Dynamics](https://www.pnas.org/content/113/15/3932) or `SINDy`.
@@ -144,9 +217,10 @@ plot(p1,p2, layout = (2,1), size = (600,400)) # hide
 savefig("SINDy_Example_Data_2.png") # hide
 
 @parameters t
-@variables u[1:2]
+D = Differential(t)
+@variables u[1:1](t)
 h = [monomial_basis(u[1:1], 4)...]
-basis = Basis([h; h .* u[2]], u);
+basis = Basis([h; h .* D(u[1])], [u; D(u[1])], iv = t)
 println(basis) # hide
 ```
 
@@ -166,11 +240,5 @@ system = result(res); # hide
 println(system)
 ```
 
-```@example 2
-infered_prob = ODEAProblem(system, u0, tspan, parameters(res))
-infered_solution = solve(infered_prob, Tsit5(), saveat = ts)
-plot(infered_solution, label = ["Infered" nothing], color = :red) # hide
-savefig("SINDy_Example_Data_Infered_2.png") # hide
-```
-
-![](SINDy_Example_Data_Infered_2.png)
+!!! warning
+    Right now, `Implicit` results cannot be simulated without further processing in `ModelingToolkit`
