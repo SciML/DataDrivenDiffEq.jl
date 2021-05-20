@@ -525,7 +525,7 @@ function Base.setindex!(x::AbstractBasis, idx, val, eval_expression = false)
 end
 ## Utilities
 
-function unique(b::AbstractArray{Num}, simplify_eqs = false)
+function unique(b::AbstractArray{Num}, simplify_eqs::Bool)
     b = simplify_eqs ? simplify.(b) : b
     returns = ones(Bool, size(b)...)
     N = maximum(eachindex(b))
@@ -535,7 +535,9 @@ function unique(b::AbstractArray{Num}, simplify_eqs = false)
     return Num.(b[returns])
 end
 
+
 function Base.unique!(b::AbstractArray{Num}, simplify_eqs = false)
+
     bs = simplify_eqs ? simplify.(b) : b
     removes = zeros(Bool, size(bs)...)
     N = maximum(eachindex(bs))
@@ -545,7 +547,7 @@ function Base.unique!(b::AbstractArray{Num}, simplify_eqs = false)
     deleteat!(b, removes)
 end
 
-function unique(b::AbstractArray{Equation}, simplify_eqs = false)
+function unique(b::AbstractArray{Equation}, simplify_eqs::Bool)
     b = simplify_eqs ? simplify.(b) : b
     returns = ones(Bool, size(b)...)
     N = maximum(eachindex(b))
@@ -555,7 +557,7 @@ function unique(b::AbstractArray{Equation}, simplify_eqs = false)
     return b[returns]
 end
 
-function Base.unique!(b::AbstractArray{Equation}, simplify_eqs = false)
+function Base.unique!(b::AbstractArray{Equation}, simplify_eqs::Bool)
     bs = [bi.rhs for bi in b]
     bs = simplify_eqs ? simplify.(bs) : bs
     removes = zeros(Bool, size(bs)...)
