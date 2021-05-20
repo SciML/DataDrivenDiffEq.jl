@@ -41,7 +41,7 @@ abstract type AbstractDataDrivenSolution end
 
 include("./basis.jl")
 export Basis
-export jacobian
+export jacobian, dynamics
 export free_parameters
 
 include("./utils/basis_generators.jl")

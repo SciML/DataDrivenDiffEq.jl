@@ -431,6 +431,9 @@ ModelingToolkit.controls(b::AbstractBasis) = b.controls
 
 ## Callable
 
+# Fallback
+(b::AbstractBasis)(args...) = b.f(args...)
+
 # OOP
 function (b::AbstractBasis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T = parameters(b),
     t::T where T <: Number = independent_variable(b))
@@ -478,7 +481,6 @@ function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} w
     t::AbstractVector{T} where T <: Number, )
     return b.f(y,x,p,t)
 end
-
 
 function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
