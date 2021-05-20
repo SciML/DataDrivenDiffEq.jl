@@ -4,15 +4,20 @@ ENV["GKSwstype"] = "100"
 
 makedocs(
     sitename="DataDrivenDiffEq.jl",
-    authors="Julius Martensen, Chris Rackauckas",
+    authors="Julius Martensen, Christopher Rackauckas",
     modules=[DataDrivenDiffEq],
     clean=true,doctest=false,
     format = Documenter.HTML(#analytics = "UA-90474609-3",
                              assets = ["assets/favicon.ico"],
                              canonical="https://datadriven.sciml.ai/stable/"),
     pages=[
-        #"Home" => "index.md",
-        #"Getting Started" => "quickstart.md"
+        "Home" => "index.md",
+        "Getting Started" => "quickstart.md",
+        "Problems And Solution" => "prob_and_solve.md",
+        "Basis" => "basis.md",
+        "Koopman" => "koopman.md",
+        "Sparse Optimization" => "optimization.md",
+        "Utilities" => "utils.md"
         ]
         #"Basis" => "basis.md",
         #"Koopman Operators" => Any[
