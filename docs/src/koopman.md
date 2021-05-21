@@ -3,6 +3,7 @@
 ```@docs
 Koopman
 ```
+
 ## Functions
 ```@docs
 is_discrete

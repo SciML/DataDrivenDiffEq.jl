@@ -4,7 +4,7 @@ import StatsBase: sample
 
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
 """
-	AIC(k, X, Y; likelihood = (X, Y) = sum(abs2, X-Y))
+	$(SIGNATURES)
 
 Computes the Akaike Information Criterion (AIC) given the free parameters `k` for the data `X` and its
 estimate `Y` of the model. `likelihood` can be any function of `X` and `Y`.
@@ -16,7 +16,7 @@ end
 
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
 """
-	AICC(k, X, Y; likelihood = (X, Y) = sum(abs2, X-Y))
+	$(SIGNATURES)
 
 Computes the Akaike Information Criterion compensated for finite samples (AICC) given the free parameters `k` for the data `X` and its
 estimate `Y` of the model. `likelihood` can be any function of `X` and `Y`.
@@ -34,7 +34,7 @@ end
 # Double check on that
 # Taken from https://www.immagic.com/eLibrary/ARCHIVES/GENERAL/WIKIPEDI/W120607B.pdf
 """
-	BIC(k, X, Y; likelihood = (X, Y) = sum(abs2, X-Y))
+	$(SIGNATURES)
 
 Computes Bayes Information Criterion (BIC) given the free parameters `k` for the data `X` and its
 estimate `Y` of the model. `likelihood` can be any function of `X` and `Y`.
@@ -115,8 +115,7 @@ function median_marcenko_pastur(beta)
 end
 
 """
-	optimal_shrinkage(X)
-	optimal_shrinkage!(X)
+    $(SIGNATURES)
 
 Compute a feature reduced version of the data array `X` via thresholding the
 singular values by computing the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
@@ -140,9 +139,14 @@ end
 
 
 """
-	burst_sampling(X, samplesize, n)
+	($SIGNATURES)
 
 Randomly selects `n` bursts of data with size `samplesize` from the data `X`.
+
+Randomly selects `n` bursts of data with size `samplesize` from the data `X` and `Y`.
+
+Randomly selects `n` bursts of data within a time window `period` from the data `X`. The time information
+has to be provided in `t`.
 """
 @inline function burst_sampling(x::AbstractArray, samplesize::Int64, bursts::Int64)
     @assert size(x)[end] >= samplesize*bursts "Bursting impossible. Please provide more data or reduce bursts or samplesize."
@@ -151,11 +155,6 @@ Randomly selects `n` bursts of data with size `samplesize` from the data `X`.
     return resample(x, inds)
 end
 
-"""
-	burst_sampling(X, Y, samplesize, n)
-
-Randomly selects `n` bursts of data with size `samplesize` from the data `X` and `Y`.
-"""
 @inline function burst_sampling(x::AbstractArray, y::AbstractArray, samplesize::Int64, bursts::Int64)
     @assert size(x)[end] >= samplesize*bursts "Bursting impossible. Please provide more data or reduce bursts or samplesize"
     @assert size(x)[end] == size(y)[end]
@@ -164,12 +163,6 @@ Randomly selects `n` bursts of data with size `samplesize` from the data `X` and
     return resample(x, inds), resample(y, inds)
 end
 
-"""
-	burst_sampling(X, t, period, n)
-
-Randomly selects `n` bursts of data within a time window `period` from the data `X`. The time information
-has to be provided in `t`.
-"""
 @inline function burst_sampling(x::AbstractArray, t::AbstractVector, period::T, bursts::Int64) where T <: AbstractFloat
     @assert period > zero(typeof(period)) "Sampling period has to be positive."
     @assert size(x)[end] == size(t)[end] "Provide consistent data."
@@ -184,28 +177,23 @@ end
 
 
 """
-	subsample(X, n)
+	$(SIGNATURES)
 
 Returns the subsampled `X` with only every `n`-th entry.
+
+Returns the subsampled `X` with a a minimum period of `dt` between two data points. `t` provides the
+time information.
 """
 @inline function subsample(x::AbstractVector, frequency::Int64)
     @assert frequency > 0 "Sampling frequency has to be positive."
     return x[1:frequency:end]
 end
 
-
 @inline function subsample(x::AbstractArray, frequency::Int64)
     @assert frequency > 0 "Sampling frequency has to be positive."
     return x[:, 1:frequency:end]
 end
 
-
-"""
-	subsample(X, t, dt)
-
-Returns the subsampled `X` with a a minimum period of `dt` between two data points. `t` provides the
-time information.
-"""
 @inline function subsample(x::AbstractArray, t::AbstractVector, period::T) where T <: AbstractFloat
     @assert period > zero(typeof(period)) "Sampling period has to be positive."
     @assert size(x)[end] == size(t)[end] "Provide consistent data."

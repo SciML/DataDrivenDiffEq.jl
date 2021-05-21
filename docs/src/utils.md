@@ -1,3 +1,10 @@
+# Collocation
+
+```@docs
+InterpolationMethod
+collocate_data
+```
+
 # Utilities
 
 ```@docs
