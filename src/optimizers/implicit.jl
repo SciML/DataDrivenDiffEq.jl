@@ -12,8 +12,8 @@ $(FIELDS)
 
 # Example
 ```julia
-ADM()
-ADM(λ = 0.1)
+ImplicitOptimizer(STLSQ())
+ImplicitOptimizer(0.1f0, ADMM)
 ```
 """
 mutable struct ImplicitOptimizer{T} <: AbstractSubspaceOptimizer{T}
