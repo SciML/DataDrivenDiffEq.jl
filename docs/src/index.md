@@ -1,6 +1,6 @@
 # DataDrivenDiffEq.jl
 
-DataDrivenDiffEq.jl is a package for estimating equation-free and equation-based models for discrete and continuous differential equations.
+[DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl) is a package for estimating equation-free and equation-based models for discrete and continuous differential equations.
 
 As opposed to parameter identification, these methods aim to find the governing equations of motion automatically from a given set of data. They do not require a known model as input. Instead, these methods take in data and return the differential equation model which generated the data.
 
@@ -8,7 +8,7 @@ There are various avenues in which structural estimation can occur. However, the
 
 ## Package Overview
 
-DataDrivenDiffEq currently implements the following algorithms for
+[DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl) currently implements the following algorithms for
 structural estimation:
 
 + Dynamic Mode Decomposition
@@ -19,7 +19,7 @@ structural estimation:
 
 ## Installation
 
-To use 'DataDrivenDiffEq.jl', simply install it via:
+To use [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl), simply install it via:
 
 ```julia
 ]add DataDrivenDiffEq
