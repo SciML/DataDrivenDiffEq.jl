@@ -91,6 +91,7 @@ export is_valid
 include("./solution.jl")
 export DataDrivenSolution
 export result, parameters, parameter_map, metrics, algorithm, inputs
+export output
 
 include("./solve/sindy.jl")
 include("./solve/koopman.jl")
