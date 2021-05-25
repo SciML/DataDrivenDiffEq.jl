@@ -17,7 +17,8 @@ makedocs(
         "Basis" => "basis.md",
         "Koopman" => "koopman.md",
         "Sparse Optimization" => "optimization.md",
-        "Utilities" => "utils.md"
+        "Utilities" => "utils.md",
+        "Contributing" => "contributions.md"
         ]
         #"Basis" => "basis.md",
         #"Koopman Operators" => Any[
