@@ -1,8 +1,7 @@
 # DataDrivenDiffEq.jl
 
 [![Build Status](https://github.com/SciML/DataDrivenDiffEq.jl/workflows/CI/badge.svg)](https://github.com/SciML/DataDrivenDiffEq.jl/actions?query=workflow%3ACI)
-[![Coverage Status](https://coveralls.io/repos/JuliaDiffEq/DataDrivenDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaDiffEq/DataDrivenDiffEq.jl?branch=master)
-[![codecov.io](http://codecov.io/github/JuliaDiffEq/DataDrivenDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaDiffEq/DataDrivenDiffEq.jl?branch=master)
+[![codecov.io](http://codecov.io/github/SciML/DataDrivenDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaDiffEq/DataDrivenDiffEq.jl?branch=master)
 [![DOI](https://zenodo.org/badge/212827023.svg)](https://zenodo.org/badge/latestdoi/212827023)
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 
