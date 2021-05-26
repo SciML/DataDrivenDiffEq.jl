@@ -10,7 +10,6 @@ using ModelingToolkit
 
 using QuadGK
 using Statistics
-#using DSP
 using DataInterpolations
 
 using Reexport
