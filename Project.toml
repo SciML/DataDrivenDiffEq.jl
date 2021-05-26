@@ -21,7 +21,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Compat = "3.0"
-DSP = "0.6"
 DataInterpolations = "3"
 DiffEqBase = "6"
 DocStringExtensions = "0.7, 0.8"
