@@ -23,45 +23,45 @@
     @test AICC(k, X, Y, likelihood = (X,Y)->sum(abs, X-Y)) == AIC(k, X, Y, likelihood = (X,Y)->sum(abs, X-Y))+ 2*(k+1)*(k+2)/(size(X)[2]-k-2)
 
     # Numerical derivatives
-    function lorenz(u,p,t)
-        x, y, z = u
-        ẋ = 10.0*(y - x)
-        ẏ = x*(28.0-z) - y
-        ż = x*y - (8/3)*z
-        return [ẋ, ẏ, ż]
-    end
-    u0 = [1.0;0.0;0.0]
-    tspan = (0.0,50.0)
-    dt = 0.005
-    prob = ODEProblem(lorenz,u0,tspan)
-    sol = solve(prob, Tsit5(), saveat = dt)
+    #function lorenz(u,p,t)
+    #    x, y, z = u
+    #    ẋ = 10.0*(y - x)
+    #    ẏ = x*(28.0-z) - y
+    #    ż = x*y - (8/3)*z
+    #    return [ẋ, ẏ, ż]
+    #end
+    #u0 = [1.0;0.0;0.0]
+    #tspan = (0.0,50.0)
+    #dt = 0.005
+    #prob = ODEProblem(lorenz,u0,tspan)
+    #sol = solve(prob, Tsit5(), saveat = dt)
 
-    X = Array(sol)
-    DX = similar(X)
-    for (i, xi) in enumerate(eachcol(X))
-        DX[:,i] = lorenz(xi, [], 0.0)
-    end
+    #X = Array(sol)
+    #DX = similar(X)
+    #for (i, xi) in enumerate(eachcol(X))
+    #    DX[:,i] = lorenz(xi, [], 0.0)
+    #end
 
-    windowSize, polyOrder = 9, 4
-    halfWindow = Int(ceil((windowSize+1)/2))
-    DX_sg = similar(X)
-    DX_sg_cropped = similar(X[:,halfWindow+1:end-halfWindow])
-    X_cropped = similar(X[:,halfWindow+1:end-halfWindow])
-    for i =1:size(X,1)
-        DX_sg[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=dt, crop=false)
-        X_cropped[i,:], DX_sg_cropped[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=dt)
-    end
-    DX_sg2 = savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt, crop=false)
-    X_cropped2, DX_sg_cropped2 =  savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt)
-    @test(DX_sg2 == DX_sg)
-    DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
-    @test X_cropped == X[:,halfWindow+1:end-halfWindow]
-    @test DX_sg_cropped == DX_sg
-    @test X_cropped2 == X[:,halfWindow+1:end-halfWindow]
-    @test DX_sg_cropped2 == DX_sg
+    #windowSize, polyOrder = 9, 4
+    #halfWindow = Int(ceil((windowSize+1)/2))
+    #DX_sg = similar(X)
+    #DX_sg_cropped = similar(X[:,halfWindow+1:end-halfWindow])
+    #X_cropped = similar(X[:,halfWindow+1:end-halfWindow])
+    #for i =1:size(X,1)
+    #    DX_sg[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=dt, crop=false)
+    #    X_cropped[i,:], DX_sg_cropped[i,:] = savitzky_golay(X[i,:], windowSize, polyOrder, deriv=1, dt=dt)
+    #end
+    #DX_sg2 = savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt, crop=false)
+    #X_cropped2, DX_sg_cropped2 =  savitzky_golay(X, windowSize, polyOrder, deriv=1, dt=dt)
+    #@test(DX_sg2 == DX_sg)
+    #DX_sg = DX_sg[:,halfWindow+1:end-halfWindow]
+    #@test X_cropped == X[:,halfWindow+1:end-halfWindow]
+    #@test DX_sg_cropped == DX_sg
+    #@test X_cropped2 == X[:,halfWindow+1:end-halfWindow]
+    #@test DX_sg_cropped2 == DX_sg
 
-    DX = DX[:,halfWindow+1:end-halfWindow]
-    @test isapprox(DX_sg, DX, rtol=1e-2)
+    #DX = DX[:,halfWindow+1:end-halfWindow]
+    #@test isapprox(DX_sg, DX, rtol=1e-2)
 
     # Sampling
     X = randn(Float64, 2, 100)

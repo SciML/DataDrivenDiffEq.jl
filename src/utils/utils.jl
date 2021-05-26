@@ -4,7 +4,7 @@ import StatsBase: sample
 
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
 """
-	AIC(k, X, Y; likelihood = (X, Y) = sum(abs2, X-Y))
+	$(SIGNATURES)
 
 Computes the Akaike Information Criterion (AIC) given the free parameters `k` for the data `X` and its
 estimate `Y` of the model. `likelihood` can be any function of `X` and `Y`.
@@ -16,7 +16,7 @@ end
 
 # Taken from https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2017.0009
 """
-	AICC(k, X, Y; likelihood = (X, Y) = sum(abs2, X-Y))
+	$(SIGNATURES)
 
 Computes the Akaike Information Criterion compensated for finite samples (AICC) given the free parameters `k` for the data `X` and its
 estimate `Y` of the model. `likelihood` can be any function of `X` and `Y`.
@@ -34,7 +34,7 @@ end
 # Double check on that
 # Taken from https://www.immagic.com/eLibrary/ARCHIVES/GENERAL/WIKIPEDI/W120607B.pdf
 """
-	BIC(k, X, Y; likelihood = (X, Y) = sum(abs2, X-Y))
+	$(SIGNATURES)
 
 Computes Bayes Information Criterion (BIC) given the free parameters `k` for the data `X` and its
 estimate `Y` of the model. `likelihood` can be any function of `X` and `Y`.
@@ -115,8 +115,7 @@ function median_marcenko_pastur(beta)
 end
 
 """
-	optimal_shrinkage(X)
-	optimal_shrinkage!(X)
+    $(SIGNATURES)
 
 Compute a feature reduced version of the data array `X` via thresholding the
 singular values by computing the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
@@ -138,101 +137,16 @@ function optimal_shrinkage!(X::AbstractArray{T, 2}) where T <: Number
     return
 end
 
-"""
-	savitzky_golay(X, windowSize, polyOrder; deriv, dt, crop)
-
-Estimate the time derivative via the savitzky_golay filter. `X` is the data matrix containing the trajectories, which is interpolated
-via polynomials of order `polyOrder` over `windowSize` points repeatedly. `deriv` defines the order of the derivative, `dt`
-the time step size. `crop` indicates if the original data should be returned cropped along the derivative approximation.
-"""
-function savitzky_golay(x::AbstractVector{T}, windowSize::Integer, polyOrder::Integer; deriv::Integer=0, dt::Real=1.0, crop::Bool = true) where T <: Number
-	# Polynomial smoothing with the Savitzky Golay filters
-	# Adapted from: https://github.com/BBN-Q/Qlab.jl/blob/master/src/SavitskyGolay.jl
-	# More information: https://pdfs.semanticscholar.org/066b/7534921b308925f6616480b4d2d2557943d1.pdf
-	# Requires LinearAlgebra and DSP modules loaded.
-
-	# Some error checking
-	@assert isodd(windowSize) "Window size must be an odd integer."
-	@assert polyOrder < windowSize "Polynomial order must be less than window size."
-
-	# Calculate filter coefficients
-	filterCoeffs = calculate_filterCoeffs(windowSize, polyOrder, deriv, dt)
-
-	# Pad the signal with the endpoints and convolve with filter
-	halfWindow = Int(ceil((windowSize - 1)/2))
-	paddedX = [x[1]*ones(halfWindow); x; x[end]*ones(halfWindow)]
-	y = conv(filterCoeffs[end:-1:1], paddedX)
-
-	if !crop
-		# Return the valid midsection
-		return y[2*halfWindow+1:end-2*halfWindow]
-	else
-		# Return cropped data. Excluding borders, where the estimation is less accurate
-		return x[halfWindow+2:end-halfWindow-1], y[3*halfWindow+2:end-3*halfWindow-1]
-	end
-end
-
-function savitzky_golay(x::AbstractMatrix{T}, windowSize::Integer, polyOrder::Integer; deriv::Integer=0, dt::Real=1.0, crop::Bool = true) where T <: Number
-	# Polynomial smoothing with the Savitzky Golay filters
-	# Adapted from: https://github.com/BBN-Q/Qlab.jl/blob/master/src/SavitskyGolay.jl
-	# More information: https://pdfs.semanticscholar.org/066b/7534921b308925f6616480b4d2d2557943d1.pdf
-	# Requires LinearAlgebra and DSP modules loaded.
-
-	# Some error checking
-	@assert isodd(windowSize) "Window size must be an odd integer."
-	@assert polyOrder < windowSize "Polynomial order must be less than window size."
-
-	# Calculate filter coefficients
-	filterCoeffs = calculate_filterCoeffs(windowSize, polyOrder, deriv, dt)
-
-	# Apply filter to each component
-	halfWindow = Int(ceil((windowSize - 1)/2))
-
-	if !crop
-		y = similar(x)
-		for (i, xi) in enumerate(eachrow(x))
-			paddedX = [xi[1]*ones(halfWindow); xi; xi[end]*ones(halfWindow)]
-			y₀ = conv(filterCoeffs[end:-1:1], paddedX)
-			y[i,:] = y₀[2*halfWindow+1:end-2*halfWindow]
-		end
-		return y
-	else
-		cropped_x = x[:,halfWindow+2:end-halfWindow-1]
-		y = similar(cropped_x)
-		for (i, xi) in enumerate(eachrow(x))
-			paddedX = [xi[1]*ones(halfWindow); xi; xi[end]*ones(halfWindow)]
-			y₀ = conv(filterCoeffs[end:-1:1], paddedX)
-			y[i,:] = y₀[3*halfWindow+2:end-3*halfWindow-1]
-		end
-		return cropped_x, y
-	end
-end
-
-function calculate_filterCoeffs(windowSize::Integer, polyOrder::Integer, deriv::Integer, dt::Real)
-	# Some error checking
-	@assert isodd(windowSize) "Window size must be an odd integer."
-	@assert polyOrder < windowSize "Polynomial order must be less than window size."
-
-	# Form the design matrix A
-	halfWindow = Int(ceil((windowSize - 1)/2))
-	A = zeros(windowSize, polyOrder+1)
-	for order = 0:polyOrder
-		A[:, order+1] = (-halfWindow:halfWindow).^(order)
-	end
-
-	# Compute the required column of the inverse of A'*A
-	# and calculate filter coefficients
-	ei = zeros(polyOrder+1)
-	ei[deriv+1] = 1.0
-	inv_col = (A'*A) \ ei
-	return A*inv_col * factorial(deriv) ./(dt^deriv)
-end
-
 
 """
-	burst_sampling(X, samplesize, n)
+	($SIGNATURES)
 
 Randomly selects `n` bursts of data with size `samplesize` from the data `X`.
+
+Randomly selects `n` bursts of data with size `samplesize` from the data `X` and `Y`.
+
+Randomly selects `n` bursts of data within a time window `period` from the data `X`. The time information
+has to be provided in `t`.
 """
 @inline function burst_sampling(x::AbstractArray, samplesize::Int64, bursts::Int64)
     @assert size(x)[end] >= samplesize*bursts "Bursting impossible. Please provide more data or reduce bursts or samplesize."
@@ -241,11 +155,6 @@ Randomly selects `n` bursts of data with size `samplesize` from the data `X`.
     return resample(x, inds)
 end
 
-"""
-	burst_sampling(X, Y, samplesize, n)
-
-Randomly selects `n` bursts of data with size `samplesize` from the data `X` and `Y`.
-"""
 @inline function burst_sampling(x::AbstractArray, y::AbstractArray, samplesize::Int64, bursts::Int64)
     @assert size(x)[end] >= samplesize*bursts "Bursting impossible. Please provide more data or reduce bursts or samplesize"
     @assert size(x)[end] == size(y)[end]
@@ -254,12 +163,6 @@ Randomly selects `n` bursts of data with size `samplesize` from the data `X` and
     return resample(x, inds), resample(y, inds)
 end
 
-"""
-	burst_sampling(X, t, period, n)
-
-Randomly selects `n` bursts of data within a time window `period` from the data `X`. The time information
-has to be provided in `t`.
-"""
 @inline function burst_sampling(x::AbstractArray, t::AbstractVector, period::T, bursts::Int64) where T <: AbstractFloat
     @assert period > zero(typeof(period)) "Sampling period has to be positive."
     @assert size(x)[end] == size(t)[end] "Provide consistent data."
@@ -274,28 +177,23 @@ end
 
 
 """
-	subsample(X, n)
+	$(SIGNATURES)
 
 Returns the subsampled `X` with only every `n`-th entry.
+
+Returns the subsampled `X` with a a minimum period of `dt` between two data points. `t` provides the
+time information.
 """
 @inline function subsample(x::AbstractVector, frequency::Int64)
     @assert frequency > 0 "Sampling frequency has to be positive."
     return x[1:frequency:end]
 end
 
-
 @inline function subsample(x::AbstractArray, frequency::Int64)
     @assert frequency > 0 "Sampling frequency has to be positive."
     return x[:, 1:frequency:end]
 end
 
-
-"""
-	subsample(X, t, dt)
-
-Returns the subsampled `X` with a a minimum period of `dt` between two data points. `t` provides the
-time information.
-"""
 @inline function subsample(x::AbstractArray, t::AbstractVector, period::T) where T <: AbstractFloat
     @assert period > zero(typeof(period)) "Sampling period has to be positive."
     @assert size(x)[end] == size(t)[end] "Provide consistent data."

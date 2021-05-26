@@ -1,73 +1,125 @@
-# Based upon alg 1 in
-# A unified sparse optimization framework to learn parsimonious physics-informed models from data
-# by K Champion et. al.
-
-mutable struct SR3{U,T} <: AbstractOptimizer
-    λ::U
-    ν::U
-    R::T
-end
-
+#Based upon alg 2 in https://ieeexplore.ieee.org/document/8573778
 
 """
-    SR3(λ, ν, R)
-    SR3(λ = 1e-1, ν = 1.0)
-
+$(TYPEDEF)
 `SR3` is an optimizer framework introduced [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778) and used within
-[Champion et. al., 2019](https://arxiv.org/abs/1906.10612). `SR3` contains a sparsification parameter `λ`, a relaxation `ν`,
-and a corresponding penalty function `R`, which should be taken from [ProximalOperators.jl](https://github.com/kul-forbes/ProximalOperators.jl).
+[Champion et. al., 2019](https://arxiv.org/abs/1906.10612). `SR3` contains a sparsification parameter `λ`, a relaxation `ν`.
+It solves the following problem
+```math
+\\argmin_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda R(w) + \\frac{\\nu}{2}\\|x-w\\|_2
+```
+Where `R` is a proximal operator and the result is given by `w`.
 
-# Examples
+# Fields
+$(FIELDS)
+
+# Example
 ```julia
 opt = SR3()
 opt = SR3(1e-2)
 opt = SR3(1e-3, 1.0)
+opt = SR3(1e-3, 1.0, SoftThreshold())
 ```
+## Note
+Opposed to the original formulation, we use `ν` as a relaxation parameter,
+as given in [Champion et. al., 2019](https://arxiv.org/abs/1906.10612). In the standard case of
+hard thresholding the sparsity is interpreted as `λ = threshold^2 / 2`, otherwise `λ = threshold`.
 """
-function SR3(λ = 1e-1, ν = 1.0)
-    R = NormL1
-    return SR3(λ, ν, R)
+mutable struct SR3{T, V, P <: AbstractProximalOperator} <: AbstractOptimizer{T}
+   """Sparsity threshold"""
+   λ::T
+   """Relaxation parameter"""
+   ν::V
+   """Proximal operator"""
+   R::P
+
+   function SR3(threshold::T = 1e-1, ν::V = 1.0, R::P = HardThreshold()) where {T,V <: Number,P <: AbstractProximalOperator}
+      @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
+      @assert ν > zero(V) "Relaxation must be positive definite"
+
+       λ = isa(R, HardThreshold) ? threshold.^2 /2 : threshold
+       return new{typeof(λ), V, P}(λ, ν, R)
+   end
+
+   function SR3(threshold::T , R::P) where {T,P <: AbstractProximalOperator}
+      @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
+       λ = isa(R, HardThreshold) ? threshold.^2 /2 : threshold
+       ν = one(eltype(λ))
+       return new{typeof(λ), eltype(λ), P}(λ, ν, R)
+   end
 end
 
-function set_threshold!(opt::SR3, threshold)
-    opt.λ = threshold^2*opt.ν /2
-    return
-end
+Base.summary(::SR3) = "SR3"
 
-get_threshold(opt::SR3) = sqrt(2*opt.λ/opt.ν)
+function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
+    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing, kwargs...)  where {T, V, R}
 
-init(o::SR3, A::AbstractArray, Y::AbstractArray) =  A \ Y
-init!(X::AbstractArray, o::SR3, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
+   n, m = size(A)
+   ν = opt.ν
+   W = copy(X)
 
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::SR3; maxiter::Int64 = 1, convergence_error::T = eps()) where T <: Real
-    f = opt.R(get_threshold(opt))
+   # Init matrices
+   H = A'*A+I(m)*ν
+   H = cholesky!(H)
+   X̂ = A'*Y
 
-    n, m = size(A)
-    W = copy(X)
+   w_i = similar(W)
+   w_i .= W
+   iters = 0
 
-    # Init matrices
-    P = inv(A'*A+I(m)/(opt.ν))
-    X̂ = A'*Y
+   iters = 0
+   converged = false
 
-    w_i = similar(W)
-    w_i .= W
-    iters = 0
+   xzero = zero(eltype(X))
+   obj = xzero
+   sparsity = xzero
+   conv_measure = xzero
 
-    for i in 1:maxiter
-        iters += 1
-        # Solve ridge regression
-        X .= P*(X̂.+W./(opt.ν))
-        # Add proximal iteration
-        prox!(W, f, X, opt.ν*opt.λ)
+   _progress = isa(progress, Progress)
+   initial_prog = _progress ? progress.counter : 0
 
-        if norm(w_i - W, 2)/opt.ν < convergence_error
-            break
-        else
-            w_i .= W
-        end
 
-    end
+   @views while (iters < maxiter) && !converged
+       iters += 1
 
-    X[abs.(X) .< get_threshold(opt)] .= zero(eltype(X))
-    return iters
+       # Solve ridge regression
+       ldiv!(X, H, X̂ .+ W*ν)
+       # Proximal
+       opt.R(W, X, λ)
+
+       conv_measure = norm(w_i .- W, 2)
+
+       if _progress
+           obj = norm(Y - A*X, 2)
+           sparsity = norm(X, 0, λ)
+
+           ProgressMeter.next!(
+           progress;
+           showvalues = [
+               (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
+               (:Convergence, conv_measure)
+           ]
+           )
+       end
+
+
+       if conv_measure < abstol
+           converged = true
+
+           #if _progress
+
+            #   ProgressMeter.update!(
+            #   progress,
+            #   initial_prog + maxiter
+            #   )
+           #end
+
+       else
+           w_i .= W
+       end
+   end
+   # We really search for W here
+   X .= W
+   @views clip_by_threshold!(X, λ)
+   return
 end

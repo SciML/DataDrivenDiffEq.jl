@@ -1,7 +1,27 @@
-abstract type AbstractKoopmanAlgorithm end;
+# Tolerance
+function truncated_svd(A::AbstractMatrix{T}, truncation::Real) where T <: Number
+    truncation = min(truncation, one(T))
+    U, S, V = svd(A)
+    r = vec(S .> truncation*maximum(S))
+    U = U[:, r]
+    S = S[r]
+    V = V[:, r]
+    return U, S, V
+end
+
+# Explicit rank
+function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where T <: Number
+    U, S, V = svd(A)
+    r = [((i <= truncation && S[i] > zero(T)) ? true : false) for i in 1:length(S)]
+    U = U[:, r]
+    S = S[r]
+    V = V[:, r]
+    return U, S, V
+end
+
 
 """
-    DMDPINV()
+$(TYPEDEF)
 
 Approximates the Koopman operator `K` based on
 
@@ -9,17 +29,42 @@ Approximates the Koopman operator `K` based on
 K = Y / X
 ```
 
-where `Y` and `X` are data matrices.
+where `Y` and `X` are data matrices. Returns a  `Eigen` factorization of the operator.
 
+# Fields
+$(FIELDS)
+
+# Signatures
+$(SIGNATURES)
 """
 mutable struct DMDPINV <: AbstractKoopmanAlgorithm end;
 
 # Fast but more allocations
-(x::DMDPINV)(X::AbstractArray, Y::AbstractArray) = Y / X
+function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray)
+     K = Y / X
+     return eigen(K)
+ end
 
+# DMDC
+function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
+    nx, m = size(X)
+    nu, m = size(U)
+
+    K̃ = Y / [X;U]
+
+    K = K̃[:, 1:nx]
+    B = K̃[:, nx+1:end]
+
+    return eigen(K), B
+end
+
+# DMDC
+function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
+    return x(X, Y-B*U), B
+end
 
 """
-    DMDSVD(rtol)
+$(TYPEDEF)
 
 Approximates the Koopman operator `K` based on the singular value decomposition
 of `X` such that:
@@ -28,34 +73,70 @@ of `X` such that:
 K = Y*V*Σ*U'
 ```
 
-where `Y` and `X = U*Σ*V'` are data matrices.
-If `rtol` ∈ (0, 1) is given, the singular value decomposition is reduced to include only
-entries bigger than `rtol*maximum(Σ)`. If `rtol` is an integer, the reduced SVD up to `rtol` is used
-for computation.
+where `Y` and `X = U*Σ*V'` are data matrices. The singular value decomposition is truncated via
+the `truncation` parameter, which can either be an `Int` indiciating an index based truncation or a `Real`
+indiciating a tolerance based truncation. Returns a `Eigen` factorization of the operator.
+
+
+# Fields
+$(FIELDS)
+
+# Signatures
+$(SIGNATURES)
 """
-mutable struct DMDSVD{T} <: AbstractKoopmanAlgorithm
-    rtol::T
+mutable struct DMDSVD{T} <: AbstractKoopmanAlgorithm where T <: Number
+    """Indiciates the truncation"""
+    truncation::T
 end;
 
 DMDSVD() = DMDSVD(0.0)
 
 # Slower but fewer allocations
-function (x::DMDSVD)(X::AbstractArray, Y::AbstractArray)
-    U, S, V = svd(X)
-    if typeof(x.rtol) <: Int && x.rtol < size(X, 1)
-        V = V[:, x.rtol]
-    elseif zero(x.rtol) < x.rtol < one(x.rtol)
-        r = vec(S .> x.rtol*maximum(S))
-        U = U[:, r]
-        S = S[r]
-        V = V[:, r]
-    end
+function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where T <: Real
+    U, S, V = truncated_svd(X, x.truncation)
+    xone = one(eltype(X))
+    # Computed the reduced operator
+    Sinv = Diagonal(xone ./ S)
+    B = Y*V*Sinv
+    Ã = U'B
+    # Compute the modes
+    λ, ω = eigen(Ã)
+    φ = B*ω
+    return Eigen(λ, φ)
+end
 
-    return Y*V*Diagonal(one(eltype(X)) ./ S)*U'
+# DMDc
+function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray) where T <: Real
+    nx, m = size(X)
+    nu, m = size(U)
+    # Input space svd
+    Ũ, S̃, Ṽ = truncated_svd([X;U], x.truncation)
+    # Output space svd
+    Û, Ŝ, V̂ = svd(Y)
+
+    # Split the svd
+    U₁, U₂ = Ũ[1:nx,:], Ũ[nx+1:end,:]
+
+    xone = one(eltype(X))
+    # Computed the reduced operator
+    C = Y*Ṽ*Diagonal(xone ./ S̃ ) # Common submatrix
+    # We do not project onto a reduced subspace here.
+    # This would mess up our initial conditions, since sometimes we have
+    # x1->x2, x2->x1
+    Ã = Û'C*U₁'Û
+    B̃ = C*U₂'
+    # Compute the modes
+    λ, ω = eigen(Ã)
+    φ = C*U₁'Û*ω
+    return Eigen(λ, φ), B̃
+end
+
+function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray) where T <: Real
+    return x(X, Y-B*U), B
 end
 
 """
-    TOTALDMD(rtol, alg)
+$(TYPEDEF)
 
 Approximates the Koopman operator `K` with the algorithm `alg` over the rank-reduced data
 matrices `Xᵣ = X Qᵣ` and `Yᵣ = Y Qᵣ`, where `Qᵣ` originates from the singular value decomposition of
@@ -64,22 +145,32 @@ the joint data `Z = [X; Y]`. Based on [this paper](http://cwrowley.princeton.edu
 If `rtol` ∈ (0, 1) is given, the singular value decomposition is reduced to include only
 entries bigger than `rtol*maximum(Σ)`. If `rtol` is an integer, the reduced SVD up to `rtol` is used
 for computation.
+
+# Fields
+$(FIELDS)
+
+# Signatures
+$(SIGNATURES)
 """
-mutable struct TOTALDMD{R, A} <: AbstractKoopmanAlgorithm
-    rtol::R
+mutable struct TOTALDMD{R, A} <: AbstractKoopmanAlgorithm where {R <: Number, A <: AbstractKoopmanAlgorithm}
+    truncation::R
     alg::A
 end
 
 TOTALDMD() = TOTALDMD(0.0, DMDPINV())
 
 function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray)
-    _ , S, Q = svd([X; Y])
-    if typeof(x.rtol) <: Int && x.rtol < size(X, 1)
-        Q = Q[:, 1:x.rtol]
-    elseif zero(x.rtol) < x.rtol < one(x.rtol)
-        r = vec(S .> x.rtol*maximum(S))
-        Q = Q[:, r]
-    end
-
+    _ , _, Q = truncated_svd([X; Y], x.truncation)
     return x.alg(X*Q, Y*Q)
+end
+
+function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
+    _ , _, Q = truncated_svd([X; Y], x.truncation)
+    return x.alg(X*Q, Y*Q, U*Q)
+end
+
+
+function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
+    _ , _, Q = truncated_svd([X; Y], x.truncation)
+    return x.alg(X*Q, (Y-B*U)*Q), B
 end

@@ -1,22 +1,18 @@
-# Basis Generators
+# Collocation
 
 ```@docs
-monomial_basis
-polynomial_basis
-chebyshev_basis
-sin_basis
-cos_basis
-fourier_basis
+InterpolationMethod
+collocate_data
 ```
 
-# Utility Functions
+# Utilities
 
 ```@docs
 AIC
 AICC
 BIC
 optimal_shrinkage
-savitzky_golay
+optimal_shrinkage!
 burst_sampling
 subsample
 ```

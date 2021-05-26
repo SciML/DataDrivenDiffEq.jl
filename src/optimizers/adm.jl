@@ -1,103 +1,139 @@
-
-mutable struct ADM{U, O} <: AbstractSubspaceOptimizer
-    λ::U
-    R::O
-end
-
-get_threshold(opt::ADM) = opt.λ
-set_threshold!(opt::ADM, λ) = (opt.λ = λ; return)
-
 """
-    ADM()
-    ADM(λ = 0.1)
-
+$(TYPEDEF)
 Optimizer for finding a sparse basis vector in a subspace based on [this paper](https://arxiv.org/pdf/1412.4659.pdf).
-`λ` is the weight for the soft-thresholding operation.
+It solves the following problem
+```math
+\\argmin_{x} \\|x\\|_0 ~s.t.~Ax= 0
+```
+# Fields
+$(FIELDS)
+
+# Example
+```julia
+ADM()
+ADM(λ = 0.1)
+```
+
+## Note
+While useable for implicit problems, a better choice in general is given by the
+`ImplicitOptimizer` which tends to be more robust.
 """
-function ADM(λ::T = 0.1) where T <: Real
-    f = NormL1(λ)
-    return ADM(λ, f)
+mutable struct ADM{T} <: AbstractSubspaceOptimizer{T}
+    """Sparsity threshold"""
+    λ::T
+
+    function ADM(threshold::T = 1e-1) where T
+        @assert all(one(eltype(T)) .> threshold .> zero(eltype(T))) "Threshold must be positive definite and less than 1"
+
+        return new{T}(threshold)
+    end
 end
 
-# ADM algorithm
-function fit!(q::AbstractArray{T, 1}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10, tol::T = eps(eltype(q))) where T <: Real
-    
-    x = Y*q
-    q_ = deepcopy(q)
-    iters_ = 0
-    
-    while iters_ <= maxiter
-        iters_ += 1
-        prox!(x, opt.R, Y*q)
-        mul!(q, Y', x)
-        normalize!(q, 2)
+Base.summary(::ADM) = "ADM"
 
-        if norm(q - q_) < tol 
-            break
+function (opt::ADM{T})(X, A, Y, λ::V = first(opt.λ);
+    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing,
+    rtol::V = zero(eltype(T)),
+    atol::V = convert(eltype(T), 0.99),
+    f::Function = F(opt), g::Function = G(opt))  where {T, V}
+
+    n,m = size(A)
+    ny, my = size(Y)
+    nx, mx = size(X)
+    nq, mq = 0,0
+
+    # Closure for the pareto function
+    fg(x, A, y) = (g∘f)(x, A, y)
+    fg(x, A) = (g∘f)(x,A)
+
+    # Init all variables
+    R = SoftThreshold()
+
+    xzero = zero(eltype(T))
+    obj = xzero
+    sparsity = xzero
+    conv_measure = xzero
+
+    iters = 0
+    converged = false
+
+    max_ind = 0
+
+    _progress = isa(progress, Progress)
+    initial_prog = 0
+    N = nullspace(A[:,:], atol = atol)
+    Q = deepcopy(N)
+    map(x->normalize!(x), eachrow(Q))
+    Q_ = deepcopy(N)
+    x = N'Q
+
+    @views while (iters < maxiter) && !converged
+        iters += 1
+
+
+
+        R(x, N'Q, λ)
+        mul!(Q, N, x)
+        map(x->normalize!(x), eachrow(Q))
+
+        conv_measure = norm(Q .- Q_, 2)
+
+        if _progress
+            sparsity, obj = f(Q,A,λ)
+
+            ProgressMeter.next!(
+            progress;
+            showvalues = [
+                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
+                (:Convergence, conv_measure),
+                ]
+                )
+        end
+
+
+        if conv_measure < abstol
+            converged = true
         else
-            q_ .= q
+            Q_ .= Q
         end
     end
 
-    return iters_
-end
+    clip_by_threshold!(Q, λ)
 
-# ADM initvary
-function fit!(q::AbstractArray{T, 2}, Y::AbstractArray, opt::ADM; maxiter::Int64= 10, tol::T = eps(eltype(q))) where T <: Real
-    iters_ = Inf
-    i_ = Inf
-    
-    @inbounds for i in 1:size(q, 2)
-        i_ = fit!(q[:, i], Y, opt, maxiter = maxiter, tol = tol)
-        if iters_ > i_ 
-            iters_ = i_
+    # Reduce the solution size to linear independent columns
+    @views Q = linear_independent_columns(Q, rtol)
+
+    # Indicate if already used
+    _included = zeros(Bool, my, size(Q, 2))
+
+    @views for i in 1:my, j in 1:size(Q, 2)
+        # Check, if already included
+        any(_included[:, j]) && continue
+        if @views evaluate_pareto!(X[:, i], Q[:,j] , fg, A, λ)
+            _included[i,j] = true
         end
     end
 
-    return iters_
-end
-
-# ADM pareto
-function fit!(X::AbstractArray, A::AbstractArray, Y::AbstractArray, opt::ADM; rtol = 0.99, maxiter::Int64 = 1, convergence_error::T = eps(), f::Function = (xi, theta)->[norm(xi, 0); norm(theta'*xi, 2)], g::Function = x->norm(x),) where T <: Real
-    # Return just the best candidate for the subspace optimization
-
-    θ = zeros(eltype(A), size(X, 1), size(A, 2))
-    θ[size(A, 1)+1:end, :] .= A
+    if _progress
+        sparsity, obj = f(X,A,λ)
 
 
-    fg(xi, theta) = (g∘f)(xi, theta)
+        ProgressMeter.update!(
+            progress,
+            initial_prog + maxiter -1
+        )
 
-    iters = Inf
-
-    @inbounds for i in 1:size(Y, 1)
-        for j in 1:size(A, 2)
-            @views θ[1:size(A, 1), j] .= Y[i, j].*A[:, j]
-        end
-
-        N = nullspace(θ', rtol = rtol)
-        Q = deepcopy(N) # Deepcopy for inplace
-        # Find sparse vectors in nullspace
-        # Calls effectively the ADM algorithm with varying initial conditions
-        fit!(Q, N', opt, maxiter = maxiter)
-
-        # Find sparse vectors in nullspace
-        # Calls effectively the ADM algorithm with varying initial conditions
-        iters_ = fit!(Q, N', opt, maxiter = maxiter, tol = convergence_error)
-        iters_ < iters ? iters = iters_ : nothing
-
-        # Compute pareto front
-        for (j, ξ) in enumerate(eachcol(Q))
-            if j == 1
-                X[:, i] .= ξ
-            else
-                evaluate_pareto!(view(X, :, i), view(ξ, :), fg, view(θ, :, :))
-            end
-        end
-        
-        X[abs.(X[:, i]) .< get_threshold(opt), i] .= zero(eltype(X))
-        @views X[:, i] .= X[:, i] ./ maximum(abs, X[:, i])
+        ProgressMeter.next!(
+        progress;
+        showvalues = [
+            (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
+            ]
+        )
     end
 
-    
-    return iters
+    if rank(X'X) < my
+        @warn "$opt @ $λ has found illconditioned equations. Vary the threshold or relative tolerance."
+    end
+
+    return
 end
