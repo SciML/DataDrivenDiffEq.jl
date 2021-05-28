@@ -35,7 +35,7 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     progress_outer::Int = 1, progress_offset::Int = 0, kwargs...) where T <: AbstractVector
 
     # Closure for the pareto function
-    fg(x, A, y) = (g∘f)(x, A, y)
+    fg(x, A, y, lambda) = (g∘f)(x, A, y, lambda)
     #return fg
 
     # TODO Tmp Result
@@ -43,6 +43,7 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     X_tmp .= X
 
     λ = sort(get_threshold(opt))
+    λs = fill(first(λ), (size(Y, 2),))
 
     if progress
         progress =  init_progress(opt, X, A, Y, length(λ)*progress_outer, progress_offset)
@@ -58,15 +59,20 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     @views for (i,λi) in enumerate(λ)
         init!(X_tmp, opt, A, Y)
         opt(X_tmp, A, Y, λi, maxiter = maxiter, abstol = abstol, f = f, g = g)
-        all(X_tmp .== zero(eltype(X))) && break # Increasing the threshold makes no sense
+        # Increasing the threshold makes no sense
+        all(X_tmp .== zero(eltype(X))) && break
 
-        @views for j in 1:size(Y, 2)
-            evaluate_pareto!(X[:, j], X_tmp[:, j], fg, A, Y[:,j])
+
+        for j in 1:size(Y, 2)
+            if fg(X_tmp[:, j], A, Y[:, j], λi) < fg(X[:, j], A, Y[:, j], λi)
+                λs[j] =λi
+                X[:, j] .= X_tmp[:, j]
+            end
         end
 
         if !isnothing(progress)
-            sparsity, obj = f(X, A, Y)
-            sparsitytmp, objtmp = f(X_tmp, A, Y)
+            sparsity, obj = f(X, A, Y, λi)
+            sparsitytmp, objtmp = f(X_tmp, A, Y, λi)
 
             ProgressMeter.next!(
             progress;
@@ -77,5 +83,10 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
             )
         end
     end
-    return
+
+    for j in 1:size(Y, 2)
+        @views clip_by_threshold!(X[:,j], λs[j])
+    end
+
+    return 
 end
