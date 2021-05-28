@@ -269,7 +269,7 @@ Next, we define the [`ImplicitOptimizer`](@ref) and `solve` the problem.
 
 ```@example 2
 
-opt = ImplicitOptimizer(2e-1)
+opt = ImplicitOptimizer(4e-1)
 
 res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000);
 println(res) # hide
