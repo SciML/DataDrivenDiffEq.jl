@@ -40,6 +40,7 @@ end
 
 # Derive the best n linear independent columns of a matrix
 function linear_independent_columns(A::AbstractMatrix{T}, rtol::T = convert(T, 0.1)) where T
+    iszero(rtol) && return A
     rA = rank(A)
     qr_ = qr(A, Val(true))
     r_ = abs.(diag(qr_.R))

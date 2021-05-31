@@ -39,7 +39,8 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
     maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)),
     rtol::V = zero(eltype(T)) ,progress = nothing,
     f::Function = F(opt),
-    g::Function = G(opt))  where {T, V}
+    g::Function = G(opt), 
+    scale_coefficients::Bool = false)  where {T, V}
 
     exopt = opt.o
 
@@ -85,8 +86,10 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
             f = f, g = g, maxiter = maxiter, abstol = abstol)
 
         # Normalize
-        x_tmp[j,j] = maximum(x_tmp[inds, j:j])
-        x_tmp[inds, j:j] ./= x_tmp[j,j]
+        if scale_coefficients
+            x_tmp[j,j] *= maximum(x_tmp[inds, j:j])
+            x_tmp[inds, j:j] ./= x_tmp[j,j]
+        end
         #x_tmp[:,j:j] .= x_tmp[:, j:j] ./ maximum(x_tmp[:, j:j])
         if _progress
             sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j], λs[1])

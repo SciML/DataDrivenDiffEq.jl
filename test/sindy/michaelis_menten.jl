@@ -23,13 +23,15 @@ end
 h = [monomial_basis(u[1:1], 4)...]
 basis = Basis([h; h .* u[2]], u)
 
+ĝ(x) = x[1] <= 1 ? Inf : norm(x) 
+
 @testset "Ideal data" begin
 
     prob = ContinuousDataDrivenProblem(X, ts, DX = DX)
 
     opts = [ImplicitOptimizer(5e-1);ImplicitOptimizer(1e-3:1e-3:1.0)]
     for opt in opts
-        res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000)
+        res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000, g = ĝ)
         m = metrics(res)
         @test m.Error < 3e-1
         @test m.AICC < 23.0
@@ -37,7 +39,7 @@ basis = Basis([h; h .* u[2]], u)
     end
 
     for opt in [ADM(5e-1); ADM(4e-1:1e-3:5e-1)]
-        res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000)
+        res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000, g = ĝ)
         m = metrics(res)
         @test m.Error < 8e-1
         @test m.AICC < 23.0
@@ -55,7 +57,7 @@ X = X .+ 1e-3*randn(size(X))
     prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel())
 
     for opt in [ImplicitOptimizer(4e-1); ImplicitOptimizer(1e-2:1e-2:1.0)]
-        res = solve(prob, basis, opt, normalize = true, denoise = true)
+        res = solve(prob, basis, opt, normalize = true, denoise = true, g = ĝ)
         m = metrics(res)
         @test m.Error < 3e-1
         @test m.AICC < 35.0
@@ -66,7 +68,7 @@ X = X .+ 1e-3*randn(size(X))
     prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel())
 
     for opt in [ADM(0.01:0.01:4e-1)]
-        res = solve(prob, basis, opt, normalize = false, denoise = false)
+        res = solve(prob, basis, opt, normalize = false, denoise = false, g = ĝ)
         m = metrics(res)
         @test m.Error < 5e-1
         @test m.AICC < 12.0
