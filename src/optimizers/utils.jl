@@ -14,8 +14,8 @@ end
 
 
 # Evaluate the results for pareto
-G(opt::AbstractOptimizer{T} where T) = f->f[1] == 0 ? Inf : norm(f, 2)
-G(opt::AbstractSubspaceOptimizer{T} where T) = f->f[1] <= 2 ? Inf : norm(f, 2)
+G(opt::AbstractOptimizer{T} where T) = f->f[1] < 1 ? Inf :  2*f[1]-2*log(f[2])  #norm(f, 2)
+G(opt::AbstractSubspaceOptimizer{T} where T) = f->f[1] < 2 ? Inf : 2*f[1]-2*log(f[2]) #norm(f, 2)
 # Evaluate F
 function F(opt::AbstractOptimizer{T} where T)
     f(x, A, y::AbstractArray) = [norm(x, 0); norm(y .- A*x, 2)] # explicit
