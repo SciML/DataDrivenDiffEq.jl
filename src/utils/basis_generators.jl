@@ -9,7 +9,7 @@ end
 
 
 """
-chebyshev_basis(x, c)
+$(SIGNATURES)
 
 Constructs an array containing a Chebyshev basis in the variables `x` with coefficients `c`.
 If `c` is an `Int` returns all coefficients from 1 to `c`.
@@ -25,7 +25,7 @@ chebyshev_basis(x::Array, terms::Int) = chebyshev_basis(x, 1:terms)
 
 
 """
-sin_basis(x, c)
+$(SIGNATURES)
 
 Constructs an array containing a Sine basis in the variables `x` with coefficients `c`.
 If `c` is an `Int` returns all coefficients from 1 to `c`.
@@ -41,7 +41,7 @@ sin_basis(x::Array, terms::Int) = sin_basis(x, 1:terms)
 
 
 """
-cos_basis(x, c)
+$(SIGNATURES)
 
 Constructs an array containing a Cosine basis in the variables `x` with coefficients `c`.
 If `c` is an `Int` returns all coefficients from 1 to `c`.
@@ -57,7 +57,7 @@ cos_basis(x::Array, terms::Int) = cos_basis(x, 1:terms)
 
 
 """
-fourier_basis(x, c)
+$(SIGNATURES)
 
 Constructs an array containing a Fourier basis in the variables `x` with (integer) coefficients `c`.
 If `c` is an `Int` returns all coefficients from 1 to `c`.
@@ -72,7 +72,7 @@ end
 fourier_basis(x::Array, terms::Int) = fourier_basis(x, 1:terms)
 
 """
-polynomial_basis(x, c)
+$(SIGNATURES)
 
 Constructs an array containing a polynomial basis in the variables `x` up to degree `c` of the form
 `[x₁, x₂, x₃, ..., x₁^1 * x₂^(c-1)]`. Mixed terms are included.
@@ -101,7 +101,7 @@ end
 
 
 """
-monomial_basis(x, c)
+$(SIGNATURES)
 
 Constructs an array containing monomial basis in the variables `x` up to degree `c` of the form
 `[x₁, x₁^2, ... , x₁^c, x₂, x₂^2, ...]`.

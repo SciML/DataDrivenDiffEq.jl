@@ -128,6 +128,12 @@ function optimal_shrinkage(X::AbstractArray{T, 2}) where T <: Number
     return U[:, inds]*Diagonal(S[inds])*V[:, inds]'
 end
 
+"""
+    $(SIGNATURES)
+
+Compute a feature reduced version of the data array `X` inplace via thresholding the
+singular values by computing the [optimal threshold for singular values](http://arxiv.org/abs/1305.5870).
+"""
 function optimal_shrinkage!(X::AbstractArray{T, 2}) where T <: Number
     m,n = minimum(size(X)), maximum(size(X))
     U, S, V = svd(X)
