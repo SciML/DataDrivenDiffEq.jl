@@ -83,10 +83,10 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
             )
         end
     end
-
-    for j in 1:size(Y, 2)
-        @views clip_by_threshold!(X[:,j], λs[j])
+    
+    for i in 1:size(Y, 2)
+        @views clip_by_threshold!(X[:, i], λs[i])
     end
 
-    return 
+    return λs
 end
