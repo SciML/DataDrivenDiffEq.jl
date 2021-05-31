@@ -118,6 +118,8 @@ Possible keyworded arguments include
 + `maxiter` Maximum iterations of the used optimizer
 + `round` rounds according to the currently used threshold of the optimizer
 
+!!! warning
+    For additional keywords, have a look at the examples in the [`Quickstart`](@ref) section or into the source code (for now).
 
 
 ## Types

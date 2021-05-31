@@ -352,7 +352,8 @@ push!(implicits, x...)
 push!(implicits, x[1]*cos(u[1]))
 push!(implicits, x[1]*sin(u[1]))
 
-basis= Basis(implicits, [u; du], controls = x,  iv = t)
+basis= Basis(implicits, [u; du], controls = x,  iv = t);
+println(basis) # hide
 ```
 
 And solve the problem by varying over a sufficient set of thresholds for the associated optimizer.
@@ -367,7 +368,7 @@ To evaluate the pareto optimal solution over, we use the functions `f` and `g` w
 opt = ImplicitOptimizer(λ)
 
 # Compute the AIC
-g(x) = x[1] <= 1 ? Inf : 2*f[1]-2*log(f[2])
+g(x) = x[1] <= 1 ? Inf : 2*x[1]-2*log(x[2])
 res = solve(ddprob, basis, opt, du, maxiter = 1000, g = g, scale_coefficients = true)
 
 println(res)
