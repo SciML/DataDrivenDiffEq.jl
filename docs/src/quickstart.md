@@ -267,8 +267,6 @@ println(basis) # hide
 
 Next, we define the [`ImplicitOptimizer`](@ref) and `solve` the problem.
 
-To evaluate the pareto optimal solution over, we use the functions `f` and `g` which can be passed as keyworded arguements into the `solve` function. `f` is a function with different signatures for different optimizers, but returns the ``L_0`` norm of the coefficients and the ``L_2`` error of the current model. `g` takes this vector and projects it down onto a scalar, using the [`AIC`](@ref) per default. However, here we want to use the ``L_2`` norm of the output of `f`. A noteworthy exception is of course, that we want only results with two or more active coefficents. Hence we modify `g` accordingly.
-
 ```@example 2
 
 opt = ImplicitOptimizer(4e-1)
@@ -360,13 +358,17 @@ basis= Basis(implicits, [u; du], controls = x,  iv = t)
 And solve the problem by varying over a sufficient set of thresholds for the associated optimizer.
 Additionally we activate the `scale_coefficients` option for the [`ImplicitOptimizer](@ref), which helps to find sparse equations by normalizing the resulting coefficient matrix after each suboptimization.
 
+To evaluate the pareto optimal solution over, we use the functions `f` and `g` which can be passed as keyworded arguements into the `solve` function. `f` is a function with different signatures for different optimizers, but returns the ``L_0`` norm of the coefficients and the ``L_2`` error of the current model. `g` takes this vector and projects it down onto a scalar, using the [`AIC`](@ref) per default. However, here we want to use the `AIC`  of the output of `f`. A noteworthy exception is of course, that we want only results with two or more active coefficents. Hence we modify `g` accordingly.
+
 ```@example 5
 λ = [1e-4;5e-4;1e-3;2e-3;3e-3;4e-3;5e-3;6e-3;7e-3;8e-3;9e-3;1e-2;2e-2;3e-2;4e-2;5e-2;
 6e-2;7e-2;8e-2;9e-2;1e-1;2e-1;3e-1;4e-1;5e-1;6e-1;7e-1;8e-1;9e-1;1;1.5;2;2.5;3;3.5;4;4.5;5;
 6;7;8;9;10;20;30;40;50;100;200];
 opt = ImplicitOptimizer(λ)
 
-res = solve(ddprob, basis, opt, du, maxiter = 1000, scale_coefficients = true)
+# Compute the AIC
+g(x) = x[1] <= 1 ? Inf : 2*f[1]-2*log(f[2])
+res = solve(ddprob, basis, opt, du, maxiter = 1000, g = g, scale_coefficients = true)
 
 println(res)
 println(result(res))

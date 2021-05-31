@@ -54,7 +54,8 @@ basis= Basis(implicits, [u; du], controls = x,  iv = t)
 
 opt = ImplicitOptimizer(λ)
 
-res = solve(ddprob, basis, opt, du, progress = false, normalize = false, maxiter = 1000, scale_coefficients = true) 
+g(x) = x[1] <= 1 ? Inf : 2*f[1]-2*log(f[2])
+res = solve(ddprob, basis, opt, du, maxiter = 1000, g = g, scale_coefficients = true)
 m = metrics(res)
 @test m.Sparsity == 10
 @test m.AICC < 10.0

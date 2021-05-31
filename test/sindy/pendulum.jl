@@ -24,8 +24,6 @@ for (i, xi) in enumerate(eachcol(sol[:,:]))
     DX[:,i] = pendulum(xi, [], 0.0)
 end
 
-ĝ(x) = x[1] == 0 ? Inf : norm(x)   
-
 @testset "Ideal data" begin
 
     dd_prob = ContinuousDataDrivenProblem(
@@ -40,7 +38,7 @@ ĝ(x) = x[1] == 0 ? Inf : norm(x)
 
 
     for opt in opts
-        res = solve(dd_prob, basis, opt, maxiter = 10000, g = ĝ)
+        res = solve(dd_prob, basis, opt, maxiter = 10000)
         m = metrics(res)
         @test m.Sparsity == 4
         @test m.Error ./ size(X, 2) < 3e-1
@@ -65,7 +63,7 @@ X = X .+ 1e-1*randn(size(X))
 
 
     for opt in opts
-        res = solve(dd_prob_noisy, basis, opt, maxiter = 50000, denoise = true, normalize = true, g = ĝ)
+        res = solve(dd_prob_noisy, basis, opt, maxiter = 50000, denoise = true, normalize = true)
         m = metrics(res)
         @test m.Sparsity <= 5
         @test m.Error ./ size(X, 2) < 3e-1
