@@ -22,7 +22,7 @@ const GROUP = get(ENV, "GROUP", "All")
         # Should be a quick fix tomorrow
         @testset "Sparse Identification" begin
             @testset "Pendulum" begin include("./sindy/pendulum.jl") end
-            #@testset "Michaelis Menten" begin include("./sindy/michaelis_menten.jl") end
+            @testset "Michaelis Menten" begin include("./sindy/michaelis_menten.jl") end
             @testset "Cartpole" begin include("./sindy/cartpole.jl") end
         end
 

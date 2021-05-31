@@ -129,6 +129,13 @@ end
 
 # Explicit sindy
 function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis)
+    if all(iszero(Ξ))
+        @warn "Sparse regression failed! All coefficients are zero."
+        return DataDrivenSolution(
+        nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing), 
+    )
+    end
+    
     eqs, ps, p_ = build_parametrized_eqs(Ξ, b)
 
     # Build the lhs
