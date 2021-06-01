@@ -27,7 +27,7 @@ end
 @testset "Ideal data" begin
 
     dd_prob = ContinuousDataDrivenProblem(
-        X, t, DX = DX
+        sol
         )
 
 
