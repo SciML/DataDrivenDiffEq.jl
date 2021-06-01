@@ -95,9 +95,9 @@ function Base.summary(io::IO, r::DataDrivenSolution)
 end
 
 
-function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType = Val{false})
+function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
 
-    fullview == Val{false} && return summary(io, r)
+    fullview != Val{true} && return summary(io, r)
 
     is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
     println(io, "Solution with $(length(r.res.eqs)) equations and $(length(r.ps)) parameters.")

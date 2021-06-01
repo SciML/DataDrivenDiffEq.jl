@@ -1,4 +1,3 @@
-
 function cart_pole(u, p, t)
     du = similar(u)
     F = -0.2 + 0.5*sin(6*t) # the input
@@ -40,7 +39,7 @@ push!(polys, sin.(u[1]).*u[3:4].^2...)
 push!(polys, sin.(u[1]).*cos.(u[1])...)
 push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4]...)
 push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4].^2...)
-implicits = [du;  du .* cos(u[1]);   du .* cos(u[1])^2; polys]
+implicits = [du;  du[1] .* u; du[2] .* u; du .* cos(u[1]);   du .* cos(u[1])^2; polys]
 push!(implicits, x...)
 push!(implicits, x[1]*cos(u[1]))
 push!(implicits, x[1]*sin(u[1]))
@@ -60,4 +59,4 @@ m = metrics(res)
 
 @test m.Sparsity == 10
 @test m.AICC < 180.0
-@test m.Error < 100.0
+@test m.Error < 1.0
