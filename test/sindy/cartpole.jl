@@ -57,7 +57,7 @@ opt = ImplicitOptimizer(λ)
 ĝ(x) = x[1] <= 1 ? Inf : 2*x[1]-2*log(x[2])
 res = solve(ddprob, basis, opt, du, maxiter = 1000, g = ĝ, scale_coefficients = true)
 m = metrics(res)
-println(m)
+
 @test m.Sparsity == 10
 @test m.AICC < 180.0
 @test m.Error < 100.0

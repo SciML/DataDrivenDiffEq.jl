@@ -38,7 +38,6 @@ basis = Basis([h; h .* u[2]], u)
     for opt in opts
         res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 10000)
         m = metrics(res)
-        println(m)
         @test m.Error < 5e-1
         @test m.AICC < 23.0
         @test m.Sparsity == 4
