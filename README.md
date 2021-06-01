@@ -51,7 +51,7 @@ u = [x;y;z]
 basis = Basis(polynomial_basis(u, 5), u, iv = t)
 opt = STLSQ(exp10.(-5:0.1:-1))
 ddsol = solve(ddprob, basis, opt, normalize = true)
-
+print(ddsol, Val{true})
 ```
 
 ```
