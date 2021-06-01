@@ -24,7 +24,7 @@ Equations
 Differential(t)(x₁) = p₁*x₁ + p₂*x₂
 Differential(t)(x₂) = p₃*x₂</code></pre><p>The <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> contains an explicit result which is a <a href="../koopman/#DataDrivenDiffEq.Koopman"><code>Koopman</code></a>, defining all necessary information, e.g. the associated operator (which corresponds to our abefore defined matrix <span>$A$</span>).</p><pre><code class="language-julia">Matrix(system)</code></pre><pre><code class="language-none">2×2 Matrix{Float64}:
   0.9          -0.2
- -1.07938e-17   0.2</code></pre><p>In general, we can skip the expensive progress of deriving a callable symbolic system and return just the basic definitions using the <code>operator_only</code> keyword.</p><pre><code class="language-julia">res = solve(prob, DMDSVD(), digits = 1, operator_only = true)</code></pre><pre><code class="language-none">(K = LinearAlgebra.Eigen{Float64, Float64, Matrix{Float64}, Vector{Float64}}([0.1999999999999999, 0.9000000000000006], [0.05494422557947559 -0.9000000000000002; 0.19230478952816454 1.3877787807814457e-17]), C = [1.0 0.0; 0.0 1.0], B = Matrix{Float64}(undef, 0, 0), Q = [658.3410161960379 -135.16260071909275; -25.406503863502085 20.833333333333325], P = [658.3410161960379 -135.16260071909275; -25.406503863502085 20.833333333333325])</code></pre><p>Where <code>K</code> is the associated operator given as its eigendecomposition, <code>B</code> is a possible mapping of inputs onto the states, <code>C</code> is the linear mapping from the lifted observeables back onto the original states and <code>Q</code> and <code>P</code> are used for updating the operator.</p><h2 id="Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition-1"><a class="docs-heading-anchor" href="#Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition-1">Nonlinear System with Extended Dynamic Mode Decomposition</a><a class="docs-heading-anchor-permalink" href="#Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition-1" title="Permalink"></a></h2><p>Similarly, we can use the <a href="https://link.springer.com/article/10.1007/s00332-015-9258-5">Extended Dynamic Mode Decomposition</a> via a nonlinear <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> of observeables. Here, we look a rather <a href="https://arxiv.org/pdf/1510.03007.pdf">famous example</a> with a finite dimensional solution.</p><pre><code class="language-julia">using DataDrivenDiffEq
+ -1.07938e-17   0.2</code></pre><p>In general, we can skip the expensive progress of deriving a callable symbolic system and return just the basic definitions using the <code>operator_only</code> keyword.</p><pre><code class="language-julia">res = solve(prob, DMDSVD(), digits = 1, operator_only = true)</code></pre><pre><code class="language-none">(K = LinearAlgebra.Eigen{Float64, Float64, Matrix{Float64}, Vector{Float64}}([0.1999999999999999, 0.9000000000000006], [0.05494422557947558 -0.9000000000000002; 0.19230478952816457 1.3877787807814457e-17]), C = [1.0 0.0; 0.0 1.0], B = Matrix{Float64}(undef, 0, 0), Q = [658.3410161960379 -135.16260071909275; -25.406503863502085 20.833333333333325], P = [658.3410161960379 -135.16260071909275; -25.406503863502085 20.833333333333325])</code></pre><p>Where <code>K</code> is the associated operator given as its eigendecomposition, <code>B</code> is a possible mapping of inputs onto the states, <code>C</code> is the linear mapping from the lifted observeables back onto the original states and <code>Q</code> and <code>P</code> are used for updating the operator.</p><h2 id="Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition-1"><a class="docs-heading-anchor" href="#Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition-1">Nonlinear System with Extended Dynamic Mode Decomposition</a><a class="docs-heading-anchor-permalink" href="#Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition-1" title="Permalink"></a></h2><p>Similarly, we can use the <a href="https://link.springer.com/article/10.1007/s00332-015-9258-5">Extended Dynamic Mode Decomposition</a> via a nonlinear <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> of observeables. Here, we look a rather <a href="https://arxiv.org/pdf/1510.03007.pdf">famous example</a> with a finite dimensional solution.</p><pre><code class="language-julia">using DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
 using OrdinaryDiffEq
@@ -40,18 +40,14 @@ tspan = (0.0, 5.0)
 p = [-0.8; -0.7]
 
 problem = ODEProblem(slow_manifold, u0, tspan, p)
-solution = solve(problem, Tsit5(), saveat = 0.01)</code></pre><p><img src="../EDMD_Example_1.png" alt/></p><p>Since we are dealing with an continuous system in time, we define the associated <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> accordingly using the measured states <code>X</code>, their derivates <code>DX</code> and the time <code>t</code>.</p><pre><code class="language-julia">X = Array(solution)
-t = solution.t
-DX = solution(solution.t, Val{1})[:, :]
-
-prob = ContinuousDataDrivenProblem(X, t, DX = DX)</code></pre><pre><code class="language-none">DataDrivenProblem{Float64}([3.0 2.976095744391066 … 0.055390426017724356 0.05494907036555832; -2.0 -1.9237690194114834 … 0.1496556838534025 0.1486329834178042], [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09  …  4.91, 4.92, 4.93, 4.94, 4.95, 4.96, 4.97, 4.98, 4.99, 5.0], [-2.3904255608933944 -2.3904255608933944 … -0.04449006500067019 -0.04413556521660433; 7.623098058851663 7.623098058851663 … -0.10295394011114675 -0.10227004355983167], Matrix{Float64}(undef, 0, 0), Matrix{Float64}(undef, 0, 0), Float64[], false)</code></pre><p>Additionally, we need to define the <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> for our lifting, before we <code>solve</code> the problem in the lifted space.</p><pre><code class="language-julia">@variables u[1:2]
+solution = solve(problem, Tsit5(), saveat = 0.01)</code></pre><p><img src="../EDMD_Example_1.png" alt/></p><p>Since we are dealing with an continuous system in time, we define the associated <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> accordingly using the measured states <code>X</code>, their derivates <code>DX</code> and the time <code>t</code>.</p><pre><code class="language-julia">prob = ContinuousDataDrivenProblem(solution)</code></pre><pre><code class="language-none">DataDrivenProblem{Float64}([3.0 2.976095744391066 … 0.055390426017724356 0.05494907036555832; -2.0 -1.9237690194114834 … 0.1496556838534025 0.1486329834178042], [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09  …  4.91, 4.92, 4.93, 4.94, 4.95, 4.96, 4.97, 4.98, 4.99, 5.0], [-2.4000000000000004 -2.380876595512853 … -0.044312340814179486 -0.04395925629244666; 7.699999999999999 7.546640429435868 … -0.10261130919128424 -0.10192950815863558], Matrix{Float64}(undef, 0, 0), Matrix{Float64}(undef, 0, 0), [-0.8, -0.7], false)</code></pre><p>Additionally, we need to define the <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> for our lifting, before we <code>solve</code> the problem in the lifted space.</p><pre><code class="language-julia">@variables u[1:2]
 Ψ = Basis([u; u[1]^2], u)
 res = solve(prob, Ψ, DMDPINV(), digits = 1)
 system = result(res)</code></pre><pre><code class="language-none">Explicit Result
 Solution with 2 equations and 3 parameters.
 Returncode: success
-L2 Norm Error: 0.4206111284707489
-AICC: 9.544831391300633
+L2 Norm Error: 3.343797283569837e-15
+AICC: 139.4073224511615
 
 Model ##Koopman#1071 with 2 equations
 States : u₁ u₂
@@ -63,14 +59,14 @@ Differential(t)(u₂) = p₂*u₂ + p₃*(u₁^2)
 [-0.8, -0.7, 0.7]</code></pre><p>The underlying dynamics have been recovered correctly by the algorithm!</p><p>The eigendecomposition of the Koopman operator can be accessed via <a href="../koopman/#DataDrivenDiffEq.operator"><code>operator</code></a>.</p><pre><code class="language-julia">operator(system)</code></pre><pre><code class="language-none">LinearAlgebra.Eigen{Float64, Float64, Matrix{Float64}, Vector{Float64}}
 values:
 3-element Vector{Float64}:
- -1.6032055695631748
- -0.8085558464032564
- -0.7096634750155816
+ -1.5999999999999999
+ -0.8000000000000005
+ -0.6999999999999987
 vectors:
 3×3 Matrix{Float64}:
-  0.000528926   0.98965   0.0229491
-  0.61568      -0.137912  0.999634
- -0.787996     -0.039652  0.0143123</code></pre><h2 id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1"><a class="docs-heading-anchor" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1">Nonlinear Systems - Sparse Identification of Nonlinear Dynamics</a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1" title="Permalink"></a></h2><p>To find the underlying system without any <a href="../koopman/#koopman_algorithms-1"><code>Algortihms</code></a> related to Koopman operator theory, we can use  <a href="https://www.pnas.org/content/113/15/3932">Sparse Identification of Nonlinear Dynamics</a> - SINDy for short. As the name suggests, it finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system</p><pre><code class="language-julia">using DataDrivenDiffEq
+  8.50899e-17  -1.0          1.61045e-15
+  0.613941     -3.02243e-14  1.0
+ -0.789352      8.80595e-15  3.94361e-15</code></pre><h2 id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1"><a class="docs-heading-anchor" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1">Nonlinear Systems - Sparse Identification of Nonlinear Dynamics</a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1" title="Permalink"></a></h2><p>To find the underlying system without any <a href="../koopman/#koopman_algorithms-1"><code>Algortihms</code></a> related to Koopman operator theory, we can use  <a href="https://www.pnas.org/content/113/15/3932">Sparse Identification of Nonlinear Dynamics</a> - SINDy for short. As the name suggests, it finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system</p><pre><code class="language-julia">using DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
 using OrdinaryDiffEq
@@ -113,8 +109,8 @@ res = solve(prob, basis, opt, progress = false, denoise = false, normalize = fal
 Solution with 2 equations and 7 parameters.
 Returncode: sucess
 Sparsity: 5.0
-L2 Norm Error: 9.16981610724992
-AICC: 1.1925559702692727</code></pre><p>Where the resulting <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> stores information about the infered model and the parameters:</p><pre><code class="language-julia">system = result(res);
+L2 Norm Error: 9.169816107249888
+AICC: 1.1925559702692852</code></pre><div class="admonition is-info"><header class="admonition-header">Info</header><div class="admonition-body"><p>A more detailed description of the result can be printed via <code>print(res, Val{true})</code>, which also includes the discovered equations and parameter values.</p></div></div><p>Where the resulting <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> stores information about the infered model and the parameters:</p><pre><code class="language-julia">system = result(res);
 params = parameters(res);</code></pre><pre><code class="language-none">Model ##Basis#1089 with 2 equations
 States : u₁ u₂
 Parameters : 7
@@ -164,8 +160,7 @@ Equations
 φ₄ = u₁(t)^3
 ...
 φ₁₀ = Differential(t)(u₁(t))*(u₁(t)^4)</code></pre><p><img src="../SINDy_Example_Data_2.png" alt/></p><p>Next, we define the <a href="../optimization/#DataDrivenDiffEq.Optimize.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> and <code>solve</code> the problem.</p><pre><code class="language-julia">opt = ImplicitOptimizer(4e-1)
-g_(x) = x[1] &lt;= 1 ? Inf : norm(x)
-res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000, g = g_);</code></pre><pre><code class="language-none">Implicit Result
+res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000);</code></pre><pre><code class="language-none">Implicit Result
 Solution with 1 equations and 4 parameters.
 Returncode: sucess
 Sparsity: 4.0
@@ -258,4 +253,4 @@ Independent variable: t
 Equations
 0 = du₁*p₁ + p₃*sin(u₁) + du₁*p₂*(cos(u₁)^2) + p₅*x₁*cos(u₁) + p₄*cos(u₁)*sin(u₁)*(u₃^2)
 0 = du₂*p₆ + p₁₀*x₁ + du₂*p₇*(cos(u₁)^2) + p₈*sin(u₁)*(u₃^2) + p₉*cos(u₁)*sin(u₁)
-Pair{SymbolicUtils.Sym{Real, Base.ImmutableDict{DataType, Any}}, Float64}[p₁ =&gt; -1.0, p₂ =&gt; 0.5, p₃ =&gt; -9.81, p₄ =&gt; -0.5, p₅ =&gt; -0.5, p₆ =&gt; -1.0, p₇ =&gt; 0.5, p₈ =&gt; -0.5, p₉ =&gt; -4.905, p₁₀ =&gt; -0.5]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../prob_and_solve/">Problems And Solution »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 1 June 2021 09:48">Tuesday 1 June 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Pair{SymbolicUtils.Sym{Real, Base.ImmutableDict{DataType, Any}}, Float64}[p₁ =&gt; -1.0, p₂ =&gt; 0.5, p₃ =&gt; -9.81, p₄ =&gt; -0.5, p₅ =&gt; -0.5, p₆ =&gt; -1.0, p₇ =&gt; 0.5, p₈ =&gt; -0.5, p₉ =&gt; -4.905, p₁₀ =&gt; -0.5]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../prob_and_solve/">Problems And Solution »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 1 June 2021 13:34">Tuesday 1 June 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
