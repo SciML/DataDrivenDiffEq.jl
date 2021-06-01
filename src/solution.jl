@@ -7,7 +7,7 @@ The solution is represented via an `AbstractBasis`, which makes it callable.
 # Fields
 $(FIELDS)
 """
-struct DataDrivenSolution{R <: AbstractBasis, S, P , A, O,M} <: AbstractDataDrivenSolution
+struct DataDrivenSolution{R <: Union{AbstractBasis,Nothing} , S, P , A, O,M} <: AbstractDataDrivenSolution
     """Result"""
     res::R # The result
     """Returncode"""
@@ -129,6 +129,13 @@ end
 
 # Explicit sindy
 function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis)
+    if all(iszero(Ξ))
+        @warn "Sparse regression failed! All coefficients are zero."
+        return DataDrivenSolution(
+        nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing), 
+    )
+    end
+    
     eqs, ps, p_ = build_parametrized_eqs(Ξ, b)
 
     # Build the lhs
@@ -193,6 +200,14 @@ end
 
 function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractSubspaceOptimizer,
     b::Basis, implicits::Vector{Num})
+
+    if all(iszero(Ξ))
+        @warn "Sparse regression failed! All coefficients are zero."
+        return DataDrivenSolution(
+        nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing), 
+    )
+    end
+    
     eqs, ps, p_ = build_parametrized_eqs(Ξ, b)
     eqs = [0 .~ eq for eq in eqs]
 

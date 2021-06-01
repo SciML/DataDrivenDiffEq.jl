@@ -65,7 +65,8 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
     @views while (iters < maxiter) && !converged
         iters += 1
 
-        ldiv!(z, P, c .+ ρ .* (z .- u))
+        #ldiv!(z, P, c .+ ρ .* (z .- u))
+        z .= P \ (c .+ ρ .* (z .- u))
         R(X, z .+ u, λ ./ ρ)
         u .= u .+ z .- X
 
@@ -100,6 +101,6 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
             x_i .= X
         end
     end
-    clip_by_threshold!(X, λ)
+    @views clip_by_threshold!(X, λ)
     return
 end

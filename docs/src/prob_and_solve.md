@@ -103,7 +103,7 @@ basis = Basis([x, y, z], [x,y,z])
 res = solve(problem, basis, ImplicitOptimizer(), [x,y])
 ```
 
-Would exclude solutions of the form `x = y + z` since we separate `x` and `y`. However, defining
+Would exclude solutions of the form `x = z` or `y = z` since we declared `x` and `y` as implicit variables assuming they don't interact. However, defining
 
 ```julia
 basis = Basis([x, y, z, x*y], [x,y,z])
@@ -118,6 +118,8 @@ Possible keyworded arguments include
 + `maxiter` Maximum iterations of the used optimizer
 + `round` rounds according to the currently used threshold of the optimizer
 
+!!! warning
+    For additional keywords, have a look at the examples in the [`Quickstart`](@ref) section or into the source code (for now).
 
 
 ## Types

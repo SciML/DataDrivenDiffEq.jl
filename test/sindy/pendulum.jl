@@ -47,17 +47,18 @@ end
 
 
 Random.seed!(1234)
-X = X .+ 1e-2*randn(size(X))
+X = X .+ 1e-1*randn(size(X))
 
 @testset "Noisy data" begin
 
     dd_prob_noisy = ContinuousDataDrivenProblem(
-        X, t, SigmoidKernel()
+        X, t, GaussianKernel()
         )
 
+    
     opts = [
         STLSQ(1e-1:5e-1:1e3), ADMM(1e-1:5e-1:1e3, 0.1), SR3(1e-1:5e-1:1e2, SoftThreshold()),
-        SR3((1e-1:5e-1:1e2).^2, 0.1, HardThreshold()), SR3(1e-1:5e-1:1e3, ClippedAbsoluteDeviation())
+        SR3((1e-1:5e-1:1e2), 1.0, HardThreshold()), SR3(1e-1:5e-1:1e4, ClippedAbsoluteDeviation())
     ]
 
 

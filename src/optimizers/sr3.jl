@@ -83,7 +83,8 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
        iters += 1
 
        # Solve ridge regression
-       ldiv!(X, H, X̂ .+ W*ν)
+       X .= H \ (X̂ .+ W*ν) 
+       #ldiv!(X, H, X̂ .+ W*ν)
        # Proximal
        opt.R(W, X, λ)
 

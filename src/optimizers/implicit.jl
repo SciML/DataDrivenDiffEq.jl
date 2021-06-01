@@ -39,7 +39,8 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
     maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)),
     rtol::V = zero(eltype(T)) ,progress = nothing,
     f::Function = F(opt),
-    g::Function = G(opt))  where {T, V}
+    g::Function = G(opt), 
+    scale_coefficients::Bool = false)  where {T, V}
 
     exopt = opt.o
 
@@ -81,11 +82,17 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
         x_tmp[inds, j:j] .= init(exopt, A[:, inds], A[:, j:j])
 
         # Use optimizer
-        @views exopt(x_tmp[inds, j:j], A[:, inds], A[:, j:j],λ,
-            maxiter = maxiter, abstol = abstol)
+        λs = @views sparse_regression!(x_tmp[inds, j:j], A[:, inds], A[:, j:j],exopt,
+            f = f, g = g, maxiter = maxiter, abstol = abstol)
 
+        # Normalize
+        if scale_coefficients
+            x_tmp[j,j] *= maximum(x_tmp[inds, j:j])
+            x_tmp[inds, j:j] ./= x_tmp[j,j]
+        end
+        #x_tmp[:,j:j] .= x_tmp[:, j:j] ./ maximum(x_tmp[:, j:j])
         if _progress
-            sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j], λ)
+            sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j], λs[1])
 
             ProgressMeter.next!(
             progress;
@@ -98,20 +105,21 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
 
 
     # Reduce the solution size to linear independent columns
-    # TODO Make this a function and more stable
     @views x_tmp = linear_independent_columns(x_tmp, rtol)
 
     # Indicate if already used
     _included = zeros(Bool, my, size(x_tmp, 2))
-    @views for i in 1:my, j in 1:size(x_tmp, 2)
+    for i in 1:my, j in 1:size(x_tmp, 2)
         # Check, if already included
         any(_included[:, j]) && continue
         # Selector
         inds .= true; inds[j] = false
-        if @views evaluate_pareto!(X[inds, i], x_tmp[inds, j], fg, A[:, inds], A[:, j])
-            X[j,i] = x_tmp[j,j]
+        
+        if fg(x_tmp[inds, j], A[:, inds], A[:, j]) < fg(X[inds, i], A[:, inds], A[:, j])
+            X[:, i] .= x_tmp[:, i]
             _included[i,j] = true
         end
+        
     end
 
     if rank(X'X) < my

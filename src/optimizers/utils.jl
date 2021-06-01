@@ -14,8 +14,8 @@ end
 
 
 # Evaluate the results for pareto
-G(opt::AbstractOptimizer{T} where T) = f->f[1] == 0 ? Inf : norm(f, 2)
-G(opt::AbstractSubspaceOptimizer{T} where T) = f->f[1] <= 2 ? Inf : norm(f, 2)
+G(opt::AbstractOptimizer{T} where T) = f->f[1] < 1 ? Inf : norm(f, 2) # 2*f[1]-2*log(f[2])
+G(opt::AbstractSubspaceOptimizer{T} where T) = f->f[1] < 2 ? Inf : norm(f, 2) # 2*f[1]-2*log(f[2])
 # Evaluate F
 function F(opt::AbstractOptimizer{T} where T)
     f(x, A, y::AbstractArray) = [norm(x, 0); norm(y .- A*x, 2)] # explicit
@@ -40,6 +40,7 @@ end
 
 # Derive the best n linear independent columns of a matrix
 function linear_independent_columns(A::AbstractMatrix{T}, rtol::T = convert(T, 0.1)) where T
+    iszero(rtol) && return A
     rA = rank(A)
     qr_ = qr(A, Val(true))
     r_ = abs.(diag(qr_.R))
