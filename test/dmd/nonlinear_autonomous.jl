@@ -10,10 +10,9 @@
 
   problem = ODEProblem(slow_manifold, u0, tspan, p)
   solution = solve(problem, Tsit5(), saveat = 0.01)
-  DX = solution(solution.t, Val{1})[:,:]
 
 
-  prob = ContinuousDataDrivenProblem(solution[:,:], solution.t, DX = DX)
+  prob = ContinuousDataDrivenProblem(solution)
 
   @variables u[1:2]
   Ψ = Basis([u; u[1]^2], u)

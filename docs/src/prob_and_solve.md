@@ -24,6 +24,15 @@ problem = ContinuousDataDrivenProblem(X, t, DX = DX, U = U, p = p)
 problem = ContinuousDataDrivenProblem(X, t, DX = DX, U = (x,p,t)->u(x,p,t))
 ```
 
+You can also directly use a `DESolution` as an input to your [`DataDrivenProblem`](@ref):
+
+```julia
+problem = DataDrivenProblem(sol; kwargs...)
+```
+
+which evaluates the function at the specific timepoints `t` using the parameters `p` of the original problem instead of
+using the interpolation. If you want to use the interpolated data, add the additional keyword `use_interpolation = true`.
+
 Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref) or [`Sparse Optimization`](@ref) methods. Different options can be provided as well as a [`Basis`](@ref) used for lifting the measurements, to control different options like rounding, normalization or the progressbar depending on the inference method. Possible options are provided [below](@ref optional_arguments).
 
 ```julia

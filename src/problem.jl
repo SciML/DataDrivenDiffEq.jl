@@ -287,3 +287,46 @@ function get_implicit_oop_args(x::DataDrivenProblem)
     end
     return returns
 end
+
+
+## ODESolution dispatch
+
+ContinuousDataDrivenProblem(sol::T; kwargs...) where T <: DiffEqBase.DESolution = DataDrivenProblem(sol; kwargs...)
+DiscreteDataDrivenProblem(sol::T; kwargs...) where T <: DiffEqBase.DESolution = DataDrivenProblem(sol; kwargs...)
+
+function DataDrivenProblem(sol::T; use_interpolation = false, kwargs...) where T <: DiffEqBase.DESolution
+    if sol.retcode != :Success
+        throw(AssertionError("The solution is not successful. Abort."))
+        return
+    end
+
+    X = Array(sol)
+    t = sol.t 
+    p = sol.prob.p
+
+    p = isa(p, DiffEqBase.NullParameters) ? eltype(X)[] : p
+
+    if isdiscrete(sol.alg)
+        
+        return DiscreteDataDrivenProblem(
+            X[:, 1:end-1], t, X[:, 2:end], p = p; kwargs...
+        )
+    
+    else
+        if use_interpolation
+            DX = Array(sol(sol.t, Val{1}))
+        else
+            DX = similar(X)
+            if DiffEqBase.isinplace(sol.prob.f)
+                @views map(i->sol.prob.f(DX[:, i], X[:, i], p, t[i]), 1:size(X,2))
+            else
+                map(i->DX[:, i] .= sol.prob.f(X[:, i], p, t[i]), 1:size(X,2))
+            end
+        end
+
+        return ContinuousDataDrivenProblem(
+            X, t, DX = DX, p = p; kwargs...
+        )
+    end
+
+end

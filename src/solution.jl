@@ -91,6 +91,32 @@ function Base.summary(io::IO, r::DataDrivenSolution)
     haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
     haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
     haskey(r.metrics, :AICC) && println(io, "AICC: $(r.metrics.AICC)")
+    return
+end
+
+
+function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType = Val{false})
+
+    fullview == Val{false} && return summary(io, r)
+
+    is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
+    println(io, "Solution with $(length(r.res.eqs)) equations and $(length(r.ps)) parameters.")
+    println(io, "Returncode: $(r.retcode)")
+    haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
+    haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
+    haskey(r.metrics, :AICC) && println(io, "AICC: $(r.metrics.AICC)")
+    println(io, "")
+    print(io, r.res)
+    println(io, "")
+    if length(r.res.ps) > 0 
+        x = parameter_map(r)
+        println(io, "Parameters:")
+        for v in x
+            println(io, "   $(v[1]) : $(v[2])")
+        end
+    end
+
+    return
 end
 
 Base.print(io::IO, r::DataDrivenSolution) = summary(io, r)
@@ -157,7 +183,7 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
     sparsities = map(i->norm(i, 0), eachcol(Ξ))
 
     retcode = size(Ξ, 2) == size(prob.DX, 1) ? :sucess : :incomplete
-    pnew = [prob.p; ps]
+    pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
     X = prob.DX
     Y = res_(prob.X, pnew, prob.t, prob.U)
 
@@ -223,7 +249,7 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
     sparsities = map(i->norm(i, 0), eachcol(Ξ))
 
     retcode = size(Ξ, 2) == size(prob.DX, 1) ? :sucess : :incomplete
-    pnew = [prob.p; ps]
+    pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
     Y = res_([prob.X; prob.DX], pnew, prob.t, prob.U)
 
     # Build the metrics
@@ -298,7 +324,7 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
 
 
     retcode = :success
-    pnew = [prob.p; ps]
+    pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
     # Equation space
     X = prob.DX
     X_, _, t, U = get_oop_args(prob)

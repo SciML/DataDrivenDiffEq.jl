@@ -34,10 +34,9 @@ end
     u0 = [10.0; -20.0]
     prob = ODEProblem(f, u0, (0.0, 10.0))
     sol = solve(prob, Tsit5(), saveat = 0.001)
-    X = sol[:,:]
-    DX = sol(sol.t, Val{1})[:,:]
+    
+    prob = DataDrivenProblem(sol)
 
-    prob = ContinuousDataDrivenProblem(X, sol.t, DX = DX)
     for alg in [DMDPINV(), DMDSVD(), TOTALDMD()]
         estimator = solve(prob, alg , operator_only = true)
         @test isapprox(Matrix(estimator.K), A, atol = 1e-2)

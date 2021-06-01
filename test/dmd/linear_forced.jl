@@ -7,11 +7,10 @@
     u0 = [1.0; 1.0]
     prob_cont = ODEProblem(linear, u0, (0.0, 30.0))
     sol_cont = solve(prob_cont, Tsit5())
-
-    X = sol_cont[:,:]
-    DX = sol_cont(sol_cont.t, Val{1})[:,:]
     U = reshape(map(t->sin(t), sol_cont.t),1, length(sol_cont))
-    ddprob = ContinuousDataDrivenProblem(X, sol_cont.t, DX = DX, U = U)
+
+    ddprob = ContinuousDataDrivenProblem(sol_cont, U = U)
+    
     for alg in [DMDPINV(); DMDSVD(); TOTALDMD(2, DMDPINV())]
         k = solve(ddprob, DMDPINV(), digits = 2)
         b = result(k)
