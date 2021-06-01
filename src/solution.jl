@@ -91,6 +91,32 @@ function Base.summary(io::IO, r::DataDrivenSolution)
     haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
     haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
     haskey(r.metrics, :AICC) && println(io, "AICC: $(r.metrics.AICC)")
+    return
+end
+
+
+function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType = Val{false})
+
+    fullview == Val{false} && return summary(io, r)
+
+    is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
+    println(io, "Solution with $(length(r.res.eqs)) equations and $(length(r.ps)) parameters.")
+    println(io, "Returncode: $(r.retcode)")
+    haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
+    haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
+    haskey(r.metrics, :AICC) && println(io, "AICC: $(r.metrics.AICC)")
+    println(io, "")
+    print(io, r.res)
+    println(io, "")
+    if length(r.res.ps) > 0 
+        x = parameter_map(r)
+        println(io, "Parameters:")
+        for v in x
+            println(io, "   $(v[1]) : $(v[2])")
+        end
+    end
+
+    return
 end
 
 Base.print(io::IO, r::DataDrivenSolution) = summary(io, r)

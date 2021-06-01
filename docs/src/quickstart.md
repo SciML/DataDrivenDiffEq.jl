@@ -81,11 +81,7 @@ savefig("EDMD_Example_1.png") # hide
 Since we are dealing with an continuous system in time, we define the associated [`DataDrivenProblem`](@ref) accordingly using the measured states `X`, their derivates `DX` and the time `t`.
 
 ```@example 3
-X = Array(solution)
-t = solution.t
-DX = solution(solution.t, Val{1})[:, :]
-
-prob = ContinuousDataDrivenProblem(X, t, DX = DX)
+prob = ContinuousDataDrivenProblem(solution)
 ```
 Additionally, we need to define the [`Basis`](@ref) for our lifting, before we `solve` the problem in the lifted space.
 
@@ -180,6 +176,10 @@ opt = STLSQ(λs)
 res = solve(prob, basis, opt, progress = false, denoise = false, normalize = false, maxiter = 5000)
 println(res) # hide
 ```
+
+!!! info
+    A more detailed description of the result can be printed via `print(res, Val{true})`, which also includes the discovered equations and parameter values.
+
 Where the resulting [`DataDrivenSolution`](@ref) stores information about the infered model and the parameters:
 
 ```@example 1
@@ -268,10 +268,8 @@ println(basis) # hide
 Next, we define the [`ImplicitOptimizer`](@ref) and `solve` the problem.
 
 ```@example 2
-
 opt = ImplicitOptimizer(4e-1)
-g_(x) = x[1] <= 1 ? Inf : norm(x) 
-res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000, g = g_);
+res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000);
 println(res) # hide
 ```
 
