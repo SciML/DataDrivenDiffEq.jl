@@ -1,3 +1,4 @@
+using Symbolics: scalarize
 @variables x[1:3] u[1:2]
 @parameters p[1:2] t
 
@@ -14,9 +15,9 @@ u0 = randn(2)
 true_res(x, p, t, u) =
     [sum(x[1:2] .* p); x[2] .* u[1]; u[2] .* x[3] .+ exp.(-t)]
 true_res_(x, p, t) =
-    hcat([true_res(x[:, i], p, t[i], zeros(2)) for i = 1:100]...)
+    scalarize.(hcat([true_res(x[:, i], p, t[i], zeros(2)) for i = 1:100]...))
 true_res_(x, p, t, u) =
-    hcat([true_res(x[:, i], p, t[i], u[:, i]) for i = 1:100]...)
+    scalarize.(hcat([true_res(x[:, i], p, t[i], u[:, i]) for i = 1:100]...))
 
 @test isequal(b(x0), b.f(x0, p, t, zeros(2)))
 @test isequal(b(x0, p0), b.f(x0, p0, t, zeros(2)))
@@ -30,8 +31,8 @@ t0 = randn(100)
 u0 = randn(2, 100)
 
 # These first two fail, since exp(-t) != exp(getindex(t,1))
-@test_broken isequal(b(x0), true_res_(x0, p, [t for i = 1:100]))
-@test_broken isequal(b(x0, p0), true_res_(x0, p0, [t for i = 1:100]))
+@test isequal(b(x0), true_res_(x0, p, [t for i = 1:100]))
+@test isequal(b(x0, p0), true_res_(x0, p0, [t for i = 1:100]))
 @test isequal(b(x0, p0, t0), true_res_(x0, p0, t0))
 @test isequal(b(x0, p0, t0, u0), true_res_(x0, p0, t0, u0))
 
