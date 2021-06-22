@@ -1,3 +1,6 @@
+for f in [:chebyshev_basis, :sin_basis, :cos_basis, :fourier_basis, :polynomial_basis, :monomial_basis]
+    @eval $f(x, c) = $f(scalarize(x), c)
+end
 function _generateBasis!(eqs, f, x, coeffs)
     n_x = size(x, 1)
     @assert length(eqs) == size(x, 1)*length(coeffs)
