@@ -513,9 +513,10 @@ Base.iterate(x::AbstractBasis, id) = iterate(equations(x), id)
 
 function update!(b::AbstractBasis, eval_expression = false)
 
-    b.f = _build_ddd_function([bi.rhs for bi in equations(b)],
+    ff = _build_ddd_function([bi.rhs for bi in equations(b)],
         states(b), parameters(b), [independent_variable(b)],
         controls(b), eval_expression)
+    Core.setfield!(b, :f, ff)
 
     return
 end
@@ -643,10 +644,10 @@ end
 """
 function Base.merge!(x::Basis, y::Basis; eval_expression = false)
     push!(x, map(x->x.rhs, equations(y)))
-    x.states = unique(vcat(states(x),states(y)))
-    x.ps = unique(vcat(parameters(x), parameters(y)))
-    x.controls = unique(vcat(controls(x), controls(y)))
-    x.observed = unique(vcat(get_observed(x), get_observed(y)))
+    Core.setfield!(x, :states, unique(vcat(states(x),states(y))))
+    Core.setfield!(x, :ps, unique(vcat(parameters(x), parameters(y))))
+    Core.setfield!(x, :controls, unique(vcat(controls(x), controls(y))))
+    Core.setfield!(x, :observed, unique(vcat(get_observed(x), get_observed(y))))
     update!(x, eval_expression)
     return
 end
