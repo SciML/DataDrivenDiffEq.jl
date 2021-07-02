@@ -77,6 +77,13 @@ function Koopman(eqs::AbstractVector{Equation}, states::AbstractVector;
     eval_expression = false,
     kwargs...) where O <: Union{AbstractMatrix, Eigen, Factorization}
 
+    iv === nothing && (iv = Variable(:t))
+    iv = value(iv)
+    eqs = scalarize(eqs)
+    states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
+
+    eqs = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
+
     lhs = Num[x.lhs for x in eqs]
     eqs_ = Num[x.rhs for x in eqs]
 
@@ -94,7 +101,7 @@ function Koopman(eqs::AbstractVector{Equation}, states::AbstractVector;
     eqs = [lhs[i] ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
     return Koopman{typeof(K), typeof(C), typeof(Q), typeof(P)}(eqs,
-    value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, lift, name, Basis[],
+    states, controls, parameters, observed , iv, f, lift, name, Basis[],
     is_discrete, K, C, Q, P)
 end
 
@@ -111,6 +118,12 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector;
     simplify = false, linear_independent = false,
     eval_expression = false,
     kwargs...) where O <: Union{AbstractMatrix, Eigen, Factorization}
+
+    iv === nothing && (iv = Variable(:t))
+    iv = value(iv)
+    eqs = scalarize(eqs)
+    states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
+
 
     eqs_ = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
 
@@ -129,7 +142,7 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector;
     eqs = [D(states[i]) ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
     return Koopman{typeof(K), typeof(C), typeof(Q), typeof(P)}(eqs,
-    value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, lift, name, Basis[],
+    states, controls, parameters, observed, iv, f, lift, name, Basis[],
     is_discrete, K, C, Q, P)
 end
 
