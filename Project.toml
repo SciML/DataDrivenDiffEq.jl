@@ -1,7 +1,7 @@
 name = "DataDrivenDiffEq"
 uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
 authors = ["Julius Martensen <julius.martensen@gmail.com>"]
-version = "0.6.1"
+version = "0.6.2"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
@@ -28,7 +28,7 @@ ProgressMeter = "1.6"
 QuadGK = "2.4"
 Reexport = "1.0"
 StatsBase = "0.32.0, 0.33"
-Symbolics = "1.2.2"
+Symbolics = "^1.2.2"
 julia = "^1.6.0"
 
 [extras]
