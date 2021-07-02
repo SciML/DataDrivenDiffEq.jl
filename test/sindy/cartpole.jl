@@ -1,3 +1,10 @@
+using DataDrivenDiffEq
+using ModelingToolkit
+using LinearAlgebra
+using OrdinaryDiffEq
+
+using Symbolics: scalarize
+
 function cart_pole(u, p, t)
     du = similar(u)
     F = -0.2 + 0.5*sin(6*t) # the input
@@ -29,6 +36,10 @@ ddprob = ContinuousDataDrivenProblem(
 
 
 @variables u[1:4] du[1:2] x[1:1] t
+u = scalarize(u)
+du = scalarize(du)
+x = scalarize(x)
+
 polys = polynomial_basis(u, 2)
 push!(polys, sin.(u[1]))
 push!(polys, cos.(u[1]))
