@@ -1,6 +1,7 @@
 
 function DiffEqBase.solve(prob::DataDrivenProblem{dType}, alg::AbstractKoopmanAlgorithm;
     B::AbstractArray = [], digits::Int = 10, operator_only::Bool = false,
+    eval_expression = false,
     kwargs...) where {dType <: Number}
     # Check the validity
     @assert is_valid(prob) "The problem seems to be ill-defined. Please check the problem definition."
@@ -39,11 +40,12 @@ function DiffEqBase.solve(prob::DataDrivenProblem{dType}, alg::AbstractKoopmanAl
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits)
+    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
 end
 
 function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::AbstractKoopmanAlgorithm;
     digits::Int = 10, operator_only::Bool = false,
+    eval_expression = false, 
     kwargs...) where {dType <: Number}
     # Check the validity
     @assert is_valid(prob) "The problem seems to be ill-defined. Please check the problem definition."
@@ -98,5 +100,5 @@ function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::Abstrac
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits)
+    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
 end

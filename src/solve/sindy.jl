@@ -22,7 +22,8 @@ end
 # Main
 function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.AbstractOptimizer;
     normalize::Bool = false, denoise::Bool = false, maxiter::Int = 0,
-    round::Bool = true, kwargs...) where {dType <: Number}
+    round::Bool = true,
+    eval_expression = false, kwargs...) where {dType <: Number}
     # Check the validity
     @assert is_valid(p) "The problem seems to be ill-defined. Please check the problem definition."
 
@@ -48,7 +49,7 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.A
 
     # Build solution Basis
     return build_solution(
-        p, Ξ, opt, b
+        p, Ξ, opt, b, eval_expression = eval_expression
     )
 end
 
@@ -78,6 +79,7 @@ end
 @views function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis,
     opt::Optimize.AbstractSubspaceOptimizer, implicits::Vector{Num} = Num[];
     normalize::Bool = false, denoise::Bool = false, maxiter::Int = 0,
+    eval_expression = false,
     round::Bool = true, kwargs...) where {dType <: Number}
     # Check the validity
     @assert is_valid(p) "The problem seems to be ill-defined. Please check the problem definition."
@@ -119,6 +121,6 @@ end
     normalize ? rescale_xi!(Ξ, scales, round) : nothing
     # Build solution Basis
     return build_solution(
-        p, Ξ, opt, b, implicits
+        p, Ξ, opt, b, implicits, eval_expression = eval_expression
     )
 end
