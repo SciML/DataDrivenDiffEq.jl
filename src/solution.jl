@@ -108,7 +108,7 @@ function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
     println(io, "")
     print(io, r.res)
     println(io, "")
-    if length(r.res.ps) > 0 
+    if length(r.res.ps) > 0
         x = parameter_map(r)
         println(io, "Parameters:")
         for v in x
@@ -154,14 +154,15 @@ end
 
 
 # Explicit sindy
-function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis)
+function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis;
+    eval_expression = false)
     if all(iszero(Ξ))
         @warn "Sparse regression failed! All coefficients are zero."
         return DataDrivenSolution(
-        nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing), 
+        nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing),
     )
     end
-    
+
     eqs, ps, p_ = build_parametrized_eqs(Ξ, b)
 
     # Build the lhs
@@ -176,7 +177,8 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
         eqs, states(b),
         parameters = [parameters(b); p_], iv = independent_variable(b),
         controls = controls(b), observed = observed(b),
-        name = gensym(:Basis)
+        name = gensym(:Basis),
+        eval_expression = eval_expression
     )
 
     sparsity = norm(Ξ, 0)
@@ -225,15 +227,15 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
 end
 
 function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractSubspaceOptimizer,
-    b::Basis, implicits::Vector{Num})
+    b::Basis, implicits::Vector{Num}; eval_expression = false)
 
     if all(iszero(Ξ))
         @warn "Sparse regression failed! All coefficients are zero."
         return DataDrivenSolution(
-        nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing), 
+        nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing),
     )
     end
-    
+
     eqs, ps, p_ = build_parametrized_eqs(Ξ, b)
     eqs = [0 .~ eq for eq in eqs]
 
@@ -242,7 +244,8 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
         eqs, states(b),
         parameters = [parameters(b); p_], iv = independent_variable(b),
         controls = controls(b), observed = observed(b),
-        name = gensym(:Basis)
+        name = gensym(:Basis),
+        eval_expression = eval_expression
     )
 
     sparsity = norm(Ξ, 0)
@@ -298,8 +301,8 @@ function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
 end
 
 #function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::AbstractKoopmanAlgorithm)
-function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; digits::Int = 10)
-    # Build parameterized equations
+function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; digits::Int = 10, eval_expression = false)
+    # Build parameterized equations, inds indicate the location of basis elements containing an input
     Ξ = zeros(eltype(B), size(C,2), length(b))
 
     Ξ[:, inds] .= real.(Matrix(k))
@@ -308,7 +311,14 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
     end
 
     # Transpose because of the nature of build_parametrized_eqs
-    eqs, ps, p_ = build_parametrized_eqs(_round!(C*Ξ, digits)', b)
+    if !eval_expression
+        eqs, ps, p_ = build_parametrized_eqs(_round!(C*Ξ, digits)', b)
+    else
+        K̃ = _round!(C*Ξ, digits)
+        eqs = K̃*Num[states(b); controls(b)]
+        p_ = []
+        ps = [K̃...]
+    end
 
     # Build the lhs
     if length(eqs) == length(states(b))
@@ -317,18 +327,25 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
         eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
     end
 
+
     res_ = Koopman(eqs, states(b),
         parameters = [parameters(b); p_],
         controls = controls(b), iv = independent_variable(b),
-        K = k, C = C, Q = Q, P = P, lift = b.f)
+        K = k, C = C, Q = Q, P = P, lift = b.f,
+        eval_expression = eval_expression)
 
-
-    retcode = :success
-    pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
-    # Equation space
+    retcode = :sucess
     X = prob.DX
-    X_, _, t, U = get_oop_args(prob)
-    Y = res_(X_, pnew, t, U)
+    X_, p_, t, U = get_oop_args(prob)
+
+    pnew = !isempty(parameters(b)) ? [p_; ps] : ps
+    
+    if !eval_expression
+        # Equation space
+        Y = res_(X_, pnew, t, U)
+    else
+        Y = K̃*b(X_, p_, t, U)
+    end
 
     # Build the metrics
     error = norm(X-Y, 2)
@@ -357,5 +374,4 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
     return DataDrivenSolution(
         res_, retcode, pnew, alg, Ξ, inputs, metrics
     )
-    return K
 end

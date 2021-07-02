@@ -11,7 +11,7 @@
 
   problem = ODEProblem(slow_manifold, u0, tspan, p)
   solution = solve(problem, Tsit5(), saveat = 0.01)
-  
+
   ufun(u,p,t) = sin(t^2)
 
   prob = ContinuousDataDrivenProblem(solution, U = ufun)
@@ -24,7 +24,7 @@
     b = result(res)
     m = metrics(res)
     @test isapprox(eigvals(b), [2*p[1]; p[1]; p[2]], atol = 1e-1)
-    @test m.Error/size(X, 2) < 3e-1
+    @test m.Error/size(solution, 2) < 3e-1
 
     # TODO This does not work right now, but it should
     #sdict = Dict([y[1] => sin(t^2)])

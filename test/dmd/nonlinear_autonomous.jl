@@ -21,10 +21,10 @@
     b = result(res)
     m = metrics(res)
     @test isapprox(eigvals(b), [2*p[1]; p[1]; p[2]], atol = 1e-1)
-    @test m.Error/size(X, 2) < 1e-1
+    @test m.Error/size(solution, 2) < 1e-1
 
     _prob = ODEProblem((args...)->b(args...), u0, tspan, parameters(res))
     _sol = solve(_prob, Tsit5(), saveat = solution.t)
-    @test norm(solution - _sol)/size(X, 2) < 1e-1
+    @test norm(solution - _sol)/size(solution, 2) < 1e-1
   end
 end
