@@ -269,6 +269,10 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
     simplify = false, linear_independent = false,
     eval_expression = false,
     kwargs...)
+    iv === nothing && (iv = Variable(:t))
+    iv = value(iv)
+    eqs = scalarize(eqs)
+    states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
 
     eqs = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
 
@@ -278,14 +282,13 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
         eqs_ = simplify ? ModelingToolkit.simplify.(eqs) : eqs
     end
 
-    isnothing(iv) && (iv = Num(Variable(:t)))
     unique!(eqs, !simplify)
 
     f = _build_ddd_function(eqs, states, parameters, iv, controls, eval_expression)
 
     eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
-    return Basis(eqs, value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[])
+    return Basis(eqs, states, controls, parameters, observed, iv, f, name, Basis[])
 end
 
 
@@ -510,9 +513,10 @@ Base.iterate(x::AbstractBasis, id) = iterate(equations(x), id)
 
 function update!(b::AbstractBasis, eval_expression = false)
 
-    b.f = _build_ddd_function([bi.rhs for bi in equations(b)],
+    ff = _build_ddd_function([bi.rhs for bi in equations(b)],
         states(b), parameters(b), [independent_variable(b)],
         controls(b), eval_expression)
+    Core.setfield!(b, :f, ff)
 
     return
 end
@@ -537,7 +541,6 @@ end
 
 
 function Base.unique!(b::AbstractArray{Num}, simplify_eqs = false)
-
     bs = simplify_eqs ? simplify.(b) : b
     removes = zeros(Bool, size(bs)...)
     N = maximum(eachindex(bs))
@@ -641,10 +644,10 @@ end
 """
 function Base.merge!(x::Basis, y::Basis; eval_expression = false)
     push!(x, map(x->x.rhs, equations(y)))
-    x.states = unique(vcat(states(x),states(y)))
-    x.ps = unique(vcat(parameters(x), parameters(y)))
-    x.controls = unique(vcat(controls(x), controls(y)))
-    x.observed = unique(vcat(get_observed(x), get_observed(y)))
+    Core.setfield!(x, :states, unique(vcat(states(x),states(y))))
+    Core.setfield!(x, :ps, unique(vcat(parameters(x), parameters(y))))
+    Core.setfield!(x, :controls, unique(vcat(controls(x), controls(y))))
+    Core.setfield!(x, :observed, unique(vcat(get_observed(x), get_observed(y))))
     update!(x, eval_expression)
     return
 end

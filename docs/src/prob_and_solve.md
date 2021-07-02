@@ -68,13 +68,13 @@ ps = parameter_map(res)
 ## [Optional Arguments](@id optional_arguments)
 
 !!! info
-The keyword argument `eval_expression` controls the function creation
-behavior. `eval_expression=true` means that `eval` is used, so normal
-world-age behavior applies (i.e. the functions cannot be called from
-the function that generates them). If `eval_expression=false`,
-then construction via GeneralizedGenerated.jl is utilized to allow for
-same world-age evaluation. However, this can cause Julia to segfault
-on sufficiently large basis functions. By default eval_expression=false.
+    The keyword argument `eval_expression` controls the function creation
+    behavior. `eval_expression=true` means that `eval` is used, so normal
+    world-age behavior applies (i.e. the functions cannot be called from
+    the function that generates them). If `eval_expression=false`,
+    then construction via GeneralizedGenerated.jl is utilized to allow for
+    same world-age evaluation. However, this can cause Julia to segfault
+    on sufficiently large basis functions. By default eval_expression=false.
 
 Koopman based algorithms can be called without a [`Basis`](@ref), resulting in dynamic mode decomposition like methods, or with a basis for extened dynamic mode decomposition :
 
@@ -91,7 +91,7 @@ Possible keyworded arguments include
 + `operator_only` returns a `NamedTuple` containing the operator, input and output mapping and matrices used for updating the operator as described [here](https://arxiv.org/pdf/1406.7187.pdf)
 
 !!! info
-If `eval_expression` is set to `true`, the returning result of the Koopman based inference will not contain a parametrized equation, but rather use the numeric values of the operator/generator.
+    If `eval_expression` is set to `true`, the returning result of the Koopman based inference will not contain a parametrized equation, but rather use the numeric values of the operator/generator.
 
 SINDy based algorithms can be called like :
 

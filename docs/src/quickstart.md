@@ -285,7 +285,7 @@ println(system)
 
 ## Implicit Nonlinear Dynamics : Cartpole
 
-The following is another example on how to use the [`ImplicitOptimizer`](@ref) and is taken from the [original paper](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279). 
+The following is another example on how to use the [`ImplicitOptimizer`](@ref) and is taken from the [original paper](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279).
 
 As always, we start by creating a corresponding dataset.
 
@@ -334,7 +334,15 @@ savefig("SINDy_Example_Data_3.png") # hide
 Next, we define a sufficient [`Basis`](@ref)
 
 ```@example 5
+using Symbolics: scalarize
+
 @variables u[1:4] du[1:2] x[1:1] t
+
+# Right now, we need to scalarize the array expression to combine them
+u = scalarize(u)
+du = scalarize(du)
+x = scalarize(x)
+
 polys = polynomial_basis(u, 2)
 push!(polys, sin.(u[1]))
 push!(polys, cos.(u[1]))
