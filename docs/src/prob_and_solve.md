@@ -2,26 +2,28 @@
 
 As can be seen from the [introduction examples](@id Quickstart), [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl) tries to structurize the workflow in a similar fashion to other [SciML](https://sciml.ai/) packages by defining a [`DataDrivenProblem`](@ref), dispatching on the `solve` command to return a [`DataDrivenSolution`](@ref).
 
-A problem in the sense of identification, estimation or inference is defined by the data describing it. This data contains at least measurements of the states `X`, which would be sufficient to describe a `DiscreteDataDrivenProblem` with unit time steps similar to the [first example on dynamic mode decomposition](@ref Linear-Systems-via-Dynamic-Mode-Decomposition). Of course we can extend this to include time points `t`, consecutive measurements `X̃` at the next time point or control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like
+A problem in the sense of identification, estimation or inference is defined by the data describing it. This data contains at least measurements of the states `X`, which would be sufficient to describe a `DiscreteDataDrivenProblem` with unit time steps similar to the [first example on dynamic mode decomposition](@ref Linear-Systems-via-Dynamic-Mode-Decomposition). Of course we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like
 
 ```julia
 problem = DiscreteDataDrivenProblem(X)
 problem = DiscreteDataDrivenProblem(X, t)
-problem = DiscreteDataDrivenProblem(X, t, X̃)
-problem = DiscreteDataDrivenProblem(X, t, X̃, U = U)
-problem = DiscreteDataDrivenProblem(X, t, X̃, U = U, p = p)
-problem = DiscreteDataDrivenProblem(X, t, X̃, U = (x,p,t)->u(x,p,t))
+problem = DiscreteDataDrivenProblem(X, t, U)
+problem = DiscreteDataDrivenProblem(X, t, U, p = p)
+problem = DiscreteDataDrivenProblem(X, t, (x,p,t)->u(x,p,t))
 ```
 
 Similarly, a `ContinuousDataDrivenProblem` would need at least measurements and time-derivatives (`X` and `DX`) or measurements, time information and a way to derive the time derivatives(`X`, `t` and a [Collocation](@ref) method). Again, this can be extended by including a control input as measurements or a function and possible parameters.
 
 ```julia
+problem = ContinuousDataDrivenProblem(X, DX)
+problem = ContinuousDataDrivenProblem(X, t, DX)
+problem = ContinuousDataDrivenProblem(X, t, DX, U, p = p)
+problem = ContinuousDataDrivenProblem(X, t, DX, (x,p,t)->u(x,p,t))
+# Using collocation
 problem = ContinuousDataDrivenProblem(X, t, InterpolationMethod())
-problem = ContinuousDataDrivenProblem(X, DX = DX)
-problem = ContinuousDataDrivenProblem(X, t, DX = DX)
-problem = ContinuousDataDrivenProblem(X, t, DX = DX, U = U)
-problem = ContinuousDataDrivenProblem(X, t, DX = DX, U = U, p = p)
-problem = ContinuousDataDrivenProblem(X, t, DX = DX, U = (x,p,t)->u(x,p,t))
+problem = ContinuousDataDrivenProblem(X, t, GaussianKernel())
+problem = ContinuousDataDrivenProblem(X, t, U, InterpolationMethod())
+problem = ContinuousDataDrivenProblem(X, t, U, GaussianKernel(), p = p)
 ```
 
 You can also directly use a `DESolution` as an input to your [`DataDrivenProblem`](@ref):
@@ -32,6 +34,16 @@ problem = DataDrivenProblem(sol; kwargs...)
 
 which evaluates the function at the specific timepoints `t` using the parameters `p` of the original problem instead of
 using the interpolation. If you want to use the interpolated data, add the additional keyword `use_interpolation = true`.
+
+An additional type of problem is the `DirectDataDrivenProblem`, which does not assume any kind of causal relationship. It is defined by `X` and an observed output `Y` in addition to the usual arguments:
+
+```julia
+problem = DirectDataDrivenProblem(X, Y)
+problem = DirectDataDrivenProblem(X, t, Y)
+problem = DirectDataDrivenProblem(X, t, Y, U)
+problem = DirectDataDrivenProblem(X, t, Y, p = p)
+problem = DirectDataDrivenProblem(X, t, Y, (x,p,t)->u(x,p,t), p = p)
+```
 
 Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref) or [`Sparse Optimization`](@ref) methods. Different options can be provided as well as a [`Basis`](@ref) used for lifting the measurements, to control different options like rounding, normalization or the progressbar depending on the inference method. Possible options are provided [below](@ref optional_arguments).
 

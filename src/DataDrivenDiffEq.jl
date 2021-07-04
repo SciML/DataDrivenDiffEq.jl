@@ -33,7 +33,7 @@ abstract type CollocationKernel end
 abstract type AbstractKoopmanAlgorithm end
 
 # Problem and solution
-abstract type AbstractDataDrivenProblem end
+abstract type AbstractDataDrivenProblem{dType, cType, probType} end
 abstract type AbstractDataDrivenSolution end
 
 
@@ -84,8 +84,8 @@ export DMDPINV, DMDSVD, TOTALDMD
 ## Problem and Solution
 include("./problem.jl")
 export DataDrivenProblem
-export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem
-export has_timepoints, has_inputs, has_observations, has_derivatives
+export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem, DirectDataDrivenProblem
+export is_autonomous, is_discrete, is_direct, is_continuous, is_parametrized, has_timepoints
 export is_valid
 
 include("./solution.jl")
