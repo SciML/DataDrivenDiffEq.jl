@@ -3,17 +3,6 @@ function _promote(args...)
     return map(x->convert.(_type, x), args)
 end
 
-_isfun(x) = false
-_isfun(x::F) where F <: Function = true
-
-# Use to distinguish the problem types
-@enum DDProbType begin
-    Direct=1 # Direct problem without further information
-    Discrete=2 # Time discrete problem
-    Continuous=3 # Time continous problem
-end
-
-
 ## Utilities
 
 """
@@ -134,7 +123,7 @@ end
 function DataDrivenProblem(X, t, DX, Y, U::F, p) where F <: Function
     # Generate the input as a Matrix
 
-    ts = isempty(t) ? zeros(eltype(X), size(X, 2)) : t
+    ts = isempty(t) ? zeros(eltype(X), size(X,2)) : t
 
     u_ = hcat(map(i->U(X[:,i], p, ts[i]), 1:size(X,2))...)
 
@@ -143,7 +132,7 @@ end
 
 
 function DataDrivenProblem(X::AbstractMatrix;
-    t::AbstractVector = Array{eltype(X)}(undef, 0),
+    t::AbstractVector = zeros(eltype(X), size(X,2)),
     DX::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
     Y::AbstractMatrix = Array{eltype(X)}(undef, 0,0),
     U::F = Array{eltype(X)}(undef, 0,0),
@@ -251,9 +240,10 @@ end
 check_domain(x) =  @assert all(.~isnan.(x)) && all(.~isinf.(x)) ("One or more measurements contain `NaN` or `Inf`.")
 check_lengths(args...) = @assert all(map(x->size(x)[end], args) .== size(first(args))[end]) "One or more measurements are not sized equally."
 
-const AbstractDirectProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(1)}
-const AbstractDiscreteProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(2)}
-const AbstracContProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(3)}
+# Return the target variables
+get_target(x::AbstractDirectProb{N,C}) where {N,C} = x.Y
+get_target(x::AbstractDiscreteProb{N,C}) where {N,C} = x.X[:,2:end]
+get_target(x::AbstracContProb{N,C}) where {N,C} = x.DX
 
 get_oop_args(x::AbstractDataDrivenProblem{N,C,P}) where {N <: Number, C, P} = map(f->getfield(x, f), (:X, :p, :t, :U))
 

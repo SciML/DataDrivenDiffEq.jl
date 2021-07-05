@@ -186,7 +186,7 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
 
     retcode = size(Ξ, 2) == size(prob.DX, 1) ? :sucess : :incomplete
     pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
-    X = prob.DX
+    X = get_target(prob)
     Y = res_(prob.X, pnew, prob.t, prob.U)
 
     # Build the metrics
@@ -335,11 +335,11 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
         eval_expression = eval_expression)
 
     retcode = :sucess
-    X = prob.DX
+    X = get_target(prob)
     X_, p_, t, U = get_oop_args(prob)
 
     pnew = !isempty(parameters(b)) ? [p_; ps] : ps
-    
+
     if !eval_expression
         # Equation space
         Y = res_(X_, pnew, t, U)
