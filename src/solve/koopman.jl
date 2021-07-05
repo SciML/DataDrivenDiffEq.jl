@@ -85,7 +85,7 @@ function DiffEqBase.solve(prob::AbstractDiscreteProb{dType, true}, b::Basis, alg
     B = zeros(dType, 0, 0)
 
     # Outpumap -> just the state dependent
-    C = prob.DX / Ψ₁
+    C = DX / Ψ₁
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
@@ -118,7 +118,7 @@ function DiffEqBase.solve(prob::AbstractDiscreteProb{dType, false}, b::Basis, al
     P = Ψ₀*Ψ₀'
 
     # Outpumap -> just the state dependent
-    C = prob.DX / Ψ₁[inds,:]
+    C = DX / Ψ₁[inds,:]
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
