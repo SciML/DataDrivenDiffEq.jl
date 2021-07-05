@@ -1,8 +1,3 @@
-using DataDrivenDiffEq
-using LinearAlgebra
-using OrdinaryDiffEq
-using Test
-
 @testset "Linear Discrete System" begin
     # Create some linear data
     A = [0.9 -0.2; 0.0 0.2]

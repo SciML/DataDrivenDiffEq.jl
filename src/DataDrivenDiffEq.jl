@@ -33,7 +33,7 @@ abstract type CollocationKernel end
 abstract type AbstractKoopmanAlgorithm end
 
 # Problem and solution
-abstract type AbstractDataDrivenProblem end
+abstract type AbstractDataDrivenProblem{dType, cType, probType} end
 abstract type AbstractDataDrivenSolution end
 
 
@@ -81,12 +81,30 @@ export update!
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD
 
+
+
 ## Problem and Solution
+# Use to distinguish the problem types
+@enum DDProbType begin
+    Direct=1 # Direct problem without further information
+    Discrete=2 # Time discrete problem
+    Continuous=3 # Time continous problem
+end
+
+
+# Define some alias type for easier dispatch
+const AbstractDirectProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(1)}
+const AbstractDiscreteProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(2)}
+const AbstracContProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(3)}
+
+
 include("./problem.jl")
+
 export DataDrivenProblem
-export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem
-export has_timepoints, has_inputs, has_observations, has_derivatives
+export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem, DirectDataDrivenProblem
+export is_autonomous, is_discrete, is_direct, is_continuous, is_parametrized, has_timepoints
 export is_valid
+
 
 include("./solution.jl")
 export DataDrivenSolution

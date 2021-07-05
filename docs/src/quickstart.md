@@ -29,9 +29,8 @@ savefig("DMD_Example_1.png") # hide
 To estimate the underlying operator in the states ``u_1, u_2``, we simply define a discrete [`DataDrivenProblem`](@ref) using the measurements and time and `solve` the estimation problem using the [`DMDSVD`](@ref) algorithm for approximating the operator.
 
 ```@example 4
-X = Array(sol)
 
-prob = DiscreteDataDrivenProblem(X, t = sol.t)
+prob = DiscreteDataDrivenProblem(sol)
 
 res = solve(prob, DMDSVD(), digits = 1)
 system = result(res)
@@ -114,6 +113,7 @@ using ModelingToolkit
 using OrdinaryDiffEq
 using Plots
 using Random
+using Symbolics: scalarize
 
 Random.seed!(1111) # Due to the noise
 
@@ -166,8 +166,11 @@ and returns a pareto optimal solution of the underlying [`sparse_regression!`](@
 ```@example 1
 @variables u[1:2] c[1:1]
 @parameters w[1:2]
+u = scalarize(u)
+c = scalarize(c)
+w = scalarize(w)
 
-h = Num[sin(w[1]*u[1]);cos(w[2]*u[1]); polynomial_basis(u, 5); c]
+h = Num[sin.(w[1].*u[1]);cos.(w[2].*u[1]); polynomial_basis(u, 5); c]
 
 basis = Basis(h, u, parameters = w, controls = c)
 
@@ -248,7 +251,7 @@ for (i, xi) in enumerate(eachcol(X))
     DX[:, i] = michaelis_menten(xi, [], ts[i])
 end
 
-prob = ContinuousDataDrivenProblem(X, ts, DX = DX)
+prob = ContinuousDataDrivenProblem(X, ts, DX)
 
 p1 = plot(ts, X', label = ["Measurement" nothing], color = :black, style = :dash, legend = :bottomleft, ylabel ="Measurement") # hide
 p2 = plot(ts, DX', label = nothing, color = :black, style = :dash, ylabel = "Derivative", xlabel = "Time [s]") # hide

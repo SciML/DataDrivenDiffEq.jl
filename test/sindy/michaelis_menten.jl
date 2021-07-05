@@ -1,11 +1,3 @@
-using OrdinaryDiffEq
-using DataDrivenDiffEq
-using LinearAlgebra
-using ModelingToolkit
-using Random
-using Test
-
-
 function michaelis_menten(u, p, t)
     [0.6 - 1.5u[1]/(0.3+u[1])]
 end
@@ -30,9 +22,10 @@ end
 h = [monomial_basis(u[1:1], 4)...]
 basis = Basis([h; h .* u[2]], u)
 
+
 @testset "Ideal data" begin
 
-    prob = ContinuousDataDrivenProblem(X, ts, DX = DX)
+    prob = ContinuousDataDrivenProblem(X, ts, DX)
 
     opts = [ImplicitOptimizer(5e-1);ImplicitOptimizer(0.4:0.1:0.7)]
     for opt in opts
@@ -57,7 +50,6 @@ X = X .+ 1e-3*randn(size(X))
 
 @testset "Noisy data" begin
 
-
     prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel())
 
     for opt in [ImplicitOptimizer(4e-1);ImplicitOptimizer([0.3; 0.4; 0.5])]
@@ -68,8 +60,6 @@ X = X .+ 1e-3*randn(size(X))
         @test m.Sparsity == 4
     end
 
-    # ADM does not play well with the interpolation
-    prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel())
 
     for opt in [ADM(0.01:0.01:4e-1)]
         res = solve(prob, basis, opt, normalize = false, denoise = false)

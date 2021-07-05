@@ -130,6 +130,7 @@ function build_parametrized_eqs(X::AbstractMatrix, b::Basis)
     inds = sps .> zero(eltype(X))
     pl = length(parameters(b))
     @parameters p[(pl+1):(pl+sp)]
+    p = scalarize(p)
     ps = zeros(eltype(X), sp)
 
     eqs = zeros(Num, sum(inds))
@@ -156,7 +157,7 @@ end
 # Explicit sindy
 function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis;
     eval_expression = false)
-    if all(iszero(Ξ))
+    if all(iszero.(Ξ))
         @warn "Sparse regression failed! All coefficients are zero."
         return DataDrivenSolution(
         nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing),
@@ -186,7 +187,7 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
 
     retcode = size(Ξ, 2) == size(prob.DX, 1) ? :sucess : :incomplete
     pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
-    X = prob.DX
+    X = get_target(prob)
     Y = res_(prob.X, pnew, prob.t, prob.U)
 
     # Build the metrics
@@ -335,11 +336,11 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
         eval_expression = eval_expression)
 
     retcode = :sucess
-    X = prob.DX
+    X = get_target(prob)
     X_, p_, t, U = get_oop_args(prob)
 
     pnew = !isempty(parameters(b)) ? [p_; ps] : ps
-    
+
     if !eval_expression
         # Equation space
         Y = res_(X_, pnew, t, U)
