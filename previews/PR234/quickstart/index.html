@@ -11,12 +11,18 @@ tspan = (0.0, 11.0)
 f(u,p,t) = A*u
 
 sys = DiscreteProblem(f, u0, tspan)
-sol = solve(sys, FunctionMap())</code></pre><p><img src="../DMD_Example_1.png" alt/></p><p>To estimate the underlying operator in the states <span>$u_1, u_2$</span>, we simply define a discrete <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> using the measurements and time and <code>solve</code> the estimation problem using the <a href="../koopman/#DataDrivenDiffEq.DMDSVD"><code>DMDSVD</code></a> algorithm for approximating the operator.</p><pre><code class="language-">
-prob = DiscreteDataDrivenProblem(sol)
+sol = solve(sys, FunctionMap())</code></pre><p><img src="../DMD_Example_1.png" alt/></p><p>To estimate the underlying operator in the states <span>$u_1, u_2$</span>, we simply define a discrete <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> using the measurements and time and <code>solve</code> the estimation problem using the <a href="../koopman/#DataDrivenDiffEq.DMDSVD"><code>DMDSVD</code></a> algorithm for approximating the operator.</p><pre><code class="language-julia">prob = DiscreteDataDrivenProblem(sol)
 
 res = solve(prob, DMDSVD(), digits = 1)
-system = result(res)
-println(system) # hide</code></pre><p>The <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> contains an explicit result which is a <a href="../koopman/#DataDrivenDiffEq.Koopman"><code>Koopman</code></a>, defining all necessary information, e.g. the associated operator (which corresponds to our abefore defined matrix <span>$A$</span>).</p><pre><code class="language-">Matrix(system)</code></pre><p>In general, we can skip the expensive progress of deriving a callable symbolic system and return just the basic definitions using the <code>operator_only</code> keyword.</p><pre><code class="language-">res = solve(prob, DMDSVD(), digits = 1, operator_only = true)</code></pre><p>Where <code>K</code> is the associated operator given as its eigendecomposition, <code>B</code> is a possible mapping of inputs onto the states, <code>C</code> is the linear mapping from the lifted observeables back onto the original states and <code>Q</code> and <code>P</code> are used for updating the operator.</p><h2 id="Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition"><a class="docs-heading-anchor" href="#Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition">Nonlinear System with Extended Dynamic Mode Decomposition</a><a id="Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition-1"></a><a class="docs-heading-anchor-permalink" href="#Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition" title="Permalink"></a></h2><p>Similarly, we can use the <a href="https://link.springer.com/article/10.1007/s00332-015-9258-5">Extended Dynamic Mode Decomposition</a> via a nonlinear <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> of observeables. Here, we look a rather <a href="https://arxiv.org/pdf/1510.03007.pdf">famous example</a> with a finite dimensional solution.</p><pre><code class="language-julia">using DataDrivenDiffEq
+system = result(res)</code></pre><pre class="documenter-example-output">Model ##Koopman#293 with 2 equations
+States : x[1] x[2]
+Parameters : p[1] p[2] p[3]
+Independent variable: t
+Equations
+Differential(t)(x[1]) = p[1]*x[1] + p[2]*x[2]
+Differential(t)(x[2]) = p[3]*x[2]</pre><p>The <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> contains an explicit result which is a <a href="../koopman/#DataDrivenDiffEq.Koopman"><code>Koopman</code></a>, defining all necessary information, e.g. the associated operator (which corresponds to our abefore defined matrix <span>$A$</span>).</p><pre><code class="language-julia">Matrix(system)</code></pre><pre class="documenter-example-output">2×2 Matrix{Float64}:
+  0.9          -0.2
+ -1.07938e-17   0.2</pre><p>In general, we can skip the expensive progress of deriving a callable symbolic system and return just the basic definitions using the <code>operator_only</code> keyword.</p><pre><code class="language-julia">res = solve(prob, DMDSVD(), digits = 1, operator_only = true)</code></pre><pre class="documenter-example-output">(K = LinearAlgebra.Eigen{Float64, Float64, Matrix{Float64}, Vector{Float64}}([0.1999999999999999, 0.9000000000000006], [0.05494422557947559 -0.9000000000000002; 0.19230478952816454 1.3877787807814457e-17]), C = [1.0 0.0; 0.0 1.0], B = Matrix{Float64}(undef, 0, 0), Q = [658.3410161960379 -135.16260071909275; -25.406503863502085 20.833333333333325], P = [658.3410161960379 -135.16260071909275; -25.406503863502085 20.833333333333325])</pre><p>Where <code>K</code> is the associated operator given as its eigendecomposition, <code>B</code> is a possible mapping of inputs onto the states, <code>C</code> is the linear mapping from the lifted observeables back onto the original states and <code>Q</code> and <code>P</code> are used for updating the operator.</p><h2 id="Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition"><a class="docs-heading-anchor" href="#Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition">Nonlinear System with Extended Dynamic Mode Decomposition</a><a id="Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition-1"></a><a class="docs-heading-anchor-permalink" href="#Nonlinear-System-with-Extended-Dynamic-Mode-Decomposition" title="Permalink"></a></h2><p>Similarly, we can use the <a href="https://link.springer.com/article/10.1007/s00332-015-9258-5">Extended Dynamic Mode Decomposition</a> via a nonlinear <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> of observeables. Here, we look a rather <a href="https://arxiv.org/pdf/1510.03007.pdf">famous example</a> with a finite dimensional solution.</p><pre><code class="language-julia">using DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
 using OrdinaryDiffEq
@@ -32,18 +38,39 @@ tspan = (0.0, 5.0)
 p = [-0.8; -0.7]
 
 problem = ODEProblem(slow_manifold, u0, tspan, p)
-solution = solve(problem, Tsit5(), saveat = 0.01)</code></pre><p><img src="../EDMD_Example_1.png" alt/></p><p>Since we are dealing with an continuous system in time, we define the associated <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> accordingly using the measured states <code>X</code>, their derivates <code>DX</code> and the time <code>t</code>.</p><pre><code class="language-julia">prob = ContinuousDataDrivenProblem(solution)</code></pre><pre class="documenter-example-output">Continuous DataDrivenProblem{Float64}</pre><p>Additionally, we need to define the <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> for our lifting, before we <code>solve</code> the problem in the lifted space.</p><pre><code class="language-">@variables u[1:2]
+solution = solve(problem, Tsit5(), saveat = 0.01)</code></pre><p><img src="../EDMD_Example_1.png" alt/></p><p>Since we are dealing with an continuous system in time, we define the associated <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> accordingly using the measured states <code>X</code>, their derivates <code>DX</code> and the time <code>t</code>.</p><pre><code class="language-julia">prob = ContinuousDataDrivenProblem(solution)</code></pre><pre class="documenter-example-output">Continuous DataDrivenProblem{Float64}</pre><p>Additionally, we need to define the <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> for our lifting, before we <code>solve</code> the problem in the lifted space.</p><pre><code class="language-julia">@variables u[1:2]
 Ψ = Basis([u; u[1]^2], u)
 res = solve(prob, Ψ, DMDPINV(), digits = 1)
-system = result(res)
-println(res) # hide
-println(system) # hide
-println(parameters(res)) # hide</code></pre><p>The underlying dynamics have been recovered correctly by the algorithm!</p><p>The eigendecomposition of the Koopman operator can be accessed via <a href="../koopman/#DataDrivenDiffEq.operator"><code>operator</code></a>.</p><pre><code class="language-">operator(system)</code></pre><h2 id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics"><a class="docs-heading-anchor" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics">Nonlinear Systems - Sparse Identification of Nonlinear Dynamics</a><a id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics" title="Permalink"></a></h2><p>To find the underlying system without any <a href="../koopman/#koopman_algorithms"><code>Algortihms</code></a> related to Koopman operator theory, we can use  <a href="https://www.pnas.org/content/113/15/3932">Sparse Identification of Nonlinear Dynamics</a> - SINDy for short. As the name suggests, it finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system</p><pre><code class="language-julia">using DataDrivenDiffEq
+system = result(res)</code></pre><pre class="documenter-example-output">Explicit Result
+Solution with 2 equations and 3 parameters.
+Returncode: sucess
+L2 Norm Error: 3.343797283569837e-15
+AICC: 139.4073224511615
+
+Model ##Koopman#1051 with 2 equations
+States : u[1] u[2]
+Parameters : p[1] p[2] p[3]
+Independent variable: t
+Equations
+Differential(t)(u[1]) = p[1]*u[1]
+Differential(t)(u[2]) = p[2]*u[2] + p[3]*(u[1]^2)
+[-0.8, -0.7, 0.7]</pre><p>The underlying dynamics have been recovered correctly by the algorithm!</p><p>The eigendecomposition of the Koopman operator can be accessed via <a href="../koopman/#DataDrivenDiffEq.operator"><code>operator</code></a>.</p><pre><code class="language-julia">operator(system)</code></pre><pre class="documenter-example-output">LinearAlgebra.Eigen{Float64, Float64, Matrix{Float64}, Vector{Float64}}
+values:
+3-element Vector{Float64}:
+ -1.5999999999999988
+ -0.8000000000000005
+ -0.6999999999999987
+vectors:
+3×3 Matrix{Float64}:
+  8.50899e-17  -1.0          1.61045e-15
+  0.613941     -3.02184e-14  1.0
+ -0.789352      8.80594e-15  3.59306e-15</pre><h2 id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics"><a class="docs-heading-anchor" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics">Nonlinear Systems - Sparse Identification of Nonlinear Dynamics</a><a id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics" title="Permalink"></a></h2><p>To find the underlying system without any <a href="../koopman/#koopman_algorithms"><code>Algortihms</code></a> related to Koopman operator theory, we can use  <a href="https://www.pnas.org/content/113/15/3932">Sparse Identification of Nonlinear Dynamics</a> - SINDy for short. As the name suggests, it finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system</p><pre><code class="language-julia">using DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
 using OrdinaryDiffEq
 using Plots
 using Random
+using Symbolics: scalarize
 
 Random.seed!(1111) # Due to the noise
 
@@ -68,34 +95,33 @@ for (i, xi) in enumerate(eachcol(sol[:,:]))
 end
 
 ts = sol.t</code></pre><p>To estimate the system, we first create a <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> via feeding in the measurement data. Using a <a href="../utils/#Collocation">Collocation</a> method, it automatically provides the derivative. Control signals can be passed in as a function <code>(u,p,t)-&gt;control</code> or an array of measurements.</p><pre><code class="language-julia">prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel() ,
-    U = (u,p,t)-&gt;[exp(-((t-5.0)/5.0)^2)], p = ones(2))</code></pre><p><img src="../SINDy_Example_Data.png" alt/></p><p>Now we infer the system structure. First we define a <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> which collects all possible candidate terms. Since we want to use SINDy, we call <code>solve</code> with an <a href="@id Sparse_Optimizers"><code>Optimizer</code></a>, in this case <a href="../optimization/#DataDrivenDiffEq.Optimize.STLSQ"><code>STLSQ</code></a> which iterates different sparsity thresholds and returns a pareto optimal solution of the underlying <a href="../optimization/#DataDrivenDiffEq.Optimize.sparse_regression!"><code>sparse_regression!</code></a>. Note that we include the control signal in the basis as an additional variable <code>c</code>.</p><pre><code class="language-">@variables u[1:2] c[1:1]
+    U = (u,p,t)-&gt;[exp(-((t-5.0)/5.0)^2)], p = ones(2))</code></pre><p><img src="../SINDy_Example_Data.png" alt/></p><p>Now we infer the system structure. First we define a <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> which collects all possible candidate terms. Since we want to use SINDy, we call <code>solve</code> with an <a href="@id Sparse_Optimizers"><code>Optimizer</code></a>, in this case <a href="../optimization/#DataDrivenDiffEq.Optimize.STLSQ"><code>STLSQ</code></a> which iterates different sparsity thresholds and returns a pareto optimal solution of the underlying <a href="../optimization/#DataDrivenDiffEq.Optimize.sparse_regression!"><code>sparse_regression!</code></a>. Note that we include the control signal in the basis as an additional variable <code>c</code>.</p><pre><code class="language-julia">@variables u[1:2] c[1:1]
 @parameters w[1:2]
+u = scalarize(u)
+c = scalarize(c)
+w = scalarize(w)
 
-h = Num[sin(w[1]*u[1]);cos(w[2]*u[1]); polynomial_basis(u, 5); c]
+h = Num[sin.(w[1].*u[1]);cos.(w[2].*u[1]); polynomial_basis(u, 5); c]
 
 basis = Basis(h, u, parameters = w, controls = c)
 
 λs = exp10.(-10:0.1:-1)
 opt = STLSQ(λs)
-res = solve(prob, basis, opt, progress = false, denoise = false, normalize = false, maxiter = 5000)
-println(res) # hide</code></pre><div class="admonition is-info"><header class="admonition-header">Info</header><div class="admonition-body"><p>A more detailed description of the result can be printed via <code>print(res, Val{true})</code>, which also includes the discovered equations and parameter values.</p></div></div><p>Where the resulting <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> stores information about the infered model and the parameters:</p><pre><code class="language-">system = result(res);
-params = parameters(res);
-println(system) #hide
-println(params) #hide</code></pre><p>Since any system obtained via a <code>solve</code> command is a <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> and hence a subtype of an <code>AbstractSystem</code> defined in <a href="https://github.com/SciML/ModelingToolkit.jl"><code>ModelingToolkit</code></a>, we can simply simulate the result via:</p><pre><code class="language-">infered_prob = ODEProblem(system, u0, tspan, parameters(res))
-infered_solution = solve(infered_prob, Tsit5(), saveat = ts)
-plot(infered_solution, label = [&quot;Infered&quot; nothing], color = :red) # hide
-
-function pendulum(u, p, t) # hide
-    x = u[2] # hide
-    y = -9.81sin(u[1]) - 0.3u[2]^3 -3.0*cos(u[1]) # hide
-    return [x;y] # hide
-end # hide
-
-prob = ODEProblem(pendulum, u0, tspan) # hide
-sol = solve(prob, Tsit5(), saveat = 0.01) # hide
-
-plot!(sol, label = [&quot;Ground Truth&quot; nothing], color = :black, style = :dash) # hide
-savefig(&quot;SINDy_Example_Data_Infered.png&quot;) #hide</code></pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>As of now, the control input is dropped in the simulation of a system. We are working on this and pull requests are welcome!</p></div></div><p><img src="SINDy_Example_Data_Infered.png" alt/></p><p>As we can see above, the estimated system matches the ground truth reasonably well.</p><h2 id="Implicit-Nonlinear-Dynamics-:-Michaelis-Menten"><a class="docs-heading-anchor" href="#Implicit-Nonlinear-Dynamics-:-Michaelis-Menten">Implicit Nonlinear Dynamics : Michaelis Menten</a><a id="Implicit-Nonlinear-Dynamics-:-Michaelis-Menten-1"></a><a class="docs-heading-anchor-permalink" href="#Implicit-Nonlinear-Dynamics-:-Michaelis-Menten" title="Permalink"></a></h2><p>But what if you want to estimate an implicitly defined system of the form <span>$f(u_t, u, p, t) = 0$</span>? Do not worry, since there exists a solution : Implicit Sparse Identification. It has been originally described in <a href="http://ieeexplore.ieee.org/document/7809160/">this paper</a> and currently there exist <a href="https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279">robust algorithms</a> to identify these systems.</p><p>We will focus on the <a href="https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics">Michaelis Menten Kinetics</a>. As before, we will define the <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> and the <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> containing possible candidate functions for our <a href="../optimization/#DataDrivenDiffEq.Optimize.sparse_regression!"><code>sparse_regression!</code></a>.</p><pre><code class="language-julia">using DataDrivenDiffEq
+res = solve(prob, basis, opt, progress = false, denoise = false, normalize = false, maxiter = 5000)</code></pre><pre class="documenter-example-output">Explicit Result
+Solution with 2 equations and 7 parameters.
+Returncode: sucess
+Sparsity: 5.0
+L2 Norm Error: 9.16981610724992
+AICC: 1.1925559702692727</pre><div class="admonition is-info"><header class="admonition-header">Info</header><div class="admonition-body"><p>A more detailed description of the result can be printed via <code>print(res, Val{true})</code>, which also includes the discovered equations and parameter values.</p></div></div><p>Where the resulting <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> stores information about the infered model and the parameters:</p><pre><code class="language-julia">system = result(res);
+params = parameters(res);</code></pre><pre class="documenter-example-output">Model ##Basis#1060 with 2 equations
+States : u[1] u[2]
+Parameters : 7
+Independent variable: t
+Equations
+Differential(t)(u[1]) = p[3]*u[2]
+Differential(t)(u[2]) = sin(u[1]*w[1])*p[4] + cos(u[1]*w[2])*p[5] + c[1]*p[7] + p[6]*(u[2]^3)
+[1.0, 1.0, 1.0, -9.75, -3.03, -0.31, -10.01]</pre><p>Since any system obtained via a <code>solve</code> command is a <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> and hence a subtype of an <code>AbstractSystem</code> defined in <a href="https://github.com/SciML/ModelingToolkit.jl"><code>ModelingToolkit</code></a>, we can simply simulate the result via:</p><pre><code class="language-julia">infered_prob = ODEProblem(system, u0, tspan, parameters(res))
+infered_solution = solve(infered_prob, Tsit5(), saveat = ts)</code></pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>As of now, the control input is dropped in the simulation of a system. We are working on this and pull requests are welcome!</p></div></div><p><img src="../SINDy_Example_Data_Infered.png" alt/></p><p>As we can see above, the estimated system matches the ground truth reasonably well.</p><h2 id="Implicit-Nonlinear-Dynamics-:-Michaelis-Menten"><a class="docs-heading-anchor" href="#Implicit-Nonlinear-Dynamics-:-Michaelis-Menten">Implicit Nonlinear Dynamics : Michaelis Menten</a><a id="Implicit-Nonlinear-Dynamics-:-Michaelis-Menten-1"></a><a class="docs-heading-anchor-permalink" href="#Implicit-Nonlinear-Dynamics-:-Michaelis-Menten" title="Permalink"></a></h2><p>But what if you want to estimate an implicitly defined system of the form <span>$f(u_t, u, p, t) = 0$</span>? Do not worry, since there exists a solution : Implicit Sparse Identification. It has been originally described in <a href="http://ieeexplore.ieee.org/document/7809160/">this paper</a> and currently there exist <a href="https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279">robust algorithms</a> to identify these systems.</p><p>We will focus on the <a href="https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics">Michaelis Menten Kinetics</a>. As before, we will define the <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> and the <a href="../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> containing possible candidate functions for our <a href="../optimization/#DataDrivenDiffEq.Optimize.sparse_regression!"><code>sparse_regression!</code></a>.</p><pre><code class="language-julia">using DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
 using Plots
@@ -126,7 +152,7 @@ prob = ContinuousDataDrivenProblem(X, ts, DX)
 D = Differential(t)
 @variables u[1:1](t)
 h = [monomial_basis(u[1:1], 4)...]
-basis = Basis([h; h .* D(u[1])], [u; D(u[1])], iv = t)</code></pre><pre class="documenter-example-output">Model ##Basis#1054 with 10 equations
+basis = Basis([h; h .* D(u[1])], [u; D(u[1])], iv = t)</code></pre><pre class="documenter-example-output">Model ##Basis#1096 with 10 equations
 States : u[1](t) Differential(t)(u[1](t))
 Independent variable: t
 Equations
@@ -140,13 +166,13 @@ res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000
 Solution with 1 equations and 4 parameters.
 Returncode: sucess
 Sparsity: 4.0
-L2 Norm Error: 0.12165324361055348
-AICC: 17.215795870781612</pre><p>As we can see, the <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> already has good metrics. Inspection of the underlying system shows that the original equations have been recovered correctly:</p><pre><code class="language-julia">println(system)</code></pre><pre class="documenter-example-output">Model ##Basis#1057 with 1 equations
+L2 Norm Error: 0.12165324361055349
+AICC: 17.215795870781612</pre><p>As we can see, the <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> already has good metrics. Inspection of the underlying system shows that the original equations have been recovered correctly:</p><pre><code class="language-julia">println(system)</code></pre><pre class="documenter-example-output">Model ##Basis#1099 with 1 equations
 States : u[1](t) Differential(t)(u[1](t))
 Parameters : p[1] p[2] p[3] p[4]
 Independent variable: t
 Equations
-0 = u[1](t)*Differential(t)(u[1](t))*p[4] + p[1] + u[1](t)*p[2] + Differential(t)(u[1](t))*p[3]</pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>Right now, <code>Implicit</code> results cannot be simulated without further processing in <code>ModelingToolkit</code></p></div></div><h2 id="Implicit-Nonlinear-Dynamics-:-Cartpole"><a class="docs-heading-anchor" href="#Implicit-Nonlinear-Dynamics-:-Cartpole">Implicit Nonlinear Dynamics : Cartpole</a><a id="Implicit-Nonlinear-Dynamics-:-Cartpole-1"></a><a class="docs-heading-anchor-permalink" href="#Implicit-Nonlinear-Dynamics-:-Cartpole" title="Permalink"></a></h2><p>The following is another example on how to use the <a href="../optimization/#DataDrivenDiffEq.Optimize.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> and is taken from the <a href="https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279">original paper</a>.</p><p>As always, we start by creating a corresponding dataset.</p><pre><code class="language-julia">using DataDrivenDiffEq
+0 = p[1] + u[1](t)*p[2] + Differential(t)(u[1](t))*p[3] + u[1](t)*Differential(t)(u[1](t))*p[4]</pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>Right now, <code>Implicit</code> results cannot be simulated without further processing in <code>ModelingToolkit</code></p></div></div><h2 id="Implicit-Nonlinear-Dynamics-:-Cartpole"><a class="docs-heading-anchor" href="#Implicit-Nonlinear-Dynamics-:-Cartpole">Implicit Nonlinear Dynamics : Cartpole</a><a id="Implicit-Nonlinear-Dynamics-:-Cartpole-1"></a><a class="docs-heading-anchor-permalink" href="#Implicit-Nonlinear-Dynamics-:-Cartpole" title="Permalink"></a></h2><p>The following is another example on how to use the <a href="../optimization/#DataDrivenDiffEq.Optimize.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> and is taken from the <a href="https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279">original paper</a>.</p><p>As always, we start by creating a corresponding dataset.</p><pre><code class="language-julia">using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
 using LinearAlgebra
@@ -203,7 +229,7 @@ push!(implicits, x...)
 push!(implicits, x[1]*cos(u[1]))
 push!(implicits, x[1]*sin(u[1]))
 
-basis= Basis(implicits, [u; du], controls = x,  iv = t);</code></pre><pre class="documenter-example-output">Model ##Basis#1061 with 45 equations
+basis= Basis(implicits, [u; du], controls = x,  iv = t);</code></pre><pre class="documenter-example-output">Model ##Basis#1103 with 45 equations
 States : 6
 Independent variable: t
 Equations
@@ -230,11 +256,11 @@ Sparsity: 10.0
 L2 Norm Error: 2.5108086500667705e-15
 AICC: 161.24191685847754
 
-Model ##Basis#1064 with 2 equations
+Model ##Basis#1106 with 2 equations
 States : 6
 Parameters : 10
 Independent variable: t
 Equations
 0 = sin(u[1])*p[3] + du[1]*p[1] + cos(u[1])*p[5]*x[1] + du[1]*p[2]*(cos(u[1])^2) + cos(u[1])*sin(u[1])*p[4]*(u[3]^2)
 0 = du[2]*p[6] + p[10]*x[1] + cos(u[1])*sin(u[1])*p[9] + sin(u[1])*p[8]*(u[3]^2) + du[2]*p[7]*(cos(u[1])^2)
-Pair{SymbolicUtils.Term{Real, Base.ImmutableDict{DataType, Any}}, Float64}[p[1] =&gt; -1.0, p[2] =&gt; 0.5, p[3] =&gt; -9.81, p[4] =&gt; -0.5, p[5] =&gt; -0.5, p[6] =&gt; -1.0, p[7] =&gt; 0.5, p[8] =&gt; -0.5, p[9] =&gt; -4.905, p[10] =&gt; -0.5]</pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../prob_and_solve/">Problems And Solution »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.3 on <span class="colophon-date" title="Sunday 4 July 2021 09:23">Sunday 4 July 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Pair{SymbolicUtils.Term{Real, Base.ImmutableDict{DataType, Any}}, Float64}[p[1] =&gt; -1.0, p[2] =&gt; 0.5, p[3] =&gt; -9.81, p[4] =&gt; -0.5, p[5] =&gt; -0.5, p[6] =&gt; -1.0, p[7] =&gt; 0.5, p[8] =&gt; -0.5, p[9] =&gt; -4.905, p[10] =&gt; -0.5]</pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../prob_and_solve/">Problems And Solution »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.3 on <span class="colophon-date" title="Monday 5 July 2021 10:20">Monday 5 July 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
