@@ -130,6 +130,7 @@ function build_parametrized_eqs(X::AbstractMatrix, b::Basis)
     inds = sps .> zero(eltype(X))
     pl = length(parameters(b))
     @parameters p[(pl+1):(pl+sp)]
+    p = scalarize(p)
     ps = zeros(eltype(X), sp)
 
     eqs = zeros(Num, sum(inds))
@@ -156,7 +157,7 @@ end
 # Explicit sindy
 function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis;
     eval_expression = false)
-    if all(iszero(Ξ))
+    if all(iszero.(Ξ))
         @warn "Sparse regression failed! All coefficients are zero."
         return DataDrivenSolution(
         nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing),
