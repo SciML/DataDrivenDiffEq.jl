@@ -38,7 +38,9 @@ end
     @test isapprox(p3.X, p2.X, atol = 0.3)
     @test isapprox(p3.DX, p2.DX, atol = 0.3)
     @test isequal(p5.U, p6.U)
+    @test is_parametrized(p6)
     @test isequal(p6.p, p)
+    @test has_timepoints(p4)
 end
 
 @testset "DirectProblem" begin
@@ -54,4 +56,5 @@ end
 
     @test isequal(p3.U, p4.U)
     @test isequal(p4.p, p)
+    @test !is_autonomous(p3)
 end
