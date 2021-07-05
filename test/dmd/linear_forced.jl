@@ -10,9 +10,9 @@
     U = reshape(map(t->sin(t), sol_cont.t),1, length(sol_cont))
 
     ddprob = ContinuousDataDrivenProblem(sol_cont, U = U)
-    
-    for alg in [DMDPINV(); DMDSVD(); TOTALDMD(2, DMDPINV())]
-        k = solve(ddprob, DMDPINV(), digits = 2)
+
+    for alg in [DMDPINV(); DMDSVD(); TOTALDMD(3, DMDPINV())]
+        k = solve(ddprob, alg, digits = 2)
         b = result(k)
         m = metrics(k)
         @test m.Error < 1e-10
@@ -22,11 +22,10 @@
     end
 end
 
-
 @testset "Linear Forced Unstable System" begin
     # Define measurements from unstable system with known control input
     X = [4 2 1 0.5 0.25; 7 0.7 0.07 0.007 0.0007]
-    U = [-4 -2 -1 -0.5]
+    U = [-4 -2 -1 -0.5 0] # Add the zero because we probably know the input here
     B = Float32[1; 0]
 
     ddprob = DiscreteDataDrivenProblem(X, t = 1:5, U = U)
