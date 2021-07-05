@@ -113,6 +113,7 @@ using ModelingToolkit
 using OrdinaryDiffEq
 using Plots
 using Random
+using Symbolics: scalarize
 
 Random.seed!(1111) # Due to the noise
 
@@ -165,8 +166,11 @@ and returns a pareto optimal solution of the underlying [`sparse_regression!`](@
 ```@example 1
 @variables u[1:2] c[1:1]
 @parameters w[1:2]
+u = scalarize(u)
+c = scalarize(c)
+w = scalarize(w)
 
-h = Num[sin(w[1]*u[1]);cos(w[2]*u[1]); polynomial_basis(u, 5); c]
+h = Num[sin.(w[1].*u[1]);cos.(w[2].*u[1]); polynomial_basis(u, 5); c]
 
 basis = Basis(h, u, parameters = w, controls = c)
 
