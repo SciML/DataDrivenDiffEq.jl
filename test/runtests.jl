@@ -1,12 +1,14 @@
 using DataDrivenDiffEq
 using DataDrivenDiffEq.Optimize
 using ModelingToolkit
+
 using LinearAlgebra
 using SafeTestsets
 using Random
 
 @info "Loading OrdinaryDiffEq"
 using OrdinaryDiffEq
+
 using Test
 @info "Finished loading packages"
 
@@ -32,6 +34,16 @@ const GROUP = get(ENV, "GROUP", "All")
         end
 
         include("./utils.jl")
+    end
+
+    if GROUP == "All" || GROUP == "Optional"
+
+        @info "Loading Flux"
+        using Flux
+
+        @testset "Symbolic Regression" begin
+            @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl") end
+        end
     end
 
     # These are excluded right now, until the deps are figured out
