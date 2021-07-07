@@ -36,7 +36,7 @@ const GROUP = get(ENV, "GROUP", "All")
         end
 
         @testset "Symbolic Regression" begin
-            @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl")
+            @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl") end
         end
 
         include("./utils.jl")
