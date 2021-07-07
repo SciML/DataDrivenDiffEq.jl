@@ -8,6 +8,9 @@ using LinearAlgebra
 using DiffEqBase
 using ModelingToolkit
 
+using Flux
+using Distributions
+
 using QuadGK
 using Statistics
 using DataInterpolations
@@ -36,6 +39,8 @@ abstract type AbstractKoopmanAlgorithm end
 abstract type AbstractDataDrivenProblem{dType, cType, probType} end
 abstract type AbstractDataDrivenSolution end
 
+# OccamNet
+abstract type AbstractProbabilityLayer end
 
 ## Basis
 
@@ -81,7 +86,13 @@ export update!
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD
 
-
+include("./symbolic_regression/occamnet.jl")
+export OccamNet, set_temp!, probabilities, logprobabilities
+@reexport using Flux: train!
+@reexport using Flux: Descent, ADAM, Momentum, Nesterov, RMSProp,
+	ADAGrad, AdaMax, ADADelta, AMSGrad, NADAM, ADAMW,RADAM, OADAM, AdaBelief,
+	InvDecay, ExpDecay, WeightDecay, stop, skip, Optimiser,
+	ClipValue, ClipNorm
 
 ## Problem and Solution
 # Use to distinguish the problem types

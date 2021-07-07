@@ -738,6 +738,11 @@ function is_binary(f::Function, t::Type = Number)
     !is_unary(f, t)
 end
 
+function ariety(f::Function, t::Type = Number)
+    is_unary(f, t) && return 1
+    is_binary(f, t) && return 2
+    return 0
+end
 
 function sort_ops(f::Vector{Function})
     U = Function[]
