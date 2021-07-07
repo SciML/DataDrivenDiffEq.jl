@@ -7,7 +7,7 @@
 
     net = OccamNet(2, 2, 3, Function[sin, +, *, exp], skip = true, constants = Float64[π])
     initial_loss = sum([sum(abs2, net(X)-Y) for i in 1:100]) / 100
-    @test_nowarn train!(net, X, Y, ADAM(1e-2), 1000, routes = 100, nbest = 3)
+    Flux.train!(net, X, Y, ADAM(1e-2), 1000, routes = 100, nbest = 3)
     final_loss = sum([sum(abs2, net(X)-Y) for i in 1:100]) / 100
     @test initial_loss >= final_loss
 
@@ -18,6 +18,7 @@
     # Get the best route
     @test_nowarn rand(net)
     route = rand(net)
+    @test all(probability(net, route) .> 0.9)
     # Use simplify for ordering
     eqs = simplify.(net(x, route))
     @test isequal(eqs, simplify.(Num[sin(π*x[2]+x[1]); exp(x[2])]))

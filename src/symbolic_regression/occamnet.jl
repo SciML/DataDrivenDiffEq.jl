@@ -1,3 +1,7 @@
+# OccamNet
+abstract type AbstractProbabilityLayer end
+abstract type AbstractOccam end
+
 ## Overload softmax and logsoftmax with Temperature
 NNlib.softmax(x, T; dims = 1) = T > eps() ? softmax(x ./ T, dims = dims) : softmax(x, dims = dims)
 NNlib.logsoftmax(x, T; dims =1) = T > eps() ? x ./ T .- log.(sum(exp, x ./ T, dims = dims)) : logsoftmax(x, dims)
@@ -181,7 +185,7 @@ The constructors to the weights and parameters can be passed in via `init_w` and
 $(FIELDS)
 
 """
-mutable struct OccamNet{F, C, P}
+mutable struct OccamNet{F, C, P} <: AbstractOccam
     c::F # The chain
     constants::C # Additional constants which are fixed
     parameters::P # Additional learnable parameters
@@ -241,6 +245,8 @@ function logprobability(o::OccamNet, route::Vector{Vector{Int64}})
     return res
 end
 
+probability(o::OccamNet, route::Vector{Vector{Int64}}) = exp.(logprobability(o, route))
+
 Flux.@functor OccamNet
 Flux.trainable(u::OccamNet) = (u.parameters, Flux.trainable.(u.c)...,)
 
@@ -255,12 +261,18 @@ $(SIGNATURES)
 
 Overloads `Flux.train!` method to be used with an `OccamNet`.
 """
-function Flux.train!(net::OccamNet, X, Y, opt, iterations = 10; routes = 10, nbest = 1, cb = ()->())
+function Flux.train!(net::OccamNet, X, Y, opt, maxiters = 10; routes = 10, nbest = 1, cb = ()->(), progress = false)
     ny = size(Y,1)
     vary = [var(Y, dims = 2)...]
     ps_prob = Flux.params(net)
 
-    for k in 1:iterations
+    if progress
+        prog = Progress(
+            maxiters, "Training $(net)"
+        )
+    end
+
+    for k in 1:maxiters
         ls = map(1:routes) do i
             route = rand(net)
             res = net(X, route)
@@ -282,12 +294,17 @@ function Flux.train!(net::OccamNet, X, Y, opt, iterations = 10; routes = 10, nbe
         end
         Flux.Optimise.update!(opt, ps_prob, gs)
 
-        # TODO Add progress and proper callback support
+        if progress
+            rp = round.(exp.(logprobability(net, first(first(ls)))), digits = 5)
+            loss = sum(abs2, net(X, first(first(ls))) - Y) / size(Y, 2)
 
-        #rp = round.(exp.(sum(logprobability(net, first(first(ls))))), digits = 5)
-        #loss = sum(abs2, net(X, first(first(ls))) - Y) / size(Y, 2)
-        #@info "Iteration $k : Probability Best: $(rp) Equivalent L2-Error : $(loss)"#
-        #@info net.parameters
+            ProgressMeter.next!(
+            prog;
+            showvalues = [
+                (:Probabilities, rp), (Symbol("Equivalent L2-Loss"), loss)
+                ]
+                )
+        end
     end
     return
 end

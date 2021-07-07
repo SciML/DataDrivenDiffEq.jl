@@ -8,13 +8,14 @@ using LinearAlgebra
 using DiffEqBase
 using ModelingToolkit
 
-using Flux
 using Distributions
-
 using QuadGK
 using Statistics
 using DataInterpolations
 
+
+using Requires
+using ProgressMeter
 using Reexport
 using Compat
 using DocStringExtensions
@@ -35,12 +36,15 @@ abstract type CollocationKernel end
 # Algortihms for Koopman
 abstract type AbstractKoopmanAlgorithm end
 
+# Abstract symbolic_regression
+abstract type AbstractSymbolicRegression end
+
 # Problem and solution
 abstract type AbstractDataDrivenProblem{dType, cType, probType} end
 abstract type AbstractDataDrivenSolution end
 
-# OccamNet
-abstract type AbstractProbabilityLayer end
+
+
 
 ## Basis
 
@@ -86,13 +90,6 @@ export update!
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD
 
-include("./symbolic_regression/occamnet.jl")
-export OccamNet, set_temp!, probabilities, logprobabilities
-@reexport using Flux: train!
-@reexport using Flux: Descent, ADAM, Momentum, Nesterov, RMSProp,
-	ADAGrad, AdaMax, ADADelta, AMSGrad, NADAM, ADAMW,RADAM, OADAM, AdaBelief,
-	InvDecay, ExpDecay, WeightDecay, stop, skip, Optimiser,
-	ClipValue, ClipNorm
 
 ## Problem and Solution
 # Use to distinguish the problem types
@@ -125,5 +122,21 @@ export output
 include("./solve/sindy.jl")
 include("./solve/koopman.jl")
 export solve
+
+# Optional
+function __init__()
+    # Load and export OccamNet
+    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
+
+        using .Flux
+        include("./symbolic_regression/occamnet.jl")
+
+        export OccamNet, set_temp!
+        export probability, logprobability
+        export probabilities, logprobabilities
+
+        @info "DataDrivenDiffEq : OccamNet is available."
+    end
+end
 
 end # module
