@@ -282,12 +282,12 @@ function Flux.train!(net::OccamNet, X, Y, opt, iterations = 10; routes = 10, nbe
         end
         Flux.Optimise.update!(opt, ps_prob, gs)
 
+        # TODO Add progress and proper callback support
 
-        rp = round.(exp.(sum(logprobability(net, first(first(ls))))), digits = 5)
-
-        loss = sum(abs2, net(X, first(first(ls))) - Y) / size(Y, 2)
-        @info "Iteration $k : Probability Best: $(rp) Equivalent L2-Error : $(loss)"#
-        @info net.parameters
+        #rp = round.(exp.(sum(logprobability(net, first(first(ls))))), digits = 5)
+        #loss = sum(abs2, net(X, first(first(ls))) - Y) / size(Y, 2)
+        #@info "Iteration $k : Probability Best: $(rp) Equivalent L2-Error : $(loss)"#
+        #@info net.parameters
     end
     return
 end

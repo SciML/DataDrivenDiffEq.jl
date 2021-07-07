@@ -1,12 +1,16 @@
 using DataDrivenDiffEq
 using DataDrivenDiffEq.Optimize
 using ModelingToolkit
+
 using LinearAlgebra
 using SafeTestsets
 using Random
 
 @info "Loading OrdinaryDiffEq"
 using OrdinaryDiffEq
+@info "Loading Flux"
+using Flux
+
 using Test
 @info "Finished loading packages"
 
@@ -29,6 +33,10 @@ const GROUP = get(ENV, "GROUP", "All")
             @testset "Linear Forced" begin include("./dmd/linear_forced.jl") end
             @testset "Nonlinear Autonomous" begin include("./dmd/nonlinear_autonomous.jl") end
             @testset "Nonlinear Forced" begin include("./dmd/nonlinear_forced.jl") end
+        end
+
+        @testset "Symbolic Regression" begin
+            @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl")
         end
 
         include("./utils.jl")
