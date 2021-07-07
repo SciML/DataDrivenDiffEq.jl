@@ -1,11 +1,3 @@
-using DataDrivenDiffEq
-using LinearAlgebra
-using ModelingToolkit
-using Plots
-using LinearAlgebra
-using Test
-using Random
-
 @testset "OccamNet Flux API" begin
     Random.seed!(1223)
     # Generate a multivariate function for OccamNet
