@@ -23,3 +23,20 @@
     eqs = simplify.(net(x, route))
     @test isequal(eqs, simplify.(Num[sin(π*x[2]+x[1]); exp(x[2])]))
 end
+
+@testset "OccamNet Solve API" begin
+
+    sralg = OccamSR(layers = 3)
+    X = rand(2,20)
+    Y = permutedims(sin.(π*X[1,:]+X[2,:]))
+
+    ddprob = DirectDataDrivenProblem(X, Y)
+
+    res = solve(ddprob, sralg, ADAM(1e-2), max_iter = 1000, progress = false, routes = 100, temperature = 1.0)
+
+    basis = result(res)
+    m = metrics(res)
+    @test m.Probability > 0.7
+    @test m.Error < eps()
+    @test m.AICC == Inf
+end

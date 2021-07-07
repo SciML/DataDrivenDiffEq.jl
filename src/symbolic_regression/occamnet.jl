@@ -159,6 +159,7 @@ end
 Flux.@functor ProbabilityLayer
 Flux.trainable(u::ProbabilityLayer) = (u.weight,)
 
+## NETWORK
 
 """
 $(TYPEDEF)
@@ -307,4 +308,149 @@ function Flux.train!(net::OccamNet, X, Y, opt, maxiters = 10; routes = 10, nbest
         end
     end
     return
+end
+
+## SR WRAPPER
+
+"""
+$(TYPEDEF)
+
+Options for using OccamNet within the `solve` function. Automatically creates a network with the given specification.
+
+# Fields
+$(FIELDS)
+
+"""
+struct OccamSR{F, C, T} <: AbstractSymbolicRegression "Functions used within the network"
+    functions::F
+    "Constants added to the input"
+    constants::C
+    "Number of layers"
+    layers::Int
+    "Number of parameters"
+    parameters::Int
+    "Activate skip connections"
+    skip::Bool
+end
+
+function Base.show(io::IO, l::OccamSR{F, C, T}) where {F,C,T}
+  T ? print(io, "Implicit ") : nothing
+  print(io, "OccamSR(", length(l.functions))
+  !isempty(l.constants) ? print(io, ", Constants ", length(l.constants)) : nothing
+  l.parameters > 0 ? print(io, ", Parameters ", l.parameters) : nothing
+  print(io, ")")
+end
+
+function Base.summary(io::IO, l::OccamSR)
+  print(io, "OccamSR\n")
+  print(io, "Functions ", l.functions, "\n")
+  !isempty(l.constants) ? print(io, "Constants ", l.constants, "\n") : nothing
+  l.parameters > 0 ? print(io, "Parameters ", l.parameters, "\n") : nothing
+end
+
+function Base.print(io::IO, l::OccamSR)
+    summary(io, l)
+end
+
+function OccamSR(;functions = [+,*,sin,exp], constants = [π, ℯ],
+    layers = 2, parameters = 0, skip = true, implicit = false,
+    kwargs...)
+    implicit && throw(error("Implicit OccamSR is not supported at the moment."))
+    return OccamSR{typeof(functions), typeof(constants), implicit}(functions, constants, layers, parameters, skip)
+end
+
+## SOLVE
+
+function DiffEqBase.solve(
+    p, o::OccamSR{F,C, false}, opt;
+    max_iter = 1000, cb = ()->(), progress = false, routes = 10, nbest = 1, temperature = 1.0
+    ) where {F,C}
+
+    # Target variables
+    Y = get_target(p)
+    # Inputs
+    X̂, _, t, U = get_oop_args(p)
+
+    t = iszero(t) ? [] : t
+    # Cat the inputs
+    X = vcat([x for x in (X̂, U, permutedims(t)) if !isempty(x)]...)
+
+    inp = size(X,1)
+    outp = size(Y,1)
+
+    net = OccamNet(inp, outp, o.layers, o.functions, temperature, constants = o.constants, parameters = o.parameters, skip = o.skip)
+
+    Flux.train!(net, X, Y, opt, max_iter, routes = routes, nbest = nbest, cb = cb, progress = progress)
+    build_solution(p, net, o, opt)
+end
+
+## SOLUTION
+function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
+    eval_expression = false)
+
+    @variables x[1:size(prob.X, 1)] u[1:size(prob.U,1)] t
+    x_ = [x;u;t]
+
+    inp = size(net.c[1].weight, 2)- length(net.constants)
+    temp_ = net.c[1].t
+
+    # Draw routers
+    set_temp!(net, 0.1)
+    route = rand(net)
+    eqs = simplify.(net(x_[1:inp], route))
+    set_temp!(net, temp_)
+
+
+    # Build the lhs
+    if length(eqs) == size(prob.X, 1)
+        d = Differential(t)
+        eqs = [d(x[i]) ~ eq for (i,eq) in enumerate(eqs)]
+    end
+
+    # Build a basis
+    res_ = Basis(
+        eqs, x, iv = t,
+        controls = u,
+        eval_expression = eval_expression
+    )
+
+
+
+    X = get_target(prob)
+    Y = res_(get_oop_args(prob)...)
+
+    # Build the metrics
+    pb = exp(sum(logprobability(net, route)))
+    pbs = probability(net, route)
+    retcode = pb > 0.5 ? :sucess : :unlikely
+
+    error = norm(X-Y, 2)
+    k = free_parameters(res_)
+    aic = AICC(k, X, Y)
+    errors = zeros(eltype(X), size(Y, 1))
+    aiccs = zeros(eltype(X), size(Y, 1))
+    j = 1
+    for i in 1:size(Y,1)
+
+        errors[i] = norm(X[i,:].-Y[i,:],2)
+        aiccs[i] = AICC(k, X[i:i, :], Y[i:i,:])
+    end
+
+    metrics = (
+        Probability = pb,
+        Error = error,
+        AICC = aic,
+        Probabilities = pbs,
+        Errors = errors,
+        AICCs = aiccs,
+    )
+
+    inputs = (
+        Problem = prob,
+        Algorithm = o,
+    )
+
+    return DataDrivenSolution(
+        res_, retcode, [], opt, net, inputs, metrics
+    )
 end

@@ -134,6 +134,7 @@ function __init__()
         export OccamNet, set_temp!
         export probability, logprobability
         export probabilities, logprobabilities
+        export OccamSR
 
         @info "DataDrivenDiffEq : OccamNet is available."
     end
