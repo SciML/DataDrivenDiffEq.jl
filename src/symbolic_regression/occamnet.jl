@@ -12,18 +12,22 @@ $(TYPEDEF)
 Defines a basic `ProbabilityLayer` in which the parameters act as probabilities via the `softmax` function for an
 array of functions.
 
+The layer is callable either via `layer(x)`, using all weights to form the output or by `layer(x, route)` where route is
+the result of `rand(layer)` which samples the function arguments from the underlying distribution.
+
 # Fields
+
 $(FIELDS)
 
 """
 mutable struct ProbabilityLayer{F,W,T,A} <: AbstractProbabilityLayer
-    "Basis"
+    "Nonlinear functions forming the basis of the layer"
     op::F
     "Weights"
     weight::W
-    "Temperature"
+    "Temperature controlling the shape of the distribution"
     t::T
-    "Arieties of the basis"
+    "Arieties of the functions"
     arieties::A
     "Skip connection"
     skip::Bool
@@ -90,7 +94,7 @@ end
 """
 $(SIGNATURES)
 
-Return the probability associated with the object by applying `softmax` on the weights.
+Return the probability associated with the `ProbabilityLayer` or `OccamNet` by applying `softmax` on the weights.
 """
 probabilities(p::AbstractProbabilityLayer) = softmax(p.weight, p.t, dims = 2)
 
@@ -102,9 +106,8 @@ end
 """
 $(SIGNATURES)
 
-Return the logprobability associated with the object by applying `logsoftmax` on the weights.
+Return the logprobability associated with the `ProbabilityLayer` or `OccamNet` by applying `logsoftmax` on the weights.
 """
-
 logprobabilities(p::AbstractProbabilityLayer) = logsoftmax(p.weight, p.t, dims = 2)
 
 function logprobabilities(p::AbstractProbabilityLayer, sample::Vector{Int})
@@ -143,7 +146,7 @@ resprobability(p::AbstractProbabilityLayer, sample) = exp.(reslogprobability(p, 
 """
 $(SIGNATURES)
 
-Set the temperature of the layer or net.
+Set the temperature of the `ProbabilityLayer` or `OccamNet`.
 """
 set_temp!(p::AbstractProbabilityLayer, t::Real) = p.t = t
 
@@ -187,8 +190,11 @@ $(FIELDS)
 
 """
 mutable struct OccamNet{F, C, P} <: AbstractOccam
+    "The `Chain` representing the network"
     c::F # The chain
+    "Additional constants added to the input which are not trainable."
     constants::C # Additional constants which are fixed
+    "Additional parameters added to the input which are trainable."
     parameters::P # Additional learnable parameters
 end
 
@@ -237,6 +243,11 @@ end
 
 (o::OccamNet)(x::AbstractMatrix, route::Vector{Vector{Int64}}) = hcat(map(xi->o(xi, route), eachcol(x))...)
 
+"""
+$(SIGNATURES)
+
+Returns the logprobability of the result of the `OccamNet` using the specific route.
+"""
 function logprobability(o::OccamNet, route::Vector{Vector{Int64}})
     # Input prob = 1 -> logprob = 0
     res = zeros(eltype(o.c[1].t), size(o.c[1].weight, 2) + length(o.constants))
@@ -246,6 +257,11 @@ function logprobability(o::OccamNet, route::Vector{Vector{Int64}})
     return res
 end
 
+"""
+$(SIGNATURES)
+
+Returns the probability of the result of the `OccamNet` using the specific route.
+"""
 probability(o::OccamNet, route::Vector{Vector{Int64}}) = exp.(logprobability(o, route))
 
 Flux.@functor OccamNet
@@ -389,6 +405,8 @@ function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
     eval_expression = false)
 
     @variables x[1:size(prob.X, 1)] u[1:size(prob.U,1)] t
+    x = scalarize(x)
+    u = scalarize(u)
     x_ = [x;u;t]
 
     inp = size(net.c[1].weight, 2)- length(net.constants)
@@ -413,7 +431,6 @@ function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
         controls = u,
         eval_expression = eval_expression
     )
-
 
 
     X = get_target(prob)

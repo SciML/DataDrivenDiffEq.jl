@@ -131,7 +131,8 @@ function __init__()
         using .Flux
         include("./symbolic_regression/occamnet.jl")
 
-        export OccamNet, set_temp!
+        export OccamNet,ProbabilityLayer
+        export set_temp!
         export probability, logprobability
         export probabilities, logprobabilities
         export OccamSR

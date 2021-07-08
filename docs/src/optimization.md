@@ -1,4 +1,4 @@
-# Sparse Optimizers
+# [Sparse Optimizers](@id_sparse_optimization)
 
 ```@docs
 STLSQ
