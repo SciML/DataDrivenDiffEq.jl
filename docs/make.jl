@@ -17,6 +17,7 @@ makedocs(
         "Basis" => "basis.md",
         "Koopman" => "koopman.md",
         "Sparse Optimization" => "optimization.md",
+        "Symbolic Regression" => "symbolic_regression.md",
         "Utilities" => "utils.md",
         "Contributing" => "contributions.md"
         ]
