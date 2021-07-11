@@ -1,9 +1,29 @@
 # Symbolic Regression
 
-!!! info
-    There is also the excellent [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) package, which will be interfaced soon(ish).
-
 Using [sparse regression](@ref sparse_optimization) limits the discovery to a generalized linear model where it is assumed that the nonlinear [basis](@ref) can capture the underlying function properly. Another approach is to use a general expression tree, which commonly encodes the function to discover as a binary tree where the nodes represent unary or binary operators acting on their children. `DataDrivenDiffEq` includes the following symbolic regression algorithms.
+
+## SymbolicRegression
+
+!!! warning
+    This feature requires the explicit loading of [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) in addition to `DataDrivenDiffEq`. It will _only_ be useable if used like
+    ```julia
+    using DataDrivenDiffEq
+    using SymbolicRegression
+    ```
+
+`DataDrivenDiffEq` provides an interface to [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) to `solve` a [`DataDrivenProblem`](@ref):
+
+```julia
+# Define the symbolic regression options
+opts = Options(binary_operators = (+, *),unary_operators = (exp, sin), maxdepth = 1, progress = true, verbosity = 0)
+# Define the problem
+prob = DirectDataDrivenProblem(X, Y)
+# Solve the problem and return a DataDrivenSolution
+res = solve(prob, opts, numprocs = 1)
+```
+
+Where `solve` is used with [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) provided by [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl). Additional keyworded arguments are `max_iter = 10`, which defines the number of iterations, `weights` which weight the measurements of the dependent variable (e.g. `X`, `DX` or `Y` depending on the [DataDrivenProblem](@ref)), `numprocs` which indicates the number of processes to use, `procs` for use with manually setup processes and `runtests = true` which performs initial testing on the environment to check for possible errors. It mimics the behaviour of [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#EquationSearch).
+
 
 ## OccamNet
 
