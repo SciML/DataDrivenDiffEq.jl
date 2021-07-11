@@ -1,4 +1,5 @@
 using Documenter, DataDrivenDiffEq
+using Flux, SymbolicRegression
 
 ENV["GKSwstype"] = "100"
 

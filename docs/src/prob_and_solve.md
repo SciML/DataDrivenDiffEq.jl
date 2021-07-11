@@ -156,6 +156,7 @@ Possible keyworded arguments include
 
 
 ## Types
+
 ```@docs
 DataDrivenProblem
 DataDrivenSolution

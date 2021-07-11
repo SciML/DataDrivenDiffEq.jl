@@ -11,19 +11,40 @@ Using [sparse regression](@ref sparse_optimization) limits the discovery to a ge
     using SymbolicRegression
     ```
 
-`DataDrivenDiffEq` provides an interface to [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) to `solve` a [`DataDrivenProblem`](@ref):
+`DataDrivenDiffEq` provides an interface to [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) to `solve` a [DataDrivenProblem](@ref):
 
-```julia
-# Define the symbolic regression options
-opts = Options(binary_operators = (+, *),unary_operators = (exp, sin), maxdepth = 1, progress = true, verbosity = 0)
+```@example symbolic_regression_api
+using DataDrivenDiffEq
+using LinearAlgebra
+using Random
+using SymbolicRegression
+
+
+Random.seed!(1223)
+# Generate a multivariate function for SymbolicRegression
+X = rand(2,20)
+f(x) = [sin(x[1]); exp(x[2])]
+Y = hcat(map(f, eachcol(X))...)
+
+# Define the options
+opts = EQSearch([+, *, sin, exp], maxdepth = 1, progress = false, multithreading = false)
+
 # Define the problem
 prob = DirectDataDrivenProblem(X, Y)
-# Solve the problem and return a DataDrivenSolution
-res = solve(prob, opts, numprocs = 1)
+
+# Solve the problem
+res = solve(prob, opts)
+sys = result(res)
+println(sys) #hide
 ```
 
-Where `solve` is used with [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) provided by [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl). Additional keyworded arguments are `max_iter = 10`, which defines the number of iterations, `weights` which weight the measurements of the dependent variable (e.g. `X`, `DX` or `Y` depending on the [DataDrivenProblem](@ref)), `numprocs` which indicates the number of processes to use, `procs` for use with manually setup processes and `runtests = true` which performs initial testing on the environment to check for possible errors. It mimics the behaviour of [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#EquationSearch).
+Where `solve` is used with [`EQSearch`](@ref), which wraps [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) provided by [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl). Additional keyworded arguments are `max_iter = 10`, which defines the number of iterations, `weights` which weight the measurements of the dependent variable (e.g. `X`, `DX` or `Y` depending on the [DataDrivenProblem](@ref)), `numprocs` which indicates the number of processes to use, `procs` for use with manually setup processes, `multithreading = false` for multithreading and `runtests = true` which performs initial testing on the environment to check for possible errors. It mimics the behaviour of [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#EquationSearch).
 
+### Related Types
+
+```@docs
+EQSearch
+```
 
 ## OccamNet
 
@@ -119,7 +140,7 @@ res = solve(ddprob, sr_alg, ADAM(1e-2), max_iter = 1000, routes = 100, nbest = 3
 println(res) #hide
 ```
 
-Within `solve` the network is generated using the information provided by the [`DataDrivenProblem`](@ref) in form of states, control and independent variables as well as the specified options, followed by training the network and extracting the equation with the highest probability by setting the temperature as above. After computing additional metrics, a [`DataDrivenSolution`](@ref) is returned where the equations are transformed  into a [`Basis`](@ref) useable with `ModelingToolkit`.
+Within `solve` the network is generated using the information provided by the [DataDrivenProblem](@ref) in form of states, control and independent variables as well as the specified options, followed by training the network and extracting the equation with the highest probability by setting the temperature as above. After computing additional metrics, a [DataDrivenSolution](@ref) is returned where the equations are transformed  into a [`Basis`](@ref) useable with `ModelingToolkit`.
 
 The metrics can be accessed via
 

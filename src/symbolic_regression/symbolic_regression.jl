@@ -1,10 +1,52 @@
-function DiffEqBase.solve(prob::AbstractDataDrivenProblem, opt::SymbolicRegression.Options;
+using SymbolicRegression
+using DataDrivenDiffEq
+
+
+"""
+$(TYPEDEF)
+
+Options for using SymbolicRegression.jl within the `solve` function.
+Automatically creates [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) with the given specification.
+Sorts the operators stored in `functions` into unary and binary operators on conversion.
+
+# Fields
+$(FIELDS)
+
+"""
+struct EQSearch <: AbstractSymbolicRegression
+    "Operators used for symbolic regression"
+    functions::AbstractVector{Function}
+    "Additionally keyworded arguments passed to SymbolicRegression.Options"
+    kwargs
+end
+
+function EQSearch(functions = Function[/, +, *, exp, cos]; kwargs...)
+    return EQSearch(functions, kwargs)
+end
+
+function to_options(x::EQSearch)
+    binops = Tuple([fi for fi in x.functions if is_binary(fi)])
+    unaops = Tuple([fi for fi in x.functions if is_unary(fi)])
+    fnames = fieldnames(SymbolicRegression.Options)
+    ks = Dict(
+        [k => v for (k,v) in x.kwargs if k ∈ fnames]
+    )
+    return SymbolicRegression.Options(;
+        binary_operators = binops, unary_operators = unaops,
+        ks...
+    )
+end
+
+function DiffEqBase.solve(prob::AbstractDataDrivenProblem, alg::EQSearch;
     max_iter::Int = 10,
     weights = nothing,
     numprocs = nothing, procs = nothing,
+    multithreading = false,
     runtests::Bool = true,
     eval_expression = false
     )
+
+    opt = to_options(alg)
 
     Y = get_target(prob)
 
@@ -16,18 +58,20 @@ function DiffEqBase.solve(prob::AbstractDataDrivenProblem, opt::SymbolicRegressi
     X = vcat([x for x in (X̂, U, permutedims(t)) if !isempty(x)]...)
     # Use the eqssearch of symbolic regression
     hof = SymbolicRegression.EquationSearch(X, Y, niterations = max_iter, weights = weights, options = opt,
-            numprocs = numprocs, procs = procs,
+            numprocs = numprocs, procs = procs, multithreading = multithreading,
             runtests = runtests)
     # Sort the paretofront
     doms = map(1:size(Y, 1)) do i
         calculateParetoFrontier(X, Y[i, :], hof[i], opt)
     end
 
-    build_solution(prob, opt, doms; eval_expression = eval_expression)
+    build_solution(prob, alg, doms; eval_expression = eval_expression)
 end
 
 
-function build_solution(prob::DataDrivenDiffEq.AbstractDataDrivenProblem, opt::SymbolicRegression.Options, doms; eval_expression = false)
+function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, doms; eval_expression = false)
+
+    opt = to_options(alg)
     @variables x[1:size(prob.X, 1)] u[1:size(prob.U,1)] t
     x = Symbolics.scalarize(x)
     u = Symbolics.scalarize(u)
@@ -76,6 +120,6 @@ function build_solution(prob::DataDrivenDiffEq.AbstractDataDrivenProblem, opt::S
     )
 
     return DataDrivenSolution(
-        res_, retcode, [], opt, doms, inputs, metrics
+        res_, retcode, [], alg, doms, inputs, metrics
     )
 end

@@ -1,12 +1,4 @@
 using SymbolicRegression
-using ModelingToolkit
-using Symbolics
-using Random
-using DiffEqBase
-using DataDrivenDiffEq
-using Test
-using LinearAlgebra
-
 
 @testset "SymbolicRegression" begin
     Random.seed!(1223)
@@ -15,11 +7,11 @@ using LinearAlgebra
     f(x) = [sin(x[1]); exp(x[2])]
     Y = hcat(map(f, eachcol(X))...)
     # Define the options
-    opts = Options(binary_operators = (+, *),unary_operators = (exp, sin), maxdepth = 1, progress = true, verbosity = 0)
+    opts = EQSearch([+, *, sin, exp], maxdepth = 1)
     # Define the problem
     prob = DirectDataDrivenProblem(X, Y)
     # Solve the problem
-    res = solve(prob, opts, numprocs = 1)
+    res = solve(prob, opts)
     sys = result(res)
 
     x = states(sys)
