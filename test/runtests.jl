@@ -40,9 +40,12 @@ const GROUP = get(ENV, "GROUP", "All")
 
         @info "Loading Flux"
         using Flux
+        @info "Loading Symbolic Regression"
+        using SymbolicRegression
 
         @testset "Symbolic Regression" begin
             @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl") end
+            @testset "SymbolicRegression" begin include("./symbolic_regression/symbolic_regression.jl") end
         end
     end
 
