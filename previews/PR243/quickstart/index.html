@@ -14,7 +14,7 @@ sys = DiscreteProblem(f, u0, tspan)
 sol = solve(sys, FunctionMap())</code></pre><p><img src="../DMD_Example_1.png" alt/></p><p>To estimate the underlying operator in the states <span>$u_1, u_2$</span>, we simply define a discrete <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> using the measurements and time and <code>solve</code> the estimation problem using the <a href="../koopman/#DataDrivenDiffEq.DMDSVD"><code>DMDSVD</code></a> algorithm for approximating the operator.</p><pre><code class="language-julia">prob = DiscreteDataDrivenProblem(sol)
 
 res = solve(prob, DMDSVD(), digits = 1)
-system = result(res)</code></pre><pre class="documenter-example-output">Model ##Koopman#293 with 2 equations
+system = result(res)</code></pre><pre class="documenter-example-output">Model ##Koopman#324 with 2 equations
 States : x[1] x[2]
 Parameters : p[1] p[2] p[3]
 Independent variable: t
@@ -47,7 +47,7 @@ Returncode: sucess
 L2 Norm Error: 3.343797283569837e-15
 AICC: 139.4073224511615
 
-Model ##Koopman#1051 with 2 equations
+Model ##Koopman#1082 with 2 equations
 States : u[1] u[2]
 Parameters : p[1] p[2] p[3]
 Independent variable: t
@@ -113,7 +113,7 @@ Returncode: sucess
 Sparsity: 5.0
 L2 Norm Error: 9.16981610724992
 AICC: 1.1925559702692727</pre><div class="admonition is-info"><header class="admonition-header">Info</header><div class="admonition-body"><p>A more detailed description of the result can be printed via <code>print(res, Val{true})</code>, which also includes the discovered equations and parameter values.</p></div></div><p>Where the resulting <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> stores information about the infered model and the parameters:</p><pre><code class="language-julia">system = result(res);
-params = parameters(res);</code></pre><pre class="documenter-example-output">Model ##Basis#1060 with 2 equations
+params = parameters(res);</code></pre><pre class="documenter-example-output">Model ##Basis#1091 with 2 equations
 States : u[1] u[2]
 Parameters : 7
 Independent variable: t
@@ -152,7 +152,7 @@ prob = ContinuousDataDrivenProblem(X, ts, DX)
 D = Differential(t)
 @variables u[1:1](t)
 h = [monomial_basis(u[1:1], 4)...]
-basis = Basis([h; h .* D(u[1])], [u; D(u[1])], iv = t)</code></pre><pre class="documenter-example-output">Model ##Basis#1096 with 10 equations
+basis = Basis([h; h .* D(u[1])], [u; D(u[1])], iv = t)</code></pre><pre class="documenter-example-output">Model ##Basis#1127 with 10 equations
 States : u[1](t) Differential(t)(u[1](t))
 Independent variable: t
 Equations
@@ -166,13 +166,13 @@ res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000
 Solution with 1 equations and 4 parameters.
 Returncode: sucess
 Sparsity: 4.0
-L2 Norm Error: 0.12165324361055363
-AICC: 17.21579587078161</pre><p>As we can see, the <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> already has good metrics. Inspection of the underlying system shows that the original equations have been recovered correctly:</p><pre><code class="language-julia">println(system)</code></pre><pre class="documenter-example-output">Model ##Basis#1099 with 1 equations
+L2 Norm Error: 0.12165324361055349
+AICC: 17.215795870781612</pre><p>As we can see, the <a href="../prob_and_solve/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> already has good metrics. Inspection of the underlying system shows that the original equations have been recovered correctly:</p><pre><code class="language-julia">println(system)</code></pre><pre class="documenter-example-output">Model ##Basis#1130 with 1 equations
 States : u[1](t) Differential(t)(u[1](t))
 Parameters : p[1] p[2] p[3] p[4]
 Independent variable: t
 Equations
-0 = u[1](t)*p[2] + u[1](t)*Differential(t)(u[1](t))*p[4] + p[1] + Differential(t)(u[1](t))*p[3]</pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>Right now, <code>Implicit</code> results cannot be simulated without further processing in <code>ModelingToolkit</code></p></div></div><h2 id="Implicit-Nonlinear-Dynamics-:-Cartpole"><a class="docs-heading-anchor" href="#Implicit-Nonlinear-Dynamics-:-Cartpole">Implicit Nonlinear Dynamics : Cartpole</a><a id="Implicit-Nonlinear-Dynamics-:-Cartpole-1"></a><a class="docs-heading-anchor-permalink" href="#Implicit-Nonlinear-Dynamics-:-Cartpole" title="Permalink"></a></h2><p>The following is another example on how to use the <a href="../optimization/#DataDrivenDiffEq.Optimize.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> and is taken from the <a href="https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279">original paper</a>.</p><p>As always, we start by creating a corresponding dataset.</p><pre><code class="language-julia">using DataDrivenDiffEq
+0 = p[1] + u[1](t)*p[2] + Differential(t)(u[1](t))*p[3] + u[1](t)*Differential(t)(u[1](t))*p[4]</pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>Right now, <code>Implicit</code> results cannot be simulated without further processing in <code>ModelingToolkit</code></p></div></div><h2 id="Implicit-Nonlinear-Dynamics-:-Cartpole"><a class="docs-heading-anchor" href="#Implicit-Nonlinear-Dynamics-:-Cartpole">Implicit Nonlinear Dynamics : Cartpole</a><a id="Implicit-Nonlinear-Dynamics-:-Cartpole-1"></a><a class="docs-heading-anchor-permalink" href="#Implicit-Nonlinear-Dynamics-:-Cartpole" title="Permalink"></a></h2><p>The following is another example on how to use the <a href="../optimization/#DataDrivenDiffEq.Optimize.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> and is taken from the <a href="https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279">original paper</a>.</p><p>As always, we start by creating a corresponding dataset.</p><pre><code class="language-julia">using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
 using LinearAlgebra
@@ -229,7 +229,7 @@ push!(implicits, x...)
 push!(implicits, x[1]*cos(u[1]))
 push!(implicits, x[1]*sin(u[1]))
 
-basis= Basis(implicits, [u; du], controls = x,  iv = t);</code></pre><pre class="documenter-example-output">Model ##Basis#1103 with 45 equations
+basis= Basis(implicits, [u; du], controls = x,  iv = t);</code></pre><pre class="documenter-example-output">Model ##Basis#1134 with 45 equations
 States : 6
 Independent variable: t
 Equations
@@ -256,11 +256,11 @@ Sparsity: 10.0
 L2 Norm Error: 2.5108086500667705e-15
 AICC: 161.24191685847754
 
-Model ##Basis#1106 with 2 equations
+Model ##Basis#1137 with 2 equations
 States : 6
 Parameters : 10
 Independent variable: t
 Equations
 0 = sin(u[1])*p[3] + du[1]*p[1] + cos(u[1])*p[5]*x[1] + du[1]*p[2]*(cos(u[1])^2) + cos(u[1])*sin(u[1])*p[4]*(u[3]^2)
 0 = du[2]*p[6] + p[10]*x[1] + cos(u[1])*sin(u[1])*p[9] + sin(u[1])*p[8]*(u[3]^2) + du[2]*p[7]*(cos(u[1])^2)
-Pair{SymbolicUtils.Term{Real, Base.ImmutableDict{DataType, Any}}, Float64}[p[1] =&gt; -1.0, p[2] =&gt; 0.5, p[3] =&gt; -9.81, p[4] =&gt; -0.5, p[5] =&gt; -0.5, p[6] =&gt; -1.0, p[7] =&gt; 0.5, p[8] =&gt; -0.5, p[9] =&gt; -4.905, p[10] =&gt; -0.5]</pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../prob_and_solve/">Problems And Solution »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.3 on <span class="colophon-date" title="Sunday 11 July 2021 13:09">Sunday 11 July 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Pair{SymbolicUtils.Term{Real, Base.ImmutableDict{DataType, Any}}, Float64}[p[1] =&gt; -1.0, p[2] =&gt; 0.5, p[3] =&gt; -9.81, p[4] =&gt; -0.5, p[5] =&gt; -0.5, p[6] =&gt; -1.0, p[7] =&gt; 0.5, p[8] =&gt; -0.5, p[9] =&gt; -4.905, p[10] =&gt; -0.5]</pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../prob_and_solve/">Problems And Solution »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.3 on <span class="colophon-date" title="Sunday 11 July 2021 16:45">Sunday 11 July 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
