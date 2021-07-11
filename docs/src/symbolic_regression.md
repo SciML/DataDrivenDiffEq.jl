@@ -27,7 +27,7 @@ f(x) = [sin(x[1]); exp(x[2])]
 Y = hcat(map(f, eachcol(X))...)
 
 # Define the options
-opts = EQSearch([+, *, sin, exp], maxdepth = 1, progress = false, multithreading = false)
+opts = EQSearch([+, *, sin, exp], maxdepth = 1, progress = false, verbosity = 0)
 
 # Define the problem
 prob = DirectDataDrivenProblem(X, Y)
