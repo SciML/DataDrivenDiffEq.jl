@@ -139,6 +139,16 @@ function __init__()
 
         @info "DataDrivenDiffEq : OccamNet is available."
     end
+
+    @require SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb" begin
+
+        using .SymbolicRegression
+        include("./symbolic_regression/symbolic_regression.jl")
+        export EQSearch
+
+        @info "DataDrivenDiffEq : Symboolic Regression is available."
+    end
+
 end
 
 end # module

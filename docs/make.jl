@@ -1,4 +1,5 @@
 using Documenter, DataDrivenDiffEq
+using Flux, SymbolicRegression
 
 ENV["GKSwstype"] = "100"
 
@@ -19,7 +20,8 @@ makedocs(
         "Sparse Optimization" => "optimization.md",
         "Symbolic Regression" => "symbolic_regression.md",
         "Utilities" => "utils.md",
-        "Contributing" => "contributions.md"
+        "Contributing" => "contributions.md",
+        "Citing" => "citations.md"
         ]
         #"Basis" => "basis.md",
         #"Koopman Operators" => Any[
