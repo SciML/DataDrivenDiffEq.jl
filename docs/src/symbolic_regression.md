@@ -33,7 +33,7 @@ opts = EQSearch([+, *, sin, exp], maxdepth = 1, progress = false, verbosity = 0)
 prob = DirectDataDrivenProblem(X, Y)
 
 # Solve the problem
-res = solve(prob, opts)
+res = solve(prob, opts, numprocs = 0, multithreading = false)
 sys = result(res)
 println(sys) #hide
 ```

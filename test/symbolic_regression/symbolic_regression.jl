@@ -1,5 +1,3 @@
-using SymbolicRegression
-
 @testset "SymbolicRegression" begin
     Random.seed!(1223)
     # Generate a multivariate function for OccamNet
@@ -11,7 +9,7 @@ using SymbolicRegression
     # Define the problem
     prob = DirectDataDrivenProblem(X, Y)
     # Solve the problem
-    res = solve(prob, opts)
+    res = solve(prob, opts, numprocs = 0, multithreading = false)
     sys = result(res)
 
     x = states(sys)
