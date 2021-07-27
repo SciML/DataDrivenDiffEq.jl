@@ -73,7 +73,7 @@ using Random
 Random.seed!(1223)
 
 # Generate a multivariate dataset
-X = rand(2,10)/c
+X = rand(2,10)
 f(x) = [sin(π*x[2]+x[1]); exp(x[2])]
 Y = hcat(map(f, eachcol(X))...)
 ```
