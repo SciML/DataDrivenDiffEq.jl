@@ -56,7 +56,7 @@ The `DataDrivenProblem` defines a general estimation problem given measurements,
 Two construction methods are available:
 
 + `DiscreteDataDrivenProblem` for time discrete systems
-+ `ContinousDataDrivenProblem` for systems continouos in time
++ `ContinousDataDrivenProblem` for systems continuous in time
 
 both are aliases for constructing a problem.
 
@@ -74,10 +74,10 @@ X, DX, t = data...
 # Define a discrete time problem
 prob = DiscreteDataDrivenProblem(X)
 
-# Define a continous time problem without explicit time points
+# Define a continuous time problem without explicit time points
 prob = ContinuousDataDrivenProblem(X, DX)
 
-# Define a continous time problem without explict derivatives
+# Define a continuous time problem without explicit derivatives
 prob = ContinuousDataDrivenProblem(X, t)
 
 # Define a discrete time problem with an input function as a function

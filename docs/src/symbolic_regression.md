@@ -5,7 +5,7 @@ Using [sparse regression](@ref sparse_optimization) limits the discovery to a ge
 ## SymbolicRegression
 
 !!! warning
-    This feature requires the explicit loading of [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) in addition to `DataDrivenDiffEq`. It will _only_ be useable if used like
+    This feature requires the explicit loading of [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) in addition to `DataDrivenDiffEq`. It will _only_ be useable if loaded like:
     ```julia
     using DataDrivenDiffEq
     using SymbolicRegression
@@ -49,18 +49,18 @@ EQSearch
 ## OccamNet
 
 !!! warning
-    This feature requires the explicit loading of [Flux.jl](https://fluxml.ai/) in addition to `DataDrivenDiffEq`. It will _only_ be useable if used like
+    This feature requires the explicit loading of [Flux.jl](https://fluxml.ai/) in addition to `DataDrivenDiffEq`. It will _only_ be useable if loaded like:
     ```julia
     using DataDrivenDiffEq
     using Flux
     ```
 
 As introduced in [Interpretable Neuroevolutionary Models for Learning Non-Differentiable Functions and Programs
-](https://arxiv.org/abs/2007.10784), `OccamNet` is a special form of symbolic regression which uses a probabilistic approach to equation discovery by using a feedforward multilayer neural network. In constrats to normal architectures, each layers weight reflect the probability which inputs to use. Additionally not only a single activation function is used, but a set of functions. Similar to simulated annealing, a temperature is included to control the exploration of possible functions.
+](https://arxiv.org/abs/2007.10784), `OccamNet` is a special form of symbolic regression which uses a probabilistic approach to equation discovery by using a feedforward multilayer neural network. In contrast to normal architectures, each layer's weights reflect the probability of which inputs to use. Additionally a set of activation functions is used, instead of a single function. Similar to simulated annealing, a temperature is included to control the exploration of possible functions.
 
 `DataDrivenDiffEq` offers two main interfaces to `OccamNet`: a `Flux` based API with `Flux.train!` and a `solve(...)` function.
 
-Consider the following example, where we want to discover a vector valued function
+Consider the following example, where we want to discover a vector valued function:
 
 ```@example occamnet_flux
 using DataDrivenDiffEq
@@ -73,25 +73,25 @@ using Random
 Random.seed!(1223)
 
 # Generate a multivariate dataset
-X = rand(2,10)
+X = rand(2,10)/c
 f(x) = [sin(π*x[2]+x[1]); exp(x[2])]
 Y = hcat(map(f, eachcol(X))...)
 ```
 
-Next, we define our network
+Next, we define our network:
 
 ```@example occamnet_flux
 net = OccamNet(2, 2, 3, Function[sin, +, *, exp], skip = true, constants = Float64[π])
 ```
 
-Where `2,2,3` refers to input and output dimension and the number of layers _without the output layer_. We also define that each layer uses the functions `sin, +, *, exp` as activations an use a `π` as a constant, which get concanated to the input data. Additionally, `skip` indicates the useage of skip connections, which allow the output of each layer to be passed onto the output layer directly.
+Where `2,2,3` refers to input and output dimension and the number of layers _without the output layer_. We also define that each layer uses the functions `sin, +, *, exp` as activations and uses a `π` as a constant, which get concatenated to the input data. Additionally, `skip` indicates the useage of skip connections, which allow the output of each layer to be passed onto the output layer directly.
 
 To train the network over `100` epochs using `ADAM`, we type
 ```@example occamnet_flux
 Flux.train!(net, X, Y, ADAM(1e-2), 100, routes = 100, nbest = 3)
 ```
 
-Under the hood, we select `routes` possible routes through the network based on the probability reflect by the [`ProbabilityLayer`](@ref) forming the network. From these we take the `nbest` candidates to train the parameters of the network, meaning increase the probability of those routes.
+Under the hood, we select possible routes, `routes`, through the network based on the probability reflected by the [`ProbabilityLayer`](@ref) forming the network. From these we take the `nbest` candidates to train the parameters of the network, meaning increase the probability of those routes.
 
 Lets have a look at some possible equations after the initial training. We can use `rand` to sample a route through the network, compute the output probability with `probability` and transform it into analytical equations by simply using `ModelingToolkit`s variables as input. The call `net(x, route)` uses the route to compute just the element on this path.
 
@@ -118,7 +118,7 @@ for i in 1:10
 end
 ```
 
-The network is quite certain about the equation now, which is in fact our unknown mapping. To extract the solution with the highest probability, we set the temperature of the underlying distribution to a very low value. In the limit of `t ↦ 0` we approach a dirac distribution for the and hence extracting the most likely terms.
+The network is quite certain about the equation now, which is in fact our unknown mapping. To extract the solution with the highest probability, we set the temperature of the underlying distribution to a very low value. In the limit of `t ↦ 0` we approach a Dirac distribution, hence extracting the most likely terms.
 
 ```@example occamnet_flux
 set_temp!(net, 0.01)
@@ -142,13 +142,13 @@ println(res) #hide
 
 Within `solve` the network is generated using the information provided by the [DataDrivenProblem](@ref) in form of states, control and independent variables as well as the specified options, followed by training the network and extracting the equation with the highest probability by setting the temperature as above. After computing additional metrics, a [DataDrivenSolution](@ref) is returned where the equations are transformed  into a [`Basis`](@ref) useable with `ModelingToolkit`.
 
-The metrics can be accessed via
+The metrics can be accessed via:
 
 ```@example occamnet_flux
 metrics(res)
 ```
 
-and the resulting [`Basis`](@ref) by
+and the resulting [`Basis`](@ref) by:
 
 ```@example occamnet_flux
 result(res)
