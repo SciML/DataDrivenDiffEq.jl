@@ -279,7 +279,7 @@ println(res) # hide
 As we can see, the [`DataDrivenSolution`](@ref) already has good metrics. Inspection of the underlying system shows that the original equations have been recovered correctly:
 
 ```@example 2
-system = result(res); # hide
+system = result(res); 
 println(system)
 ```
 
