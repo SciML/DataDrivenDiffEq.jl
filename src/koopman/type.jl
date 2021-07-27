@@ -8,7 +8,7 @@ or in place with `f(du, u, p, t)`. If control inputs are present, it is assumed 
 zero for all inputs. The corresponding function calls are `f(u,p,t,inputs)` and `f(du,u,p,t,inputs)` and need to
 be specified fully.
 
-If `linear_independent` is set to `true`, a linear independent basis is created from all atom function in `f`.
+If `linear_independent` is set to `true`, a linear independent basis is created from all atom functions in `f`.
 
 If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
 

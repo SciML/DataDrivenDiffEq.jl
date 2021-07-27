@@ -4,7 +4,7 @@ using ModelingToolkit: value, operation, arguments, istree, get_observed
 """
 $(TYPEDEF)
 
-A basis over the states with parameters , independent variable  and possible exogenous controls.
+A basis over the states with parameters, independent variable, and possible exogenous controls.
 It extends an `AbstractSystem` as defined in `ModelingToolkit.jl`. `f` can either be a Julia function which is able to use ModelingToolkit variables or
 a vector of `eqs`.
 It can be called with the typical SciML signature, meaning out of place with `f(u,p,t)`
@@ -12,7 +12,7 @@ or in place with `f(du, u, p, t)`. If control inputs are present, it is assumed 
 zero for all inputs. The corresponding function calls are `f(u,p,t,inputs)` and `f(du,u,p,t,inputs)` and need to
 be specified fully.
 
-If `linear_independent` is set to `true`, a linear independent basis is created from all atom function in `f`.
+If `linear_independent` is set to `true`, a linear independent basis is created from all atom functions in `f`.
 
 If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
 

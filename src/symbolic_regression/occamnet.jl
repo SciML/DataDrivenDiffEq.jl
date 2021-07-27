@@ -167,11 +167,11 @@ Flux.trainable(u::ProbabilityLayer) = (u.weight,)
 """
 $(TYPEDEF)
 
-Defines a `OccamNet` which learns symbolic expressions from data using a probabalistic approach.
+Defines an `OccamNet` which learns symbolic expressions from data using a probabilistic approach.
 See [Interpretable Neuroevolutionary Models for Learning Non-Differentiable Functions and Programs
 ](https://arxiv.org/abs/2007.10784) for more details.
 
-It get constructed via
+It get constructed via:
 
 ```julia
 net = OccamNet(inp::Int, outp::Int, layers::Int, f::Vector{Function}, t::Real = 1.0; constants = typeof(t)[], parameters::Int = 0, skip::Bool = false, init_w = ones, init_p = Flux.glorot_uniform)
@@ -180,7 +180,7 @@ net = OccamNet(inp::Int, outp::Int, layers::Int, f::Vector{Function}, t::Real = 
 `inp` describes the size of the input domain, `outp` the size of the output domain, `layers` the number of layers (including the input layer and excluding the linear output layer) and
 `f` the functions to be used. Optional is the temperature `t` which is set to `1.0` at the beginning.
 
-Keyworded arguments are `constants`, a vector of constants like π, ℯ which can concanated to the input, the number of trainable `parameters` and if `skip` connections should be used.
+Keyworded arguments are `constants`, a vector of constants like π, ℯ which can concatenated to the input, the number of trainable `parameters` and if `skip` connections should be used.
 The constructors to the weights and parameters can be passed in via `init_w` and `init_p`.
 
 `OccamNet` is callable with and without a specific route, which can be sampled from the networks weights via `rand(net)`.
