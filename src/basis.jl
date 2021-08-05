@@ -706,15 +706,15 @@ free_parameters(b::AbstractBasis; operations = [+]) = count_operation([xi.rhs fo
 ## Derivatives
 
 """
-    jacobian(basis)
+    $(SIGNATURES)
 
-    Returns a function representing the jacobian matrix / gradient of the `Basis` with respect to the
-    dependent variables as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
+    Returns a function representing the jacobian matrix / gradient of the `Basis` with respect to the `vars` provided - per default the
+    dependent variables - as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
     If control variables are defined, the function can also be called by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
 """
-function jacobian(x::Basis, eval_expression = false)
+function jacobian(x::Basis, vars = states(x), eval_expression = false)
 
-    j = Symbolics.jacobian([xi.rhs for xi in equations(x)], states(x))
+    j = Symbolics.jacobian([xi.rhs for xi in equations(x)], vars)
 
     jac  = _build_ddd_function(expand_derivatives.(j),
         states(x), parameters(x), independent_variable(x),
