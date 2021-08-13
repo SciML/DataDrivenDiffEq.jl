@@ -13,7 +13,11 @@ makedocs(
                              canonical="https://datadriven.sciml.ai/stable/"),
     pages=[
         "Home" => "index.md",
-        "Getting Started" => "quickstart.md",
+        "Tutorials" => Any[
+          "examples/linear_systems.md",
+          "examples/nonlinear_systems.md",
+          "examples/real_world.md"
+        ],
         "Problems And Solution" => "prob_and_solve.md",
         "Basis" => "basis.md",
         "Koopman" => "koopman.md",
