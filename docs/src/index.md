@@ -26,7 +26,3 @@ To use [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl), simp
 ]add DataDrivenDiffEq
 using DataDrivenDiffEq
 ```
-
-## Basic Usage
-
-All algorithms have been unified under a common mathematical interface. TODO

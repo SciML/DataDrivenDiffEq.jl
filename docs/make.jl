@@ -13,12 +13,14 @@ makedocs(
                              canonical="https://datadriven.sciml.ai/stable/"),
     pages=[
         "Home" => "index.md",
+        "Getting Started" => "getting_started.md"
         "Tutorials" => Any[
           "examples/linear_systems.md",
           "examples/nonlinear_systems.md",
           "examples/real_world.md"
         ],
-        "Problems And Solution" => "prob_and_solve.md",
+        "Unifying SINDy and DMD" => "sindy_dmd.md"
+        "Problems And Solvers" => "problems_solutions.md",
         "Basis" => "basis.md",
         "Koopman" => "koopman.md",
         "Sparse Optimization" => "optimization.md",
