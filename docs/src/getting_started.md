@@ -3,14 +3,35 @@
 The workflow for [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl) is similar to other [SciML](https://sciml.ai/) packages. You start by defining a [`DataDrivenProblem`](@ref) and then dispatch on the `solve` command to return a [`DataDrivenSolution`](@ref).
 
 Outline of required elements and choices:
-+ Define a problem using your Data
-  + Data can be discrete or continuous.
-+ Choose a basis
+1. Define a problem using your Data
+  + Data can be discrete, continuous, or direct.
+2. Choose a basis
   + This is optional depending on which solver you choose
-+ Solve the problem
+3. Solve the problem
   + Many solvers exist, see the [docs](@ref problems_solutions)
 
 ## Basic usage
+
+```julia
+using DataDrivenDiffEq, ModelingToolkit
+
+# The function we are trying to find
+f(u) = u^2 + 4u + 4
+X = f.(1:100) # Generate data
+X = reshape(X, length(X), 1) # Reshape into a matrix
+
+# Create a problem from the data
+problem = DiscreteDataDrivenProblem(X)
+
+# Choose a basis
+@variables u[1:1]
+using Symbolics: scalarize
+u = scalarize(u)
+basis = Basis(monomial_basis(u, 2), u)
+
+# Solve the problem, using the solver of your choosing
+res = solve(problem, basis, STLSQ())
+```
 
 ## Defining a Problem
 
