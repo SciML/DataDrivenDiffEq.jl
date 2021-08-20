@@ -20,7 +20,7 @@ is_stable
 update!
 ```
 
-## [Algortihms](@id koopman_algorithms)
+## [Algorithms](@id koopman_algorithms)
 ```@docs
 DMDPINV
 DMDSVD

@@ -1,12 +1,8 @@
-
-## Types
+# Solutions
 
 ```@docs
-DataDrivenProblem
 DataDrivenSolution
 ```
-
-## Solvers //TODO
 
 ## Functions
 
