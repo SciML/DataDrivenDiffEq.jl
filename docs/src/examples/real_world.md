@@ -1,4 +1,4 @@
-# Real World Examples
+# [Real World Examples](@id real_world)
 
 This section presents some real world examples of implicit nonlinear dynamics.
 

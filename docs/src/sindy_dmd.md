@@ -4,23 +4,21 @@ The SINDy and DMD algorithms have been combined under a single inferface, to mat
 
 See the individual descriptions below for how to call the traditional SINDy and DMD solvers within the unified interface.
 
-## Dynamic Mode Decomposition
-
-### DMD
+## DMD
 For dynamic mode decomposition, use `DMDSVD()` without a basis:
 
 ```julia
 res = solve(problem, DMDSVD(), kwargs...)
 ```
 
-### Extended DMD
+## Extended DMD
 For extended dynamic mode decomposition, use  `DMDSVD()` with a basis:
 
 ```julia
 res = solve(problem, basis, DMDSVD(), kwargs...)
 ```
 
-### Optional Arguments
+## DMD Optional Arguments
 If control signals are present, they get processed according to [this paper](https://epubs.siam.org/doi/abs/10.1137/15M1013857?mobileUi=0) for dynamic mode decomposition and [as described here](https://epubs.siam.org/doi/pdf/10.1137/16M1062296) for extended dynamic mode decomposition assuming a linear relationship on the operator.
 
 Possible keyworded arguments include:
@@ -32,16 +30,14 @@ Possible keyworded arguments include:
     If `eval_expression` is set to `true`, the returning result of the Koopman based inference will not contain a parametrized equation, but rather use the numeric values of the operator/generator.
 
 
-## Sparse Identification of Nonlinear Dynamics
-
-### SINDy
+## SINDy
 For Sparse Identification of Nonlinear Dynamics, use `STLQS()`:
 
 ```julia
 res = solve(problem, basis, STLQS(), kwargs...)
 ```
 
-### Implicit SINDy
+## Implicit SINDy
 For Sparse Identification of Nonlinear Dynamics, use `ImplicitOptimizer()`:
 
 ```julia
@@ -80,7 +76,7 @@ res = solve(problem, basis, ImplicitOptimizer(), [x,y])
 
 Would allow solutions of the form `x = y*x + z` or `y = y*x + z` to occur while suppressing `x = y + z`. This is because `y*x` includes both `x` and `y`, so the function will get included in the evaluation.
 
-### Optional Arguments
+## SINDy Optional Arguments
 
 Possible keyworded arguments include
 + `normalize` normalizes the data matrix ``\\Theta`` such that each row ( correspondng to candidate functions) has a 2-norm of `1.0`
