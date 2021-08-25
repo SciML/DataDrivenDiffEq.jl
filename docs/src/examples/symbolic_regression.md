@@ -2,7 +2,7 @@
 
 ## [Symbolic Regression](@id symbolic_regression_tutorial)
 
-`DataDrivenDiffEq` provides an interface to [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) to `solve` a [DataDrivenProblem](@ref):
+[DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl) provides an interface to [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) to `solve` a [`DataDrivenProblem`](@ref):
 
 ```@example symbolic_regression_api
 using DataDrivenDiffEq, LinearAlgebra, Random
@@ -27,7 +27,7 @@ sys = result(res)
 println(sys) #hide
 ```
 
-Where `solve` is used with [`EQSearch`](@ref), which wraps [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) provided by [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl). Additional keyworded arguments are `max_iter = 10`, which defines the number of iterations, `weights` which weight the measurements of the dependent variable (e.g. `X`, `DX` or `Y` depending on the [DataDrivenProblem](@ref)), `numprocs` which indicates the number of processes to use, `procs` for use with manually setup processes, `multithreading = false` for multithreading and `runtests = true` which performs initial testing on the environment to check for possible errors. It mimics the behaviour of [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#EquationSearch).
+Where `solve` is used with [`EQSearch`](@ref), which wraps [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) provided by [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl). Additional keyworded arguments are `max_iter = 10`, which defines the number of iterations, `weights` which weight the measurements of the dependent variable (e.g. `X`, `DX` or `Y` depending on the [`DataDrivenProblem`](@ref)), `numprocs` which indicates the number of processes to use, `procs` for use with manually setup processes, `multithreading = false` for multithreading and `runtests = true` which performs initial testing on the environment to check for possible errors. It mimics the behaviour of [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#EquationSearch).
 
 
 ## [OccamNet](@id occam_net_tutorial)
@@ -113,7 +113,7 @@ res = solve(ddprob, sr_alg, ADAM(1e-2), max_iter = 1000, routes = 100, nbest = 3
 println(res) #hide
 ```
 
-Within `solve` the network is generated using the information provided by the [DataDrivenProblem](@ref) in form of states, control and independent variables as well as the specified options, followed by training the network and extracting the equation with the highest probability by setting the temperature as above. After computing additional metrics, a [DataDrivenSolution](@ref) is returned where the equations are transformed  into a [`Basis`](@ref) useable with `ModelingToolkit`.
+Within `solve` the network is generated using the information provided by the [`DataDrivenProblem`](@ref) in form of states, control and independent variables as well as the specified options, followed by training the network and extracting the equation with the highest probability by setting the temperature as above. After computing additional metrics, a [`DataDrivenSolution`](@ref) is returned where the equations are transformed  into a [`Basis`](@ref) useable with `ModelingToolkit`.
 
 The metrics can be accessed via:
 

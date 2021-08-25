@@ -148,7 +148,7 @@ println(basis) # hide
 ```
 
 We solve the problem by varying over a sufficient set of thresholds for the associated optimizer.
-Additionally we activate the `scale_coefficients` option for the [`ImplicitOptimizer](@ref), which helps to find sparse equations by normalizing the resulting coefficient matrix after each suboptimization.
+Additionally we activate the `scale_coefficients` option for the [`ImplicitOptimizer`](@ref), which helps to find sparse equations by normalizing the resulting coefficient matrix after each suboptimization.
 
 To evaluate the pareto optimal solution, we use the functions `f` and `g` which can be passed as keyworded arguments into the `solve` function. `f` is a function with different signatures for different optimizers, but returns the ``L_0`` norm of the coefficients and the ``L_2`` error of the current model. `g` takes this vector and projects it down onto a scalar, using the ``L_2`` norm per default. However, here we want to use the `AIC`  of the output of `f`. A noteworthy exception is of course, that we want only results with two or more active coefficents. Hence we modify `g` accordingly.
 

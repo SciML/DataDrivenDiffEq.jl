@@ -36,7 +36,6 @@ ProbabilityLayer
 
 ### Related Functions
 
-
 ```@docs
 set_temp!
 probability

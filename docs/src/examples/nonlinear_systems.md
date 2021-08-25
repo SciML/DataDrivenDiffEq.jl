@@ -112,7 +112,7 @@ savefig("SINDy_Example_Data.png") # hide
 ![](SINDy_Example_Data.png)
 
 Now we infer the system structure. First we define a [`Basis`](@ref) which collects all possible candidate terms.
-Since we want to use SINDy, we call `solve` with an [`Optimizer`](@id Sparse_Optimizers), in this case [`STLSQ`](@ref) which iterates different sparsity thresholds
+Since we want to use SINDy, we call `solve` with an [`Optimizer`](@ref sparse_optimization), in this case [`STLSQ`](@ref) which iterates different sparsity thresholds
 and returns a pareto optimal solution of the underlying [`sparse_regression!`](@ref). Note that we include the control signal in the basis as an additional variable `c`.
 
 ```@example 1

@@ -6,9 +6,9 @@ Outline of required elements and choices:
 1. Define a problem using your Data
   + Data can be discrete, continuous, or direct.
 2. Choose a basis
-  + This is optional depending on which solver you choose
+  + This is optional depending on which solver you choose.
 3. Solve the problem
-  + Many solvers exist, see the [docs](@ref problems_solutions)
+  + Many solvers exist, see the [docs](@ref koopman_algorithms).
 
 ## Basic usage
 
@@ -92,7 +92,7 @@ See the [tutorials](@ref real_world) for more complex examples of defining a Bas
 
 ## Solving the Problem
 
-Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref) or [`Sparse Optimization`](@ref) methods. Different options can be provided as well as a [`Basis`](@ref) used for lifting the measurements, to control different options like rounding, normalization or the progressbar depending on the inference method.
+Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref) or [`Sparse Optimization`](@ref sparse_optimization) methods. Different options can be provided as well as a [`Basis`](@ref) used for lifting the measurements, to control different options like rounding, normalization or the progressbar depending on the inference method.
 
 ```julia
 # Use a Koopman based inference
