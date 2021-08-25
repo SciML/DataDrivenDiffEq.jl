@@ -27,7 +27,7 @@ sys = result(res)
 println(sys) #hide
 ```
 
-Where `solve` is used with [`EQSearch`](@ref), which wraps [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) provided by [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl). Additional keyword arguments are `max_iter = 10`, which defines the number of iterations, `weights` which weight the measurements of the dependent variable (e.g. `X`, `DX` or `Y` depending on the [`DataDrivenProblem`](@ref)), `numprocs` which indicates the number of processes to use, `procs` for use with manually setup processes, `multithreading = false` for multithreading and `runtests = true` which performs initial testing on the environment to check for possible errors. It mimics the behaviour of [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#EquationSearch).
+`Solve` can be used with [`EQSearch`](@ref), which wraps [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) provided by [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl). Additional keyword arguments are `max_iter = 10`, which defines the number of iterations, `weights` which weight the measurements of the dependent variable (e.g. `X`, `DX` or `Y` depending on the [`DataDrivenProblem`](@ref)), `numprocs` which indicates the number of processes to use, `procs` for use with manually setup processes, `multithreading = false` for multithreading and `runtests = true` which performs initial testing on the environment to check for possible errors. This setup mimics the behaviour of [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#EquationSearch).
 
 
 ## [OccamNet](@id occam_net_tutorial)
@@ -57,16 +57,16 @@ Next, we define our network:
 net = OccamNet(2, 2, 3, Function[sin, +, *, exp], skip = true, constants = Float64[π])
 ```
 
-Where `2,2,3` refers to input and output dimension and the number of layers _without the output layer_. We also define that each layer uses the functions `sin, +, *, exp` as activations and uses a `π` as a constant, which get concatenated to the input data. Additionally, `skip` indicates the usage of skip connections, which allow the output of each layer to be passed onto the output layer directly.
+Where `2,2,3` refers to input and output dimension and the number of layers _without the output layer_. We also define that each layer uses the functions `sin, +, *, exp` as activations and uses a `π` as a constant, which gets concatenated to the input data. Additionally, `skip` indicates the usage of skip connections, which allow the output of each layer to be passed onto the output layer directly.
 
 To train the network over `100` epochs using `ADAM`, we type
 ```@example occamnet_flux
 Flux.train!(net, X, Y, ADAM(1e-2), 100, routes = 100, nbest = 3)
 ```
 
-Under the hood, we select possible routes, `routes`, through the network based on the probability reflected by the [`ProbabilityLayer`](@ref) forming the network. From these we take the `nbest` candidates to train the parameters of the network, meaning increase the probability of those routes.
+Under the hood, we select possible routes, `routes`, through the network based on the probability reflected by the [`ProbabilityLayer`](@ref) forming the network. From these we use the `nbest` candidate routes to train the parameters of the network, which increases the probability of those routes.
 
-Lets have a look at some possible equations after the initial training. We can use `rand` to sample a route through the network, compute the output probability with `probability` and transform it into analytical equations by simply using `ModelingToolkit`s variables as input. The call `net(x, route)` uses the route to compute just the element on this path.
+Lets have a look at some possible equations after the initial training. We can use `rand` to sample a route through the network, compute the output probability with `probability` and transform it into analytical equations using `ModelingToolkit` variables as input. The call `net(x, route)` uses the route to compute just the elements on this path.
 
 ```@example occamnet_flux
 @variables x[1:2]
@@ -101,7 +101,7 @@ eq = simplify.(net(x, route))
 print(eq , " with probability ",  prob, "\n")
 ```
 
-The same procedure is automated in the `solve` function. Using the same data, we wrap the algorithms information in the [`OccamSR`](@ref) struct and define a [`DataDrivenProblem`](@ref):
+The same procedure is automated in the `solve` function. Using the same data, we wrap the algorithm's information in the [`OccamSR`](@ref) struct and define a [`DataDrivenProblem`](@ref):
 
 ```@example occamnet_flux
 # Define the problem
@@ -113,7 +113,7 @@ res = solve(ddprob, sr_alg, ADAM(1e-2), max_iter = 1000, routes = 100, nbest = 3
 println(res) #hide
 ```
 
-Within `solve` the network is generated using the information provided by the [`DataDrivenProblem`](@ref) in form of states, control and independent variables as well as the specified options, followed by training the network and extracting the equation with the highest probability by setting the temperature as above. After computing additional metrics, a [`DataDrivenSolution`](@ref) is returned where the equations are transformed  into a [`Basis`](@ref) useable with `ModelingToolkit`.
+Within `solve`, a network is generated using the information provided by the [`DataDrivenProblem`](@ref) (states, control, independent variables, and the specified options). Then the network is trained, and finally the equation with the highest probability is extracted by setting the temperature as above. After computing additional metrics, a [`DataDrivenSolution`](@ref) is returned where the equations are transformed  into a [`Basis`](@ref) usable with `ModelingToolkit`.
 
 The metrics can be accessed via:
 

@@ -4,7 +4,7 @@ Estimation examples for linear systems.
 
 ## Linear Systems via Dynamic Mode Decomposition
 
-We will start by estimating the underlying dynamical system of a time discrete process based on some measurements via [Dynamic Mode Decomposition](https://arxiv.org/abs/1312.0041). First, we model a simple linear system of the for `u_{i+1} = A u_i`
+We will start by estimating the underlying dynamical system of a time discrete process based on some measurements via [Dynamic Mode Decomposition](https://arxiv.org/abs/1312.0041). We will model a simple linear system of the form ``u_{i+1} = A u_i``.
 
 ```@example 4
 using DataDrivenDiffEq
@@ -26,7 +26,7 @@ savefig("DMD_Example_1.png") # hide
 ```
 ![](DMD_Example_1.png)
 
-To estimate the underlying operator in the states `u_1, u_2`, we simply define a discrete [`DataDrivenProblem`](@ref) using the measurements and time and `solve` the estimation problem using the [`DMDSVD`](@ref) algorithm for approximating the operator.
+To estimate the underlying operator in the states ``u_1, u_2``, we simply define a discrete [`DataDrivenProblem`](@ref) using the measurements and time, and then `solve` the estimation problem using the [`DMDSVD`](@ref) algorithm for approximating the operator.
 
 ```@example 4
 
@@ -42,7 +42,7 @@ The [`DataDrivenSolution`](@ref) contains an explicit result which is a [`Koopma
 ```@example 4
 Matrix(system)
 ```
-In general, we can skip the expensive progress of deriving a callable symbolic system and return just the basic definitions using the `operator_only` keyword.
+In general, we can skip the expensive process of deriving a callable symbolic system and return just the basic definitions using the `operator_only` keyword.
 
 ```@example 4
 res = solve(prob, DMDSVD(), digits = 1, operator_only = true)

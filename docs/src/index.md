@@ -10,7 +10,7 @@ There are two main types of estimation, depending on if you need the result to b
 
 ## Package Overview
 
-[DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl) currently implements the following algorithms for structural estimation. Please note that all the algorithms have been unified under a single mathematical framework, so the interface might be a little different than what you expect.
+[DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl) currently implements the following algorithms for structural estimation and identification. Please note that all the algorithms have been unified under a single mathematical framework, so the interface might be a little different than what you expect.
 
 + Dynamic Mode Decomposition (DMD)
 + Extended Dynamic Mode Decomposition
@@ -20,7 +20,7 @@ There are two main types of estimation, depending on if you need the result to b
 
 ## Installation
 
-To use [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl), simply install it via:
+To use [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl), install via:
 
 ```julia
 ]add DataDrivenDiffEq

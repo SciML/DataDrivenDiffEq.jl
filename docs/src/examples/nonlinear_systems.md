@@ -29,7 +29,7 @@ savefig("EDMD_Example_1.png") # hide
 ```
 ![](EDMD_Example_1.png)
 
-Since we are dealing with an continuous system in time, we define the associated [`DataDrivenProblem`](@ref) accordingly using the measured states `X`, their derivatives `DX` and the time `t`.
+Since we are dealing with a continuous system in time, we define the associated [`DataDrivenProblem`](@ref) accordingly using the measured states `X`, their derivatives `DX` and the time `t`.
 
 ```@example 3
 prob = ContinuousDataDrivenProblem(solution)

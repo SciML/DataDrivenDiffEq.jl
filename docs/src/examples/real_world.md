@@ -4,10 +4,10 @@ This section presents some real world examples of implicit nonlinear dynamics.
 
 ## Implicit Nonlinear Dynamics : Michaelis Menten
 
-But what if you want to estimate an implicitly defined system of the form ``f(u_t, u, p, t) = 0``?
-Do not worry, since there exists a solution : Implicit Sparse Identification. It has been originally described in [this paper](http://ieeexplore.ieee.org/document/7809160/) and currently there exist [robust algorithms](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279) to identify these systems.
+What if you want to estimate an implicitly defined system of the form ``f(u_t, u, p, t) = 0``?
+The solution : Implicit Sparse Identification. This method was originally described in [this paper](http://ieeexplore.ieee.org/document/7809160/), and currently there exist [robust algorithms](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279) to identify these systems.
 
-We will focus on the [Michaelis Menten Kinetics](https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics). As before, we will define the [`DataDrivenProblem`](@ref) and the [`Basis`](@ref) containing possible candidate functions for our [`sparse_regression!`](@ref).
+We will focus on [Michaelis Menten Kinetics](https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics). As before, we will define the [`DataDrivenProblem`](@ref) and the [`Basis`](@ref) containing possible candidate functions for our [`sparse_regression!`](@ref).
 ```@example 2
 using DataDrivenDiffEq
 using LinearAlgebra
@@ -58,7 +58,7 @@ res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000
 println(res) # hide
 ```
 
-As we can see, the [`DataDrivenSolution`](@ref) already has good metrics. Inspection of the underlying system shows that the original equations have been recovered correctly:
+As we can see, the [`DataDrivenSolution`](@ref) has good metrics. Furthermore, inspection of the underlying system shows that the original equations have been recovered correctly:
 
 ```@example 2
 system = result(res);
@@ -70,7 +70,7 @@ println(system)
 
 ## Implicit Nonlinear Dynamics : Cartpole
 
-The following is another example on how to use the [`ImplicitOptimizer`](@ref) and is taken from the [original paper](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279).
+The following is another example on how to use the [`ImplicitOptimizer`](@ref) that is taken from the [original paper](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279).
 
 As always, we start by creating a corresponding dataset:
 

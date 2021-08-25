@@ -2,8 +2,8 @@
 
 The workflow for [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl) is similar to other [SciML](https://sciml.ai/) packages. You start by defining a [`DataDrivenProblem`](@ref) and then dispatch on the `solve` command to return a [`DataDrivenSolution`](@ref).
 
-Outline of required elements and choices:
-+ Define a problem using your Data.
+Here is an outline of the required elements and choices:
++ Define a problem using your data.
     + Data can be discrete, continuous, or direct.
 + Choose a basis.
     + This is optional depending on which solver you choose.
@@ -35,7 +35,7 @@ res = solve(problem, basis, STLSQ())
 
 ## Defining a Problem
 
-Problems of identification, estimation or inference are defined by the data. This data contains at least measurements of the states `X`, which would be sufficient to describe a `DiscreteDataDrivenProblem` with unit time steps similar to the [first example on dynamic mode decomposition](@ref Linear-Systems-via-Dynamic-Mode-Decomposition). Of course we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like:
+Problems of identification, estimation, or inference are defined by the data. This data contains at least measurements of the states `X`, which would be sufficient to describe a `DiscreteDataDrivenProblem` with unit time steps similar to the [first example on dynamic mode decomposition](@ref Linear-Systems-via-Dynamic-Mode-Decomposition). Of course we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like:
 
 ```julia
 problem = DiscreteDataDrivenProblem(X)
@@ -92,7 +92,7 @@ See the [tutorials](@ref real_world) for more complex examples of defining a Bas
 
 ## Solving the Problem
 
-Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref) or [`Sparse Optimization`](@ref sparse_optimization) methods. Different options can be provided as well as a [`Basis`](@ref) used for lifting the measurements, to control different options like rounding, normalization, or the progress bar depending on the inference method.
+Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref) or [`Sparse Optimization`](@ref sparse_optimization) methods. Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. A [`Basis`](@ref) can be used for lifting the measurements.
 
 ```julia
 # Use a Koopman based inference
