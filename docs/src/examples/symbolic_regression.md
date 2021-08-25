@@ -27,7 +27,7 @@ sys = result(res)
 println(sys) #hide
 ```
 
-Where `solve` is used with [`EQSearch`](@ref), which wraps [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) provided by [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl). Additional keyworded arguments are `max_iter = 10`, which defines the number of iterations, `weights` which weight the measurements of the dependent variable (e.g. `X`, `DX` or `Y` depending on the [`DataDrivenProblem`](@ref)), `numprocs` which indicates the number of processes to use, `procs` for use with manually setup processes, `multithreading = false` for multithreading and `runtests = true` which performs initial testing on the environment to check for possible errors. It mimics the behaviour of [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#EquationSearch).
+Where `solve` is used with [`EQSearch`](@ref), which wraps [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) provided by [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl). Additional keyword arguments are `max_iter = 10`, which defines the number of iterations, `weights` which weight the measurements of the dependent variable (e.g. `X`, `DX` or `Y` depending on the [`DataDrivenProblem`](@ref)), `numprocs` which indicates the number of processes to use, `procs` for use with manually setup processes, `multithreading = false` for multithreading and `runtests = true` which performs initial testing on the environment to check for possible errors. It mimics the behaviour of [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#EquationSearch).
 
 
 ## [OccamNet](@id occam_net_tutorial)
@@ -57,7 +57,7 @@ Next, we define our network:
 net = OccamNet(2, 2, 3, Function[sin, +, *, exp], skip = true, constants = Float64[π])
 ```
 
-Where `2,2,3` refers to input and output dimension and the number of layers _without the output layer_. We also define that each layer uses the functions `sin, +, *, exp` as activations and uses a `π` as a constant, which get concatenated to the input data. Additionally, `skip` indicates the useage of skip connections, which allow the output of each layer to be passed onto the output layer directly.
+Where `2,2,3` refers to input and output dimension and the number of layers _without the output layer_. We also define that each layer uses the functions `sin, +, *, exp` as activations and uses a `π` as a constant, which get concatenated to the input data. Additionally, `skip` indicates the usage of skip connections, which allow the output of each layer to be passed onto the output layer directly.
 
 To train the network over `100` epochs using `ADAM`, we type
 ```@example occamnet_flux

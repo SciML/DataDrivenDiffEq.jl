@@ -2,7 +2,7 @@
 
 [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl) is a package for finding the governing equations of motion automatically from a dataset.
 
-The methods in this package take in data and return the differential equation model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete and continous differential equations.
+The methods in this package take in data and return the differential equation model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete and continuous differential equations.
 
 There are two main types of estimation, depending on if you need the result to be human-understandable:
 + Structural identification - returns a human readable result in symbolic form.
