@@ -8,7 +8,7 @@ Here is an outline of the required elements and choices:
 + Choose a basis.
     + This is optional depending on which solver you choose.
 + Solve the problem.
-    + Many solvers exist, see the [docs](@ref koopman_algorithms).
+    + Many solvers exist; see the [docs](@ref koopman_algorithms).
 
 ## Basic usage
 
@@ -35,7 +35,7 @@ res = solve(problem, basis, STLSQ())
 
 ## Defining a Problem
 
-Problems of identification, estimation, or inference are defined by the data. This data contains at least measurements of the states `X`, which would be sufficient to describe a `DiscreteDataDrivenProblem` with unit time steps similar to the [first example on dynamic mode decomposition](@ref Linear-Systems-via-Dynamic-Mode-Decomposition). Of course we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like:
+Problems of identification, estimation, or inference are defined by data. These data contain at least measurements of the states `X`, which would be sufficient to describe a `DiscreteDataDrivenProblem` with unit time steps similar to the [first example on dynamic mode decomposition](@ref Linear-Systems-via-Dynamic-Mode-Decomposition). Of course, we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like:
 
 ```julia
 problem = DiscreteDataDrivenProblem(X)
@@ -88,11 +88,11 @@ A basis can be defined like:
 Ψ = Basis([u; u[1]^2], u)
 ```
 
-See the [tutorials](@ref real_world) for more complex examples of defining a Basis.
+See the [Implicit Systems](@ref) tutorials for more complex examples of defining a Basis.
 
 ## Solving the Problem
 
-Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref) or [`Sparse Optimization`](@ref sparse_optimization) methods. Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. A [`Basis`](@ref) can be used for lifting the measurements.
+Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref), [`Sparse Optimization`](@ref sparse_optimization), or general [`Symbolic Regression`](@ref). Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. A [`Basis`](@ref) can be used for lifting the measurements.
 
 ```julia
 # Use a Koopman based inference

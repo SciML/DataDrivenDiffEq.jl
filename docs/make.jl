@@ -19,7 +19,7 @@ makedocs(
         "Tutorials" => Any[
           "examples/linear_systems.md",
           "examples/nonlinear_systems.md",
-          "examples/real_world.md",
+          "examples/implicit_systems.md",
           "examples/symbolic_regression.md"
         ],
         "Unifying SINDy and DMD" => "sindy_dmd.md",

@@ -79,7 +79,7 @@ Allows solutions of the form `x = y*x + z` or `y = y*x + z`, while suppressing `
 ## SINDy Optional Arguments
 
 Possible keyword arguments include:
-+ `normalize` -> normalizes the data matrix ``\\Theta`` such that each row ( corresponding to candidate functions) has a 2-norm of `1.0`
++ `normalize` -> normalizes the data matrix ``\\Theta`` such that each row (corresponding to candidate functions) has a 2-norm of `1.0`
 + `denoise` -> applies optimal shrinking to the matrix ``\\Theta`` to remove the influence of noise
 + `maxiter` -> maximum iterations of the used optimizer
 + `round` -> rounds according to the currently used threshold of the optimizer
