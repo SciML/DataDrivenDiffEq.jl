@@ -92,7 +92,7 @@ See the [Implicit Systems](@ref) tutorials for more complex examples of defining
 
 ## Solving the Problem
 
-Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref), [`Sparse Optimization`](@ref sparse_optimization), or general [`Symbolic Regression`](@ref). Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. A [`Basis`](@ref) can be used for lifting the measurements.
+Next up, we choose a method to `solve` the [`DataDrivenProblem`](@ref). Depending on the input arguments and the type of problem, the function will return a result derived via [`Koopman`](@ref), [`Sparse Optimization`](@ref sparse_optimization), or general [`Symbolic Regression`](@ref symbolic_regression). Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. A [`Basis`](@ref) can be used for lifting the measurements.
 
 ```julia
 # Use a Koopman based inference

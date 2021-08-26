@@ -27,7 +27,7 @@ mutable struct ProbabilityLayer{F,W,T,A} <: AbstractProbabilityLayer
     weight::W
     "Temperature controlling the shape of the distribution"
     t::T
-    "Arieties of the functions"
+    "Arities of the functions"
     arieties::A
     "Skip connection"
     skip::Bool
