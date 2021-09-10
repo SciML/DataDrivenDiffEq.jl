@@ -185,7 +185,7 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
     sparsity = norm(Ξ, 0)
     sparsities = map(i->norm(i, 0), eachcol(Ξ))
 
-    retcode = size(Ξ, 2) == size(prob.DX, 1) ? :sucess : :incomplete
+    retcode = size(Ξ, 2) == size(prob.DX, 1) ? :success : :incomplete
     pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
     X = get_target(prob)
     Y = res_(prob.X, pnew, prob.t, prob.U)
@@ -252,7 +252,7 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
     sparsity = norm(Ξ, 0)
     sparsities = map(i->norm(i, 0), eachcol(Ξ))
 
-    retcode = size(Ξ, 2) == size(prob.DX, 1) ? :sucess : :incomplete
+    retcode = size(Ξ, 2) == size(prob.DX, 1) ? :success : :incomplete
     pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
     Y = res_([prob.X; prob.DX], pnew, prob.t, prob.U)
 
@@ -335,7 +335,7 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
         K = k, C = C, Q = Q, P = P, lift = b.f,
         eval_expression = eval_expression)
 
-    retcode = :sucess
+    retcode = :success
     X = get_target(prob)
     X_, p_, t, U = get_oop_args(prob)
 

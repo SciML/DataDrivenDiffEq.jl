@@ -439,7 +439,7 @@ function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
     # Build the metrics
     pb = exp(sum(logprobability(net, route)))
     pbs = probability(net, route)
-    retcode = pb > 0.5 ? :sucess : :unlikely
+    retcode = pb > 0.5 ? :success : :unlikely
 
     error = norm(X-Y, 2)
     k = free_parameters(res_)
