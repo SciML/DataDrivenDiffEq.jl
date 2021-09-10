@@ -92,7 +92,7 @@ function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, doms; ev
     # Build the metrics
     complexities = map(x->countNodes(x[end].tree), doms)
     complexity = sum(complexities)
-    retcode = :sucess
+    retcode = :success
 
     error = norm(X-Y, 2)
     k = free_parameters(res_)

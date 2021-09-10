@@ -57,7 +57,7 @@ print(ddsol, Val{true})
 ```
 Explicit Result
 Solution with 3 equations and 7 parameters.
-Returncode: sucess
+Returncode: success
 Sparsity: 7.0
 L2 Norm Error: 26.7343984476783
 AICC: 1.0013570199499398
