@@ -46,7 +46,7 @@ ModelingToolkit.parameters(r::DataDrivenSolution) = r.ps
 """
 $(SIGNATURES)
 
-Generate an mapping of the parameter values and symbolic representation useable
+Generate a mapping of the parameter values and symbolic representation useable
 to `solve` and `ODESystem`.
 """
 function parameter_map(r::DataDrivenSolution)

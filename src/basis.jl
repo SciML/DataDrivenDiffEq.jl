@@ -17,7 +17,7 @@ If `linear_independent` is set to `true`, a linear independent basis is created 
 If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
 
 Additional keyworded arguments include `name`, which can be used to name the basis, and
-`observed` for defining observeables.
+`observed` for defining observables.
 
 
 # Fields

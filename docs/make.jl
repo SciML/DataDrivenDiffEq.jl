@@ -1,3 +1,5 @@
+push!(LOAD_PATH,"../src/")
+
 using Documenter, DataDrivenDiffEq
 using Flux, SymbolicRegression
 
@@ -13,33 +15,26 @@ makedocs(
                              canonical="https://datadriven.sciml.ai/stable/"),
     pages=[
         "Home" => "index.md",
-        "Getting Started" => "quickstart.md",
-        "Problems And Solution" => "prob_and_solve.md",
+        "Getting Started" => "getting_started.md",
+        "Tutorials" => Any[
+          "examples/linear_systems.md",
+          "examples/nonlinear_systems.md",
+          "examples/implicit_systems.md",
+          "examples/symbolic_regression.md"
+        ],
+        "Unifying SINDy and DMD" => "sindy_dmd.md",
+        "Problems" => "problems.md",
         "Basis" => "basis.md",
-        "Koopman" => "koopman.md",
-        "Sparse Optimization" => "optimization.md",
-        "Symbolic Regression" => "symbolic_regression.md",
+        "Solvers" => Any[
+          "solvers/koopman.md",
+          "solvers/optimization.md",
+          "solvers/symbolic_regression.md"
+        ],
+        "Solutions" => "solutions.md",
         "Utilities" => "utils.md",
         "Contributing" => "contributions.md",
         "Citing" => "citations.md"
         ]
-        #"Basis" => "basis.md",
-        #"Koopman Operators" => Any[
-        #    "koopman/koopman.md",
-        #    "koopman/dmd.md",
-        #    "koopman/edmd.md",
-        #    "koopman/dmdc.md",
-        #    "koopman/algorithms.md"
-        #],
-        #"Sparse Identification" => Any[
-        #    "sparse_identification/sindy.md",
-        #    "sparse_identification/isindy.md",
-        #    "sparse_identification/optimizers.md"
-        #],
-        #"Utilities" => "utils.md",
-        #"Contributing" => "contributions.md",
-        #"Extended Examples" => "extended_examples.md"
-    #]
 )
 
 deploydocs(

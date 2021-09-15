@@ -1,7 +1,7 @@
 """
 $(TYPEDEF)
 Optimizer for finding a sparse implicit relationship via alternating the left hand side of the problem and
-solving the explicit problem, as introduced [here]().
+solving the explicit problem, as introduced [here](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279).
 
 ```math
 \\argmin_{x} \\|x\\|_0 ~s.t.~Ax= 0
