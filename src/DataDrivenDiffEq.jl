@@ -48,7 +48,10 @@ abstract type AbstractDataDrivenSolution end
 
 ## Basis
 
-include("./basis.jl")
+include("./basis/build_function.jl")
+include("./basis/utils.jl")
+include("./basis/linear_independent.jl")
+include("./basis/type.jl")
 export Basis
 export jacobian, dynamics
 export free_parameters
