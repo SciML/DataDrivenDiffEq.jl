@@ -1,4 +1,4 @@
-import Base: unique, unique!, ==, deletat!
+import Base: unique, unique!, ==, deleteat!
 
 
 """
