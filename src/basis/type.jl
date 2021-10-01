@@ -334,8 +334,10 @@ end
     $(SIGNATURES)
 
     Returns a function representing the jacobian matrix / gradient of the `Basis` with respect to the
-    dependent variables as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
+    states as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
     If control variables are defined, the function can also be called by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
+
+    If the jacobian with respect to other variables is needed, it can be passed via a second argument.
 """
 function jacobian(x::Basis, eval_expression::Bool = false)
 
@@ -421,7 +423,7 @@ function Base.unique(b::Basis; kwargs...)
 end
 
 """
-    deleteat!(basis, inds, eval_expression = false)
+    $(SIGNATURES)
 
     Delete the entries specified by `inds` and update the `Basis` accordingly.
 """
@@ -432,7 +434,7 @@ function Base.deleteat!(b::Basis, inds; eval_expression = false)
 end
 
 """
-    push!(basis, eq, simplify_eqs = true; eval_expression = false)
+    $(SIGNATURES)
 
     Push the equations(s) in `eq` into the basis and update all internal fields accordingly.
     `eq` can either be a single equation or an array. If `simplify_eq` is true, the equation will be simplified.
@@ -459,7 +461,7 @@ end
 
 
 """
-    merge(x::Basis, y::Basis; eval_expression = false)
+    $(SIGNATURES)
 
     Return a new `Basis`, which is defined via the union of `x` and `y` .
 """
@@ -475,7 +477,7 @@ function Base.merge(x::Basis, y::Basis; eval_expression = false)
 end
 
 """
-    merge!(x::Basis, y::Basis; eval_expression = false)
+    $(SIGNATURES)
 
     Updates `x` to include the union of both `x` and `y`.
 """
