@@ -1,3 +1,6 @@
+import Base: unique, unique!, ==, deletat!
+
+
 """
 $(TYPEDEF)
 
@@ -73,7 +76,7 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
     simplify = false, linear_independent = false,
     eval_expression = false,
     kwargs...)
-    iv === nothing && (iv = Variable(:t))
+    iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     eqs = scalarize(eqs)
     states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
@@ -90,9 +93,9 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
 
     f = _build_ddd_function(eqs, states, parameters, iv, controls, eval_expression)
 
-    eqs = [Variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs_)]
+    eqs = [Symbolics.variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
-    return Basis(eqs, states, controls, parameters, observed, iv, f, name, Basis[])
+    return Basis(collect(eqs), states, controls, parameters, observed, iv, f, name, Basis[])
 end
 
 
@@ -113,14 +116,14 @@ function Basis(eqs::AbstractVector{Equation}, states::AbstractVector;
         eqs_ = simplify ? ModelingToolkit.simplify.(eqs_) : eqs_
     end
 
-    isnothing(iv) && (iv = Num(Variable(:t)))
+    isnothing(iv) && (iv = Num(variable(:t)))
     unique!(eqs_, !simplify)
 
     f = _build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
 
     eqs = [lhs[i] ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
-    return Basis(eqs, value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[])
+    return Basis(collect(eqs), value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[])
 
 end
 
@@ -309,7 +312,7 @@ Base.iterate(x::AbstractBasis, id) = iterate(equations(x), id)
 
 function update!(b::AbstractBasis, eval_expression = false)
 
-    ff = _build_ddd_function([bi.rhs for bi in equations(b)],
+    ff = _build_ddd_function([bi.rhs for bi in collect(equations(b))],
         states(b), parameters(b), [independent_variable(b)],
         controls(b), eval_expression)
     Core.setfield!(b, :f, ff)
@@ -328,7 +331,7 @@ end
 
 
 """
-    jacobian(basis)
+    $(SIGNATURES)
 
     Returns a function representing the jacobian matrix / gradient of the `Basis` with respect to the
     dependent variables as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
@@ -356,3 +359,148 @@ function jacobian(x::Basis, s, eval_expression::Bool = false)
 
     return jac
 end
+
+## Utilities
+function Base.deleteat!(b::Symbolics.Arr{T,N}, idxs) where {T,N}
+    #@show Symbolics.unwrap(b) #b = collect(b)
+    deleteat!(Symbolics.unwrap(b), idxs)
+end
+
+function unique(b::AbstractArray{Num}, simplify_eqs::Bool)
+    b = simplify_eqs ? simplify.(b) : b
+    returns = ones(Bool, size(b)...)
+    N = maximum(eachindex(b))
+    for i ∈ eachindex(b)
+        returns[i] = !any([isequal(b[i], b[j]) for j in i+1:N])
+    end
+    return Num.(b[returns])
+end
+
+
+function Base.unique!(b::AbstractArray{Num}, simplify_eqs = false)
+    bs = simplify_eqs ? simplify.(b) : b
+    removes = zeros(Bool, size(bs)...)
+    N = maximum(eachindex(bs))
+    for i ∈ eachindex(bs)
+        removes[i] = any([isequal(bs[i], bs[j]) for j in i+1:N])
+    end
+    deleteat!(b, removes)
+end
+
+function unique(b::AbstractArray{Equation}, simplify_eqs::Bool)
+    b = simplify_eqs ? simplify.(b) : b
+    returns = ones(Bool, size(b)...)
+    N = maximum(eachindex(b))
+    for i ∈ eachindex(b)
+        returns[i] = !any([isequal(b[i].rhs, b[j].rhs) for j in i+1:N])
+    end
+    return b[returns]
+end
+
+function Base.unique!(b::AbstractArray{Equation}, simplify_eqs::Bool)
+    bs = [bi.rhs for bi in b]
+    bs = simplify_eqs ? simplify.(bs) : bs
+    removes = zeros(Bool, size(bs)...)
+    N = maximum(eachindex(bs))
+    for i ∈ eachindex(bs)
+        removes[i] = any([isequal(bs[i], bs[j]) for j in i+1:N])
+    end
+    deleteat!(b, removes)
+end
+
+## Interfacing && merging
+
+function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
+    unique!(b.eqs, simplify_eqs)
+    update!(b, eval_expression)
+end
+
+function Base.unique(b::Basis; kwargs...)
+    eqs = unique(equations(b))
+    return Basis(eqs, states(b), parameters = parameters(b), iv = independent_variable(b), kwargs...)
+end
+
+"""
+    deleteat!(basis, inds, eval_expression = false)
+
+    Delete the entries specified by `inds` and update the `Basis` accordingly.
+"""
+function Base.deleteat!(b::Basis, inds; eval_expression = false)
+    deleteat!(b.eqs, inds)
+    update!(b, eval_expression)
+    return
+end
+
+"""
+    push!(basis, eq, simplify_eqs = true; eval_expression = false)
+
+    Push the equations(s) in `eq` into the basis and update all internal fields accordingly.
+    `eq` can either be a single equation or an array. If `simplify_eq` is true, the equation will be simplified.
+"""
+function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expression = false)
+    @inbounds for eq ∈ eqs
+        push!(b, eq, false)
+    end
+    unique!(b, simplify_eqs, eval_expression = eval_expression)
+    return
+end
+
+function Base.push!(b::Basis, eq, simplify_eqs = true; eval_expression = false)
+    push!(equations(b), variable(:φ, length(b.eqs)+1)~eq)
+    unique!(b, simplify_eqs, eval_expression = eval_expression)
+    return
+end
+
+function Base.push!(b::Basis, eq::Equation, simplify_eqs = true; eval_expression = false)
+    push!(equations(b), eq)
+    unique!(b, simplify_eqs, eval_expression = eval_expression)
+    return
+end
+
+
+"""
+    merge(x::Basis, y::Basis; eval_expression = false)
+
+    Return a new `Basis`, which is defined via the union of `x` and `y` .
+"""
+function Base.merge(x::Basis, y::Basis; eval_expression = false)
+    b =  unique(vcat([xi.rhs  for xi ∈ equations(x)], [xi.rhs  for xi ∈ equations(y)]))
+    vs = unique(vcat(states(x), states(y)))
+    ps = unique(vcat(parameters(x), parameters(y)))
+
+    c = unique(vcat(controls(x), controls(y)))
+    observed = unique(vcat(get_observed(x), get_observed(y)))
+
+    return Basis(Num.(b), vs, parameters = ps, controls = c, observed = observed, eval_expression = eval_expression)
+end
+
+"""
+    merge!(x::Basis, y::Basis; eval_expression = false)
+
+    Updates `x` to include the union of both `x` and `y`.
+"""
+function Base.merge!(x::Basis, y::Basis; eval_expression = false)
+    push!(x, map(x->x.rhs, equations(y)))
+    Core.setfield!(x, :states, unique(vcat(states(x),states(y))))
+    Core.setfield!(x, :ps, unique(vcat(parameters(x), parameters(y))))
+    Core.setfield!(x, :controls, unique(vcat(controls(x), controls(y))))
+    Core.setfield!(x, :observed, unique(vcat(get_observed(x), get_observed(y))))
+    update!(x, eval_expression)
+    return
+end
+
+## Additional functionalities
+
+function (==)(x::Basis, y::Basis)
+    length(x) == length(y) || return false
+    n = zeros(Bool, length(x))
+    yrhs = [yi.rhs for yi in equations(y)]
+    xrhs = [xi.rhs for xi in equations(x)]
+    @inbounds for (i, xi) in enumerate(xrhs)
+        n[i] = any(isequal.([xi], yrhs))
+        !n[i] && break
+    end
+    return all(n)
+end
+
+free_parameters(b::AbstractBasis; operations = [+]) = count_operation([xi.rhs for xi in b.eqs], operations) + length(b.eqs)

@@ -75,7 +75,7 @@ function _build_ddd_function(
     eval_expression::Bool = false,
 )
 
-    isempty(controls) &&
+    length(controls) < 1 &&
         return _build_ddd_function(rhs, states, parameters, iv, eval_expression)
 
     # Assumes zero control is zero!
