@@ -29,6 +29,8 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.A
 
     # Evaluate the basis
     θ = b(DataDrivenDiffEq.get_oop_args(p)...)
+    # Extract the target
+    DX = DataDrivenDiffEq.get_target(p)
 
     maxiter = maxiter <= 0 ? maximum(size(θ)) : maxiter
 
@@ -41,9 +43,9 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.A
     denoise ? optimal_shrinkage!(θ') : nothing
 
     # Init the coefficient matrix
-    Ξ = DataDrivenDiffEq.Optimize.init(opt, θ', p.DX')
+    Ξ = DataDrivenDiffEq.Optimize.init(opt, θ', DX')
     # Solve
-    @views Optimize.sparse_regression!(Ξ, θ', p.DX', opt; kwargs...)
+    @views Optimize.sparse_regression!(Ξ, θ', DX', opt; kwargs...)
 
     normalize ? rescale_xi!(Ξ, scales, round) : nothing
 
@@ -91,6 +93,8 @@ end
 
     # Evaluate the basis
     θ = b(DataDrivenDiffEq.get_implicit_oop_args(p)...)
+    # Extract the target
+    DX = DataDrivenDiffEq.get_target(p)
 
     maxiter = maxiter <= 0 ? maximum(size(θ)) : maxiter
 
@@ -103,7 +107,7 @@ end
     denoise ? optimal_shrinkage!(θ') : nothing
 
     # Init the coefficient matrix
-    Ξ = DataDrivenDiffEq.Optimize.init(opt, θ', p.DX')
+    Ξ = DataDrivenDiffEq.Optimize.init(opt, θ', DX')
     # Find the implict variables in the equations and
     # eliminite duplictes
     if !isempty(implicits)
@@ -116,7 +120,7 @@ end
     @views for i in 1:size(inds, 1)
         # Initial progress offset
         offset = i*length(get_threshold(opt))
-        Optimize.sparse_regression!(Ξ[inds[i,:], i:i], θ[inds[i,:],:]', p.DX[i:i, :]', opt; maxiter = maxiter,
+        Optimize.sparse_regression!(Ξ[inds[i,:], i:i], θ[inds[i,:],:]', DX[i:i, :]', opt; maxiter = maxiter,
          progress_outer = size(inds, 1), progress_offset = offset, kwargs...)
     end
 
