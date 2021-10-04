@@ -169,14 +169,14 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
     # Build the lhs
     if length(eqs) == length(states(b))
         xs = states(b)
-        d = Differential(independent_variable(b))
+        d = Differential(get_iv(b))
         eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
     end
 
     # Build a basis
     res_ = Basis(
         eqs, states(b),
-        parameters = [parameters(b); p_], iv = independent_variable(b),
+        parameters = [parameters(b); p_], iv = get_iv(b),
         controls = controls(b), observed = observed(b),
         name = gensym(:Basis),
         eval_expression = eval_expression
@@ -239,11 +239,11 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
 
     eqs, ps, p_ = build_parametrized_eqs(Ξ, b)
     eqs = [0 .~ eq for eq in eqs]
-
+    
     # Build a basis
     res_ = Basis(
-        eqs, states(b),
-        parameters = [parameters(b); p_], iv = independent_variable(b),
+        collect(eqs), states(b),
+        parameters = [parameters(b); p_], iv = get_iv(b),
         controls = controls(b), observed = observed(b),
         name = gensym(:Basis),
         eval_expression = eval_expression
@@ -324,14 +324,14 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
     # Build the lhs
     if length(eqs) == length(states(b))
         xs = states(b)
-        d = Differential(independent_variable(b))
+        d = Differential(get_iv(b))
         eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
     end
 
 
     res_ = Koopman(eqs, states(b),
         parameters = [parameters(b); p_],
-        controls = controls(b), iv = independent_variable(b),
+        controls = controls(b), iv = get_iv(b),
         K = k, C = C, Q = Q, P = P, lift = b.f,
         eval_expression = eval_expression)
 

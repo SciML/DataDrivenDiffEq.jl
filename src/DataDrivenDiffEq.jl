@@ -21,7 +21,7 @@ using Compat
 using DocStringExtensions
 
 
-@reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls
+@reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls, get_iv
 @reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
 using Symbolics: scalarize, variable
 

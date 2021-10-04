@@ -178,7 +178,7 @@ end
          end
      end
 
-    println(io, "\nIndependent variable: $(independent_variable(x))")
+    println(io, "\nIndependent variable: $(get_iv(x))")
     println(io, "Equations")
     for (i,eq) ∈ enumerate(equations(x))
         if i < 5 || i == length(x)
@@ -217,7 +217,7 @@ end
          end
      end
 
-    println(io, "\nIndependent variable: $(independent_variable(x))")
+    println(io, "\nIndependent variable: $(get_iv(x))")
     println(io, "Equations")
     for (i,eq) ∈ enumerate(equations(x))
         println(io, "$(eq.lhs) = $(eq.rhs)")
@@ -251,7 +251,7 @@ ModelingToolkit.controls(b::AbstractBasis) = b.controls
 
 # OOP
 function (b::AbstractBasis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T = parameters(b),
-    t::T where T <: Number = independent_variable(b))
+    t::T where T <: Number = get_iv(b))
     return b.f(x,p,t)
 end
 
@@ -261,12 +261,12 @@ function (b::AbstractBasis)(x::AbstractVector{T} where T, p::AbstractVector{T} w
 end
 
 function (b::AbstractBasis)(x::AbstractMatrix{T} where T)
-    t = independent_variable(b)
+    t = get_iv(b)
     return b.f(x,parameters(b),[t for i in 1:size(x,2)])
 end
 
 function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
-    t = independent_variable(b)
+    t = get_iv(b)
     return b.f(x,p,[t for i in 1:size(x,2)])
 end
 
@@ -283,12 +283,12 @@ end
 
 # IIP
 function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T)
-    t = independent_variable(b)
+    t = get_iv(b)
     return b.f(y,x,parameters(b),[t for i in 1:size(x,2)])
 end
 
 function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
-    t = independent_variable(b)
+    t = get_iv(b)
     return b.f(y,x,p,[t for i in 1:size(x,2)])
 end
 
@@ -318,7 +318,7 @@ Base.iterate(x::AbstractBasis, id) = iterate(equations(x), id)
 function update!(b::AbstractBasis, eval_expression = false)
 
     ff = _build_ddd_function([bi.rhs for bi in collect(equations(b))],
-        states(b), parameters(b), [independent_variable(b)],
+        states(b), parameters(b), [get_iv(b)],
         controls(b), eval_expression)
     Core.setfield!(b, :f, ff)
 
@@ -349,7 +349,7 @@ function jacobian(x::Basis, eval_expression::Bool = false)
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], states(x))
 
     jac  = _build_ddd_function(expand_derivatives.(j),
-        states(x), parameters(x), independent_variable(x),
+        states(x), parameters(x), get_iv(x),
         controls(x), eval_expression)
 
     return jac
@@ -361,7 +361,7 @@ function jacobian(x::Basis, s, eval_expression::Bool = false)
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], s)
 
     jac  = _build_ddd_function(expand_derivatives.(j),
-        states(x), parameters(x), independent_variable(x),
+        states(x), parameters(x), get_iv(x),
         controls(x), eval_expression)
 
     return jac
@@ -424,7 +424,7 @@ end
 
 function Base.unique(b::Basis; kwargs...)
     eqs = unique(equations(b))
-    return Basis(eqs, states(b), parameters = parameters(b), iv = independent_variable(b), kwargs...)
+    return Basis(eqs, states(b), parameters = parameters(b), iv = get_iv(b), kwargs...)
 end
 
 """
