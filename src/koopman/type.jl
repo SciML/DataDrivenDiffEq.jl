@@ -36,7 +36,7 @@ mutable struct Koopman{O,M,G,T} <: AbstractKoopman
     """Dependent (state) variables"""
     states::Vector
     """Control variables"""
-    controls::Vector
+    ctrls::Vector
     """Parameters"""
     ps::Vector
     """Observed"""
@@ -93,7 +93,6 @@ function Koopman(eqs::AbstractVector{Equation}, states::AbstractVector;
         eqs_ = simplify ? ModelingToolkit.simplify.(eqs_) : eqs_
     end
 
-    isnothing(iv) && (iv = Num(Variable(:t)))
     unique!(eqs_, !simplify)
 
     f = DataDrivenDiffEq._build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
@@ -124,7 +123,6 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector;
     eqs = scalarize(eqs)
     states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
 
-
     eqs_ = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
 
     if linear_independent
@@ -133,7 +131,6 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector;
         eqs_ = simplify ? ModelingToolkit.simplify.(eqs_) : eqs_
     end
 
-    isnothing(iv) && (iv = Num(Variable(:t)))
     unique!(eqs_, !simplify)
 
     f = DataDrivenDiffEq._build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
@@ -154,17 +151,21 @@ Base.Matrix(k::AbstractKoopman) = real.(Matrix(k.K))
 # Get the lifting function
 lifting(k::AbstractKoopman) = k.lift
 
+
+# TODO FIXME MAYBE? 
 """
 $(SIGNATURES)
 
-Returns if the `AbstractKoopmanOperator` `k` is discrete in time.
+Returns `true` if the `AbstractKoopmanOperator` `k` is discrete in time.
 """
-is_discrete(k::AbstractKoopman) = k.is_discrete
+is_discrete(k::AbstractKoopman) = !(!k.is_discrete)
+
+
 
 """
 $(SIGNATURES)
 
-Returns if the `AbstractKoopmanOperator` `k` is continuous in time.
+Returns `true` if the `AbstractKoopmanOperator` `k` is continuous in time.
 """
 is_continuous(k::AbstractKoopman) = !k.is_discrete
 

@@ -86,7 +86,7 @@ inputs(r::DataDrivenSolution) = r.inp
 
 function Base.summary(io::IO, r::DataDrivenSolution)
     is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
-    println(io, "Solution with $(length(r.res.eqs)) equations and $(length(r.ps)) parameters.")
+    println(io, "Solution with $(length(r.res)) equations and $(length(r.ps)) parameters.")
     println(io, "Returncode: $(r.retcode)")
     haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
     haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
@@ -100,7 +100,7 @@ function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
     fullview != Val{true} && return summary(io, r)
 
     is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
-    println(io, "Solution with $(length(r.res.eqs)) equations and $(length(r.ps)) parameters.")
+    println(io, "Solution with $(length(r.res)) equations and $(length(r.ps)) parameters.")
     println(io, "Returncode: $(r.retcode)")
     haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
     haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
@@ -169,14 +169,14 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
     # Build the lhs
     if length(eqs) == length(states(b))
         xs = states(b)
-        d = Differential(independent_variable(b))
+        d = Differential(get_iv(b))
         eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
     end
 
     # Build a basis
     res_ = Basis(
         eqs, states(b),
-        parameters = [parameters(b); p_], iv = independent_variable(b),
+        parameters = [parameters(b); p_], iv = get_iv(b),
         controls = controls(b), observed = observed(b),
         name = gensym(:Basis),
         eval_expression = eval_expression
@@ -239,11 +239,11 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
 
     eqs, ps, p_ = build_parametrized_eqs(Ξ, b)
     eqs = [0 .~ eq for eq in eqs]
-
+    
     # Build a basis
     res_ = Basis(
-        eqs, states(b),
-        parameters = [parameters(b); p_], iv = independent_variable(b),
+        collect(eqs), states(b),
+        parameters = [parameters(b); p_], iv = get_iv(b),
         controls = controls(b), observed = observed(b),
         name = gensym(:Basis),
         eval_expression = eval_expression
@@ -301,8 +301,8 @@ function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
     return x
 end
 
-#function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::AbstractKoopmanAlgorithm)
 function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; digits::Int = 10, eval_expression = false)
+    
     # Build parameterized equations, inds indicate the location of basis elements containing an input
     Ξ = zeros(eltype(B), size(C,2), length(b))
 
@@ -324,15 +324,15 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
     # Build the lhs
     if length(eqs) == length(states(b))
         xs = states(b)
-        d = Differential(independent_variable(b))
+        d = Differential(get_iv(b))
         eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
     end
 
-
     res_ = Koopman(eqs, states(b),
         parameters = [parameters(b); p_],
-        controls = controls(b), iv = independent_variable(b),
+        controls = controls(b), iv = get_iv(b),
         K = k, C = C, Q = Q, P = P, lift = b.f,
+        is_discrete = is_discrete(prob),
         eval_expression = eval_expression)
 
     retcode = :success
