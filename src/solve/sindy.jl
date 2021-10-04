@@ -63,6 +63,8 @@ function _isin(x::Vector{Num}, y::Vector)
     [_isin(xi, yi) for xi in x, yi in y]
 end
 
+_isin(x, y) = _isin(Num.(Symbolics.unwrap(x)), y)
+
 function _ind_matrix(x::Vector{Num}, y::Vector)
     isins = _isin(x, y)
     inds = ones(Bool, size(isins)) # We take all

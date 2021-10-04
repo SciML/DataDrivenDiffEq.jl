@@ -36,7 +36,7 @@ mutable struct Koopman{O,M,G,T} <: AbstractKoopman
     """Dependent (state) variables"""
     states::Vector
     """Control variables"""
-    controls::Vector
+    ctrls::Vector
     """Parameters"""
     ps::Vector
     """Observed"""

@@ -19,10 +19,10 @@ true_res_(x, p, t) =
 true_res_(x, p, t, u) =
     scalarize.(hcat([true_res(x[:, i], p, t[i], u[:, i]) for i = 1:100]...))
 
-@test isequal(b(x0), b.f(x0, p, t, zeros(2)))
-@test isequal(b(x0, p0), b.f(x0, p0, t, zeros(2)))
-@test isequal(b(x0, p0, t0), b.f(x0, p0, t0, zeros(2)))
-@test isequal(b(x0, p0, t0, u0), b.f(x0, p0, t0, u0))
+@test isequal(b(x0), DataDrivenDiffEq.get_f(b)(x0, p, t, zeros(2)))
+@test isequal(b(x0, p0), DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
+@test isequal(b(x0, p0, t0), DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
+@test isequal(b(x0, p0, t0, u0), DataDrivenDiffEq.get_f(b)(x0, p0, t0, u0))
 
 # Array call
 x0 = randn(3, 100)

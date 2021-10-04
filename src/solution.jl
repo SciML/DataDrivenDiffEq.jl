@@ -86,7 +86,7 @@ inputs(r::DataDrivenSolution) = r.inp
 
 function Base.summary(io::IO, r::DataDrivenSolution)
     is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
-    println(io, "Solution with $(length(r.res.eqs)) equations and $(length(r.ps)) parameters.")
+    println(io, "Solution with $(length(r.res)) equations and $(length(r.ps)) parameters.")
     println(io, "Returncode: $(r.retcode)")
     haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
     haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
@@ -100,7 +100,7 @@ function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
     fullview != Val{true} && return summary(io, r)
 
     is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
-    println(io, "Solution with $(length(r.res.eqs)) equations and $(length(r.ps)) parameters.")
+    println(io, "Solution with $(length(r.res)) equations and $(length(r.ps)) parameters.")
     println(io, "Returncode: $(r.retcode)")
     haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
     haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")

@@ -52,7 +52,7 @@ mutable struct Basis <: AbstractBasis
     """Dependent (state) variables"""
     states::Vector
     """Control variables"""
-    controls::Vector
+    ctrls::Vector
     """Parameters"""
     ps::Vector
     """Observed"""
@@ -237,75 +237,69 @@ function dynamics(b::AbstractBasis)
     return get_f(b)
 end
 
-"""
-Returns the control variables of the `Basis`.
-
-$(SIGNATURES)
-"""
-ModelingToolkit.controls(b::AbstractBasis) = b.controls
-
 ## Callable
+get_f(b::AbstractBasis) = getproperty(b, :f)
 
 # Fallback
-(b::AbstractBasis)(args...) = b.f(args...)
+(b::AbstractBasis)(args...) = get_f(b)(args...)
 
 # OOP
 function (b::AbstractBasis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T = parameters(b),
     t::T where T <: Number = get_iv(b))
-    return b.f(x,p,t)
+    return get_f(b)(x,p,t)
 end
 
 function (b::AbstractBasis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T,
     t::T where T <: Number , u::AbstractVector{T} where T)
-    return b.f(x,p,t, u)
+    return get_f(b)(x,p,t, u)
 end
 
 function (b::AbstractBasis)(x::AbstractMatrix{T} where T)
     t = get_iv(b)
-    return b.f(x,parameters(b),[t for i in 1:size(x,2)])
+    return get_f(b)(x,parameters(b),[t for i in 1:size(x,2)])
 end
 
 function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
     t = get_iv(b)
-    return b.f(x,p,[t for i in 1:size(x,2)])
+    return get_f(b)(x,p,[t for i in 1:size(x,2)])
 end
 
 function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number)
-    return b.f(x,p,t)
+    return get_f(b)(x,p,t)
 end
 
 
 function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
-    return b.f(x,p,t, u)
+    return get_f(b)(x,p,t, u)
 end
 
 # IIP
 function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T)
     t = get_iv(b)
-    return b.f(y,x,parameters(b),[t for i in 1:size(x,2)])
+    return get_f(b)(y,x,parameters(b),[t for i in 1:size(x,2)])
 end
 
 function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
     t = get_iv(b)
-    return b.f(y,x,p,[t for i in 1:size(x,2)])
+    return get_f(b)(y,x,p,[t for i in 1:size(x,2)])
 end
 
 function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number, )
-    return b.f(y,x,p,t)
+    return get_f(b)(y,x,p,t)
 end
 
 function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
     t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
-    return b.f(y,x,p,t,u)
+    return get_f(b)(y,x,p,t,u)
 end
 
 ## Information and Iteration
 
-Base.length(x::AbstractBasis) = length(x.eqs)
-Base.size(x::AbstractBasis) = size(x.eqs)
+Base.length(x::AbstractBasis) = length(equations(x))
+Base.size(x::AbstractBasis) = size(equations(x))
 
 Base.getindex(x::AbstractBasis, idx) = getindex(equations(x), idx)
 Base.firstindex(x::AbstractBasis) = firstindex(equations(x))
@@ -417,7 +411,7 @@ end
 ## Interfacing && merging
 
 function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
-    unique!(b.eqs, simplify_eqs)
+    unique!(equations(b), simplify_eqs)
     update!(b, eval_expression)
 end
 
@@ -432,7 +426,7 @@ end
     Delete the entries specified by `inds` and update the `Basis` accordingly.
 """
 function Base.deleteat!(b::Basis, inds; eval_expression = false)
-    deleteat!(b.eqs, inds)
+    deleteat!(equations(b), inds)
     update!(b, eval_expression)
     return
 end
@@ -452,7 +446,7 @@ function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expr
 end
 
 function Base.push!(b::Basis, eq, simplify_eqs = true; eval_expression = false)
-    push!(equations(b), variable(:φ, length(b.eqs)+1)~eq)
+    push!(equations(b), variable(:φ, length(b)+1)~eq)
     unique!(b, simplify_eqs, eval_expression = eval_expression)
     return
 end
@@ -489,7 +483,7 @@ function Base.merge!(x::Basis, y::Basis; eval_expression = false)
     push!(x, map(x->x.rhs, equations(y)))
     Core.setfield!(x, :states, unique(vcat(states(x),states(y))))
     Core.setfield!(x, :ps, unique(vcat(parameters(x), parameters(y))))
-    Core.setfield!(x, :controls, unique(vcat(controls(x), controls(y))))
+    Core.setfield!(x, :ctrls, unique(vcat(controls(x), controls(y))))
     Core.setfield!(x, :observed, unique(vcat(get_observed(x), get_observed(y))))
     update!(x, eval_expression)
     return
@@ -509,4 +503,4 @@ function (==)(x::Basis, y::Basis)
     return all(n)
 end
 
-free_parameters(b::AbstractBasis; operations = [+]) = count_operation([xi.rhs for xi in b.eqs], operations) + length(b.eqs)
+free_parameters(b::AbstractBasis; operations = [+]) = count_operation([xi.rhs for xi in equations(b)], operations) + length(b)
