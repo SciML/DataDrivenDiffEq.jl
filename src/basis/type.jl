@@ -369,7 +369,6 @@ end
 
 ## Utilities
 function Base.deleteat!(b::Symbolics.Arr{T,N}, idxs) where {T,N}
-    #@show Symbolics.unwrap(b) #b = collect(b)
     deleteat!(Symbolics.unwrap(b), idxs)
 end
 

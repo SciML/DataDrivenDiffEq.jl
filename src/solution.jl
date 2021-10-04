@@ -301,8 +301,8 @@ function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
     return x
 end
 
-#function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::AbstractKoopmanAlgorithm)
 function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; digits::Int = 10, eval_expression = false)
+    
     # Build parameterized equations, inds indicate the location of basis elements containing an input
     Ξ = zeros(eltype(B), size(C,2), length(b))
 
@@ -328,11 +328,11 @@ function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::Abstrac
         eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
     end
 
-
     res_ = Koopman(eqs, states(b),
         parameters = [parameters(b); p_],
         controls = controls(b), iv = get_iv(b),
         K = k, C = C, Q = Q, P = P, lift = b.f,
+        is_discrete = is_discrete(prob),
         eval_expression = eval_expression)
 
     retcode = :success

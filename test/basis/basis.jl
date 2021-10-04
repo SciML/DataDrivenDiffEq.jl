@@ -45,11 +45,10 @@ h_not_unique = [u[1]; u[1]; u[1]^1; h; 1]
 basis = Basis(h_not_unique, u, parameters = w, iv = t)
 basis_2 =
     Basis(h_not_unique, u, parameters = w, iv = t, linear_independent = true)
-basis_2.eqs
 # Check getters
 @test isequal(states(basis), u)
 @test isequal(parameters(basis), w)
-@test isequal(independent_variable(basis), t)
+@test isequal(ModelingToolkit.get_iv(basis), t)
 @test isequal(controls(basis), [])
 
 # Check free parameter calculation
@@ -64,8 +63,6 @@ basis_2.eqs
 
 # Check array functionalities
 basis_2 = unique(basis)
-basis.eqs
-basis_2.eqs
 @test isequal(basis, basis_2)
 @test size(basis) == (5,)
 @test basis([1.0; 2.0; π], [0.0; 1.0]) ≈ [1.0; 2.0; -1.0; 5*π + 2.0; 1.0]
@@ -101,10 +98,6 @@ f = DataDrivenDiffEq.jacobian(basis)
 @test f([1; 1; 1], [0.0; 0.0], 0.0) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
 @test_nowarn [xi for xi in basis]
 @test_nowarn basis[2:end];
-basis[2];
-first(basis);
-last(basis);
-basis[:];
 
 @variables u[1:3] t
 
