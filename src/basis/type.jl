@@ -107,6 +107,11 @@ function Basis(eqs::AbstractVector{Equation}, states::AbstractVector;
     eval_expression = false,
     kwargs...)
 
+    iv === nothing && (iv = Symbolics.variable(:t))
+    iv = value(iv)
+    eqs = scalarize(eqs)
+    states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
+
     lhs = [x.lhs for x in eqs]
     # We filter out 0s
     eqs_ = [Num(x.rhs) for x in eqs if ~isequal(Num(x),zero(Num))]
