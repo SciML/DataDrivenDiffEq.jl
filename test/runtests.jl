@@ -33,6 +33,10 @@ const GROUP = get(ENV, "GROUP", "All")
             @testset "Nonlinear Forced" begin include("./dmd/nonlinear_forced.jl") end
         end
 
+        @testset "Surrogate Analysis" begin
+            @testset "Basic Tests" begin include("./surrogate_analysis/basic_tests.jl") end
+        end
+
         include("./utils.jl")
     end
 
