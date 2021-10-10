@@ -147,18 +147,7 @@ function explore_symmetries!(s, f, x, a, b, inz, opts::InvestigationOptions, arg
     return
 end
 
-# Operator complexity heuristics based on linear regression
-# The higher the worse
-function op_complexity(x, d) 
-    return zero(d)
-end
-
-function op_complexity(::typeof(+), d)
-    return one(d)
-end
-
-
-function sort_surrogate(s, y, x)
+function _pareto_surrogates(s, y, x)
     return norm(s(x) - y, 2)
 end
 
@@ -170,7 +159,7 @@ function separate_function(f, x, inz, opts::InvestigationOptions, args...; depth
         separate_function!(surrogates, f, x, a, b, inz, opts, args...; kwargs...)
     end
     y = f(x)
-    sort!(surrogates, by = s->sort_surrogate(s, y, x), rev = true)
+    sort!(surrogates, by = s->_pareto_surrogates(s, y, x), rev = true)
 
     if isempty(surrogates)
         return nothing
@@ -180,9 +169,10 @@ end
 
 function separate_function!(s, f, x, comp, op, inz, opts::InvestigationOptions, args...; depth = 1, kwargs...)
     depth >= opts.kwargs["max_depth"] && return nothing
+    
     # Assume f = comp(g, h)
     # Check via op(f(x), comp(g,h))
-    # Returns the first instance to find
+    
     e = zero(eltype(x))
     y = f(x)
 
@@ -198,24 +188,32 @@ function separate_function!(s, f, x, comp, op, inz, opts::InvestigationOptions, 
         for j in (i+1):size(x,1)
             inz[j] < 1 && continue
             
-            g = _set_constant_input(f, (i, mean(x[i,:])))
-            h = _composition_f(
-                    _set_constant_input(f, (j, mean(x[j,:]))),
-                    _set_constant_input(f, (i, mean(x[i,:])), (j, mean(x[j,:]))),
-                    op
+            g = DataDrivenSurrogate(
+                _set_constant_input(f, (i, mean(x[i,:]))),
+                x, opts, depth+1
             )
-
+            
+            h = CompositeSurrogate(op, 
+                DataDrivenSurrogate(
+                    _set_constant_input(f, (j, mean(x[j,:])) ), 
+                    x, opts, depth+1
+                ),
+                DataDrivenSurrogate(
+                    _set_constant_input(f, (i, mean(x[i,:])), (j, mean(x[j,:]))),
+                    x, opts, depth+1
+                )
+            )
+            
             f̂ = _composition_f(g, h, comp)
 
             e = norm(f(x) - f̂(x))
             
             if (e < opts.abstol) || (e / norm(y) < opts.reltol)
                 push!(s, CompositeSurrogate(comp, 
-                    DataDrivenSurrogate(g, x, opts, depth+1),
-                    DataDrivenSurrogate(h, x, opts, depth+1)
+                    g,
+                    h
                 ))
                 push!(founds, i, j)
-                #break
             end
         end
     end
@@ -223,47 +221,3 @@ function separate_function!(s, f, x, comp, op, inz, opts::InvestigationOptions, 
     return
     
 end
-
-#function explore_surrogate(f, x, opts::InvestigationOptions, depth = 0, args...; kwargs...)
-#    depth >= opts.kwargs["max_depth"] && return nothing
-#    
-#    # Check function output
-#    y = f(x[:,1])
-#    if size(y, 1) > 1
-#        _s = map(1:size(y, 1)) do i
-#            _f = _create_f(f, i)
-#            explore_surrogate(_f, x, opts, args...; kwargs...)
-#        end
-#        filter!(x->!isnothing(x), _s)
-#        return _s
-#    end
-#
-#    # We can check the data domains and supported transformations here
-#    # Something like exp, log, inv
-#
-#    # Create inzidenz
-#    inz = create_incidence(f, x, opts)
-#    # Check linearity
-#    f_linear = is_linear(f, x, opts, args...; kwargs...)
-#    # Check symmetries
-#    syms = explore_symmetries(f, x, inz, opts)
-#    # Check special cases 
-#    ops = get_operator.(syms)
-#    # Division cancels out linearity check
-#    #if f_linear && ( (/) ∈ ops)
-#    #    f_linear = false
-#    #end
-#
-#    if f_linear
-#        coeff = zeros(1, size(x, 1))
-#        coeff[:, BitVector(inz)] .= f(x) / x[BitVector(inz), :]
-#        coeff[abs.(coeff) .<= eps()] .= zero(eltype(x))
-#        return LinearSurrogate(coeff[1,:], inz, syms)
-#    end
-#
-#    _s = separate_function(f, x, inz, opts, depth = depth+1)
-#    !isnothing(_s) && return _s
-#    
-#    
-#    return NonlinearSurrogate(f, inz, transforms = syms)
-#end
