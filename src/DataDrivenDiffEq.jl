@@ -11,8 +11,9 @@ using ModelingToolkit
 using Distributions
 using QuadGK
 using Statistics
+using StatsBase
 using DataInterpolations
-
+using ForwardDiff
 
 using Requires
 using ProgressMeter
@@ -45,8 +46,9 @@ abstract type AbstractSymbolicRegression end
 abstract type AbstractDataDrivenProblem{dType, cType, probType} end
 abstract type AbstractDataDrivenSolution end
 
-
-
+# Surrogate analysis
+abstract type AbstractCoordinateTransform end
+abstract type AbstractDataDrivenSurrogate end
 
 ## Basis
 
@@ -93,6 +95,12 @@ export update!
 
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD
+
+## Surrogate analysis
+include("./surrogates/derivative.jl")
+include("./surrogates/types.jl")
+include("./surrogates/investigate.jl")
+export DataDrivenSurrogate
 
 
 ## Problem and Solution

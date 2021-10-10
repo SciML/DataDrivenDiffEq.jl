@@ -16,7 +16,7 @@ struct InvestigationOptions{T, S, O, K}
     function InvestigationOptions(y, f, x)
         T = eltype(y)
 
-        e = max(norm(f(x) - y), 10*eps())
+        e = max(norm(f(x) - y), 1e-9)
 
         abstol = convert(T, 10)*e
         reltol = abstol / norm(y)
