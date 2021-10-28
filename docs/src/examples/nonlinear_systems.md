@@ -48,10 +48,21 @@ println(parameters(res)) # hide
 
 The underlying dynamics have been recovered correctly by the algorithm!
 
-The eigendecomposition of the Koopman operator can be accessed via [`operator`](@ref).
+The eigendecomposition of the (generator of the) Koopman operator can be accessed via [`generator`](@ref).
 
 ```@example 3
-operator(system)
+julia> generator(system)
+Eigen{Float64, Float64, Matrix{Float64}, Vector{Float64}}
+values:
+3-element Vector{Float64}:
+ -1.5999999999999988
+ -0.8000000000000025
+ -0.6999999999999966
+vectors:
+3×3 Matrix{Float64}:
+  4.98145e-16  -1.0          1.07363e-14
+  0.613941     -8.53994e-14  1.0
+ -0.789352      1.24545e-14  4.99523e-15
 ```
 
 ## Nonlinear Systems - Sparse Identification of Nonlinear Dynamics
