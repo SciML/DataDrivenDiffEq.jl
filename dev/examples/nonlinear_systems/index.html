@@ -24,13 +24,13 @@ Returncode: success
 L2 Norm Error: 3.343797283569837e-15
 AICC: 139.4073224511615
 
-Model ##Koopman#403 with 2 equations
+Model ##Koopman#475 with 2 equations
 States : u[1] u[2]
-Parameters : p[1] p[2] p[3]
+Parameters : p₁ p₂ p₃
 Independent variable: t
 Equations
-Differential(t)(u[1]) = p[1]*u[1]
-Differential(t)(u[2]) = (u[1]^2)*p[3] + p[2]*u[2]
+Differential(t)(u[1]) = p₁*u[1]
+Differential(t)(u[2]) = p₃*(u[1]^2) + p₂*u[2]
 [-0.8, -0.7, 0.7]</code></pre><p>The underlying dynamics have been recovered correctly by the algorithm!</p><p>The eigendecomposition of the Koopman operator can be accessed via <a href="../../solvers/koopman/#DataDrivenDiffEq.operator"><code>operator</code></a>.</p><pre><code class="language- hljs">operator(system)</code></pre><h2 id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics"><a class="docs-heading-anchor" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics">Nonlinear Systems - Sparse Identification of Nonlinear Dynamics</a><a id="Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Systems-Sparse-Identification-of-Nonlinear-Dynamics" title="Permalink"></a></h2><p>To find the underlying system without any <a href="../../solvers/koopman/#koopman_algorithms"><code>Algorithms</code></a> related to Koopman operator theory, we can use  <a href="https://www.pnas.org/content/113/15/3932">Sparse Identification of Nonlinear Dynamics</a> - SINDy for short. As the name suggests, it finds the sparsest basis of functions which build the observed trajectory. Again, we will start with a nonlinear system:</p><pre><code class="language-julia hljs">using DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
@@ -62,7 +62,7 @@ for (i, xi) in enumerate(eachcol(sol[:,:]))
 end
 
 ts = sol.t</code></pre><p>To estimate the system, we first create a <a href="../../problems/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a> via feeding in the measurement data. Using a <a href="../../utils/#Collocation">Collocation</a> method, it automatically provides the derivative. Control signals can be passed in as a function <code>(u,p,t)-&gt;control</code> or an array of measurements.</p><pre><code class="language-julia hljs">prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel() ,
-    U = (u,p,t)-&gt;[exp(-((t-5.0)/5.0)^2)], p = ones(2))</code></pre><p><img src="../SINDy_Example_Data.png" alt/></p><p>Now we infer the system structure. First we define a <a href="../../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> which collects all possible candidate terms. Since we want to use SINDy, we call <code>solve</code> with an <a href="../../solvers/optimization/#sparse_optimization"><code>Optimizer</code></a>, in this case <a href="../../solvers/optimization/#DataDrivenDiffEq.Optimize.STLSQ"><code>STLSQ</code></a> which iterates different sparsity thresholds and returns a pareto optimal solution of the underlying <a href="../../solvers/optimization/#DataDrivenDiffEq.Optimize.sparse_regression!"><code>sparse_regression!</code></a>. Note that we include the control signal in the basis as an additional variable <code>c</code>.</p><pre><code class="language- hljs">@variables u[1:2] c[1:1]
+    U = (u,p,t)-&gt;[exp(-((t-5.0)/5.0)^2)], p = ones(2))</code></pre><p><img src="../SINDy_Example_Data.png" alt/></p><p>Now we infer the system structure. First we define a <a href="../../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> which collects all possible candidate terms. Since we want to use SINDy, we call <code>solve</code> with an <a href="../../solvers/optimization/#sparse_optimization"><code>Optimizer</code></a>, in this case <a href="../../solvers/optimization/#DataDrivenDiffEq.Optimize.STLSQ"><code>STLSQ</code></a> which iterates different sparsity thresholds and returns a pareto optimal solution of the underlying <a href="../../solvers/optimization/#DataDrivenDiffEq.Optimize.sparse_regression!"><code>sparse_regression!</code></a>. Note that we include the control signal in the basis as an additional variable <code>c</code>.</p><pre><code class="language-julia hljs">@variables u[1:2] c[1:1]
 @parameters w[1:2]
 u = scalarize(u)
 c = scalarize(c)
@@ -74,22 +74,18 @@ basis = Basis(h, u, parameters = w, controls = c)
 
 λs = exp10.(-10:0.1:-1)
 opt = STLSQ(λs)
-res = solve(prob, basis, opt, progress = false, denoise = false, normalize = false, maxiter = 5000)
-println(res) # hide</code></pre><div class="admonition is-info"><header class="admonition-header">Info</header><div class="admonition-body"><p>A more detailed description of the result can be printed via <code>print(res, Val{true})</code>, which also includes the discovered equations and parameter values.</p></div></div><p>Where the resulting <a href="../../solutions/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> stores information about the inferred model and the parameters:</p><pre><code class="language- hljs">system = result(res);
-params = parameters(res);
-println(system) #hide
-println(params) #hide</code></pre><p>Since any system obtained via a <code>solve</code> command is a <a href="../../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> and hence a subtype of an <code>AbstractSystem</code> defined in <a href="https://github.com/SciML/ModelingToolkit.jl"><code>ModelingToolkit</code></a>, we can simply simulate the result via:</p><pre><code class="language- hljs">infered_prob = ODEProblem(system, u0, tspan, parameters(res))
-infered_solution = solve(infered_prob, Tsit5(), saveat = ts)
-plot(infered_solution, label = [&quot;Infered&quot; nothing], color = :red) # hide
-
-function pendulum(u, p, t) # hide
-    x = u[2] # hide
-    y = -9.81sin(u[1]) - 0.3u[2]^3 -3.0*cos(u[1]) # hide
-    return [x;y] # hide
-end # hide
-
-prob = ODEProblem(pendulum, u0, tspan) # hide
-sol = solve(prob, Tsit5(), saveat = 0.01) # hide
-
-plot!(sol, label = [&quot;Ground Truth&quot; nothing], color = :black, style = :dash) # hide
-savefig(&quot;SINDy_Example_Data_Infered.png&quot;) #hide</code></pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>As of now, the control input is dropped in the simulation of a system. We are working on this and pull requests are welcome!</p></div></div><p><img src="SINDy_Example_Data_Infered.png" alt/></p><p>As we can see above, the estimated system matches the ground truth reasonably well.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../linear_systems/">« Linear Systems</a><a class="docs-footer-nextpage" href="../implicit_systems/">Implicit Systems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.10 on <span class="colophon-date" title="Thursday 4 November 2021 07:11">Thursday 4 November 2021</span>. Using Julia version 1.6.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+res = solve(prob, basis, opt, progress = false, denoise = false, normalize = false, maxiter = 5000)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Explicit Result
+Solution with 2 equations and 7 parameters.
+Returncode: success
+Sparsity: 5.0
+L2 Norm Error: 9.169816107249918
+AICC: 1.1925559702692727</code></pre><div class="admonition is-info"><header class="admonition-header">Info</header><div class="admonition-body"><p>A more detailed description of the result can be printed via <code>print(res, Val{true})</code>, which also includes the discovered equations and parameter values.</p></div></div><p>Where the resulting <a href="../../solutions/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> stores information about the inferred model and the parameters:</p><pre><code class="language-julia hljs">system = result(res);
+params = parameters(res);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Model ##Basis#484 with 2 equations
+States : u[1] u[2]
+Parameters : 7
+Independent variable: t
+Equations
+Differential(t)(u[1]) = p₃*u[2]
+Differential(t)(u[2]) = p₆*(u[2]^3) + p₄*sin(u[1]*w[1]) + p₅*cos(u[1]*w[2]) + p₇*c[1]
+[1.0, 1.0, 1.0, -9.75, -3.03, -0.31, -10.01]</code></pre><p>Since any system obtained via a <code>solve</code> command is a <a href="../../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> and hence a subtype of an <code>AbstractSystem</code> defined in <a href="https://github.com/SciML/ModelingToolkit.jl"><code>ModelingToolkit</code></a>, we can simply simulate the result via:</p><pre><code class="language-julia hljs">infered_prob = ODEProblem(system, u0, tspan, parameters(res))
+infered_solution = solve(infered_prob, Tsit5(), saveat = ts)</code></pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>As of now, the control input is dropped in the simulation of a system. We are working on this and pull requests are welcome!</p></div></div><p><img src="../SINDy_Example_Data_Infered.png" alt/></p><p>As we can see above, the estimated system matches the ground truth reasonably well.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../linear_systems/">« Linear Systems</a><a class="docs-footer-nextpage" href="../implicit_systems/">Implicit Systems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.10 on <span class="colophon-date" title="Monday 8 November 2021 11:42">Monday 8 November 2021</span>. Using Julia version 1.6.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
