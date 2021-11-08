@@ -129,8 +129,9 @@ function build_parametrized_eqs(X::AbstractMatrix, b::Basis)
     sps = norm.(eachcol(X), 0)
     inds = sps .> zero(eltype(X))
     pl = length(parameters(b))
-    @parameters p[(pl+1):(pl+sp)]
-    p = scalarize(p)
+    
+    p = [Symbolics.variable(:p, i) for i in (pl+1):(pl+sp)]
+    p = collect(p)
     ps = zeros(eltype(X), sp)
 
     eqs = zeros(Num, sum(inds))
