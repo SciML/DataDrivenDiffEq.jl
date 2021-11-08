@@ -16,18 +16,25 @@ Here is an outline of the required elements and choices:
 using DataDrivenDiffEq, ModelingToolkit, LinearAlgebra
 
 # The function we are trying to find
-f(u) = u^2 + 4u + 4
-# 
-X = reduce(hcat, map(f, 1.0:1.0:100.0))
+f(u) = u.^2 .+ 2.0u .- 1.0
+#
+X = randn(1, 100)
+Y = reduce(hcat, map(f, eachcol(X)))
 # Create a problem from the data
-problem = DiscreteDataDrivenProblem(X)
+problem = DirectDataDrivenProblem(X, Y)
 
 # Choose a basis
 @variables u
 basis = Basis(monomial_basis([u], 2), [u])
+println(basis)
+
+
+
 
 # Solve the problem, using the solver of your choosing
-res = solve(problem, basis, STLSQ(1e-3))
+res = solve(problem, basis, STLSQ())
+println(res)
+println(result(res))
 ```
 
 ## Defining a Problem

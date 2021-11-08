@@ -189,7 +189,7 @@ function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimi
     retcode = size(Ξ, 2) == size(prob.DX, 1) ? :success : :incomplete
     pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
     X = get_target(prob)
-    Y = res_(prob.X, pnew, prob.t, prob.U)
+    Y = res_(get_oop_args(prob)...)
 
     # Build the metrics
     sparsity = norm(Ξ, 0)
