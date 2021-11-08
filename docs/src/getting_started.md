@@ -13,24 +13,21 @@ Here is an outline of the required elements and choices:
 ## Basic usage
 
 ```julia
-using DataDrivenDiffEq, ModelingToolkit
+using DataDrivenDiffEq, ModelingToolkit, LinearAlgebra
 
 # The function we are trying to find
 f(u) = u^2 + 4u + 4
-X = f.(1:100) # Generate data
-X = reshape(X, length(X), 1) # Reshape into a matrix
-
+# 
+X = reduce(hcat, map(f, 1.0:1.0:100.0))
 # Create a problem from the data
 problem = DiscreteDataDrivenProblem(X)
 
 # Choose a basis
-@variables u[1:1]
-using Symbolics: scalarize
-u = scalarize(u)
-basis = Basis(monomial_basis(u, 2), u)
+@variables u
+basis = Basis(monomial_basis([u], 2), [u])
 
 # Solve the problem, using the solver of your choosing
-res = solve(problem, basis, STLSQ())
+res = solve(problem, basis, STLSQ(1e-3))
 ```
 
 ## Defining a Problem
