@@ -48,10 +48,10 @@ println(parameters(res)) # hide
 
 The underlying dynamics have been recovered correctly by the algorithm!
 
-The eigendecomposition of the Koopman operator can be accessed via [`operator`](@ref).
+The eigendecomposition of the (generator of the) Koopman operator can be accessed via [`generator`](@ref).
 
 ```@example 3
-operator(system)
+generator(system)
 ```
 
 ## Nonlinear Systems - Sparse Identification of Nonlinear Dynamics
