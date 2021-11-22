@@ -120,8 +120,8 @@ export is_valid
 
 include("./solution.jl")
 export DataDrivenSolution
-export result, parameters, parameter_map, metrics, algorithm, inputs
-export output
+export result, parameters, parameter_map, algorithm
+export output, metrics, error, aic, determination
 
 include("./solve/sindy.jl")
 include("./solve/koopman.jl")
