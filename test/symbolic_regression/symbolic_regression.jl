@@ -1,3 +1,10 @@
+using Revise
+using ModelingToolkit
+using DataDrivenDiffEq
+using SymbolicRegression
+using Test
+using Random
+
 @testset "SymbolicRegression" begin
     Random.seed!(1223)
     # Generate a multivariate function for OccamNet
@@ -11,12 +18,8 @@
     # Solve the problem
     res = solve(prob, opts, numprocs = 0, multithreading = false)
     sys = result(res)
-
-    x = states(sys)
     m = metrics(res)
-
-    @test m.Complexity == 4
-    @test m.Error <= eps()
-    @test m.AICC == Inf
+    x = states(sys)
+    @test all(m[:L₂] .<= eps())
     @test isequal([x.rhs for x in equations(sys)], [sin(x[1]); exp(x[2])])
 end

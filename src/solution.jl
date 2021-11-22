@@ -38,6 +38,12 @@ struct DataDrivenSolution{L, A, O} <: AbstractDataDrivenSolution
         )
     end
 
+    function DataDrivenSolution(linearity::Bool,b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg::A, out::O, prob::AbstractDataDrivenProblem, l2::AbstractVector; kwargs...) where {A,O}
+        return new{linearity, A,O}(
+            b, p, retcode, alg, out, prob, l2
+        )
+    end
+
     function DataDrivenSolution(linearity::Bool,b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg, out, prob::AbstractDataDrivenProblem, l2::AbstractVector, aic::AbstractVector; kwargs...)
         return new{linearity, typeof(alg), typeof(out)}(
             b, p, retcode, alg, out, prob, l2, aic

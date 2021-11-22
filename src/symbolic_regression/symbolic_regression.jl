@@ -82,6 +82,20 @@ function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, doms; ev
     # Create a variable
     eqs = vcat(map(x->node_to_symbolic(x[end].tree, opt), doms))
     eqs = map(x->substitute(x, subs), eqs)
+
+    lhs, dt = assert_lhs(prob)
+
+
+    # Build the lhs
+    if (length(eqs) == length(x)) && (lhs != :direct)
+            if lhs == :continuous
+                d = Differential(t)
+            elseif lhs == :discrete
+                d = Difference(t, dt = dt)
+            end
+            eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
+    end
+
     res_ = Basis(
         eqs, x, iv = t, controls = u, eval_expression = eval_expression
     )
@@ -89,37 +103,11 @@ function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, doms; ev
     X = get_target(prob)
     Y = res_(get_oop_args(prob)...)
 
-    # Build the metrics
-    complexities = map(x->countNodes(x[end].tree), doms)
-    complexity = sum(complexities)
-    retcode = :success
 
-    error = norm(X-Y, 2)
-    k = free_parameters(res_)
-    aic = AICC(k, X, Y)
-    errors = zeros(eltype(X), size(Y, 1))
-    aiccs = zeros(eltype(X), size(Y, 1))
-    j = 1
-    for i in 1:size(Y,1)
-        errors[i] = norm(X[i,:].-Y[i,:],2)
-        aiccs[i] = AICC(k, X[i:i, :], Y[i:i,:])
-    end
-
-    metrics = (
-        Complexity = complexity,
-        Error = error,
-        AICC = aic,
-        complexities = complexities,
-        Errors = errors,
-        AICCs = aiccs,
-    )
-
-    inputs = (
-        Problem = prob,
-        Algorithm = opt,
-    )
-
+    error = sum(abs2, X-Y, dims = 2)[:,1]
+    retcode = :converged 
+    
     return DataDrivenSolution(
-        res_, retcode, [], alg, doms, inputs, metrics
+        false, res_, [], retcode, alg, doms, prob, error
     )
 end
