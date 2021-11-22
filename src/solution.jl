@@ -342,9 +342,13 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix,
         lhs = lhs, dt = dt,
         is_implicit = isa(opt, Optimize.AbstractSubspaceOptimizer) ,eval_expression = eval_expression
         )
+
+    
+    ps = isempty(parameters(b)) ? ps : vcat(prob.p, ps)
+
     
     return DataDrivenSolution(
-        sol, [prob.p; ps], :solved, opt, Ξ, prob, true, eval_expression = eval_expression
+        sol, ps, :solved, opt, Ξ, prob, true, eval_expression = eval_expression
     )
 end
 
@@ -363,19 +367,21 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, k, C, B, Q, P, inds
     # Assert continuity
     lhs, dt = assert_lhs(prob)
     
-    b, ps = construct_basis(round.(C*Ξ, digits = digits)', b, 
+    bs, ps = construct_basis(round.(C*Ξ, digits = digits)', b, 
         lhs = lhs, dt = dt,
         eval_expression = eval_expression)
 
 
-    res_ = Koopman(equations(b), states(b),
-        parameters = parameters(b),
-        controls = controls(b), iv = get_iv(b),
+    res_ = Koopman(equations(bs), states(bs),
+        parameters = parameters(bs),
+        controls = controls(bs), iv = get_iv(bs),
         K = k, C = C, Q = Q, P = P, lift = b.f,
         is_discrete = is_discrete(prob),
         eval_expression = eval_expression)
-    #return res_
+
+    ps = isempty(parameters(b)) ? ps : vcat(prob.p, ps)
+
     return DataDrivenSolution(
-        res_, [prob.p; ps], :solved, alg, Ξ, prob, true, eval_expression = eval_expression
+        res_, ps, :solved, alg, Ξ, prob, true, eval_expression = eval_expression
     )
 end
