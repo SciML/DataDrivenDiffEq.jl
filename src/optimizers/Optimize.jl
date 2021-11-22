@@ -84,7 +84,7 @@ include("./admm.jl")
 include("./sr3.jl")
 
 #Nullspace for implicit sindy
-include("./adm.jl")
+#include("./adm.jl")
 include("./implicit.jl")
 
 
@@ -103,6 +103,6 @@ include("./sparseregression.jl")
 export sparse_regression!
 export init, init!, set_threshold!, get_threshold
 export STLSQ, ADMM, SR3
-export ImplicitOptimizer, ADM
+export ImplicitOptimizer
 
 end
