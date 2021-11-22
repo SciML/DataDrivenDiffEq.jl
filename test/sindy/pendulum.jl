@@ -23,16 +23,6 @@ for (i, xi) in enumerate(eachcol(sol[:,:]))
     DX[:,i] = pendulum(xi, [], 0.0)
 end
 
-dd_prob = ContinuousDataDrivenProblem(
-    sol
-)
-
-opt = STLSQ(1e-2)
-
-res = solve(dd_prob, basis, opt, maxiter = 10000)
-m = DataDrivenDiffEq.metrics(res)
-m[:L₂]
-
 @testset "Ideal data" begin
     dd_prob = ContinuousDataDrivenProblem(
         sol

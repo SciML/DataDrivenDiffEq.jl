@@ -34,7 +34,6 @@ basis = Basis([h; h .* u[2]], u)
     for opt in opts
         res = solve(prob, basis, opt,u[2:2] ,normalize = false, denoise = false, maxiter = 10000)
         m = metrics(res)
-        @show m[:R²]
         @test all(m[:L₂] .< 1e-1)
         @test all(m[:AIC] .> 1000.0)
         @test all(m[:R²] .> 0.6)
@@ -53,9 +52,7 @@ X = X .+ 1e-3*randn(size(X))
 
     for opt in [ImplicitOptimizer(3e-1);ImplicitOptimizer(3e-1:0.1:7e-1)]
         res = solve(prob, basis, opt, u[2:2], normalize = false, denoise = true)
-        println(states(res.basis))
         m = metrics(res)
-        @show m
         @test all(m[:L₂] .< 1e-1)
         @test all(m[:AIC] .> 1000.0)
         @test all(m[:R²] .> 0.9)
