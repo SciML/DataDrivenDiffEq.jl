@@ -74,7 +74,5 @@ end
     X = rand([0, 1], 128, 936);
     T = collect(LinRange(0, 4.367058580858928, 936));
     problem = DiscreteDataDrivenProblem(X, T);
-    #res1 = solve(problem, DMDSVD(), eval_expression = true)
-    res2 = solve(problem, DMDSVD(), operator_only = true)
-    @test real.(Matrix(res2.K))
+    @test_nowarn res2 = solve(problem, DMDSVD(), operator_only = true)
 end
