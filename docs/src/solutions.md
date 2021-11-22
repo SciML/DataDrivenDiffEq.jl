@@ -8,10 +8,12 @@ DataDrivenSolution
 
 ```@docs
 result
+metrics
 parameters
 parameter_map
-metrics
-output
+aic
+error
+determination
 algorithm
-inputs
+output
 ```

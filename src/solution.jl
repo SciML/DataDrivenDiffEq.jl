@@ -344,7 +344,7 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix,
         )
     
     return DataDrivenSolution(
-        sol, ps, :solved, opt, Ξ, prob, true, eval_expression = eval_expression
+        sol, [prob.p; ps], :solved, opt, Ξ, prob, true, eval_expression = eval_expression
     )
 end
 
@@ -376,6 +376,6 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, k, C, B, Q, P, inds
         eval_expression = eval_expression)
     #return res_
     return DataDrivenSolution(
-        res_, ps, :solved, alg, Ξ, prob, true, eval_expression = eval_expression
+        res_, [prob.p; ps], :solved, alg, Ξ, prob, true, eval_expression = eval_expression
     )
 end

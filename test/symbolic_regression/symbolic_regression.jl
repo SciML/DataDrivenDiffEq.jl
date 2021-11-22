@@ -1,10 +1,3 @@
-using Revise
-using ModelingToolkit
-using DataDrivenDiffEq
-using SymbolicRegression
-using Test
-using Random
-
 @testset "SymbolicRegression" begin
     Random.seed!(1223)
     # Generate a multivariate function for OccamNet
