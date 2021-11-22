@@ -240,7 +240,7 @@ function assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector{Num})
     return true
 end
 
-function construct_basis(X::AbstractMatrix, b::Basis, implicits = Num[]; is_implicit = false, eval_expression = false)
+function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symbol = :continuous, is_implicit = false, eval_expression = false)
 
     # Create additional variables
     sp = Int(norm(X, 0))
@@ -273,7 +273,11 @@ function construct_basis(X::AbstractMatrix, b::Basis, implicits = Num[]; is_impl
     xs = states(b)
     if isempty(implicits) || !is_implicit
         if length(eqs) == length(states(b))
-            d = Differential(get_iv(b))
+            if lhs == :continuous
+                d = Differential(get_iv(b))
+            elseif lhs == :discrete
+                d = Difference(get_iv(b), dt = dt)
+            end
             eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
         end
     else
@@ -304,6 +308,17 @@ function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
     return x
 end
 
+function assert_lhs(prob)
+    dt = mean(diff(prob.t))
+    lhs = :direct
+    if isa(prob, AbstracContProb)
+        lhs = :continuous
+    elseif isa(prob, AbstractDiscreteProb)
+        lhs = :discrete
+    end 
+    return lhs, dt
+end
+
 function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis, implicits = Num[]; eval_expression = false, digits::Int = 10, kwargs...)
     # Build a basis and returns a solution
     if all(iszero.(Ξ))
@@ -312,9 +327,13 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix,
         b, [], :failed, opt, Ξ, prob)
     end
  
-    _round!(Ξ, digits)
- 
-    sol , ps = construct_basis(Ξ, b, implicits, is_implicit = isa(opt, Optimize.AbstractSubspaceOptimizer) ,eval_expression = eval_expression)
+    # Assert continuity
+    lhs, dt = assert_lhs(prob)
+
+    sol , ps = construct_basis(round.(Ξ, digits = digits), b, implicits, 
+        lhs = lhs, dt = dt,
+        is_implicit = isa(opt, Optimize.AbstractSubspaceOptimizer) ,eval_expression = eval_expression
+        )
     
     return DataDrivenSolution(
         sol, ps, :solved, opt, Ξ, prob, true, eval_expression = eval_expression
@@ -332,18 +351,16 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, k, C, B, Q, P, inds
     if !isempty(B)
         Ξ[:, .! inds] .= B
     end
-    b, ps = construct_basis(round.(C*Ξ, digits = digits)', b, eval_expression = eval_expression)
-    eqs = map(x->Num(x.rhs), equations(b))
+
+    # Assert continuity
+    lhs, dt = assert_lhs(prob)
+    
+    b, ps = construct_basis(round.(C*Ξ, digits = digits)', b, 
+        lhs = lhs, dt = dt,
+        eval_expression = eval_expression)
 
 
-    ## Build the lhs
-    if length(eqs) == length(states(b))
-        xs = states(b)
-        d = Differential(get_iv(b))
-        eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
-    end
-#
-    res_ = Koopman(eqs, states(b),
+    res_ = Koopman(equations(b), states(b),
         parameters = parameters(b),
         controls = controls(b), iv = get_iv(b),
         K = k, C = C, Q = Q, P = P, lift = b.f,
