@@ -36,7 +36,6 @@ end
 
     basis = result(res)
     m = metrics(res)
-    @test m.Probability > 0.7
-    @test m.Error < eps()
-    @test m.AICC == Inf
+    @test all(m[:L₂] .< eps())
+    @test all(m[:AIC] .> 1000.0)
 end

@@ -405,8 +405,8 @@ function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
     eval_expression = false)
 
     @variables x[1:size(prob.X, 1)] u[1:size(prob.U,1)] t
-    x = scalarize(x)
-    u = scalarize(u)
+    x = collect(x)
+    u = collect(u)
     x_ = [x;u;t]
 
     inp = size(net.c[1].weight, 2)- length(net.constants)
@@ -418,11 +418,17 @@ function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
     eqs = simplify.(net(x_[1:inp], route))
     set_temp!(net, temp_)
 
+    lhs, dt = assert_lhs(prob)
+
 
     # Build the lhs
-    if length(eqs) == size(prob.X, 1)
-        d = Differential(t)
-        eqs = [d(x[i]) ~ eq for (i,eq) in enumerate(eqs)]
+    if (length(eqs) == length(x)) && (lhs != :direct)
+            if lhs == :continuous
+                d = Differential(t)
+            elseif lhs == :discrete
+                d = Difference(t, dt = dt)
+            end
+            eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
     end
 
     # Build a basis
@@ -438,36 +444,13 @@ function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
 
     # Build the metrics
     pb = exp(sum(logprobability(net, route)))
-    pbs = probability(net, route)
-    retcode = pb > 0.5 ? :success : :unlikely
+    #pbs = probability(net, route)
+    retcode = Symbol("$(pb)")
 
-    error = norm(X-Y, 2)
-    k = free_parameters(res_)
-    aic = AICC(k, X, Y)
-    errors = zeros(eltype(X), size(Y, 1))
-    aiccs = zeros(eltype(X), size(Y, 1))
-    j = 1
-    for i in 1:size(Y,1)
-
-        errors[i] = norm(X[i,:].-Y[i,:],2)
-        aiccs[i] = AICC(k, X[i:i, :], Y[i:i,:])
-    end
-
-    metrics = (
-        Probability = pb,
-        Error = error,
-        AICC = aic,
-        Probabilities = pbs,
-        Errors = errors,
-        AICCs = aiccs,
-    )
-
-    inputs = (
-        Problem = prob,
-        Algorithm = o,
-    )
+    error = sum(abs2, X-Y, dims = 2)[:,1]
+    aic = 2*(-size(error, 2) .* log.(error ./ size(error, 2)) .+ sum(length, route))
 
     return DataDrivenSolution(
-        res_, retcode, [], opt, net, inputs, metrics
+        false, res_, [], retcode, o, net, prob, error, aic
     )
 end

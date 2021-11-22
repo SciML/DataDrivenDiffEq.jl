@@ -315,6 +315,8 @@ function assert_lhs(prob)
         lhs = :continuous
     elseif isa(prob, AbstractDiscreteProb)
         lhs = :discrete
+    else
+        lhs = :direct
     end 
     return lhs, dt
 end
