@@ -40,18 +40,16 @@ Equations
 φ₄ = u[1](t)^3
 ...
 φ₁₀ = (u[1](t)^4)*Differential(t)(u[1](t))</code></pre><p><img src="../SINDy_Example_Data_2.png" alt/></p><p>Next, we define the <a href="../../solvers/optimization/#DataDrivenDiffEq.Optimize.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> and <code>solve</code> the problem.</p><pre><code class="language-julia hljs">opt = ImplicitOptimizer(4e-1)
-res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Implicit Result
-Solution with 1 equations and 4 parameters.
-Returncode: success
-Sparsity: 4.0
-L2 Norm Error: 0.12165324361055344
-AICC: 17.215795870781616</code></pre><p>As we can see, the <a href="../../solutions/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> has good metrics. Furthermore, inspection of the underlying system shows that the original equations have been recovered correctly:</p><pre><code class="language-julia hljs">system = result(res);
-println(system)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Model ##Basis#345 with 1 equations
-States : u[1](t) Differential(t)(u[1](t))
+res = solve(prob, basis, opt, [D(u[1])], normalize = false, denoise = false, maxiter = 1000);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Linear Solution with 1 equations and 4 parameters.
+Returncode: solved
+L₂ Norm error : [0.0005232967549971844]
+AIC : [1969.7812992367292]
+R² : [1.0666108231330607]</code></pre><p>As we can see, the <a href="../../solutions/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> has good metrics. Furthermore, inspection of the underlying system shows that the original equations have been recovered correctly:</p><pre><code class="language-julia hljs">system = result(res)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Model ##Basis#345 with 1 equations
+States : u[1](t)
 Parameters : p₁ p₂ p₃ p₄
 Independent variable: t
 Equations
-0 = p₁ + p₂*u[1](t) + p₃*Differential(t)(u[1](t)) + p₄*u[1](t)*Differential(t)(u[1](t))</code></pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>Right now, <code>Implicit</code> results cannot be simulated without further processing in <code>ModelingToolkit</code></p></div></div><h2 id="Implicit-Nonlinear-Dynamics-:-Cartpole"><a class="docs-heading-anchor" href="#Implicit-Nonlinear-Dynamics-:-Cartpole">Implicit Nonlinear Dynamics : Cartpole</a><a id="Implicit-Nonlinear-Dynamics-:-Cartpole-1"></a><a class="docs-heading-anchor-permalink" href="#Implicit-Nonlinear-Dynamics-:-Cartpole" title="Permalink"></a></h2><p>The following is another example on how to use the <a href="../../solvers/optimization/#DataDrivenDiffEq.Optimize.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> that is taken from the <a href="https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279">original paper</a>.</p><p>As always, we start by creating a corresponding dataset:</p><pre><code class="language-julia hljs">using DataDrivenDiffEq
+Differential(t)(u[1](t)) = (-p₁ - p₂*u[1](t)) / (p₃ + p₄*u[1](t))</code></pre><h2 id="Implicit-Nonlinear-Dynamics-:-Cartpole"><a class="docs-heading-anchor" href="#Implicit-Nonlinear-Dynamics-:-Cartpole">Implicit Nonlinear Dynamics : Cartpole</a><a id="Implicit-Nonlinear-Dynamics-:-Cartpole-1"></a><a class="docs-heading-anchor-permalink" href="#Implicit-Nonlinear-Dynamics-:-Cartpole" title="Permalink"></a></h2><p>The following is another example on how to use the <a href="../../solvers/optimization/#DataDrivenDiffEq.Optimize.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> that is taken from the <a href="https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279">original paper</a>.</p><p>As always, we start by creating a corresponding dataset:</p><pre><code class="language-julia hljs">using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
 using LinearAlgebra
@@ -128,18 +126,17 @@ res = solve(ddprob, basis, opt, du, maxiter = 1000, g = g, scale_coefficients = 
 
 println(res)
 println(result(res))
-println(parameter_map(res))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Implicit Result
-Solution with 2 equations and 10 parameters.
-Returncode: success
-Sparsity: 10.0
-L2 Norm Error: 2.6194254483726534e-15
-AICC: 161.07251635203275
+println(parameter_map(res))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Linear Solution with 2 equations and 10 parameters.
+Returncode: solved
+L₂ Norm error : [1.8427297707897073e-30, 4.4157721764910544e-30]
+AIC : [7404.609298683275, 7315.467961947765]
+R² : [1.0, 1.0]
 
 Model ##Basis#352 with 2 equations
-States : 6
+States : u[1] u[2] u[3] u[4]
 Parameters : 10
 Independent variable: t
 Equations
-0 = p₁*du[1] + p₃*sin(u[1]) + p₂*(cos(u[1])^2)*du[1] + p₅*cos(u[1])*x[1] + p₄*(u[3]^2)*cos(u[1])*sin(u[1])
-0 = p₁₀*x[1] + p₆*du[2] + p₇*(cos(u[1])^2)*du[2] + p₈*(u[3]^2)*sin(u[1]) + p₉*cos(u[1])*sin(u[1])
-Pair{SymbolicUtils.Sym{Real, Base.ImmutableDict{DataType, Any}}, Float64}[p₁ =&gt; -1.0, p₂ =&gt; 0.5, p₃ =&gt; -9.81, p₄ =&gt; -0.5, p₅ =&gt; -0.5, p₆ =&gt; -1.0, p₇ =&gt; 0.5, p₈ =&gt; -0.5, p₉ =&gt; -4.905, p₁₀ =&gt; -0.5]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nonlinear_systems/">« Nonlinear Systems</a><a class="docs-footer-nextpage" href="../symbolic_regression/">Symbolic Regression »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.10 on <span class="colophon-date" title="Tuesday 16 November 2021 13:27">Tuesday 16 November 2021</span>. Using Julia version 1.6.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+du[1] = (-p₈*sin(u[1]) - p₁₀*cos(u[1])*x[1] - p₉*(u[3]^2)*cos(u[1])*sin(u[1])) / (p₆ + p₇*(cos(u[1])^2))
+du[2] = (-p₅*x[1] - p₃*(u[3]^2)*sin(u[1]) - p₄*cos(u[1])*sin(u[1])) / (p₁ + p₂*(cos(u[1])^2))
+Pair{SymbolicUtils.Sym{Real, Base.ImmutableDict{DataType, Any}}, Float64}[p₁ =&gt; -1.0, p₂ =&gt; 0.5, p₃ =&gt; -0.5, p₄ =&gt; -4.905, p₅ =&gt; -0.5, p₆ =&gt; -1.0, p₇ =&gt; 0.5, p₈ =&gt; -9.81, p₉ =&gt; -0.5, p₁₀ =&gt; -0.5]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nonlinear_systems/">« Nonlinear Systems</a><a class="docs-footer-nextpage" href="../symbolic_regression/">Symbolic Regression »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.10 on <span class="colophon-date" title="Monday 22 November 2021 17:38">Monday 22 November 2021</span>. Using Julia version 1.6.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
