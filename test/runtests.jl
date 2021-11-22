@@ -33,7 +33,6 @@ const GROUP = get(ENV, "GROUP", "All")
             @testset "Nonlinear Forced" begin include("./dmd/nonlinear_forced.jl") end
         end
 
-        include("./utils.jl")
     end
 
     if GROUP == "All" || GROUP == "Optional"
