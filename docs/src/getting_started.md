@@ -105,18 +105,13 @@ res = solve(problem, DMDSVD(), kwargs...)
 res = solve(problem, basis, STLQS(), kwargs...)
 ```
 
-The [`DataDrivenSolution`](@ref) `res` contains a `result` which is the inferred system and a [`Basis`](@ref), `metrics` which is a `NamedTuple` containing different metrics like the L2 error of the inferred system with the provided data and the [`AICC`](@ref). These can be accessed via:
+The [`DataDrivenSolution`](@ref) `res` contains a `result` which is the inferred system and a [`Basis`](@ref), `metrics` which is a `NamedTuple` containing different metrics of the inferred system. These can be accessed via:
 
 ```julia
 # The inferred system
 system = result(res)
 # The metrics
 m = metrics(res)
-m.Sparsity # No. of active terms / nonzero coefficients
-m.Error # L2 Error of all data
-m.Errors # Individual error of the different data rows
-m.AICC # AICC
-m.AICCs # ....
 ```
 
 Since the inferred system is a parametrized equation, the corresponding parameters can be accessed and returned via

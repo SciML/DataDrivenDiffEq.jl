@@ -18,7 +18,7 @@
 
         res = solve(prob, alg , operator_only = false)
         m = metrics(res)
-        @test m.Error ./ size(X, 2) < 3e-1
+        @test all(m[:L₂] ./ size(X, 2) .< 3e-1)
         @test Matrix(result(res)) ≈ Matrix(estimator.K)
     end
 end
@@ -40,7 +40,7 @@ end
         @test isempty(estimator.B)
         res = solve(prob, alg , operator_only = false)
         m = metrics(res)
-        @test m.Error ./ size(sol, 2) < 3e-1
+        @test all(m[:L₂] ./ size(X, 2) .< 3e-1)
         @test Matrix(result(res)) ≈ Matrix(estimator.K)
     end
 end
@@ -65,7 +65,7 @@ end
         m = metrics(res)
         @test Q'*K*Q ≈ K̃ atol = 1e-1
         @test Q*K̃*Q' ≈ K atol = 1e-1
-        @test m.Error / size(X, 2) < 1e-2
+        @test all(m[:L₂] ./ size(X, 2) .< 1e-2)
     end
 end
 
@@ -74,27 +74,5 @@ end
     X = rand([0, 1], 128, 936);
     T = collect(LinRange(0, 4.367058580858928, 936));
     problem = DiscreteDataDrivenProblem(X, T);
-    res1 = solve(problem, DMDSVD(), eval_expression = true)
-    res2 = solve(problem, DMDSVD(), operator_only = true)
-    @test Matrix(result(res1)) == real.(Matrix(res2.K))
+    @test_nowarn res2 = solve(problem, DMDSVD(), operator_only = true)
 end
-
-# TODO Include the Big System test
-# This fails to generate an equation right now...
-#@testset "Big System" begin
-#    dd(u, p, t) = -0.9*ones(length(u))*u[1] - 0.05*u
-#    u0 = randn(100)*100.0
-#    u0[1] = 100.0
-#    prob = ODEProblem(dd, u0, (0.0, 10.0))
-#    sol = solve(prob, Tsit5(), saveat = 0.001)
-#    X = sol[:,:]
-#    DX = sol(sol.t, Val{1})[:,:]
-#
-#    for alg_ in algorithms
-#        @info "Testing $alg_"
-#        d = gDMD(X, DX, alg = alg_)
-#        test = ODEProblem(d, u0, (0.0, 10.0))
-#        sol_ = solve(test, Tsit5(), saveat = 0.001)
-#        @test norm(sol-sol_, Inf) < 2.0
-#    end
-#end

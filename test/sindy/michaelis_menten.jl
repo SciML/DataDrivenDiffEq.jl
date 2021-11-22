@@ -1,5 +1,8 @@
+using Test
+using Random
+
 function michaelis_menten(u, p, t)
-    [0.6 - 1.5u[1]/(0.3+u[1])]
+    [0.6 - 1.5u[1]/(0.3+u[1])] # Should be 0.6*0.3+0.6u[1] - 1.5u[1] = u[2]*u[1]-0.3*u[2] 
 end
 
 u0 = [0.5]
@@ -19,53 +22,40 @@ end
 
 @parameters t
 @variables u[1:2]
+u = collect(u)
 h = [monomial_basis(u[1:1], 4)...]
 basis = Basis([h; h .* u[2]], u)
 
-
 @testset "Ideal data" begin
-
+    
     prob = ContinuousDataDrivenProblem(X, ts, DX)
-
+    
     opts = [ImplicitOptimizer(5e-1);ImplicitOptimizer(0.4:0.1:0.7)]
     for opt in opts
-        res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 10000)
+        res = solve(prob, basis, opt,u[2:2] ,normalize = false, denoise = false, maxiter = 10000)
         m = metrics(res)
-        @test m.Error < 5e-1
-        @test m.AICC < 23.0
-        @test m.Sparsity == 4
+        @test all(m[:L₂] .< 1e-1)
+        @test all(m[:AIC] .> 1000.0)
+        @test all(m[:R²] .> 0.6)
     end
 
-    for opt in [ADM(5e-1); ADM(4e-1:1e-3:5e-1)]
-        res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000)
-        m = metrics(res)
-        @test m.Error < 8e-1
-        @test m.AICC < 23.0
-        @test m.Sparsity == 4
-    end
 end
+
 
 Random.seed!(2345)
 X = X .+ 1e-3*randn(size(X))
+
 
 @testset "Noisy data" begin
 
     prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel())
 
-    for opt in [ImplicitOptimizer(4e-1);ImplicitOptimizer([0.3; 0.4; 0.5])]
-        res = solve(prob, basis, opt, normalize = true, denoise = true)
+    for opt in [ImplicitOptimizer(3e-1);ImplicitOptimizer(3e-1:0.1:7e-1)]
+        res = solve(prob, basis, opt, u[2:2], normalize = false, denoise = true)
         m = metrics(res)
-        @test m.Error < 3e-1
-        @test m.AICC < 35.0
-        @test m.Sparsity == 4
+        @test all(m[:L₂] .< 1e-1)
+        @test all(m[:AIC] .> 1000.0)
+        @test all(m[:R²] .> 0.9)
     end
 
-
-    for opt in [ADM(0.01:0.01:4e-1)]
-        res = solve(prob, basis, opt, normalize = false, denoise = false)
-        m = metrics(res)
-        @test m.Error < 5e-1
-        @test m.AICC < 12.0
-        @test m.Sparsity == 4
-    end
 end

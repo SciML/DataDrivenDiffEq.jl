@@ -54,20 +54,16 @@ Next, we define the [`ImplicitOptimizer`](@ref) and `solve` the problem.
 
 ```@example 2
 opt = ImplicitOptimizer(4e-1)
-res = solve(prob, basis, opt, normalize = false, denoise = false, maxiter = 1000);
+res = solve(prob, basis, opt, [D(u[1])], normalize = false, denoise = false, maxiter = 1000);
 println(res) # hide
 ```
 
 As we can see, the [`DataDrivenSolution`](@ref) has good metrics. Furthermore, inspection of the underlying system shows that the original equations have been recovered correctly:
 
 ```@example 2
-system = result(res);
-println(system)
+system = result(res)
+println(system) # hide
 ```
-
-!!! warning
-    Right now, `Implicit` results cannot be simulated without further processing in `ModelingToolkit`
-
 ## Implicit Nonlinear Dynamics : Cartpole
 
 The following is another example on how to use the [`ImplicitOptimizer`](@ref) that is taken from the [original paper](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279).

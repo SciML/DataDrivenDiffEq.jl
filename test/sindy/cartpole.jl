@@ -34,8 +34,8 @@ ddprob = ContinuousDataDrivenProblem(
 )
 
 
-
-@variables u[1:4] du[1:2] x[1:1] t
+@variables u[1:4] x[1:1] t
+du = [Symbolics.variable("du", i) for i in 3:4]
 u = scalarize(u)
 du = scalarize(du)
 x = scalarize(x)
@@ -65,9 +65,12 @@ basis= Basis(implicits, [u; du], controls = x,  iv = t)
 opt = ImplicitOptimizer(λ)
 # AICC
 ĝ(x) = x[1] <= 1 ? Inf : 2*x[1]-2*log(x[2])
-res = solve(ddprob, basis, opt, du, maxiter = 1000, g = ĝ, scale_coefficients = true)
+res = solve(ddprob, basis, opt, du, maxiter = 100, g = ĝ, scale_coefficients = true)
+
 m = metrics(res)
 
-@test m.Sparsity == 10
-@test m.AICC < 180.0
-@test m.Error < 1.0
+@test length(parameters(res)) == 10
+@test all(m[:L₂] .< 1e-10)
+@test all(m[:AIC] .> 1000.0)
+@test all(m[:R²] .> 0.9)
+

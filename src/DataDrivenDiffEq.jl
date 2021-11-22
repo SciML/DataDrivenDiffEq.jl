@@ -79,7 +79,7 @@ include("./optimizers/Optimize.jl")
 @reexport using DataDrivenDiffEq.Optimize: sparse_regression!
 @reexport using DataDrivenDiffEq.Optimize: set_threshold!, get_threshold
 @reexport using DataDrivenDiffEq.Optimize: STLSQ, ADMM, SR3
-@reexport using DataDrivenDiffEq.Optimize: ImplicitOptimizer, ADM
+@reexport using DataDrivenDiffEq.Optimize: ImplicitOptimizer
 @reexport using DataDrivenDiffEq.Optimize: SoftThreshold, HardThreshold, ClippedAbsoluteDeviation
 
 ## Koopman
@@ -120,8 +120,8 @@ export is_valid
 
 include("./solution.jl")
 export DataDrivenSolution
-export result, parameters, parameter_map, metrics, algorithm, inputs
-export output
+export result, parameters, parameter_map, algorithm
+export output, metrics, error, aic, determination
 
 include("./solve/sindy.jl")
 include("./solve/koopman.jl")

@@ -15,7 +15,7 @@
         k = solve(ddprob, alg, digits = 2)
         b = result(k)
         m = metrics(k)
-        @test m.Error < 1e-10
+        @test all(m[:L₂] .< 1e-10)
         @test Matrix(b) ≈ [-0.9 0.1; 0.0 -0.8]
         @test is_stable(b)
         @test length(controls(b)) == 1
@@ -36,7 +36,7 @@ end
         m = metrics(res)
         @test Matrix(b) ≈[1.5 0; 0 0.1]
         @test !is_stable(b)
-        @test m.Error < 1e-7
+        @test all(m[:L₂] .< 1e-10)
         @test length(controls(b)) == 1
     end
 end

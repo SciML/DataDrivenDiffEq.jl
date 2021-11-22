@@ -5,7 +5,6 @@ STLSQ
 ADMM
 SR3
 ImplicitOptimizer
-ADM
 ```
 
 ## Related Functions

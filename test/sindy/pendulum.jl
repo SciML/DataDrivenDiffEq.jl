@@ -1,4 +1,3 @@
-
 # The basis definition
 @variables u[1:2]
 basis = Basis([polynomial_basis(u, 5); sin.(u); cos.(u)], u)
@@ -25,7 +24,6 @@ for (i, xi) in enumerate(eachcol(sol[:,:]))
 end
 
 @testset "Ideal data" begin
-
     dd_prob = ContinuousDataDrivenProblem(
         sol
         )
@@ -39,9 +37,10 @@ end
 
     for opt in opts
         res = solve(dd_prob, basis, opt, maxiter = 10000)
-        m = metrics(res)
-        @test m.Sparsity == 4
-        @test m.Error ./ size(X, 2) < 3e-1
+        m = DataDrivenDiffEq.metrics(res)
+        @test all(m[:L₂] .< 1e-1*size(X, 2))
+        @test all(m[:AIC] .>= 200) # Perfect Match or close
+        @test all(m[:R²] .>= 0.9)
     end
 end
 
@@ -64,9 +63,10 @@ X = X .+ 1e-1*randn(size(X))
 
     for opt in opts
         res = solve(dd_prob_noisy, basis, opt, maxiter = 50000, denoise = true, normalize = true)
-        m = metrics(res)
-        @test m.Sparsity <= 5
-        @test m.Error ./ size(X, 2) < 3e-1
+        m = DataDrivenDiffEq.metrics(res)
+        @test all(m[:L₂]./size(X,2) .< 2.0)
+        @test all(-250.0 .< m[:AIC])
+        @test all(m[:R²] .>= 0.9)
     end
 
 end

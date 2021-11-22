@@ -6,42 +6,183 @@ The solution is represented via an `AbstractBasis`, which makes it callable.
 
 # Fields
 $(FIELDS)
+
+# Note
+
+The L₂ norm error, AIC and coefficient of determinantion get only computed, if eval_expression is set to true or
+if the solution can be interpreted as a linear regression result.
 """
-struct DataDrivenSolution{R <: Union{AbstractBasis,Nothing} , S, P , A, O,M} <: AbstractDataDrivenSolution
-    """Result"""
-    res::R # The result
-    """Returncode"""
+struct DataDrivenSolution{L, A, O} <: AbstractDataDrivenSolution
+    "The basis representation of the solution"
+    basis::AbstractBasis
+    "Parameters of the solution"
+    parameters::AbstractVecOrMat
+    "Returncode"
     retcode::Symbol
-    """Parameters used to derive the equations"""
-    ps::S
-    """Algorithm used for solution"""
-    alg::A # Solution algorithm
-    """Original Output"""
-    out::O # E.g. coefficients
-    """Original Input"""
-    inp::P
-    """Error metrics"""
-    metrics::M # Named tuples
+    "Algorithm"
+    alg::A
+    "Original output of the solution algorithm"
+    out::O
+    "Problem"
+    prob::AbstractDataDrivenProblem
+    "L₂ norm error"
+    l2_error::AbstractVector
+    "AIC"
+    aic::AbstractVector
+    "Coefficient of determinantion"
+    rsquared::AbstractVector
+
+    function DataDrivenSolution(linearity::Bool,b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg::A, out::O, prob::AbstractDataDrivenProblem; kwargs...) where {A,O}
+        return new{linearity, A,O}(
+            b, p, retcode, alg, out, prob
+        )
+    end
+
+    function DataDrivenSolution(linearity::Bool,b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg::A, out::O, prob::AbstractDataDrivenProblem, l2::AbstractVector; kwargs...) where {A,O}
+        return new{linearity, A,O}(
+            b, p, retcode, alg, out, prob, l2
+        )
+    end
+
+    function DataDrivenSolution(linearity::Bool,b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg, out, prob::AbstractDataDrivenProblem, l2::AbstractVector, aic::AbstractVector; kwargs...)
+        return new{linearity, typeof(alg), typeof(out)}(
+            b, p, retcode, alg, out, prob, l2, aic
+        )
+    end
+
+    function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg, out, prob::AbstractDataDrivenProblem, l2::AbstractVector, aic::AbstractVector, rsquared::AbstractVector; kwargs...)
+        return new{true, typeof(alg), typeof(out)}(
+            b, p, retcode, alg, out, prob, l2, aic, rsquared
+        )
+    end
+
+        
 end
 
-# Make it callable
-(r::DataDrivenSolution)(args...) = r.res(args...)
+function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg::A, out::O, prob::AbstractDataDrivenProblem, linearity::Bool; 
+    eval_expression = false, kwargs...) where {A,O}
+        
+    if !eval_expression
+        # Compute the errors
+        x, _, t, u = get_oop_args(prob)
+        e = get_target(prob) - b(x, p, t, u)
 
-is_implicit(r::DataDrivenSolution) = isa(r.alg, Optimize.AbstractSubspaceOptimizer)
+        l2 = sum(abs2, e, dims = 2)[:,1]
+        aic = 2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
+        
+        if linearity
+            rsquared = 1 .- mean(e, dims = 2)[:,1] ./ var(get_target(prob), dims = 2)[:,1]
+            #return l2, aic, rsquared
+            return DataDrivenSolution(
+                b, p, retcode, alg, out, prob, l2, aic, rsquared
+            )
+        end
+
+        return DataDrivenSolution(
+            linearity, b, p, retcode, alg, out, prob, l2, aic
+        )
+    end
+
+    return DataDrivenSolution(
+        linearity, b, p, retcode, alg, out, prob
+    )
+end
+
+
+
+## Make it callable
+(r::DataDrivenSolution)(args...) = r.basis(args...)
+
+
+function Base.show(io::IO, ::DataDrivenSolution{linearity}) where linearity
+    if linearity
+        print(io, "Linear Solution")
+    else
+        print(io, "Nonlinear Solution")
+    end
+end
+
+function Base.print(io::IO, r::DataDrivenSolution{linearity, a, o}) where {linearity, a, o}
+    show(io, r)
+    print(io, " with $(length(r.basis)) equations and $(length(r.parameters)) parameters.\n")
+    print(io, "Returncode: $(r.retcode)\n")
+    isdefined(r, :l2_error) && print(io, "L₂ Norm error : $(r.l2_error)\n")
+    isdefined(r, :aic) && print(io,"AIC : $(r.aic)\n")
+    isdefined(r, :rsquared) && print(io, "R² : $(r.rsquared)\n")
+    return
+end
+
+
+function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
+
+    fullview != Val{true} && return print(io, r)
+
+    print(io, r)
+
+    if length(r.parameters) > 0
+        x = parameter_map(r)
+        println(io, "Parameters:")
+        for v in x
+            println(io, "   $(v[1]) : $(v[2])")
+        end
+    end
+
+    return
+end
+
+
+
+
+
+##
+"""
+$(SIGNATURES)
+
+Returns the `Basis` of the result.
+"""
+result(r::DataDrivenSolution) = r.basis
 
 """
 $(SIGNATURES)
 
-Returns the result of in form of an `AbstractBasis`.
+Returns the AIC of the result.
 """
-result(r::DataDrivenSolution) = r.res
+aic(r::DataDrivenSolution) = begin
+    isdefined(r, :aic) && return r.aic
+    return NaN
+end
+
+"""
+$(SIGNATURES)
+
+Returns the L₂ norm error of the result.
+"""
+error(r::DataDrivenSolution) = begin
+    isdefined(r, :l2_error) && return r.l2_error
+    return NaN
+end
+
+"""
+$(SIGNATURES)
+
+Returns the coefficient of determinantion of the result, if the result has been
+derived via a linear regression, e.g. sparse regression or koopman.
+"""
+determination(r::DataDrivenSolution{l, o, a}) where {l,o, a} = begin
+    if l
+        return r.rsquared
+    else
+        return NaN
+    end
+end
+
 
 """
 $(SIGNATURES)
 
 Returns the estimated parameters in form of an `Vector`.
 """
-ModelingToolkit.parameters(r::DataDrivenSolution) = r.ps
+ModelingToolkit.parameters(r::DataDrivenSolution) = r.parameters
 
 """
 $(SIGNATURES)
@@ -51,23 +192,10 @@ to `solve` and `ODESystem`.
 """
 function parameter_map(r::DataDrivenSolution)
     return [
-        ps_ => p_ for (ps_, p_) in zip(parameters(r.res), r.ps)
+        ps_ => p_ for (ps_, p_) in zip(parameters(r.basis), r.parameters)
     ]
 end
 
-"""
-$(SIGNATURES)
-
-Returns the metrics of the result in form of a `NamedTuple`.
-"""
-metrics(r::DataDrivenSolution) = r.metrics
-
-"""
-$(SIGNATURES)
-
-Returns the original output of the algorithm, e.g. an `AbstractArray` of coefficients for sparse regression.
-"""
-output(r::DataDrivenSolution) = r.out
 
 """
 $(SIGNATURES)
@@ -79,51 +207,47 @@ algorithm(r::DataDrivenSolution) = r.alg
 """
 $(SIGNATURES)
 
-Returns the original inputs, most commonly the `DataDrivenProblem` and the `Basis` used to derive the solution.
+Returns the original output of the algorithm.
 """
-inputs(r::DataDrivenSolution) = r.inp
+output(r::DataDrivenSolution) = r.out
 
+"""
+$(SIGNATURES)
 
-function Base.summary(io::IO, r::DataDrivenSolution)
-    is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
-    println(io, "Solution with $(length(r.res)) equations and $(length(r.ps)) parameters.")
-    println(io, "Returncode: $(r.retcode)")
-    haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
-    haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
-    haskey(r.metrics, :AICC) && println(io, "AICC: $(r.metrics.AICC)")
-    return
-end
-
-
-function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
-
-    fullview != Val{true} && return summary(io, r)
-
-    is_implicit(r) ? println(io,"Implicit Result") : println(io,"Explicit Result")
-    println(io, "Solution with $(length(r.res)) equations and $(length(r.ps)) parameters.")
-    println(io, "Returncode: $(r.retcode)")
-    haskey(r.metrics, :Sparsity) && println(io, "Sparsity: $(r.metrics.Sparsity)")
-    haskey(r.metrics, :Error) && println(io, "L2 Norm Error: $(r.metrics.Error)")
-    haskey(r.metrics, :AICC) && println(io, "AICC: $(r.metrics.AICC)")
-    println(io, "")
-    print(io, r.res)
-    println(io, "")
-    if length(r.res.ps) > 0
-        x = parameter_map(r)
-        println(io, "Parameters:")
-        for v in x
-            println(io, "   $(v[1]) : $(v[2])")
+Returns all applicable metrics of the solution.
+"""
+function metrics(r::DataDrivenSolution)
+    fnames_ = (:l2_error, :aic, :rsquared)
+    names_ = (:L₂, :AIC, :R²)
+    m = Dict() 
+    for i in 1:length(fnames_)
+        if isdefined(r, fnames_[i]) 
+            push!(m, names_[i] => getfield(r, fnames_[i]))
         end
     end
+    m
+end
+## Helper for the solution
 
-    return
+# Check linearity
+
+function assert_linearity(eqs::AbstractVector{Equation}, x::AbstractVector{Num})
+    return assert_linearity(map(x->Num(x.rhs), eqs), x)
 end
 
-Base.print(io::IO, r::DataDrivenSolution) = summary(io, r)
-Base.show(io::IO, r::DataDrivenSolution) = is_implicit(r) ? show(io,"Implicit Result") : show(io,"Explicit Result")
+# Returns true iff x is not in the arguments of the jacobian of eqs
+function assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector{Num})
+    j = Symbolics.jacobian(eqs, x)
+    # Check if any of the variables is in the jacobian
+    v = unique(reduce(vcat, map(get_variables, j)))
+    for xi in x, vi in v
+        isequal(xi, vi) && return false
+    end
+    return true
+end
 
+function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symbol = :continuous, is_implicit = false, eval_expression = false)
 
-function build_parametrized_eqs(X::AbstractMatrix, b::Basis)
     # Create additional variables
     sp = Int(norm(X, 0))
     sps = norm.(eachcol(X), 0)
@@ -150,150 +274,37 @@ function build_parametrized_eqs(X::AbstractMatrix, b::Basis)
             cnt += 1
         end
     end
-    return eqs, ps, p
-end
-
-
-
-# Explicit sindy
-function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis;
-    eval_expression = false)
-    if all(iszero.(Ξ))
-        @warn "Sparse regression failed! All coefficients are zero."
-        return DataDrivenSolution(
-        nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing),
-    )
-    end
-
-    eqs, ps, p_ = build_parametrized_eqs(Ξ, b)
 
     # Build the lhs
-    if length(eqs) == length(states(b))
-        xs = states(b)
-        d = Differential(get_iv(b))
-        eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
-    end
-
-    # Build a basis
-    res_ = Basis(
-        eqs, states(b),
-        parameters = [parameters(b); p_], iv = get_iv(b),
-        controls = controls(b), observed = observed(b),
-        name = gensym(:Basis),
-        eval_expression = eval_expression
-    )
-
-    sparsity = norm(Ξ, 0)
-    sparsities = map(i->norm(i, 0), eachcol(Ξ))
-
-    retcode = size(Ξ, 2) == size(prob.DX, 1) ? :success : :incomplete
-    pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
-    X = get_target(prob)
-    x, _, t, c = get_oop_args(prob)
-    Y = res_(x, pnew, t, c)
-
-    # Build the metrics
-    sparsity = norm(Ξ, 0)
-    sparsities = map(i->norm(i, 0), eachcol(Ξ))
-    inds = sparsities .> zero(eltype(X))
-    error = norm(X[inds, :]-Y, 2)
-    k = free_parameters(res_)
-    aic = AICC(k, X[inds, :], Y)
-    errors = zeros(eltype(X), sum(inds))
-    aiccs = zeros(eltype(X), sum(inds))
-    j = 1
-    for i in 1:size(X,1)
-        if inds[i]
-            errors[i] = norm(X[i,:].-Y[j,:],2)
-            aiccs[i] = AICC(k, X[i:i, :], Y[j:j,:])
-            j += 1
+    xs = states(b)
+    if isempty(implicits) || !is_implicit
+        if length(eqs) == length(states(b))
+            if lhs == :continuous
+                d = Differential(get_iv(b))
+            elseif lhs == :discrete
+                d = Difference(get_iv(b), dt = dt)
+            end
+            eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
+        end
+    else
+        eqs = 0 .~ eqs
+        if !isempty(implicits)
+            if assert_linearity(eqs, implicits)
+                # Try to solve the eq for the implicits
+                eqs = ModelingToolkit.solve_for(eqs, implicits)
+                eqs = implicits .~ eqs
+            end
+            xs = [s for s in xs if !any(map(i->isequal(i, s), implicits))]
         end
     end
 
-    metrics = (
-        Sparsity = sparsity,
-        Error = error,
-        AICC = aic,
-        Sparsities = sparsities,
-        Errors = errors,
-        AICCs = aiccs,
-    )
-
-    inputs = (
-        Problem = prob,
-        Basis = b,
-    )
-
-    return DataDrivenSolution(
-        res_, retcode, pnew, opt, Ξ, inputs, metrics
-    )
-end
-
-function build_solution(prob::DataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractSubspaceOptimizer,
-    b::Basis, implicits::Vector{Num}; eval_expression = false)
-
-    if all(iszero(Ξ))
-        @warn "Sparse regression failed! All coefficients are zero."
-        return DataDrivenSolution(
-        nothing , :failed, nothing, opt, Ξ, (Problem = prob, Basis = b, nothing),
-    )
-    end
-
-    eqs, ps, p_ = build_parametrized_eqs(Ξ, b)
-    eqs = [0 .~ eq for eq in eqs]
-    
-    # Build a basis
-    res_ = Basis(
-        collect(eqs), states(b),
-        parameters = [parameters(b); p_], iv = get_iv(b),
+    Basis(
+        eqs, xs,
+        parameters = [parameters(b); p], iv = get_iv(b),
         controls = controls(b), observed = observed(b),
         name = gensym(:Basis),
         eval_expression = eval_expression
-    )
-
-    sparsity = norm(Ξ, 0)
-    sparsities = map(i->norm(i, 0), eachcol(Ξ))
-
-    retcode = size(Ξ, 2) == size(prob.DX, 1) ? :success : :incomplete
-    pnew = !isempty(parameters(b)) ? [prob.p; ps] : ps
-    Y = res_([prob.X; prob.DX], pnew, prob.t, prob.U)
-
-    # Build the metrics
-    sparsity = norm(Ξ, 0)
-    sparsities = map(i->norm(i, 0), eachcol(Ξ))
-    inds = sparsities .> zero(eltype(Y))
-    error = norm(Y, 2)
-    k = free_parameters(res_)
-    aic = AICC(k, Y, zero(Y))
-    errors = zeros(eltype(Y), sum(inds))
-    aiccs = zeros(eltype(Y), sum(inds))
-    j = 1
-    for i in 1:size(Y,1)
-        if inds[i]
-            errors[i] = norm(Y[j,:],2)
-            aiccs[i] = AICC(k, Y[j:j,:], zero(Y[j:j,:]))
-            j += 1
-        end
-    end
-
-    metrics = (
-        Sparsity = sparsity,
-        Error = error,
-        AICC = aic,
-        Sparsities = sparsities,
-        Errors = errors,
-        AICCs = aiccs,
-    )
-
-    inputs = (
-        Problem = prob,
-        Basis = b,
-        implicit_variables = implicits,
-    )
-
-    return DataDrivenSolution(
-        res_, retcode, pnew, opt, Ξ, inputs, metrics
-    )
+    ), ps
 end
 
 function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
@@ -303,78 +314,74 @@ function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
     return x
 end
 
-function build_solution(prob::DataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; digits::Int = 10, eval_expression = false)
+function assert_lhs(prob)
+    dt = mean(diff(prob.t))
+    lhs = :direct
+    if isa(prob, AbstracContProb)
+        lhs = :continuous
+    elseif isa(prob, AbstractDiscreteProb)
+        lhs = :discrete
+    else
+        lhs = :direct
+    end 
+    return lhs, dt
+end
+
+function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis, implicits = Num[]; eval_expression = false, digits::Int = 10, kwargs...)
+    # Build a basis and returns a solution
+    if all(iszero.(Ξ))
+        @warn "Sparse regression failed! All coefficients are zero."
+        return DataDrivenSolution(
+        b, [], :failed, opt, Ξ, prob)
+    end
+ 
+    # Assert continuity
+    lhs, dt = assert_lhs(prob)
+
+    sol , ps = construct_basis(round.(Ξ, digits = digits), b, implicits, 
+        lhs = lhs, dt = dt,
+        is_implicit = isa(opt, Optimize.AbstractSubspaceOptimizer) ,eval_expression = eval_expression
+        )
+
     
+    ps = isempty(parameters(b)) ? ps : vcat(prob.p, ps)
+
+    
+    return DataDrivenSolution(
+        sol, ps, :solved, opt, Ξ, prob, true, eval_expression = eval_expression
+    )
+end
+
+
+function DataDrivenSolution(prob::AbstractDataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; 
+    digits::Int = 10, eval_expression = false, kwargs...)
     # Build parameterized equations, inds indicate the location of basis elements containing an input
     Ξ = zeros(eltype(B), size(C,2), length(b))
+
 
     Ξ[:, inds] .= real.(Matrix(k))
     if !isempty(B)
         Ξ[:, .! inds] .= B
     end
 
-    # Transpose because of the nature of build_parametrized_eqs
-    if !eval_expression
-        eqs, ps, p_ = build_parametrized_eqs(_round!(C*Ξ, digits)', b)
-    else
-        K̃ = _round!(C*Ξ, digits)
-        eqs = K̃*Num[states(b); controls(b)]
-        p_ = []
-        ps = [K̃...]
-    end
+    # Assert continuity
+    lhs, dt = assert_lhs(prob)
+    
+    bs, ps = construct_basis(round.(C*Ξ, digits = digits)', b, 
+        lhs = lhs, dt = dt,
+        eval_expression = eval_expression)
 
-    # Build the lhs
-    if length(eqs) == length(states(b))
-        xs = states(b)
-        d = Differential(get_iv(b))
-        eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
-    end
 
-    res_ = Koopman(eqs, states(b),
-        parameters = [parameters(b); p_],
-        controls = controls(b), iv = get_iv(b),
+    res_ = Koopman(equations(bs), states(bs),
+        parameters = parameters(bs),
+        controls = controls(bs), iv = get_iv(bs),
         K = k, C = C, Q = Q, P = P, lift = b.f,
         is_discrete = is_discrete(prob),
         eval_expression = eval_expression)
 
-    retcode = :success
-    X = get_target(prob)
-    X_, p_, t, U = get_oop_args(prob)
-
-    pnew = !isempty(parameters(b)) ? [p_; ps] : ps
-
-    if !eval_expression
-        # Equation space
-        Y = res_(X_, pnew, t, U)
-    else
-        Y = K̃*b(X_, p_, t, U)
-    end
-
-    # Build the metrics
-    error = norm(X-Y, 2)
-    k = free_parameters(res_)
-    aic = AICC(k, X, Y)
-    errors = zeros(eltype(X), sum(inds))
-    aiccs = zeros(eltype(X), sum(inds))
-    j = 1
-    for i in 1:size(X,1)
-        errors[i] = norm(X[i,:].-Y[i,:],2)
-        aiccs[i] = AICC(k, X[i:i, :], Y[i:i,:])
-    end
-
-    metrics = (
-        Error = error,
-        AICC = aic,
-        Errors = errors,
-        AICCs = aiccs,
-    )
-
-    inputs = (
-        Problem = prob,
-        Basis = b,
-    )
+    ps = isempty(parameters(b)) ? ps : vcat(prob.p, ps)
 
     return DataDrivenSolution(
-        res_, retcode, pnew, alg, Ξ, inputs, metrics
+        res_, ps, :solved, alg, Ξ, prob, true, eval_expression = eval_expression
     )
 end

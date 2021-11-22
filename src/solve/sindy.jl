@@ -48,37 +48,39 @@ function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis, opt::Optimize.A
     @views Optimize.sparse_regression!(Ξ, θ', DX', opt; kwargs...)
 
     normalize ? rescale_xi!(Ξ, scales, round) : nothing
-
     # Build solution Basis
-    return build_solution(
+    return DataDrivenSolution(
         p, Ξ, opt, b, eval_expression = eval_expression
     )
 end
 
 
-function _isin(x::Num, y)
-    vs = get_variables(y)
-    any(isequal(x, yi) for yi in vs)
+function is_dependent(x::Num, y::Num)
+    any(map(xi->isequal(xi,y), get_variables(x)))
 end
 
-function _isin(x::Vector{Num}, y::Vector)
-    [_isin(xi, yi) for xi in x, yi in y]
+function is_dependent(x::Num, y::AbstractVector{Num})
+    map(yi->is_dependent(x, yi), y)
 end
 
-_isin(x, y) = _isin(Num.(Symbolics.unwrap(x)), y)
-
-function _ind_matrix(x::Vector{Num}, y::Vector)
-    isins = _isin(x, y)
-    inds = ones(Bool, size(isins)) # We take all
-    excludes = zeros(Bool, length(x))
-    for i in 1:length(x)
-        excludes .= true
-        excludes[i] = false
-        inds[i, :] .= inds[i, :] .* sum(eachrow(isins[excludes, :]))
-    end
-    return .~ inds
+function is_dependent(x::AbstractVector{Num}, y::AbstractVector{Num})
+    inds = reduce(hcat, map(xi->is_dependent(xi, y), x))
+    inds = reshape(inds, length(y), length(x))
 end
 
+function is_not_dependent(x::Num, y::Num)
+    v = get_variables(x)
+    isempty(v) && return true
+    all(map(vi->!isequal(vi, y), v))
+end
+
+function is_not_dependent(x::AbstractVector{Num}, y::Num)
+    permutedims(map(xi->is_not_dependent(xi, y), x))
+end
+
+function candidate_matrix(x::Vector{Num}, y::Vector{Num})
+    return reduce(vcat, map(xi->is_not_dependent(x, xi), y))
+end
 
 @views function DiffEqBase.solve(p::DataDrivenProblem{dType}, b::Basis,
     opt::Optimize.AbstractSubspaceOptimizer, implicits::Vector{Num} = Num[];
@@ -89,7 +91,7 @@ end
     @assert is_valid(p) "The problem seems to be ill-defined. Please check the problem definition."
 
     # Check for the variables
-    @assert all(any.(eachrow(_isin(implicits, states(b)))))
+    #@assert all(any.(eachrow(_isin(implicits, states(b)))))
 
     # Evaluate the basis
     θ = b(DataDrivenDiffEq.get_implicit_oop_args(p)...)
@@ -110,11 +112,12 @@ end
     Ξ = DataDrivenDiffEq.Optimize.init(opt, θ', DX')
     # Find the implict variables in the equations and
     # eliminite duplictes
-    if !isempty(implicits)
-        inds = _ind_matrix(implicits, [eq.rhs for eq in equations(b)])
+    if !isempty(implicits) && length(implicits) > 1
+        inds = candidate_matrix(map(x->Num(x.rhs), equations(b)), implicits)
     else
         inds = ones(Bool, 1, length(b))
     end
+    
     offset = 0
     # Solve for each implicit variable
     @views for i in 1:size(inds, 1)
@@ -126,7 +129,7 @@ end
 
     normalize ? rescale_xi!(Ξ, scales, round) : nothing
     # Build solution Basis
-    return build_solution(
-        p, Ξ, opt, b, implicits, eval_expression = eval_expression
+    return DataDrivenSolution(
+       p, Ξ, opt, b, implicits, eval_expression = eval_expression
     )
 end
