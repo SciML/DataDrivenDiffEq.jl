@@ -21,7 +21,7 @@
     b = result(res)
     m = metrics(res)
     @test isapprox(eigvals(b), [2*p[1]; p[1]; p[2]], atol = 1e-1)
-    @test m.Error/size(solution, 2) < 1e-1
+    @test all(m[:L₂] .< 1e-10)
 
     _prob = ODEProblem((args...)->b(args...), u0, tspan, parameters(res))
     _sol = solve(_prob, Tsit5(), saveat = solution.t)
@@ -53,6 +53,6 @@ end
     b = result(res)
     m = metrics(res)
     @test isapprox(eigvals(b), [p[1]; p[2]; p[1]^2], atol = 1e-1)
-    @test m.Error/size(solution, 2) < 1e-1
+    @test all(m[:L₂] .< 3e-1)
   end
 end

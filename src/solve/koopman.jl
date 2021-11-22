@@ -24,7 +24,7 @@ function DiffEqBase.solve(prob::AbstractDiscreteProb{dType, true}, alg::Abstract
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, BitVector((true for i in 1:size(X,1))), b, alg, digits = digits, eval_expression = eval_expression)
+    return DataDrivenSolution(prob, k, C, B, Q, P, BitVector((true for i in 1:size(X,1))), b, alg, digits = digits, eval_expression = eval_expression)
 end
 
 
@@ -60,7 +60,7 @@ function DiffEqBase.solve(prob::AbstractDiscreteProb{dType, false}, alg::Abstrac
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
+    return DataDrivenSolution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
 end
 
 function DiffEqBase.solve(prob::AbstractDiscreteProb{dType, true}, b::Basis, alg::AbstractKoopmanAlgorithm;
@@ -89,7 +89,7 @@ function DiffEqBase.solve(prob::AbstractDiscreteProb{dType, true}, b::Basis, alg
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, BitVector((true for i in 1:size(Ψ₀,1))), b, alg, digits = digits, eval_expression = eval_expression)
+    return DataDrivenSolution(prob, k, C, B, Q, P, BitVector((true for i in 1:size(Ψ₀,1))), b, alg, digits = digits, eval_expression = eval_expression)
 end
 
 
@@ -110,7 +110,7 @@ function DiffEqBase.solve(prob::AbstractDiscreteProb{dType, false}, b::Basis, al
     Ψ₁ = b(DX, p,t[2:end], U)
 
     # Find the indexes of the control states
-    inds = .! _isin(Num.(controls(b)), [eq.rhs for eq in equations(b)])[1,:]
+    inds = .! is_dependent(map(eq->Num(eq.rhs),equations(b)), Num.(controls(b)))[1,:]
 
     k, B = alg(Ψ₀[inds, :], Ψ₁[inds, :], Ψ₀[.!inds, :])
 
@@ -122,7 +122,7 @@ function DiffEqBase.solve(prob::AbstractDiscreteProb{dType, false}, b::Basis, al
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
+    return DataDrivenSolution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
 end
 
 ## Continouos Time
@@ -151,7 +151,7 @@ function DiffEqBase.solve(prob::AbstracContProb{dType, true}, alg::AbstractKoopm
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, BitVector((true for i in 1:size(X,1))), b, alg, digits = digits, eval_expression = eval_expression)
+    return DataDrivenSolution(prob, k, C, B, Q, P, BitVector((true for i in 1:size(X,1))), b, alg, digits = digits, eval_expression = eval_expression)
 end
 
 
@@ -187,7 +187,7 @@ function DiffEqBase.solve(prob::AbstracContProb{dType, false}, alg::AbstractKoop
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
+    return DataDrivenSolution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
 end
 
 function DiffEqBase.solve(prob::AbstracContProb{dType, true}, b::Basis, alg::AbstractKoopmanAlgorithm;
@@ -222,7 +222,7 @@ function DiffEqBase.solve(prob::AbstracContProb{dType, true}, b::Basis, alg::Abs
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, BitVector((true for i in 1:size(Ψ₀,1))), b, alg, digits = digits, eval_expression = eval_expression)
+    return DataDrivenSolution(prob, k, C, B, Q, P, BitVector((true for i in 1:size(Ψ₀,1))), b, alg, digits = digits, eval_expression = eval_expression)
 end
 
 
@@ -243,12 +243,13 @@ function DiffEqBase.solve(prob::AbstracContProb{dType, false}, b::Basis, alg::Ab
     Ψ₁ = similar(Ψ₀)
 
     J = jacobian(b)
+
     for i in 1:size(DX, 2)
         Ψ₁[:, i] .= J(X[:, i], p, t[i], U[:,i])*DX[:, i]
     end
 
     # Find the indexes of the control states
-    inds = .! _isin(Num.(controls(b)), [eq.rhs for eq in equations(b)])[1,:]
+    inds = .! is_dependent(map(eq->Num(eq.rhs),equations(b)), Num.(controls(b)))[1,:]
 
     k, B = alg(Ψ₀[inds, :], Ψ₁[inds, :], Ψ₀[.!inds, :])
 
@@ -260,128 +261,5 @@ function DiffEqBase.solve(prob::AbstracContProb{dType, false}, b::Basis, alg::Ab
 
     operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
 
-    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
+    return DataDrivenSolution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
 end
-
-## Old
-
-#function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::AbstractKoopmanAlgorithm;
-#    digits::Int = 10, operator_only::Bool = false,
-#    eval_expression = false,
-#    kwargs...) where {dType <: Number}
-#    # Check the validity
-#    @assert is_valid(prob) "The problem seems to be ill-defined. Please check the problem definition."
-#
-#    X, p, t, U = get_oop_args(prob)
-#    DX = prob.DX
-#
-#    Ψ₀ = b(X, p, t, U)
-#    Ψ₁ = similar(Ψ₀)
-#
-#    # Find the indexes of the control states
-#    if !is_autonomous(prob) && !isempty(controls((b)))
-#        inds = .! _isin(Num.(controls(b)), [eq.rhs for eq in equations(b)])[1,:]
-#    else
-#        inds = [true for i in 1:length(b)]
-#    end
-#
-#    if is_continuous(prob)
-#        # Generate the differential mapping
-#        J = jacobian(b)
-#        if !is_autonomous(prob)
-#            for i in 1:size(DX, 2)
-#                Ψ₁[:, i] .= J(X[:, i], p, t[i],U[:, i])*DX[:, i]
-#            end
-#        else
-#            for i in 1:size(DX, 2)
-#                Ψ₁[:, i] .= J(X[:, i], p, t[i])*DX[:, i]
-#            end
-#        end
-#    else
-#        !is_autonomous(prob) ? b(Ψ₁, DX, p, t, U) : b(Ψ₁, DX, p, t)
-#    end
-#
-#    if !is_autonomous(prob)
-#
-#        k, B = alg(Ψ₀[inds, :], Ψ₁[inds, :], Ψ₀[.!inds, :])
-#
-#        Q = Ψ₁[inds, :]*Ψ₀'
-#        P = Ψ₀*Ψ₀'
-#
-#    else
-#        k = alg(Ψ₀, Ψ₁)
-#
-#        Q = Ψ₁*Ψ₀'
-#        P = Ψ₀*Ψ₀'
-#        B = zeros(dType, 0, 0)
-#
-#    end
-#
-#    # Outpumap -> just the state dependent
-#    C = prob.DX / Ψ₁[inds,:]
-#
-#    operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
-#
-#    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
-#end
-#
-#function DiffEqBase.solve(prob::DataDrivenProblem{dType}, b::Basis, alg::AbstractKoopmanAlgorithm;
-#    digits::Int = 10, operator_only::Bool = false,
-#    eval_expression = false,
-#    kwargs...) where {dType <: Number}
-#    # Check the validity
-#    @assert is_valid(prob) "The problem seems to be ill-defined. Please check the problem definition."
-#
-#    X, p, t, U = get_oop_args(prob)
-#    DX = prob.DX
-#
-#    Ψ₀ = b(X, p, t, U)
-#    Ψ₁ = similar(Ψ₀)
-#
-#    # Find the indexes of the control states
-#    if !is_autonomous(prob) && !isempty(controls((b)))
-#        inds = .! _isin(Num.(controls(b)), [eq.rhs for eq in equations(b)])[1,:]
-#    else
-#        inds = [true for i in 1:length(b)]
-#    end
-#
-#    if is_continuous(prob)
-#        # Generate the differential mapping
-#        J = jacobian(b)
-#        if !is_autonomous(prob)
-#            for i in 1:size(DX, 2)
-#                Ψ₁[:, i] .= J(X[:, i], p, t[i],U[:, i])*DX[:, i]
-#            end
-#        else
-#            for i in 1:size(DX, 2)
-#                Ψ₁[:, i] .= J(X[:, i], p, t[i])*DX[:, i]
-#            end
-#        end
-#    else
-#        !is_autonomous(prob) ? b(Ψ₁, DX, p, t, U) : b(Ψ₁, DX, p, t)
-#    end
-#
-#    if !is_autonomous(prob)
-#
-#        k, B = alg(Ψ₀[inds, :], Ψ₁[inds, :], Ψ₀[.!inds, :])
-#
-#        Q = Ψ₁[inds, :]*Ψ₀'
-#        P = Ψ₀*Ψ₀'
-#
-#    else
-#        k = alg(Ψ₀, Ψ₁)
-#
-#        Q = Ψ₁*Ψ₀'
-#        P = Ψ₀*Ψ₀'
-#        B = zeros(dType, 0, 0)
-#
-#    end
-#
-#    # Outpumap -> just the state dependent
-#    C = prob.DX / Ψ₁[inds,:]
-#
-#    operator_only && return (K = k, C = C, B = B, Q = Q, P = P)
-#
-#    return build_solution(prob, k, C, B, Q, P, inds, b, alg, digits = digits, eval_expression = eval_expression)
-#end
-#

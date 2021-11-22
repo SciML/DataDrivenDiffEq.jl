@@ -324,37 +324,33 @@ end
 
 function DataDrivenSolution(prob::AbstractDataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; 
     digits::Int = 10, eval_expression = false, kwargs...)
-    
     # Build parameterized equations, inds indicate the location of basis elements containing an input
     Ξ = zeros(eltype(B), size(C,2), length(b))
+
 
     Ξ[:, inds] .= real.(Matrix(k))
     if !isempty(B)
         Ξ[:, .! inds] .= B
     end
+    b, ps = construct_basis(round.(C*Ξ, digits = digits)', b, eval_expression = eval_expression)
+    eqs = map(x->Num(x.rhs), equations(b))
 
-    K̃ = _round!(C*Ξ, digits)
-    eqs = K̃*Num[b(states(b), parameters(b), independent_variable(b)); controls(b)]
-    p_ = []
-    ps = [K̃...]
-    return eqs
-    # Build the lhs
+
+    ## Build the lhs
     if length(eqs) == length(states(b))
         xs = states(b)
         d = Differential(get_iv(b))
         eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
     end
-
+#
     res_ = Koopman(eqs, states(b),
-        parameters = [parameters(b); p_],
+        parameters = parameters(b),
         controls = controls(b), iv = get_iv(b),
         K = k, C = C, Q = Q, P = P, lift = b.f,
         is_discrete = is_discrete(prob),
         eval_expression = eval_expression)
-
-    pnew = !isempty(parameters(b)) ? [p_; ps] : ps
-
+    #return res_
     return DataDrivenSolution(
-        res_, retcode, pnew, alg, Ξ, true, eval_expression = eval_expression
+        res_, ps, :solved, alg, Ξ, prob, true, eval_expression = eval_expression
     )
 end
