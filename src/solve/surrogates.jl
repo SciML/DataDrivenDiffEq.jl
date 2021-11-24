@@ -1,13 +1,3 @@
-using ForwardDiff
-using LinearAlgebra
-using Statistics
-using Symbolics
-using DataDrivenDiffEq
-using ModelingToolkit
-using DataDrivenDiffEq.Optimize
-using DataDrivenDiffEq: get_oop_args, get_target
-using DiffEqBase
-
 function entangle(f::Function, idx::Int)
     return f_(x) = getindex(f(x), idx)
 end
@@ -19,8 +9,6 @@ end
 function linearities(∇, x::AbstractMatrix{T}, abstol = eps(), reltol= eps(); kwargs...) where T <: Number
     var(map(∇, eachcol(x))) .< reltol
 end
-
-abstract type AbstractSurrogate end
 
 mutable struct Surrogate <: AbstractSurrogate
     # Original function
@@ -58,12 +46,33 @@ end
 
 has_children(s::Surrogate) = isdefined(s, :children)
 
-struct SurrrogateSolvers{G, A, K}
+
+"""
+$(TYPEDEF)
+
+Defines a composition of solvers to be applied on the specific surrogate function. 
+'generator' should be defined in such a way that is generates basis elements for the (filtered) 
+dependent variables for explicit and - if used - implicit sparse regression, e.g. 
+
+```julia
+generator(u) -> polynomial_basis(u,3)
+generator(u,y)->vcat(generator(u), generator(u) .*y)
+
+solvers = SurrogateSolvers(
+    generator, STLSQ(), ImplicitOptimizer(); kwargs...
+)
+```
+
+# Fields
+
+$(FIELDS)
+"""
+struct SurrogateSolvers{G, A, K}
     generator::G
     alg::A
     kwargs::K
 
-    function SurrrogateSolvers(generator::Function, args...; kwargs...)
+    function SurrogateSolvers(generator::Function, args...; kwargs...)
         return new{typeof(generator), typeof(args), typeof(kwargs)}(
             generator, args, kwargs
         )
@@ -97,7 +106,7 @@ function linear_split!(s::Surrogate, x::AbstractMatrix, abstol = eps(), reltol =
     return
 end
 
-function surrogate_solve(s::Surrogate, x::AbstractMatrix, sol::SurrrogateSolvers; abstol = 1e-5, reltol = eps())
+function surrogate_solve(s::Surrogate, x::AbstractMatrix, sol::SurrogateSolvers; abstol = 1e-5, reltol = eps())
     has_children(s) && return composite_solve(s, x, sol, abstol = abstol, reltol = reltol)
     # First see if its a linear fit
     prob = DirectDataDrivenProblem(x, reduce(hcat, map(s.f, eachcol(x))))
@@ -110,13 +119,13 @@ function surrogate_solve(s::Surrogate, x::AbstractMatrix, sol::SurrrogateSolvers
     return pareto_solve(s, x, sol, abstol = abstol, reltol = reltol)
 end
 
-function pareto_solve(s::Surrogate, x::AbstractMatrix, sol::SurrrogateSolvers; kwargs...)
+function pareto_solve(s::Surrogate, x::AbstractMatrix, sol::SurrogateSolvers; kwargs...)
     res = map(sol.alg) do ai
         surrogate_solve(s::Surrogate, x::AbstractMatrix, sol.generator, ai; kwargs..., sol.kwargs...)
     end
     valids = map(x->x.retcode == :solved, res)
     res = [res[i] for i in 1:length(valids) if valids[i]]
-    idx = argmin(map(x->metrics(x)[:L₂], res))
+    idx = argmax(map(x->metrics(x)[:AIC], res))
     return res[idx]
 end
 
@@ -142,7 +151,7 @@ function surrogate_solve(s::Surrogate, x::AbstractMatrix, g::Function, opt::Opti
     return solve(prob, b, opt, [y]; kwargs...)
 end
 
-function composite_solve(s::Surrogate, x::AbstractMatrix, sol::SurrrogateSolvers; kwargs...)
+function composite_solve(s::Surrogate, x::AbstractMatrix, sol::SurrogateSolvers; kwargs...)
     res = map(s.children) do c
         surrogate_solve(c, x, sol; kwargs...)
     end
@@ -171,7 +180,7 @@ function composite_solve(s::Surrogate, x::AbstractMatrix, sol::SurrrogateSolvers
 end
 
 
-function DiffEqBase.solve(prob::DataDrivenProblem, f::Function, sol::SurrrogateSolvers; abstol = eps(), reltol = eps(), kwargs...)
+function DiffEqBase.solve(prob::DataDrivenProblem, f::Function, sol::SurrogateSolvers; abstol = eps(), reltol = eps(), kwargs...)
     x, _ = get_oop_args(prob)
     s = Surrogate(f, x, abstol = abstol, reltol = reltol)
     res = map(s) do si
@@ -179,27 +188,3 @@ function DiffEqBase.solve(prob::DataDrivenProblem, f::Function, sol::SurrrogateS
         surrogate_solve(si, x, sol, abstol = abstol, reltol = reltol)
     end
 end
-
-using Plots
-
-f(x) = [-2.0sin(first(x))+5.0last(x); -0.3*last(x); 3.0*x[1]+x[2]+(1.0-3.0*x[6])/(1+10*x[5]^2)]
-x = randn(100, 100)
-y = reduce(hcat, map(f, eachcol(x)))
-ȳ = y .+ 1e-2*randn(size(y))
-scatter(y')
-prob = DirectDataDrivenProblem(x, ȳ)
-
-generator(u) = vcat(polynomial_basis(u), sin.(u))
-generator(u,v) = begin
-    explicits = polynomial_basis(u, 3)
-    implicits = explicits .* v
-    return vcat(explicits, implicits)
-end
-
-
-sol = SurrrogateSolvers(generator, STLSQ(1e-3:1e-3:1.0), ImplicitOptimizer(1e-1:1e-1:1.0), progress = false)
-
-res = solve(prob, f, sol, abstol = 1e-1, reltol = 1e-1)
-for r in res
-    println(result(r))
-end 
