@@ -66,6 +66,9 @@ solvers = SurrogateSolvers(
 # Fields
 
 $(FIELDS)
+
+# Note
+This is still an experimental prototype and highly sensitive towards the tolerances.
 """
 struct SurrogateSolvers{G, A, K}
     generator::G
