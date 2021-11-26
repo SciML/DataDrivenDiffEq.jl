@@ -135,6 +135,56 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B:
     return x(X, Y-B*U), B
 end
 
+
+"""
+$(TYPEDEF)
+
+Approximates the Koopman operator `K` based on the singular value decomposition
+of `X` and `Y` such that:
+
+```julia
+K₁ = Y*V₁*Σ₁*U₁'
+K₂ = X*V₂*Σ₂*U₂'
+K = (K₁*inv(K₂))^(0.5)
+```
+
+where `Y = U₂*Σ₂*V₂'` and `X = U₁*Σ₁*V₁'` are data matrices. The singular value decomposition is truncated via
+the `truncation` parameter, which can either be an `Int` indiciating an index based truncation or a `Real`
+indiciating a tolerance based truncation. Returns a `Eigen` factorization of the operator.
+
+
+# Fields
+$(FIELDS)
+
+# Signatures
+$(SIGNATURES)
+"""
+mutable struct fbDMD{T} <: AbstractKoopmanAlgorithm where T <: Number
+    """Indiciates the truncation"""
+    truncation::T
+end;
+fbDMD() = fbDMD(0.0)
+function (x::fbDMD{T})(X::AbstractArray, Y::AbstractArray) where T <: Real
+    U₁, S₁, V₁ = truncated_svd(X, x.truncation)
+    xone = one(eltype(X))
+    # Computed the reduced operator
+    Sinv₁ = Diagonal(xone ./ S₁)
+    B₁ = Y*V₁*Sinv₁
+    A₁ = U₁'B₁  # forward DMD
+
+    U₂, S₂, V₂ = truncated_svd(Y, x.truncation)
+    yone = one(eltype(Y))
+    # Computed the reduced operator
+    Sinv₂ = Diagonal(yone ./ S₂)
+    B₂ = X*V₂*Sinv₂
+    A₂ = U₂'B₂  # Backward DMD
+
+    Ã = (A₁/A₂)^(0.5)
+    # Compute the modes
+    λ, ω = eigen(Ã)
+    φ = B*ω
+    return Eigen(λ, φ)
+end
 """
 $(TYPEDEF)
 
