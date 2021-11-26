@@ -182,7 +182,7 @@ function (x::fbDMD{T})(X::AbstractArray, Y::AbstractArray) where T <: Real
     Ã = (A₁/A₂)^(0.5)
     # Compute the modes
     λ, ω = eigen(Ã)
-    φ = B*ω
+    φ = B₁*ω
     return Eigen(λ, φ)
 end
 """
