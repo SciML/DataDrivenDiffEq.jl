@@ -43,7 +43,7 @@ function DiffEqBase.solve(prob::AbstractDataDrivenProblem, alg::EQSearch;
     numprocs = nothing, procs = nothing,
     multithreading = false,
     runtests::Bool = true,
-    eval_expression = false
+    eval_expression = false, kwargs...
     )
 
     opt = to_options(alg)
@@ -61,8 +61,12 @@ function DiffEqBase.solve(prob::AbstractDataDrivenProblem, alg::EQSearch;
             numprocs = numprocs, procs = procs, multithreading = multithreading,
             runtests = runtests)
     # Sort the paretofront
-    doms = map(1:size(Y, 1)) do i
-        calculateParetoFrontier(X, Y[i, :], hof[i], opt)
+    if isa(hof, AbstractVector)
+        doms = map(1:size(Y, 1)) do i
+            calculateParetoFrontier(X, Y[i, :], hof[i], opt)
+        end
+    else
+        doms = [calculateParetoFrontier(X, Y[1,:], hof, opt)]
     end
 
     build_solution(prob, alg, doms; eval_expression = eval_expression)
