@@ -69,7 +69,7 @@ $(SIGNATURES)
 
 Initialize the optimizer with the least square solution for explicit and `zeros` for implicit optimization in place.
 """
-init!(X::AbstractArray, o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, Val(true)), Y)
+init!(X::AbstractArray, o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) =  ldiv!(X, qr(A, ColumnNorm()), Y)
 
 include("./utils.jl")
 

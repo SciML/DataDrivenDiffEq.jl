@@ -42,7 +42,7 @@ end
 function linear_independent_columns(A::AbstractMatrix{T}, rtol::T = convert(T, 0.1)) where T
     iszero(rtol) && return A
     rA = rank(A)
-    qr_ = qr(A, Val(true))
+    qr_ = qr(A, ColumnNorm())
     r_ = abs.(diag(qr_.R))
     r = findlast(r_ .>= rtol*first(r_))
     r = max(min(r, rA), 1)
