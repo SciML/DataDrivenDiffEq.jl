@@ -175,13 +175,44 @@ function composite_solve(s::Surrogate, x::AbstractMatrix, sol::SurrogateSolvers;
         end
         eq = s.op(Num(eq), substitute(Num(ei), subs))
     end
+    
     b_new = Basis([eq], Num.(states(first(basis))), parameters = p)
+    
     prob = DirectDataDrivenProblem(x, reduce(hcat, map(s.f, eachcol(x))))
+
     return DataDrivenSolution(
         b_new, ps, :solved, map(x->x.alg, res), s.children, prob, true, eval_expression = true
     )
 end
 
+
+
+function merge_results(r, prob::DataDrivenDiffEq.AbstractDataDrivenProblem, args...; eval_expression = true, kwargs...)
+    # Collect all equations
+    # Create new parameters
+    res = result.(r)
+    l_ps = sum(map(length∘parameters, res))
+    ps = [Symbolics.variable("p", i) for i in 1:l_ps]
+    pvals = reduce(vcat, map(parameters, r))
+    # Substitue dict
+    p_cnt = 1
+    eqs = map(r) do ri
+        # Collect the parameters for substitution
+        psub = Dict()
+        for p_ in parameters(result(ri))
+            push!(psub, p_ => ps[p_cnt])
+            p_cnt += 1
+        end
+        _r = map(equations(result(ri))) do eqi
+            substitute(Num(eqi.rhs), psub)
+        end
+    end
+
+    b_new = Basis(reduce(vcat, eqs), Num.(states(first(res))), parameters = ps)
+    return DataDrivenSolution(
+        b_new, pvals, :solved, map(x->x.alg, r), r, prob, true, eval_expression = eval_expression
+    )
+end
 
 function DiffEqBase.solve(prob::DataDrivenProblem, f::Function, sol::SurrogateSolvers; abstol = eps(), reltol = eps(), kwargs...)
     x, _ = get_oop_args(prob)
@@ -190,4 +221,7 @@ function DiffEqBase.solve(prob::DataDrivenProblem, f::Function, sol::SurrogateSo
         linear_split!(si, x, abstol = abstol, reltol = reltol)
         surrogate_solve(si, x, sol, abstol = abstol, reltol = reltol)
     end
+
+    ## Merge the results
+    merge_results(res, prob; kwargs...)
 end
