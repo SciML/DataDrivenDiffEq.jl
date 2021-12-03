@@ -35,7 +35,7 @@ Requires = "1"
 StatsBase = "0.32.0, 0.33"
 SymbolicRegression = "^0.6.11"
 Symbolics = "4"
-julia = "^1.6.0"
+julia = "1.6"
 
 [extras]
 DiffEqFlux = "aae7a2af-3d4f-5e19-a356-7da93b79d9d0"
