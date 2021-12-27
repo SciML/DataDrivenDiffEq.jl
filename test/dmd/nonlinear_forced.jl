@@ -43,7 +43,7 @@ end
 @testset "Slow Manifold Discrete System" begin
   function slow_manifold(du, u, p, t)
     du[1] = p[1]*u[1]
-    du[2] = p[2]*u[2]+(p[1]^2 - p[2])*u[1]^2 + p[3]*sin(t^2)
+    du[2] = p[2]*u[2]+(p[1] - p[2])*u[1]^2 + p[3]*exp(-(t-10.0)/10.0)
   end
 
   u0 = [3.0; -2.0]
@@ -53,7 +53,7 @@ end
   problem = DiscreteProblem(slow_manifold, u0, tspan, p)
   solution = solve(problem, FunctionMap())
 
-  ufun(u,p,t) = sin(t^2)
+  ufun(u,p,t) = exp(-(t-10.0)/10.0)
 
   ddprob = DiscreteDataDrivenProblem(solution, U = ufun)
 
