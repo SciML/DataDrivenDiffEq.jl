@@ -332,7 +332,7 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix,
     if all(iszero.(Ξ))
         @warn "Sparse regression failed! All coefficients are zero."
         return DataDrivenSolution(
-        b, [], :failed, opt, Ξ, prob)
+        true, b, [], :failed, opt, Ξ, prob)
     end
  
     # Assert continuity

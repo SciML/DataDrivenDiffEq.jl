@@ -12,7 +12,7 @@ using Distributions
 using QuadGK
 using Statistics
 using DataInterpolations
-
+using ForwardDiff
 
 using Requires
 using ProgressMeter
@@ -40,6 +40,9 @@ abstract type AbstractKoopmanAlgorithm end
 
 # Abstract symbolic_regression
 abstract type AbstractSymbolicRegression end
+
+# Abstract Surrogate
+abstract type AbstractSurrogate end
 
 # Problem and solution
 abstract type AbstractDataDrivenProblem{dType, cType, probType} end
@@ -125,7 +128,9 @@ export output, metrics, error, aic, determination
 
 include("./solve/sindy.jl")
 include("./solve/koopman.jl")
+include("./solve/surrogates.jl")
 export solve
+export SurrogateSolvers
 
 # Optional
 function __init__()
