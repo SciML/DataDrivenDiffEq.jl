@@ -37,13 +37,16 @@ function to_options(x::EQSearch)
     )
 end
 
+
+
 function DiffEqBase.solve(prob::AbstractDataDrivenProblem, alg::EQSearch;
     max_iter::Int = 10,
     weights = nothing,
     numprocs = nothing, procs = nothing,
     multithreading = false,
     runtests::Bool = true,
-    eval_expression = false
+    eval_expression = false,
+    kwargs...
     )
 
     opt = to_options(alg)
@@ -60,29 +63,63 @@ function DiffEqBase.solve(prob::AbstractDataDrivenProblem, alg::EQSearch;
     hof = SymbolicRegression.EquationSearch(X, Y, niterations = max_iter, weights = weights, options = opt,
             numprocs = numprocs, procs = procs, multithreading = multithreading,
             runtests = runtests)
-    # Sort the paretofront
-    doms = map(1:size(Y, 1)) do i
-        calculateParetoFrontier(X, Y[i, :], hof[i], opt)
-    end
 
-    build_solution(prob, alg, doms; eval_expression = eval_expression)
+    build_solution(prob, alg, hof; eval_expression = eval_expression)
+end
+
+function pareto_optimal_equations(hof::HallOfFame, prob, alg)
+    return pareto_optimal_equations([hof], prob, alg)
 end
 
 
-function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, doms; eval_expression = false)
+function pareto_optimal_equations(hof::Vector{HallOfFame}, prob, alg)
 
-    opt = to_options(alg)
+    opts = DataDrivenDiffEq.to_options(alg)
+    y = DataDrivenDiffEq.get_target(prob)
+    x, _, t, c = DataDrivenDiffEq.get_oop_args(prob)
+    X =  vcat([x for x in (x, c, permutedims(t)) if !isempty(x)]...)
+    
     @variables x[1:size(prob.X, 1)] u[1:size(prob.U,1)] t
     x = Symbolics.scalarize(x)
     u = Symbolics.scalarize(u)
-    x_ = [x;u;t]
+    x_ = Num[x;u;t]
 
     # Build a dict
     subs = Dict([SymbolicUtils.Sym{Number}(Symbol("x$(i)")) => x_[i] for i in 1:size(x_, 1)]...)
-    # Create a variable
-    eqs = vcat(map(x->node_to_symbolic(x[end].tree, opt), doms))
-    eqs = map(x->substitute(x, subs), eqs)
 
+
+    eqs = map(1:size(hof, 1)) do i
+        @show i
+        d = calculateParetoFrontier(X, y[i,:], hof[i], opts)
+        isempty(d) && return Num(0)
+        eq_ = node_to_symbolic(last(d).tree, opts)
+        substitute(eq_, subs)
+    end
+
+    return eqs, x, u, t
+end
+
+
+
+function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, hof; eval_expression = false)
+
+    #opt = to_options(alg)
+#
+    #@variables x[1:size(prob.X, 1)] u[1:size(prob.U,1)] t
+    #x = Symbolics.scalarize(x)
+    #u = Symbolics.scalarize(u)
+    #x_ = [x;u;t]
+
+    # Build a dict
+    #subs = Dict([SymbolicUtils.Sym{Number}(Symbol("x$(i)")) => x_[i] for i in 1:size(x_, 1)]...)
+
+
+    # Create a variable
+    #eqs = vcat(map(x->node_to_symbolic(x[end].tree, opt), doms))
+    #eqs = map(x->substitute(x, subs), eqs)
+    
+    eqs, x, u, t = pareto_optimal_equations(hof, prob, alg)
+    
     lhs, dt = assert_lhs(prob)
 
 
@@ -104,10 +141,11 @@ function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, doms; ev
     Y = res_(get_oop_args(prob)...)
 
 
+
     error = sum(abs2, X-Y, dims = 2)[:,1]
     retcode = :converged 
     
     return DataDrivenSolution(
-        false, res_, [], retcode, alg, doms, prob, error
+        false, res_, [], retcode, alg, hof, prob, error
     )
 end

@@ -15,4 +15,13 @@
     x = states(sys)
     @test all(m[:L₂] .<= eps())
     @test isequal([x.rhs for x in equations(sys)], [sin(x[1]); exp(x[2])])
+
+    # Single target
+    prob = DirectDataDrivenProblem(X, Y[1:1,:])
+    res = solve(prob, opts, numprocs = 0, multithreading = false)
+    sys = result(res)
+    m = metrics(res)
+    x = states(sys)
+    @test all(m[:L₂] .<= eps())
+    @test isequal([x.rhs for x in equations(sys)], [sin(x[1])]) 
 end
