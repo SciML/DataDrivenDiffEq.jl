@@ -120,13 +120,13 @@ export is_valid
 include("./solution.jl")
 export DataDrivenSolution
 export result, parameters, parameter_map, algorithm
-export output, metrics, error, aic, determination
+export output, metrics, error, aic, determination, get_problem
 
 include("./solve/sindy.jl")
 include("./solve/koopman.jl")
 export solve
 
-include("./recipes/problem.jl")
+include("./recipes/problem_result.jl")
 
 # Optional
 function __init__()

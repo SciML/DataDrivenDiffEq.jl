@@ -176,6 +176,12 @@ determination(r::DataDrivenSolution{l, o, a}) where {l,o, a} = begin
     end
 end
 
+"""
+$(SIGNATURES)
+
+Returns the original `DataDrivenProblem`.
+"""
+get_problem(r::DataDrivenSolution) = getfield(r, :prob)
 
 """
 $(SIGNATURES)
