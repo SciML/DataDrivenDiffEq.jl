@@ -77,35 +77,42 @@ end
 # Step 2...
 
 ## Solution !
+# TODO Dispatch for SINDy to show a separate plot of the active
+# terms in the candidates -> Need LatexStrings for that (most likely)
+# Get the symbols of the states for plotting
+# Add extreme values for error ? 
 
 @recipe function resplot(x::AbstractDataDrivenSolution)
     plotins, xlab = gather_plot_information(x)
     isdirec = is_direct(get_problem(x))
     layout := (2,1)
-    t, Y, lab = plotins[1]
 
-    
     suff = isdirec ? "" : "(t)"
 
-    @series begin
-        label --> nothing #reduce(hcat, map(j->lab*subscriptnumber(j), 1:size(Y, 1)))
-        ylabel --> lab
-        subplot := 1
-        seriestype := :scatter
-      #  xlabel --> xlab
-        t, permutedims(Y)
-    end
-
+    t, Y, lab = plotins[1]
     _ , Ŷ, lab_ = plotins[2]
+    
 
     @series begin
         label --> reduce(hcat, map(j->lab_*subscriptnumber(j)*suff, 1:size(Y, 1)))
         ylabel --> lab_
         subplot := 1
         seriestype := :path
-       # xlabel --> xlab
         t, permutedims(Ŷ)
     end
+
+
+    @series begin
+        label --> nothing
+        ylabel --> lab
+        subplot := 1
+        seriestype --> :path
+        primary := false
+        linestyle --> :dash
+        color --> :black
+        t, permutedims(Y)
+    end
+
 
     elab = lab*suff*"-"*lab_*suff
 

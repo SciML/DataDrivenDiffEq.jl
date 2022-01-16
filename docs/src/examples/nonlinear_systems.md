@@ -144,7 +144,7 @@ And a visual check of the result can be perfomed via plotting the result
 
 ```@example 1
 plot(res)
-savefig("SINDy_Result_Example1.png) # hide
+savefig("SINDy_Result_Example1.png") # hide
 ```
 ![](SINDy_Result_Example1.png)
 
