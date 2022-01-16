@@ -59,6 +59,9 @@ end
         yi, xi, lab = pins
         suff = isdirec ? "" : "(t)"
         @series begin
+            if i > 1
+                title := ""
+            end
             label --> reduce(hcat, map(j->lab*subscriptnumber(j)*suff, 1:size(xi,1)))
             
             ylabel --> lab
@@ -82,7 +85,7 @@ end
 # Get the symbols of the states for plotting
 # Add extreme values for error ? 
 
-@recipe function resplot(x::AbstractDataDrivenSolution)
+@recipe function resplot(x::AbstractDataDrivenSolution; show_data::Bool = false)
     plotins, xlab = gather_plot_information(x)
     isdirec = is_direct(get_problem(x))
     layout := (2,1)
@@ -101,22 +104,24 @@ end
         t, permutedims(Ŷ)
     end
 
-
-    @series begin
-        label --> nothing
-        ylabel --> lab
-        subplot := 1
-        seriestype --> :path
-        primary := false
-        linestyle --> :dash
-        color --> :black
-        t, permutedims(Y)
+    if show_data 
+        @series begin
+            label --> nothing
+            ylabel --> lab
+            subplot := 1
+            seriestype --> :path
+            primary := false
+            linestyle --> :dash
+            color --> :black
+            t, permutedims(Y)
+        end
     end
 
 
     elab = lab*suff*"-"*lab_*suff
 
     @series begin
+        title := ""
         label --> reduce(hcat, map(j->"e"*subscriptnumber(j)*suff, 1:size(Y, 1)))
         ylabel --> elab
         subplot := 2
