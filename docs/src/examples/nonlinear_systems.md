@@ -140,6 +140,14 @@ println(system) #hide
 println(params) #hide
 ```
 
+And a visual check of the result can be perfomed via plotting the result
+
+```@example 1
+plot(res)
+savefig("SINDy_Result_Example1.png) # hide
+```
+![](SINDy_Result_Example1.png)
+
 Since any system obtained via a `solve` command is a [`Basis`](@ref) and hence a subtype of an `AbstractSystem` defined in [`ModelingToolkit`](https://github.com/SciML/ModelingToolkit.jl), we can simply simulate the result via:
 
 ```@example 1

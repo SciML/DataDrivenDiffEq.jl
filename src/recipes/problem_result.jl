@@ -57,9 +57,9 @@ end
 
     for (i, pins) in enumerate(plotins)
         yi, xi, lab = pins
-        lab = isdirec ? lab : lab*"(t)"
+        suff = isdirec ? "" : "(t)"
         @series begin
-            label --> reduce(hcat, map(j->lab*subscriptnumber(j), 1:size(xi,1)))
+            label --> reduce(hcat, map(j->lab*subscriptnumber(j)*suff, 1:size(xi,1)))
             
             ylabel --> lab
             
@@ -84,7 +84,8 @@ end
     layout := (2,1)
     t, Y, lab = plotins[1]
 
-    lab = isdirec ? lab : lab*"(t)"
+    
+    suff = isdirec ? "" : "(t)"
 
     @series begin
         label --> nothing #reduce(hcat, map(j->lab*subscriptnumber(j), 1:size(Y, 1)))
@@ -96,10 +97,9 @@ end
     end
 
     _ , Ŷ, lab_ = plotins[2]
-    lab_ = isdirec ? lab_ : lab_*"(t)"
 
     @series begin
-        label --> reduce(hcat, map(j->lab_*subscriptnumber(j), 1:size(Y, 1)))
+        label --> reduce(hcat, map(j->lab_*subscriptnumber(j)*suff, 1:size(Y, 1)))
         ylabel --> lab_
         subplot := 1
         seriestype := :path
@@ -107,10 +107,10 @@ end
         t, permutedims(Ŷ)
     end
 
-    elab = lab*"-"*lab_
+    elab = lab*suff*"-"*lab_*suff
 
     @series begin
-        label --> reduce(hcat, map(j->"e"*subscriptnumber(j), 1:size(Y, 1)))
+        label --> reduce(hcat, map(j->"e"*subscriptnumber(j)*suff, 1:size(Y, 1)))
         ylabel --> elab
         subplot := 2
         xlabel --> xlab
