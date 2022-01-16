@@ -101,13 +101,9 @@ in as a function `(u,p,t)->control` or an array of measurements.
 prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel() ,
     U = (u,p,t)->[exp(-((t-5.0)/5.0)^2)], p = ones(2))
 
-p1 = plot(ts, X', label = ["Measurement" nothing], color = :black, style = :dash, legend = :bottomleft, ylabel ="Measurement") # hide
-plot!(ts, prob.X', label = ["Smoothed" nothing], color = :red) # hide
-p2 = plot(ts, prob.DX', label = nothing, color = :red, ylabel = "Derivative") # hide
-plot!(ts, DX', label = nothing, color = :black, style = :dash) # hide
-p3 = plot(ts, prob.U', label = nothing, color = :red, xlabel = "Time [s]", ylabel = "Control") # hide
-plot(p1,p2,p3, layout = (3,1), size = (600,600)) # hide
-savefig("SINDy_Example_Data.png") # hide
+# Lets have a look at the data defining the problem
+p_prob = plot(prob, size = (600,600))
+savefig("SINDY_Example_Data.png") # hide
 ```
 ![](SINDy_Example_Data.png)
 
