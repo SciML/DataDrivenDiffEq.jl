@@ -123,7 +123,7 @@ end
 function DataDrivenProblem(X, t, DX, Y, U::F, p) where F <: Function
     # Generate the input as a Matrix
 
-    ts = isempty(t) ? zeros(eltype(X), size(X,2)) : t
+    ts = isempty(t) ? zeros(eltype(X),size(X,2)) : t
 
     u_ = hcat(map(i->U(X[:,i], p, ts[i]), 1:size(X,2))...)
 
@@ -132,7 +132,7 @@ end
 
 
 function DataDrivenProblem(X::AbstractMatrix;
-    t::AbstractVector = zeros(eltype(X), size(X,2)),
+    t::AbstractVector = collect(one(eltype(X)):size(X,2)),
     DX::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
     Y::AbstractMatrix = Array{eltype(X)}(undef, 0,0),
     U::F = Array{eltype(X)}(undef, 0,0),

@@ -80,3 +80,5 @@ Parameters:
    p₆ : 1.0
    p₇ : -2.7
 ```
+
+![](LorenzResult.png)
