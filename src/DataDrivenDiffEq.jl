@@ -110,7 +110,7 @@ const AbstractDiscreteProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(2)}
 const AbstracContProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(3)}
 
 
-include("./problem.jl")
+include("./problem/type.jl")
 
 export DataDrivenProblem
 export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem, DirectDataDrivenProblem
