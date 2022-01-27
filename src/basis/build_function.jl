@@ -9,26 +9,26 @@ function _build_ddd_function(rhs, states, parameters, iv, eval_expression::Bool 
     end
 
     function f(
-        u::AbstractVector{T} where T,
-        p::AbstractVector{T} where T,
+        u::AbstractVector,
+        p::AbstractVector,
         t::T where T
     )::AbstractVector
         return f_oop(u, p, t)
     end
 
     function f(
-        du::AbstractVector{T} where T,
-        u::AbstractVector{T} where T,
-        p::AbstractVector{T} where T,
+        du::AbstractVector,
+        u::AbstractVector,
+        p::AbstractVector,
         t::T where T
     )::Nothing
         return f_iip(du, u, p, t)
     end
 
     function f(
-        x::AbstractMatrix{T} where T,
-        p::AbstractVector{T} where T,
-        t::AbstractVector{T} where T
+        x::AbstractMatrix,
+        p::AbstractVector,
+        t::AbstractVector
     )::AbstractMatrix
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
 
@@ -37,16 +37,16 @@ function _build_ddd_function(rhs, states, parameters, iv, eval_expression::Bool 
 
 
     function f(
-        y::AbstractMatrix{T} where T,
-        x::AbstractMatrix{T} where T,
-        p::AbstractVector{T} where T,
-        t::AbstractVector{T} where T
+        y::AbstractMatrix,
+        x::AbstractMatrix,
+        p::AbstractVector,
+        t::AbstractVector
     )::Nothing
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
         @assert size(x, 2) == size(y, 2) "Measurements and preallocated output must be of equal length!"
 
         @simd for i = 1:size(x, 2)
-            f(y[:, i], x[:, i], p, t[i])
+            @views f(y[:, i], x[:, i], p, t[i])
         end
 
         return
@@ -103,29 +103,29 @@ function _build_ddd_function(
     end
 
     function f(
-        u::AbstractVector{T} where T,
-        p::AbstractVector{T} where T,
+        u::AbstractVector,
+        p::AbstractVector,
         t::T where T,
-        c::AbstractVector{T} where T = zeros(eltype(u), size(controls)...),
+        c::AbstractVector = zeros(eltype(u), size(controls)...),
     )::AbstractVector
         return c_oop(u, p, t, c)
     end
 
     function f(
-        du::AbstractVector{T} where T,
-        u::AbstractVector{T} where T,
-        p::AbstractVector{T} where T,
+        du::AbstractVector,
+        u::AbstractVector,
+        p::AbstractVector,
         t::T where T,
-        c::AbstractVector{T} where T= zeros(eltype(u), size(controls)...),
+        c::AbstractVector= zeros(eltype(u), size(controls)...),
     )::Nothing
         return c_iip(du, u, p, t, c)
     end
 
 
     function f(
-        x::AbstractMatrix{T} where T,
-        p::AbstractVector{T} where T,
-        t::AbstractVector{T} where T
+        x::AbstractMatrix,
+        p::AbstractVector,
+        t::AbstractVector
     )::AbstractMatrix
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
 
@@ -134,16 +134,16 @@ function _build_ddd_function(
     end
 
     function f(
-        y::AbstractMatrix{T} where T,
-        x::AbstractMatrix{T} where T,
-        p::AbstractVector{T} where T,
-        t::AbstractVector{T} where T
+        y::AbstractMatrix,
+        x::AbstractMatrix,
+        p::AbstractVector,
+        t::AbstractVector
     )::Nothing
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
         @assert size(x, 2) == size(y, 2) "Measurements and preallocated output must be of equal length!"
 
-        @simd for i = 1:size(x, 2)
-            f(y[:, i], x[:, i], p, t[i])
+        @simd for i = 1:length(t)
+            @views f(y[:, i], x[:, i], p, t[i])
         end
 
         return
@@ -151,10 +151,10 @@ function _build_ddd_function(
 
 
     function f(
-        x::AbstractMatrix{T} where T,
-        p::AbstractVector{T} where T,
-        t::AbstractVector{T} where T,
-        u::AbstractMatrix{T} where T
+        x::AbstractMatrix,
+        p::AbstractVector,
+        t::AbstractVector,
+        u::AbstractMatrix
     )::AbstractMatrix
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
         @assert size(x, 2) == size(u, 2) "Measurements and inputs must be of equal length!"
@@ -165,17 +165,17 @@ function _build_ddd_function(
     end
 
     function f(
-        y::AbstractMatrix{T} where T,
-        x::AbstractMatrix{T} where T,
-        p::AbstractVector{T} where T,
-        t::AbstractVector{T} where T,
-        u::AbstractMatrix{T} where T
+        y::AbstractMatrix,
+        x::AbstractMatrix,
+        p::AbstractVector,
+        t::AbstractVector,
+        u::AbstractMatrix
     )::Nothing
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
         @assert size(x, 2) == size(y, 2) "Measurements and preallocated output must be of equal length!"
         @assert size(x, 2) == size(u, 2) "Measurements and inputs must be of equal length!"
 
-        for i = 1:size(x, 2)
+        @simd for i = 1:length(t)
             @views f(y[:, i], x[:, i], p, t[i], u[:, i])
         end
 
