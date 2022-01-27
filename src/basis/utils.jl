@@ -131,3 +131,12 @@ function create_linear_independent_eqs(ops::AbstractVector, simplify_eqs::Bool =
     unique!(u_o)
     return simplify_eqs ? simplify.(Num.(u_o)) : Num.(u_o)
 end
+
+function Base.in(var::Num, term::SymbolicUtils.Symbolic)
+    istree(term) && return any(map(y->in(var, y), arguments(term)))
+    isequal(var, term)
+end
+
+function Base.in(var::Num, term::Num)
+    var === term
+end
