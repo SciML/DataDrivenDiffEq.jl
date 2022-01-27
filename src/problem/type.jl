@@ -255,6 +255,13 @@ end
 Base.length(prob::AbstractDataDrivenProblem) = size(prob.X, 2)
 Base.size(prob::AbstractDataDrivenProblem) = size(prob.X)
 
+"""
+$(SIGNATURES)
+
+Returns the name of the `problem`.
+"""
+get_name(p::AbstractDataDrivenProblem) = getfield(p, :name)
+
 ## Utils
 
 function ModelingToolkit.states(p::AbstractDataDrivenProblem, i = :, j = :)
