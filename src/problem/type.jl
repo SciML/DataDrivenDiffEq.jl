@@ -470,12 +470,18 @@ end
 
 
 macro is_applicable(problem, basis)
-    ex = quote @assert length(states($(esc(basis)))) == size(states($(esc(problem))),1) "Problem and basis need to have same state size"
-    @assert length(controls($(esc(basis)))) == size(controls($(esc(problem))),1) "Problem and basis need to have same control size"
-    @assert length(parameters($(esc(basis)))) <= length(parameters($(esc(problem)))) "Problem and basis need to have consistent parameter size"
+    return quote 
+        if isa($(esc(problem)), AbstractDirectProb)
+            @assert length(states($(esc(basis)))) == size(observed($(esc(problem))),1) "Problem and basis need to have same observed size"
+        else
+            @assert length(states($(esc(basis)))) == size(states($(esc(problem))),1) "Problem and basis need to have same state size"
+        end
+        @assert length(controls($(esc(basis)))) == size(controls($(esc(problem))),1) "Problem and basis need to have same control size"
+        @assert length(parameters($(esc(basis)))) <= length(parameters($(esc(problem)))) "Problem and basis need to have consistent parameter size"
     end
-    return ex
 end
+
+
 
 macro is_applicable(problem, basis, dx)
     return quote
