@@ -338,27 +338,16 @@ end
 
     If the jacobian with respect to other variables is needed, it can be passed via a second argument.
 """
-function jacobian(x::Basis, eval_expression::Bool = false)
-
-    j = Symbolics.jacobian([xi.rhs for xi in equations(x)], states(x))
-
-    jac  = _build_ddd_function(expand_derivatives.(j),
-        states(x), parameters(x), get_iv(x),
-        controls(x), eval_expression)
-
-    return jac
-end
+jacobian(x::Basis, eval_expression::Bool = false) = jacobian(x, states(x), eval_expression)
 
 
 function jacobian(x::Basis, s, eval_expression::Bool = false)
 
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], s)
 
-    jac  = _build_ddd_function(expand_derivatives.(j),
+    return _build_ddd_function(j,
         states(x), parameters(x), get_iv(x),
         controls(x), eval_expression)
-
-    return jac
 end
 
 ## Utilities

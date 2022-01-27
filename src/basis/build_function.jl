@@ -12,7 +12,7 @@ function _build_ddd_function(rhs, states, parameters, iv, eval_expression::Bool 
         u::AbstractVector,
         p::AbstractVector,
         t::T where T
-    )::AbstractVector
+    )
         return f_oop(u, p, t)
     end
 
@@ -21,7 +21,7 @@ function _build_ddd_function(rhs, states, parameters, iv, eval_expression::Bool 
         u::AbstractVector,
         p::AbstractVector,
         t::T where T
-    )::Nothing
+    )
         return f_iip(du, u, p, t)
     end
 
@@ -29,7 +29,7 @@ function _build_ddd_function(rhs, states, parameters, iv, eval_expression::Bool 
         x::AbstractMatrix,
         p::AbstractVector,
         t::AbstractVector
-    )::AbstractMatrix
+    )
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
 
         return reduce(hcat, map(i->f(x[:,i], p, t[i]), 1:length(t)))
@@ -41,7 +41,7 @@ function _build_ddd_function(rhs, states, parameters, iv, eval_expression::Bool 
         x::AbstractMatrix,
         p::AbstractVector,
         t::AbstractVector
-    )::Nothing
+    )
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
         @assert size(x, 2) == size(y, 2) "Measurements and preallocated output must be of equal length!"
 
@@ -107,7 +107,7 @@ function _build_ddd_function(
         p::AbstractVector,
         t::T where T,
         c::AbstractVector = zeros(eltype(u), size(controls)...),
-    )::AbstractVector
+    )
         return c_oop(u, p, t, c)
     end
 
@@ -117,7 +117,7 @@ function _build_ddd_function(
         p::AbstractVector,
         t::T where T,
         c::AbstractVector= zeros(eltype(u), size(controls)...),
-    )::Nothing
+    )
         return c_iip(du, u, p, t, c)
     end
 
@@ -126,7 +126,7 @@ function _build_ddd_function(
         x::AbstractMatrix,
         p::AbstractVector,
         t::AbstractVector
-    )::AbstractMatrix
+    )
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
 
         return reduce(hcat, map(i->f(x[:,i], p, t[i]), 1:length(t)))
@@ -138,7 +138,7 @@ function _build_ddd_function(
         x::AbstractMatrix,
         p::AbstractVector,
         t::AbstractVector
-    )::Nothing
+    )
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
         @assert size(x, 2) == size(y, 2) "Measurements and preallocated output must be of equal length!"
 
@@ -155,7 +155,7 @@ function _build_ddd_function(
         p::AbstractVector,
         t::AbstractVector,
         u::AbstractMatrix
-    )::AbstractMatrix
+    )
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
         @assert size(x, 2) == size(u, 2) "Measurements and inputs must be of equal length!"
 
@@ -170,7 +170,7 @@ function _build_ddd_function(
         p::AbstractVector,
         t::AbstractVector,
         u::AbstractMatrix
-    )::Nothing
+    )
         @assert size(x, 2) == length(t) "Measurements and time points must be of equal length!"
         @assert size(x, 2) == size(y, 2) "Measurements and preallocated output must be of equal length!"
         @assert size(x, 2) == size(u, 2) "Measurements and inputs must be of equal length!"
