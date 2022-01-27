@@ -108,28 +108,32 @@ struct DataDrivenProblem{dType, cType, probType} <: AbstractDataDrivenProblem{dT
 end
 
 
-function DataDrivenProblem(X, t, DX, Y, U, p; name = "", kwargs...)
+function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = "", kwargs...)
     dType = Base.promote_eltype(X, t, DX, Y, U, p)
     cType = isempty(U)
+    
     # We assume a discrete Problem
-    probType = DDProbType(2)
-    if (isempty(DX) && !isempty(Y))
-        probType = DDProbType(1) # Direct problem
-    elseif !isempty(DX)
-        probType = DDProbType(3) # Continouos
+    if isnothing(probType) 
+        probType = DDProbType(2)
+        if (isempty(DX) && !isempty(Y))
+            probType = DDProbType(1) # Direct problem
+        elseif !isempty(DX)
+            probType = DDProbType(3) # Continouos
+        end
     end
+
     return DataDrivenProblem{dType, cType, probType}(_promote(X,t,DX,Y,U,p)..., name)
 end
 
 
-function DataDrivenProblem(X, t, DX, Y, U::F, p; kwargs...) where F <: Function
+function DataDrivenProblem(probtype, X, t, DX, Y, U::F, p; kwargs...) where F <: Function
     # Generate the input as a Matrix
 
     ts = isempty(t) ? zeros(eltype(X),size(X,2)) : t
 
     u_ = hcat(map(i->U(X[:,i], p, ts[i]), 1:size(X,2))...)
 
-    return DataDrivenProblem(_promote(X,t,DX,Y,u_,p)...; kwargs...)
+    return DataDrivenProblem(probtype, _promote(X,t,DX,Y,u_,p)...; kwargs...)
 end
 
 
@@ -139,22 +143,34 @@ function DataDrivenProblem(X::AbstractMatrix;
     Y::AbstractMatrix = Array{eltype(X)}(undef, 0,0),
     U::F = Array{eltype(X)}(undef, 0,0),
     p::AbstractVector = Array{eltype(X)}(undef, 0),
+    probtype = nothing,
     kwargs...) where F <: Union{AbstractMatrix, Function}
 
-    return DataDrivenProblem(X,t,DX,Y,U,p; kwargs...)
+    return DataDrivenProblem(probtype, X,t,DX,Y,U,p; kwargs...)
 end
 
 function Base.summary(io::IO, x::DataDrivenProblem{N,C,P}) where {N,C,P}
     print(io, "$P DataDrivenProblem{$N}")
     isempty(x.name) ? nothing : print(io, " $(x.name)")
-    n = size(x.X, 1)
-    print(io, " in $n dimensions")
+    n,m = size(x.X)
+    print(io, " in $n dimensions and $m samples")
     C ? nothing : print(io, " with controls")
     return
 end
 
-function Base.print(io, x::DataDrivenProblem{N,C,P}) where {N,C,P}
-    summary(io, x)
+function Base.print(io::IO, x::AbstractDataDrivenProblem{N,C,P}) where {N,C,P}
+    isempty(x.name) ? nothing : println(io, "$(x.name)")
+    println(io, "$P DataDrivenProblem{$N}")
+    println(io, "Summary")
+    n,m = size(x.X)
+    println(io, "$m measurements")
+    println(io, "$n state(s)")
+    n = size(x.DX, 1)
+    isempty(x.DX) ? nothing : println("$n differential state(s)")
+    n = size(x.Y, 1)
+    isempty(x.Y) ? nothing : println("$n observed variable(s)")
+    n = size(x.U, 1)
+    isempty(x.U) ? nothing : println(io, "$n control(s)")
 end
 
 Base.show(io::IO, x::DataDrivenProblem{N,C,P}) where {N,C,P} = summary(io, x)
@@ -167,19 +183,19 @@ A time discrete `DataDrivenProblem` useable for problems of the form `f(x[i],p,t
 $(SIGNATURES)
 """
 function DiscreteDataDrivenProblem(X::AbstractMatrix; kwargs...)
-    DataDrivenProblem(X; kwargs...)
+    DataDrivenProblem(X; probtype = DDProbType(2), kwargs...)
 end
 
 function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector; kwargs...)
-    DataDrivenProblem(X; t=t, kwargs...)
+    DataDrivenProblem(X; t=t,  probtype = DDProbType(2),  kwargs...)
 end
 
 function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::AbstractMatrix; kwargs...)
-    return DataDrivenProblem(X; t=t, U = U , kwargs...)
+    return DataDrivenProblem(X; t=t, U = U , probtype = DDProbType(2),  kwargs...)
 end
 
 function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::Function; kwargs...)
-    return DataDrivenProblem(X; t=t, U = U , kwargs...)
+    return DataDrivenProblem(X; t=t, U = U ,  probtype = DDProbType(2), kwargs...)
 end
 
 ## Continouos Constructors
@@ -192,30 +208,30 @@ Automatically constructs derivatives via an additional collocation method, which
 or an interpolation from `DataInterpolations.jl` wrapped by an `InterpolationMethod`.
 """
 function ContinuousDataDrivenProblem(X::AbstractMatrix, DX::AbstractMatrix; kwargs...)
-    return DataDrivenProblem(X; DX = DX, kwargs...)
+    return DataDrivenProblem(X; DX = DX,  probtype = DDProbType(3), kwargs...)
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix; kwargs...)
-    return DataDrivenProblem(X; t = t, DX = DX, kwargs...)
+    return DataDrivenProblem(X; t = t, DX = DX, probtype = DDProbType(3), kwargs...)
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix, U::AbstractMatrix; kwargs...)
-    return DataDrivenProblem(X; t = t, DX = DX, U = U, kwargs...)
+    return DataDrivenProblem(X; t = t, DX = DX, U = U, probtype = DDProbType(3), kwargs...)
 end
 
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, DX::AbstractMatrix, U::F; kwargs...) where {F <: Function}
-    return DataDrivenProblem(X; t = t, DX = DX, U = U, kwargs...)
+    return DataDrivenProblem(X; t = t, DX = DX, U = U, probtype = DDProbType(3), kwargs...)
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, collocation = InterpolationMethod(); kwargs...)
     dx, x = collocate_data(X, t, collocation)
-    return DataDrivenProblem(x; t = t, DX = dx, kwargs...)
+    return DataDrivenProblem(x; t = t, DX = dx, probtype = DDProbType(3), kwargs...)
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector,  U::AbstractMatrix, collocation; kwargs...)
     dx, x = collocate_data(X, t, collocation)
-    return DataDrivenProblem(x; t = t, DX = dx, U = U, kwargs...)
+    return DataDrivenProblem(x; t = t, DX = dx, U = U, probtype = DDProbType(3), kwargs...)
 end
 
 ## Direct Constructors
@@ -225,15 +241,15 @@ A direct `DataDrivenProblem` useable for problems of the form `f(x,p,t,u) ↦ y`
 $(SIGNATURES)
 """
 function DirectDataDrivenProblem(X::AbstractMatrix, Y::AbstractMatrix; kwargs...)
-    return DataDrivenProblem(X; Y = Y, kwargs...)
+    return DataDrivenProblem(X; Y = Y, probtype = DDProbType(1), kwargs...)
 end
 
 function DirectDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, Y::AbstractMatrix; kwargs...)
-    return DataDrivenProblem(X; t = t, Y = Y, kwargs...)
+    return DataDrivenProblem(X; t = t, Y = Y, probtype = DDProbType(1), kwargs...)
 end
 
 function DirectDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, Y::AbstractMatrix, U; kwargs...)
-    return DataDrivenProblem(X; t = t, Y = Y, U = U, kwargs...)
+    return DataDrivenProblem(X; t = t, Y = Y, U = U, probtype = DDProbType(1),kwargs...)
 end
 
 Base.length(prob::AbstractDataDrivenProblem) = size(prob.X, 2)
@@ -241,28 +257,17 @@ Base.size(prob::AbstractDataDrivenProblem) = size(prob.X)
 
 ## Utils
 
-# Check for nans, inf etc
-check_domain(x) =  @assert all(.~isnan.(x)) && all(.~isinf.(x)) ("One or more measurements contain `NaN` or `Inf`.")
-check_lengths(args...) = @assert all(map(x->size(x)[end], args) .== size(first(args))[end]) "One or more measurements are not sized equally."
-
-# Return the target variables
-get_target(x::AbstractDirectProb{N,C}) where {N,C} = x.Y
-get_target(x::AbstractDiscreteProb{N,C}) where {N,C} = x.X[:,2:end]
-get_target(x::AbstracContProb{N,C}) where {N,C} = x.DX
-
-
-
-function ModelingToolkit.get_states(p::AbstractDataDrivenProblem, i = :, j = :)
+function ModelingToolkit.states(p::AbstractDataDrivenProblem, i = :, j = :)
     x = getfield(p, :X)
     isempty(x) ? x : getindex(x, i, j)
 end
 
-function ModelingToolkit.get_ps(p::AbstractDataDrivenProblem, i = :)
+function ModelingToolkit.parameters(p::AbstractDataDrivenProblem, i = :)
     x = getfield(p, :p)
     isempty(x) ? x : getindex(x, i)
 end
 
-function ModelingToolkit.get_iv(p::AbstractDataDrivenProblem, i = :)
+function ModelingToolkit.independent_variable(p::AbstractDataDrivenProblem, i = :)
     x = getfield(p, :t)
     isempty(x) ? x : getindex(x, i)
 end
@@ -278,15 +283,15 @@ function ModelingToolkit.get_dvs(p::AbstractDirectProb, i = :, j = :)
 end
 
 function ModelingToolkit.get_dvs(p::AbstractDiscreteProb, i = :, j = :)
-    ModelingToolkit.get_states(p, i, j)
+    ModelingToolkit.states(p, i, j)
 end
 
-function ModelingToolkit.get_observed(p::AbstractDataDrivenProblem, i = :, j = :)
+function ModelingToolkit.observed(p::AbstractDataDrivenProblem, i = :, j = :)
     x = getfield(p, :Y)
     isempty(x) ? x : getindex(x, i, j)
 end
 
-function ModelingToolkit.get_controls(p::AbstractDataDrivenProblem, i = :, j = :)
+function ModelingToolkit.controls(p::AbstractDataDrivenProblem, i = :, j = :)
     x = getfield(p, :U)
     isempty(x) ? x : getindex(x, i, j)
 end
@@ -295,36 +300,54 @@ end
 
 function Base.getindex(p::AbstractDataDrivenProblem, i = :, j = :)
     return (
-        ModelingToolkit.get_states(p, i, j), 
-        ModelingToolkit.get_ps(p),
-        ModelingToolkit.get_iv(p, j),
-        ModelingToolkit.get_controls(p, i, j)
+        ModelingToolkit.states(p, i, j), 
+        ModelingToolkit.parameters(p),
+        ModelingToolkit.independent_variable(p, j),
+        ModelingToolkit.controls(p, i, j)
     )  
 end
 
 
+# TODO This is just for explicit basis! 
 # Make the basis callable with the problem
 # Explicit
 
-@views (b::AbstractBasis)(p::AbstractDataDrivenProblem) = b(get_states(p), get_ps(p), get_iv(p), get_controls(p))
 
-@views (b::AbstractBasis)(dx::AbstractMatrix{T}, p::AbstractDataDrivenProblem{T, C, P}) where {T, C, P} = begin
-    @assert size(dx) == size(get_target(p)) "Target array hast to be of size $(size(get_target(p)))!"
-    @inbounds b(dx, get_states(p), get_ps(p), get_iv(p), get_controls(p))
+@views (b::AbstractBasis)(p::AbstractDataDrivenProblem) = begin 
+    b(states(p), parameters(p), independent_variable(p), controls(p))
 end
 
-@views (b::AbstractBasis)(p::AbstractDataDrivenProblem, j) = reduce(b, p[:, j])
-
-@views (b::AbstractBasis)(dx::AbstractMatrix{T}, p::AbstractDataDrivenProblem{T, C, P}, j) where {T, C, P} = begin
-    b(dx[:, j], p[:,j]...)
+@views (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDataDrivenProblem) = begin
+    b(dx, states(p), parameters(p), independent_variable(p), controls(p))
 end
 
-@views (b::AbstractBasis)(p::AbstractDiscreteProb, j = 1:length(p)-1) = b(p[:,j]...)
-
-@views (b::AbstractBasis)(dx::AbstractMatrix{T}, p::AbstractDiscreteProb{T, C}, j = 1:length(p)-1) where {T, C} = begin
-    @assert size(dx,1) == size(get_target(p),1) "Target array hast to be of size $(size(get_target(p),1)) $(last(j))!"
-    b(dx[:, j], p[:,j]...)
+@views (b::AbstractBasis)(p::AbstractDataDrivenProblem, j) = begin 
+    b(p[:, j]...)
 end
+
+@views (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDataDrivenProblem, j) = begin
+    b(dx, p[:, j]...)
+end
+
+# Special case discrete problem
+
+@views (b::AbstractBasis)(p::AbstractDiscreteProb) = begin 
+    b(p[:, 1:length(p)-1]...)
+end
+
+@views (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDiscreteProb) = begin 
+    b(dx, p, 1:length(p)-1)
+end
+
+# Check for nans, inf etc
+check_domain(x) =  @assert all(.~isnan.(x)) && all(.~isinf.(x)) ("One or more measurements contain `NaN` or `Inf`.")
+check_lengths(args...) = @assert all(map(x->size(x)[end], args) .== size(first(args))[end]) "One or more measurements are not sized equally."
+
+# Return the target variables
+get_target(x::AbstractDirectProb{N,C}) where {N,C} = x.Y
+get_target(x::AbstractDiscreteProb{N,C}) where {N,C} = x.X[:,2:end]
+get_target(x::AbstracContProb{N,C}) where {N,C} = x.DX
+
 
 get_oop_args(x::AbstractDataDrivenProblem{N,C,P}) where {N <: Number, C, P} = map(f->getfield(x, f), (:X, :p, :t, :U))
 
@@ -421,6 +444,46 @@ function is_valid(x::AbstracContProb{N,C}) where {N <: Number,C}
     end
     return true
 end
+
+"""
+$(SIGNATURES)
+
+Asserts if the given combination of `problem` and `basis` - and optionally a target matrix `dx` for in place evaluation - is
+valid in its dimensions. Should only be used for checking explicit evaluation. Can also be used as a shorthand to 
+
+```julia 
+@is_applicable problem # Checks if the problem is well posed in terms of dimensions
+@is_applicable problem basis # Checks if the basis can be called with the problem out of place
+@is_applicable problem basis dx # Checks if the basis can be called with the problem and matrix dx in place
+```
+"""
+macro is_applicable(problem)
+    return :(@assert is_valid($(esc(problem))))
+end
+
+
+macro is_applicable(problem, basis)
+    ex = quote @assert length(states($(esc(basis)))) == size(states($(esc(problem))),1) "Problem and basis need to have same state size"
+    @assert length(controls($(esc(basis)))) == size(controls($(esc(problem))),1) "Problem and basis need to have same control size"
+    @assert length(parameters($(esc(basis)))) <= length(parameters($(esc(problem)))) "Problem and basis need to have consistent parameter size"
+    end
+    return ex
+end
+
+macro is_applicable(problem, basis, dx)
+    return quote
+        @is_applicable $(esc(problem)) $(esc(basis))
+        lp = length($(esc(problem)))
+        n, m = size($(esc(dx)))
+        lb = length($(esc(basis)))
+        if isa($(esc(problem)), AbstractDiscreteProb)
+            @assert n == lb && m == lp-1 "Target array has to be of size ($lb, $lp)"
+        else
+            @assert n == lb && m == lp "Target array has to be of size ($lb, $lp)"
+        end
+    end
+end
+
 
 ## DESolution dispatch
 
