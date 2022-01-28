@@ -12,7 +12,8 @@ using Distributions
 using QuadGK
 using Statistics
 using DataInterpolations
-
+using Parameters
+using Random
 
 using Requires
 using ProgressMeter
@@ -116,6 +117,9 @@ export DataDrivenProblem
 export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem, DirectDataDrivenProblem
 export is_autonomous, is_discrete, is_direct, is_continuous, is_parametrized, has_timepoints
 export is_valid, @is_applicable, get_name
+
+include("./problem/sample.jl")
+export DataSampler, Split, Partition
 
 include("./solution.jl")
 export DataDrivenSolution
