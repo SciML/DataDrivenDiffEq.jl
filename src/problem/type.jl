@@ -104,14 +104,14 @@ struct DataDrivenProblem{dType, cType, probType} <: AbstractDataDrivenProblem{dT
     p::AbstractVector{dType}
 
     """Name of the problem"""
-    name::String
+    name::Symbol
 end
 
 
-function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = "", kwargs...)
+function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = Symbol(""), kwargs...)
     dType = Base.promote_eltype(X, t, DX, Y, U, p)
     cType = isempty(U)
-    
+    name = isa(name, Symbol) ? name : Symbol(name)
     # We assume a discrete Problem
     if isnothing(probType) 
         probType = DDProbType(2)
@@ -150,8 +150,7 @@ function DataDrivenProblem(X::AbstractMatrix;
 end
 
 function Base.summary(io::IO, x::DataDrivenProblem{N,C,P}) where {N,C,P}
-    print(io, "$P DataDrivenProblem{$N}")
-    isempty(x.name) ? nothing : print(io, " $(x.name)")
+    print(io, "$P DataDrivenProblem{$N} $(x.name)")
     n,m = size(x.X)
     print(io, " in $n dimensions and $m samples")
     C ? nothing : print(io, " with controls")
@@ -159,8 +158,7 @@ function Base.summary(io::IO, x::DataDrivenProblem{N,C,P}) where {N,C,P}
 end
 
 function Base.print(io::IO, x::AbstractDataDrivenProblem{N,C,P}) where {N,C,P}
-    isempty(x.name) ? nothing : println(io, "$(x.name)")
-    println(io, "$P DataDrivenProblem{$N}")
+    println(io, "$P DataDrivenProblem{$N} $(x.name)")
     println(io, "Summary")
     n,m = size(x.X)
     println(io, "$m measurements")
