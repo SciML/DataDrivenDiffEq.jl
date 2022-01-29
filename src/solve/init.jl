@@ -162,7 +162,7 @@ function DiffEqBase.solve(p::AbstractDataDrivenProblem{T, C, P}, basis, opt::Abs
         X = Ξ[i, :, :] 
 
         λs[i,:] .= sparse_regression!(X, A, Y, opt, 
-            maxiter = maxiter, abstol = abstol, f = f, g = g
+            maxiter = maxiter, abstol = abstol, f = f, g = g, progress = progress
         )
 
         for (j, tt) in enumerate(trains)
