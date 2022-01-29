@@ -32,7 +32,6 @@ end
 set_from_kwargs!(d::DataDrivenCommonOptions, kwargs...) = begin
     _keys = fieldnames(DataDrivenCommonOptions)
     for (f, v) in kwargs
-        @show f _keys
         f ∈ _keys ? setfield!(d, f, v) : nothing
     end
     return 
@@ -83,6 +82,7 @@ function SparseLinearSolution(p::SparseLinearProblem, errors, folds, λ, opt)
 end
 
 # Selection
+select_by(x, y::AbstractMatrix) = y 
 select_by(x, sol) = select_by(Val(x), sol)
 
 select_by(::Val, sol::SparseLinearSolution) = begin
@@ -176,6 +176,7 @@ function DiffEqBase.solve(p::AbstractDataDrivenProblem{T, C, P}, basis, opt::Abs
 
     # Rescale
     sol = SparseLinearSolution(prob, testerror, trainerror, λs, opt)
-    return DataDrivenSolution(p, sol, basis, opt, eval_expression = eval_expression, kwargs...)
+
+    return DataDrivenSolution(p, sol, basis, opt; eval_expression = eval_expression, kwargs...)
 end
 
