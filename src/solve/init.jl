@@ -57,29 +57,16 @@ function rescale_xi!(xi::AbstractMatrix, scales::AbstractVector, round_::Bool)
     return
 end
 
-mutable struct SparseLinearProblem{A,T,V,S,X,Y,C} 
-    Θ::A
-    trains::T
-    val::V
-    tests::S
-    Ξ::X
-    DX::Y
-    scales::C
-end
-
-struct SparseLinearSolution{X, L, S, E, F, O}
+struct SparseLinearSolution{X, L, S, E, F, O,P}
     Ξ::X
     λ::L
     sets::S
     error::E
     folds::F
     opt::O
+    options::P
 end
 
-function SparseLinearSolution(p::SparseLinearProblem, errors, folds, λ, opt)
-    @unpack Ξ, trains, tests = p
-    return SparseLinearSolution(Ξ, λ, (trains, tests), errors, folds, opt)
-end
 
 # Selection
 select_by(x, y::AbstractMatrix) = y 
@@ -129,10 +116,9 @@ function DiffEqBase.init(prob::AbstractDataDrivenProblem{N,C,P}, basis::Abstract
     n_y = size(Y, 1)
 
     Ξ = zeros(N, length(train), length(basis), n_y)
-
-    return SparseLinearProblem{typeof(dx), typeof(train), typeof(nothing), typeof(test), typeof(Ξ), typeof(Y), typeof(scales)}(
-        dx, train, nothing, test, Ξ, Y, scales
-    )
+    
+    return dx, Y, Ξ, train, test, scales
+    
 end
 
 
@@ -141,9 +127,7 @@ function DiffEqBase.solve(p::AbstractDataDrivenProblem{T, C, P}, basis, opt::Abs
     
     set_from_kwargs!(opts, kwargs...)
 
-    prob = init(p, basis, opt, opts)
-    
-    @unpack Θ, DX, Ξ, trains, tests, scales = prob 
+    Θ, DX, Ξ, trains, tests, scales = init(p, basis, opt, opts)
     @unpack maxiter, abstol, reltol, verbose, progress,f,g= opts
     
     testerror = zeros(T, size(Ξ, 1))
@@ -173,10 +157,9 @@ function DiffEqBase.solve(p::AbstractDataDrivenProblem{T, C, P}, basis, opt::Abs
 
         rescale_xi!(X, scales, true)
     end
-
-    # Rescale
-    sol = SparseLinearSolution(prob, testerror, trainerror, λs, opt)
-
+    sol = SparseLinearSolution(
+        Ξ, λs, (trains, tests), testerror, trainerror, opt, opts
+    )
     return DataDrivenSolution(p, sol, basis, opt; eval_expression = eval_expression, kwargs...)
 end
 
