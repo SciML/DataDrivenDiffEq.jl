@@ -255,7 +255,7 @@ end
 function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symbol = :continuous, is_implicit = false, eval_expression = false)
 
     # Create additional variables
-    sp = Int(norm(X, 0))
+    sp = sum(.! iszero.(X))
     sps = norm.(eachcol(X), 0)
     inds = sps .> zero(eltype(X))
     pl = length(parameters(b))
@@ -333,7 +333,8 @@ function assert_lhs(prob)
     return lhs, dt
 end
 
-function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis, implicits = Num[]; eval_expression = false, digits::Int = 10, kwargs...)
+function DataDrivenSolution(prob, s, b::Basis, opt, implicits = Num[]; eval_expression = false, digits::Int = 10, by = :min, kwargs...)
+    Ξ, _... = select_by(by, s) 
     # Build a basis and returns a solution
     if all(iszero.(Ξ))
         @warn "Sparse regression failed! All coefficients are zero."
@@ -346,7 +347,7 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix,
 
     sol , ps = construct_basis(round.(Ξ, digits = digits), b, implicits, 
         lhs = lhs, dt = dt,
-        is_implicit = isa(opt, Optimize.AbstractSubspaceOptimizer) ,eval_expression = eval_expression
+        is_implicit = isa(opt, AbstractSubspaceOptimizer) ,eval_expression = eval_expression
         )
 
     
@@ -354,12 +355,12 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix,
 
     
     return DataDrivenSolution(
-        sol, ps, :solved, opt, Ξ, prob, true, eval_expression = eval_expression
+        sol, ps, :solved, opt, s, prob, true, eval_expression = eval_expression
     )
 end
 
 
-function DataDrivenSolution(prob::AbstractDataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; 
+function DataDrivenSolution(prob, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; 
     digits::Int = 10, eval_expression = false, kwargs...)
     # Build parameterized equations, inds indicate the location of basis elements containing an input
     Ξ = zeros(eltype(B), size(C,2), length(b))
