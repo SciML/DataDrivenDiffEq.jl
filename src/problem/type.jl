@@ -224,7 +224,7 @@ function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, DX::A
     return DataDrivenProblem(X; t = t, DX = DX, U = U, probtype = DDProbType(3), kwargs...)
 end
 
-function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, collocation::AbstractInterpolationMethod = InterpolationMethod(); kwargs...)
+function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, collocation = InterpolationMethod(); kwargs...)
     dx, x = collocate_data(X, t, collocation)
     return DataDrivenProblem(x; t = t, DX = dx, probtype = DDProbType(3), kwargs...)
 end
