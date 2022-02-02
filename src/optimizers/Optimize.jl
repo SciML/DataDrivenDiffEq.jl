@@ -37,14 +37,14 @@ Get the threshold(s) of an optimizer.
 """
 get_threshold(opt::AbstractOptimizer) = opt.λ
 
-#"""
-#$(SIGNATURES)
-#
-#Initialize the optimizer with the least square solution for explicit and `zeros` for implicit optimization.
-#"""
-#init(o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) = A \ Y
-#
-#init(o::AbstractSubspaceOptimizer, A::AbstractArray, Y::AbstractArray) = zeros(eltype(A), size(A, 2), size(Y, 2))
+"""
+$(SIGNATURES)
+
+Initialize the optimizer with the least square solution for explicit and `zeros` for implicit optimization.
+"""
+init(o::AbstractOptimizer, A, Y) = A \ Y
+
+init(o::AbstractSubspaceOptimizer, A, Y) = zeros(eltype(A), size(A, 2), size(Y, 2))
 
 """
 $(SIGNATURES)
