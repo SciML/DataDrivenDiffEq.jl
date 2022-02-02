@@ -6,6 +6,7 @@ module DataDrivenDiffEq
 using DocStringExtensions
 using LinearAlgebra
 using DiffEqBase
+using CommonSolve
 using ModelingToolkit
 
 using Distributions
@@ -132,8 +133,10 @@ export DataDrivenSolution
 export result, parameters, parameter_map, algorithm
 export output, metrics, error, aic, determination, get_problem
 
-include("./solve/init.jl")
+
+include("./solve/common.jl")
 export DataDrivenCommonOptions
+include("./solve/sparse_identification.jl")
 #include("./solve/sindy.jl")
 #include("./solve/koopman.jl")
 #export solve
