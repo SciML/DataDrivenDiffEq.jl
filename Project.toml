@@ -4,6 +4,7 @@ authors = ["Julius Martensen <julius.martensen@gmail.com>"]
 version = "0.7.0"
 
 [deps]
+CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
@@ -26,13 +27,14 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Compat = "3.0"
+CommonSolve = "0.2"
 DataInterpolations = "3"
 DiffEqBase = "6"
 Distributions = "^0.25.9, 0.25"
 DocStringExtensions = "0.7, 0.8"
 Flux = "^0.12.4"
-ModelingToolkit = "7, 8"
 Measurements = "2.7"
+ModelingToolkit = "7, 8"
 Parameters = "0.12"
 ProgressMeter = "1.6"
 QuadGK = "2.4"
