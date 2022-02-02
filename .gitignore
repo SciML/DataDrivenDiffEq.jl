@@ -4,3 +4,9 @@
 Manifest.toml
 .DS_Store
 /docs/build/*
+hall_of_fame.csv
+hall_of_fame.csv.bkup
+hall_of_fame.csv.out1
+hall_of_fame.csv.out1.bkup
+hall_of_fame.csv.out2
+hall_of_fame.csv.out2.bkup
