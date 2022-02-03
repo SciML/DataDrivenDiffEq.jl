@@ -1,5 +1,5 @@
 ## Problem
-struct SparseIdentificationProblem{X, PR, B, TR, TS, P, O, IM}
+struct SparseIdentificationProblem{X, PR, B, TR, TS, P, O}
     Ξ::X
     prob::PR
     basis::B
@@ -7,7 +7,6 @@ struct SparseIdentificationProblem{X, PR, B, TR, TS, P, O, IM}
     test::TS
     optimizer::P
     options::O
-    implicits::IM
     eval_expression::Bool
 end
 
@@ -51,8 +50,7 @@ end
 
 ## Solve!
 
-function CommonSolve.init(prob::AbstractDataDrivenProblem{N,C,P}, basis::AbstractBasis, opt::AbstractOptimizer, 
-    implicits = Num[], args...; eval_expression = false, kwargs...)::SparseIdentificationProblem where {N,C,P}
+function CommonSolve.init(prob::AbstractDataDrivenProblem{N,C,P}, basis::AbstractBasis, opt::AbstractOptimizer, args...; eval_expression = false, kwargs...)::SparseIdentificationProblem where {N,C,P}
   
     @is_applicable prob
     
@@ -68,12 +66,12 @@ function CommonSolve.init(prob::AbstractDataDrivenProblem{N,C,P}, basis::Abstrac
 
     Ξ = zeros(N, length(train), length(basis) , n_y)
     
-    return SparseIdentificationProblem(Ξ, prob, basis, train, test, opt, options, implicits, eval_expression)
+    return SparseIdentificationProblem(Ξ, prob, basis, train, test, opt, options, eval_expression)
 end
 
-function CommonSolve.solve!(p::SparseIdentificationProblem)::DataDrivenSolution
+function CommonSolve.solve!(p::SparseIdentificationProblem)#::DataDrivenSolution
 
-    @unpack Ξ, prob, basis, train, test, optimizer, options, implicits, eval_expression = p
+    @unpack Ξ, prob, basis, train, test, optimizer, options, eval_expression = p
     @unpack normalize, denoise, sampler, maxiter, abstol, reltol, verbose, progress,f,g, kwargs = options
 
     
@@ -91,6 +89,8 @@ function CommonSolve.solve!(p::SparseIdentificationProblem)::DataDrivenSolution
         basis(Θ, prob)
     end
     
+    c = candidate_matrix(basis, size(DX,1))
+
     scales = ones(T, length(basis))
 
     normalize ? normalize_theta!(scales, Θ) : nothing
@@ -108,28 +108,28 @@ function CommonSolve.solve!(p::SparseIdentificationProblem)::DataDrivenSolution
     Yₜ = DX[:, test]'
 
     @views for (i,t) in enumerate(train)
+        for (j, cj) in enumerate(eachrow(c))
+            A = Θ[cj,t]'
+            Y = DX[j:j, t]'
+            X = Ξ[i, cj, j:j] 
 
-        A = Θ[:,t]'
-        Y = DX[:, t]'
-        X = Ξ[i, :, :] 
-
-        λs[i,:] .= sparse_regression!(X, A, Y, optimizer; 
-            maxiter = maxiter, abstol = abstol, f = f, g = g, progress = progress,
-            kwargs...
-        )
-
-        for (j, tt) in enumerate(train)
-            trainerror[i,j] = fg(X, Θ[:,tt]', DX[:, tt]')
+            λs[i,j:j] .= sparse_regression!(X, A, Y, optimizer; 
+                maxiter = maxiter, abstol = abstol, f = f, g = g, progress = progress,
+                kwargs...
+            )
         end
 
-        testerror[i] = fg(X, Aₜ, Yₜ)
+        for (j, tt) in enumerate(train)
+            trainerror[i,j] = fg(Ξ[i,:,:], Θ[:,tt]', DX[:, tt]')
+        end
 
-        rescale_xi!(X, scales, true)
+        testerror[i] = fg(Ξ[i,:,:], Aₜ, Yₜ)
+
+        rescale_xi!(Ξ[i,:,:], scales, true)
     end
 
     sol = SparseLinearSolution(
         Ξ, λs, (train, test), testerror, trainerror, optimizer, options
     )
-
-    return DataDrivenSolution(prob, sol, basis, optimizer, implicits; eval_expression = eval_expression)
+    return DataDrivenSolution(prob, sol, basis, optimizer, implicit_variables(basis); eval_expression = eval_expression)
 end

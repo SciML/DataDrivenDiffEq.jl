@@ -64,8 +64,15 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol
         
     if !eval_expression
         # Compute the errors
+
         x, _, t, u = get_oop_args(prob)
-        e = get_target(prob) - b(x, p, t, u)
+        y = get_target(prob)
+
+        if is_implicit(b)
+            e = b([x; y], p, t, u)
+        else
+            e = get_target(prob) - b(x, p, t, u)
+        end
 
         l2 = sum(abs2, e, dims = 2)[:,1]
         aic = 2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
@@ -237,12 +244,12 @@ end
 
 # Check linearity
 
-function assert_linearity(eqs::AbstractVector{Equation}, x::AbstractVector{Num})
+function assert_linearity(eqs::AbstractVector{Equation}, x::AbstractVector)
     return assert_linearity(map(x->Num(x.rhs), eqs), x)
 end
 
 # Returns true iff x is not in the arguments of the jacobian of eqs
-function assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector{Num})
+function assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector)
     j = Symbolics.jacobian(eqs, x)
     # Check if any of the variables is in the jacobian
     v = unique(reduce(vcat, map(get_variables, j)))
@@ -293,14 +300,18 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
             eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
         end
     else
-        eqs = 0 .~ eqs
         if !isempty(implicits)
+            eqs = eqs .~ 0
             if assert_linearity(eqs, implicits)
-                # Try to solve the eq for the implicits
-                eqs = ModelingToolkit.solve_for(eqs, implicits)
-                eqs = implicits .~ eqs
+                try
+                    # Try to solve the eq for the implicits
+                    eqs = ModelingToolkit.solve_for(eqs, implicits)
+                    eqs = implicits .~ eqs
+                    implicits = []
+                catch 
+                    @warn "Failed to solve recovered equations for implicit variables. Returning implicit equations."
+                end
             end
-            xs = [s for s in xs if !any(map(i->isequal(i, s), implicits))]
         end
     end
 
@@ -308,6 +319,7 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
         eqs, xs,
         parameters = [parameters(b); p], iv = get_iv(b),
         controls = controls(b), observed = observed(b),
+        implicits = implicits,
         name = gensym(:Basis),
         eval_expression = eval_expression
     ), ps

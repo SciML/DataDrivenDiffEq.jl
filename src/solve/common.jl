@@ -31,6 +31,19 @@ mutable struct DataDrivenCommonOptions{T}
     kwargs::Base.Pairs
 end
 
+DataDrivenCommonOptions(opt::AbstractKoopmanAlgorithm, ::Type{T} = Float64, args...; 
+    maxiter = 100, abstol = sqrt(eps()), reltol = sqrt(eps()),
+    progress = false, verbose = false, 
+    denoise = false, normalize = false, 
+    sampler = DataSampler(),
+    f = F(opt), g = G(opt), kwargs...) where T = begin
+   DataDrivenCommonOptions{eltype(T)}(
+       maxiter, abstol, reltol, 
+       progress, verbose, denoise, normalize, 
+       sampler, f, g, kwargs
+   ) 
+end
+
 DataDrivenCommonOptions(opt::AbstractOptimizer{T}, args...; 
     maxiter = 100, abstol = sqrt(eps()), reltol = sqrt(eps()),
     progress = false, verbose = false, 
@@ -64,35 +77,20 @@ function rescale_xi!(xi::AbstractMatrix, scales::AbstractVector, round_::Bool)
     return
 end
 
-#function DiffEqBase.init(prob::AbstractDataDrivenProblem{N,C,P}, basis::AbstractBasis, opt::AbstractOptimizer, options::DataDrivenCommonOptions, 
-#    args...; kwargs...) where {N,C,P}
-#    
-#    @unpack normalize, denoise, sampler = options
-#
-#    dx = zeros(N, length(basis), length(prob))
-#    
-#    @views if isa(opt, AbstractSubspaceOptimizer) 
-#        basis(dx, get_implicit_oop_args(prob)...)
-#    else
-#        basis(dx, prob)
-#    end
-#    
-#    scales = ones(N, size(dx, 1))
-#    
-#    normalize ? normalize_theta!(scales, dx) : nothing
-#
-#    denoise ? optimal_shrinkage!(dx') : nothing
-#
-#    train, test = sampler(prob)
-#
-#    Y = get_target(prob)
-#
-#    n_y = size(Y, 1)
-#
-#
-#    Ξ = zeros(N, length(train), length(basis) , n_y)
-#    
-#    return dx, Y, Ξ, train, test, scales
-#end
+function candidate_matrix(b::Basis, n_o::Int)
+    eqs = map(x->x.rhs, equations(b))
+    xs = states(b)
+    ys = implicit_variables(b)
+    
+    isempty(ys) && return ones(Bool, n_o, length(eqs))
 
+    c = zeros(Bool, length(ys), length(eqs))
 
+    for i in 1:length(ys), j in 1:length(eqs)
+        c[i,j] = is_dependent(Num(eqs[j]), Num(ys[i]))
+        c[i,j] && continue
+        c[i,j] = all(map(xi->is_not_dependent(Num(eqs[j]), Num(xi)), ys))
+    end
+
+    return c
+end

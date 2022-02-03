@@ -25,7 +25,7 @@ struct DataSampler{T} <: AbstractSampler
     end
 end
 
-DataSampler() = DataSampler(Split(ratio = 0.8))
+DataSampler() = DataSampler(Split(ratio = 1.0))
 
 (s::DataSampler)(p::AbstractDataDrivenProblem) = begin 
     isempty(s.samplers) && return ([1:length(p)], :)

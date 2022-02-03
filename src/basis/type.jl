@@ -10,7 +10,11 @@ a vector of `eqs`.
 It can be called with the typical SciML signature, meaning out of place with `f(u,p,t)`
 or in place with `f(du, u, p, t)`. If control inputs are present, it is assumed that no control corresponds to
 zero for all inputs. The corresponding function calls are `f(u,p,t,inputs)` and `f(du,u,p,t,inputs)` and need to
-be specified fully.
+be specified fully. 
+
+The optional `implicits` declare implicit variables in the `Basis`, meaning variables representing the (measured) target of the system.
+Right now only supported with the use of `ImplicitOptimizer`s.
+
 
 If `linear_independent` is set to `true`, a linear independent basis is created from all atom functions in `f`.
 
@@ -59,6 +63,8 @@ mutable struct Basis <: AbstractBasis
     observed::Vector
     """Independent variable"""
     iv::Num
+    """Implicit variables of the basis"""
+    implicit::Vector
     """Internal function representation of the basis"""
     f::Function
     """Name of the basis"""
@@ -71,15 +77,18 @@ end
 
 function Basis(eqs::AbstractVector, states::AbstractVector;
     parameters::AbstractVector = [], iv = nothing,
-    controls::AbstractVector = [], observed::AbstractVector = [],
+    controls::AbstractVector = [], implicits = [],
+    observed::AbstractVector = [],
     name = gensym(:Basis),
     simplify = false, linear_independent = false,
     eval_expression = false,
     kwargs...)
+    
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     eqs = scalarize(eqs)
-    states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
+
+    states, controls, parameters, implicits, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(implicits)), value.(scalarize(observed))
 
     eqs = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
 
@@ -91,17 +100,18 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
 
     unique!(eqs, !simplify)
 
-    f = _build_ddd_function(eqs, states, parameters, iv, controls, eval_expression)
+    f = _build_ddd_function(eqs, [states;implicits], parameters, iv, controls, eval_expression)
 
     eqs = [Symbolics.variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
-    return Basis(collect(eqs), states, controls, parameters, observed, iv, f, name, Basis[])
+    return Basis(collect(eqs), states, controls, parameters, observed, iv, implicits, f, name, Basis[])
 end
 
 
 function Basis(eqs::AbstractVector{Equation}, states::AbstractVector;
     parameters::AbstractVector = [], iv = nothing,
-    controls::AbstractVector = [], observed::AbstractVector = [],
+    controls::AbstractVector = [], implicits = [],
+    observed::AbstractVector = [],
     name = gensym(:Basis),
     simplify = false, linear_independent = false,
     eval_expression = false,
@@ -110,7 +120,7 @@ function Basis(eqs::AbstractVector{Equation}, states::AbstractVector;
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     eqs = scalarize(eqs)
-    states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
+    states, controls, parameters, implicits, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(implicits)), value.(scalarize(observed))
 
     lhs = [x.lhs for x in eqs]
     # We filter out 0s
@@ -124,23 +134,23 @@ function Basis(eqs::AbstractVector{Equation}, states::AbstractVector;
     isnothing(iv) && (iv = Num(variable(:t)))
     unique!(eqs_, !simplify)
 
-    f = _build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
+    f = _build_ddd_function(eqs_, [states;implicits], parameters, iv, controls, eval_expression)
 
     eqs = [lhs[i] ~ eq for (i,eq) ∈ enumerate(eqs_)]
 
-    return Basis(collect(eqs), value.(states), value.(controls), value.(parameters), value.(observed), value(iv), f, name, Basis[])
+    return Basis(collect(eqs), states, controls, parameters, observed, iv, implicits, f, name, Basis[])
 
 end
 
 
-function Basis(f::Function, states::AbstractVector; parameters::AbstractVector = [], controls::AbstractVector = [],
+function Basis(f::Function, states::AbstractVector; parameters::AbstractVector = [], controls::AbstractVector = [], implicits::AbstractVector = [],
      iv = nothing, kwargs...)
 
     isnothing(iv) && (iv = Num(Variable(:t)))
 
     try
-        eqs = isempty(controls) ? f(states, parameters, iv) : f(states, parameters, iv, controls)
-        return Basis(eqs, states, parameters = parameters, iv = iv, controls = controls; kwargs...)
+        eqs = isempty(controls) ? f([states;implicits], parameters, iv) : f([states;implicits], parameters, iv, controls)
+        return Basis(eqs, states, parameters = parameters, iv = iv, controls = controls, implicits = implicits; kwargs...)
     catch e
         rethrow(e)
     end
@@ -236,6 +246,18 @@ end
 function dynamics(b::AbstractBasis)
     return get_f(b)
 end
+
+"""
+$(SIGNATURES)
+
+Return the implicit variables of the basis.
+"""
+function implicit_variables(b::AbstractBasis)
+    return getfield(b, :implicit)
+end
+
+# For internal use
+is_implicit(b::AbstractBasis) = !isempty(implicit_variables(b))
 
 ## Callable
 get_f(b::AbstractBasis) = getfield(b, :f)
