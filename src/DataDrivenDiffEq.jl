@@ -63,7 +63,7 @@ include("./basis/utils.jl")
 include("./basis/type.jl")
 export Basis
 export jacobian, dynamics
-export free_parameters
+export free_parameters, implicit_variables
 
 include("./utils/basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis
@@ -138,7 +138,7 @@ include("./solve/common.jl")
 export DataDrivenCommonOptions
 include("./solve/sparse_identification.jl")
 #include("./solve/sindy.jl")
-#include("./solve/koopman.jl")
+include("./solve/koopman.jl")
 #export solve
 
 include("./recipes/problem_result.jl")
