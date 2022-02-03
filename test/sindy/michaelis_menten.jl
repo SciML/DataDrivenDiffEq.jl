@@ -24,7 +24,7 @@ end
 @variables u[1:2]
 u = collect(u)
 h = [monomial_basis(u[1:1], 4)...]
-basis = Basis([h; h .* u[2]], u)
+basis = Basis([h; h .* u[2]], u[1:1], implicits = u[2:2])
 
 @testset "Ideal data" begin
     
