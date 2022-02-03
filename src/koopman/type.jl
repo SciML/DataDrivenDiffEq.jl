@@ -154,6 +154,8 @@ lifting(k::AbstractKoopman) = getfield(k, :lift)
 # Get K
 _get_K(k::AbstractKoopman) = getfield(k, :K)
 
+implicit_variables(k::AbstractKoopman) = []
+
 """
 $(SIGNATURES)
 

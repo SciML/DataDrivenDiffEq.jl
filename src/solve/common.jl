@@ -27,6 +27,9 @@ mutable struct DataDrivenCommonOptions{T}
     f::Function
     """Scalarization of the features for a candidate solution"""
     g::Function
+    """Significant digits for the parameters - used for rounding. Default = 10"""
+    digits::Int 
+
     """Additional kwargs"""
     kwargs::Base.Pairs
 end
@@ -36,11 +39,11 @@ DataDrivenCommonOptions(opt::AbstractKoopmanAlgorithm, ::Type{T} = Float64, args
     progress = false, verbose = false, 
     denoise = false, normalize = false, 
     sampler = DataSampler(),
-    f = F(opt), g = G(opt), kwargs...) where T = begin
+    f = F(opt), g = G(opt), digits = 10, kwargs...) where T = begin
    DataDrivenCommonOptions{eltype(T)}(
        maxiter, abstol, reltol, 
        progress, verbose, denoise, normalize, 
-       sampler, f, g, kwargs
+       sampler, f, g, digits, kwargs
    ) 
 end
 
@@ -49,11 +52,13 @@ DataDrivenCommonOptions(opt::AbstractOptimizer{T}, args...;
     progress = false, verbose = false, 
     denoise = false, normalize = false, 
     sampler = DataSampler(),
-    f = F(opt), g = G(opt), kwargs...) where T = begin
+    f = F(opt), g = G(opt), 
+    digits = 10,
+    kwargs...) where T = begin
    DataDrivenCommonOptions{eltype(T)}(
        maxiter, abstol, reltol, 
        progress, verbose, denoise, normalize, 
-       sampler, f, g, kwargs
+       sampler, f, g, digits, kwargs
    ) 
 end
 

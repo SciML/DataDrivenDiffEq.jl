@@ -128,6 +128,11 @@ export is_valid, @is_applicable, get_name
 include("./problem/sample.jl")
 export DataSampler, Split, Batcher
 
+# Result selection
+select_by(x, y::AbstractMatrix) = y 
+select_by(x, sol) = select_by(Val(x), sol)
+
+
 include("./solution.jl")
 export DataDrivenSolution
 export result, parameters, parameter_map, algorithm

@@ -22,8 +22,6 @@ struct SparseLinearSolution{X, L, S, E, F, O,P}
 end
 
 # Selection
-select_by(x, y::AbstractMatrix) = y 
-select_by(x, sol) = select_by(Val(x), sol)
 
 select_by(::Val, sol::SparseLinearSolution) = begin
     @unpack Ξ, error, λ = sol
@@ -46,7 +44,6 @@ select_by(::Val{:stat}, sol::SparseLinearSolution) = begin
     s = std(Ξ, dims = 1)[1,:,:]
     return measurement.(ξ, s), error[best], λ[best,:]
 end
-
 
 ## Solve!
 

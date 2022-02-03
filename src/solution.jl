@@ -332,6 +332,7 @@ function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
     return x
 end
 
+
 function assert_lhs(prob)
     dt = mean(diff(prob.t))
     lhs = :direct
@@ -345,7 +346,8 @@ function assert_lhs(prob)
     return lhs, dt
 end
 
-function DataDrivenSolution(prob, s, b::Basis, opt, implicits = Num[]; eval_expression = false, digits::Int = 10, by = :min, kwargs...)
+function DataDrivenSolution(prob, s, b::B, opt::O, implicits = Num[]; 
+    eval_expression = false, digits::Int = 10, by = :min, kwargs...) where {B <: AbstractBasis, O <: AbstractOptimizer}
     Ξ, _... = select_by(by, s) 
     # Build a basis and returns a solution
     if all(iszero.(Ξ))
@@ -372,13 +374,16 @@ function DataDrivenSolution(prob, s, b::Basis, opt, implicits = Num[]; eval_expr
 end
 
 
-function DataDrivenSolution(prob, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; 
-    digits::Int = 10, eval_expression = false, kwargs...)
+function DataDrivenSolution(prob, k, b::BS, alg::KA; 
+    digits::Int = 10, by = :min, eval_expression = false, kwargs...) where {BS <: AbstractBasis, KA <: AbstractKoopmanAlgorithm}
+    k_, _... = select_by(by, k) 
+    @unpack inds = k
+    K, B, C, P, Q = k_
     # Build parameterized equations, inds indicate the location of basis elements containing an input
     Ξ = zeros(eltype(B), size(C,2), length(b))
 
 
-    Ξ[:, inds] .= real.(Matrix(k))
+    Ξ[:, inds] .= real.(Matrix(K))
     if !isempty(B)
         Ξ[:, .! inds] .= B
     end
@@ -394,13 +399,13 @@ function DataDrivenSolution(prob, k, C, B, Q, P, inds, b::AbstractBasis, alg::Ab
     res_ = Koopman(equations(bs), states(bs),
         parameters = parameters(bs),
         controls = controls(bs), iv = get_iv(bs),
-        K = k, C = C, Q = Q, P = P, lift = get_f(b),
+        K = K, C = C, Q = Q, P = P, lift = get_f(b),
         is_discrete = is_discrete(prob),
         eval_expression = eval_expression)
 
     ps = isempty(parameters(b)) ? ps : vcat(prob.p, ps)
 
     return DataDrivenSolution(
-        res_, ps, :solved, alg, Ξ, prob, true, eval_expression = eval_expression
+        res_, ps, :solved, alg, k, prob, true, eval_expression = eval_expression
     )
 end
