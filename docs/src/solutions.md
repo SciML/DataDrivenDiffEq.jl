@@ -8,6 +8,7 @@ DataDrivenSolution
 
 ```@docs
 result
+get_problem
 metrics
 parameters
 parameter_map

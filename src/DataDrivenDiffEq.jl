@@ -19,7 +19,7 @@ using ProgressMeter
 using Reexport
 using Compat
 using DocStringExtensions
-
+using RecipesBase
 
 @reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls, get_iv
 @reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
@@ -117,15 +117,16 @@ export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem, DirectDataDrivenP
 export is_autonomous, is_discrete, is_direct, is_continuous, is_parametrized, has_timepoints
 export is_valid
 
-
 include("./solution.jl")
 export DataDrivenSolution
 export result, parameters, parameter_map, algorithm
-export output, metrics, error, aic, determination
+export output, metrics, error, aic, determination, get_problem
 
 include("./solve/sindy.jl")
 include("./solve/koopman.jl")
 export solve
+
+include("./recipes/problem_result.jl")
 
 # Optional
 function __init__()

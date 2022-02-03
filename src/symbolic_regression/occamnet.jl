@@ -292,8 +292,12 @@ function Flux.train!(net::OccamNet, X, Y, opt, maxiters = 10; routes = 10, nbest
     for k in 1:maxiters
         ls = map(1:routes) do i
             route = rand(net)
-            res = net(X, route)
-            route, sum(gkernel(res, Y, vary))
+            try
+                res = net(X, route)
+                route, sum(gkernel(res, Y, vary))
+            catch
+                route, zero(eltype(X))
+            end
         end
         ls = sort(ls, by = last, rev = true)
 

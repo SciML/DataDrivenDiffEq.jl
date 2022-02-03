@@ -238,7 +238,7 @@ function dynamics(b::AbstractBasis)
 end
 
 ## Callable
-get_f(b::AbstractBasis) = getproperty(b, :f)
+get_f(b::AbstractBasis) = getfield(b, :f)
 
 # Fallback
 (b::AbstractBasis)(args...) = get_f(b)(args...)

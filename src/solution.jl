@@ -176,6 +176,12 @@ determination(r::DataDrivenSolution{l, o, a}) where {l,o, a} = begin
     end
 end
 
+"""
+$(SIGNATURES)
+
+Returns the original `DataDrivenProblem`.
+"""
+get_problem(r::DataDrivenSolution) = getfield(r, :prob)
 
 """
 $(SIGNATURES)
@@ -375,7 +381,7 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, k, C, B, Q, P, inds
     res_ = Koopman(equations(bs), states(bs),
         parameters = parameters(bs),
         controls = controls(bs), iv = get_iv(bs),
-        K = k, C = C, Q = Q, P = P, lift = b.f,
+        K = k, C = C, Q = Q, P = P, lift = get_f(b),
         is_discrete = is_discrete(prob),
         eval_expression = eval_expression)
 

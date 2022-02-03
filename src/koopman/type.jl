@@ -146,19 +146,20 @@ end
 
 
 # We assume that we only have real valued observed
-Base.Matrix(k::AbstractKoopman) = real.(Matrix(k.K))
+Base.Matrix(k::AbstractKoopman) = real.(Matrix(_get_K(k)))
 
 # Get the lifting function
-lifting(k::AbstractKoopman) = k.lift
+lifting(k::AbstractKoopman) = getfield(k, :lift)
 
+# Get K
+_get_K(k::AbstractKoopman) = getfield(k, :K)
 
-# TODO FIXME MAYBE? 
 """
 $(SIGNATURES)
 
 Returns `true` if the `AbstractKoopmanOperator` `k` is discrete in time.
 """
-is_discrete(k::AbstractKoopman) = !(!k.is_discrete)
+is_discrete(k::AbstractKoopman) = getfield(k, :is_discrete)
 
 
 
@@ -167,28 +168,32 @@ $(SIGNATURES)
 
 Returns `true` if the `AbstractKoopmanOperator` `k` is continuous in time.
 """
-is_continuous(k::AbstractKoopman) = !k.is_discrete
+is_continuous(k::AbstractKoopman) = !is_discrete(k)
 
 """
 $(SIGNATURES)
 
 Return the eigendecomposition of the `AbstractKoopmanOperator`.
 """
-LinearAlgebra.eigen(k::AbstractKoopman) = isa(k.K, Eigen) ? k.K : eigen(k.K)
+LinearAlgebra.eigen(k::AbstractKoopman) = begin 
+    K = _get_K(k)
+    isa(K, Eigen) && return K 
+    eigen(K)
+end
 
 """
 $(SIGNATURES)
 
 Return the eigenvalues of the `AbstractKoopmanOperator`.
 """
-LinearAlgebra.eigvals(k::AbstractKoopman) = eigvals(k.K)
+LinearAlgebra.eigvals(k::AbstractKoopman) = eigvals(_get_K(k))
 
 """
 $(SIGNATURES)
 
 Return the eigenvectors of the `AbstractKoopmanOperator`.
 """
-LinearAlgebra.eigvecs(k::AbstractKoopman) = eigvecs(k.K)
+LinearAlgebra.eigvecs(k::AbstractKoopman) = eigvecs(_get_K(k))
 
 """
 $(SIGNATURES)
@@ -209,14 +214,14 @@ $(SIGNATURES)
 
 Return the approximation of the discrete Koopman operator stored in `k`.
 """
-operator(k::AbstractKoopman) = is_discrete(k) ? k.K : throw(AssertionError("Koopman is continouos."))
+operator(k::AbstractKoopman) = is_discrete(k) ? _get_K(k) : throw(AssertionError("Koopman is continouos."))
 
 """
 $(SIGNATURES)
 
 Return the approximation of the continuous Koopman generator stored in `k`.
 """
-generator(k::AbstractKoopman) = is_continuous(k) ? k.K : throw(AssertionError("Koopman is discrete."))
+generator(k::AbstractKoopman) = is_continuous(k) ? _get_K(k) : throw(AssertionError("Koopman is discrete."))
 
 """
 $(SIGNATURES)
@@ -240,7 +245,11 @@ Returns `true` if either:
 + the Koopman operator has just eigenvalues with magnitude less than one or
 + the Koopman generator has just eigenvalues with a negative real part
 """
-is_stable(k::AbstractKoopman) = is_discrete(k) ? all(real.(eigvals(k)) .< real.(one(eltype(k.K)))) : all(real.(eigvals(k)) .< zero(eltype(k.K)))
+is_stable(k::AbstractKoopman) = begin 
+    K = _get_K(k)
+    is_discrete(k) && all(real.(eigvals(k)) .< real.(one(eltype(K)))) 
+    all(real.(eigvals(k)) .< zero(eltype(K)))
+end
 
 # TODO This does not work, since we are using the reduced basis instead of the
 # original, lifted dynamics...
