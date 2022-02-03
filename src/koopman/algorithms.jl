@@ -20,6 +20,16 @@ function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where T <: Number
 end
 
 
+# Pareto functions
+G(opt::AbstractKoopmanAlgorithm) = g(f) = first(f)
+
+# Evaluate F
+function F(opt::AbstractKoopmanAlgorithm)
+    f(x, A, y::AbstractArray) = [norm(y .- A*x, 2)] # explicit
+    return f
+end
+
+
 """
 $(TYPEDEF)
 
@@ -41,8 +51,8 @@ mutable struct DMDPINV <: AbstractKoopmanAlgorithm end;
 
 # Fast but more allocations
 function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray)
-     K = Y / X
-     return eigen(K)
+    K = Y / X    
+    return (eigen(K),[])
  end
 
 # DMDC
@@ -51,16 +61,15 @@ function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
     nu, m = size(U)
 
     K̃ = Y / [X;U]
-
     K = K̃[:, 1:nx]
     B = K̃[:, nx+1:end]
 
-    return eigen(K), B
+    return (eigen(K), B)
 end
 
 # DMDC
 function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
-    return x(X, Y-B*U), B
+    return (x(X, Y-B*U), B)
 end
 
 """
@@ -102,7 +111,7 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where T <: Real
     # Compute the modes
     λ, ω = eigen(Ã)
     φ = B*ω
-    return Eigen(λ, φ)
+    return (Eigen(λ, φ),[])
 end
 
 # DMDc
@@ -128,11 +137,11 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray) wh
     # Compute the modes
     λ, ω = eigen(Ã)
     φ = C*U₁'Û*ω
-    return Eigen(λ, φ), B̃
+    return (Eigen(λ, φ), B̃)
 end
 
 function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray) where T <: Real
-    return x(X, Y-B*U), B
+    return (x(X, Y-B*U), B)
 end
 
 """
