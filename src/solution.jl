@@ -294,10 +294,11 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
         if length(eqs) == length(states(b))
             if lhs == :continuous
                 d = Differential(get_iv(b))
+                eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
             elseif lhs == :discrete
                 d = Difference(get_iv(b), dt = dt)
+                eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
             end
-            eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
         end
     else
         if !isempty(implicits)
