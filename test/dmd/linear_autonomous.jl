@@ -65,7 +65,7 @@ end
         m = metrics(res)
         @test Q'*K*Q ≈ K̃ atol = 1e-1
         @test Q*K̃*Q' ≈ K atol = 1e-1
-        @test all(m[:L₂] ./ length(ddprob)) .< 1e-2)
+        @test all(m[:L₂] ./ length(ddprob) .< 1e-2)
     end
 end
 
