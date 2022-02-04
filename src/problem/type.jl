@@ -342,11 +342,11 @@ end
 # Special case discrete problem
 
 @views (b::AbstractBasis)(p::AbstractDiscreteProb) = begin 
-    b(p[:, 1:length(p)-1]...)
+    b(p[:, 1:length(p)]...)
 end
 
 @views (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDiscreteProb) = begin 
-    b(dx, p, 1:length(p)-1)
+    b(dx, p, 1:length(p))
 end
 
 # Check for nans, inf etc
