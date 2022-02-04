@@ -1,5 +1,4 @@
 using DataDrivenDiffEq
-using DataDrivenDiffEq.Optimize
 using ModelingToolkit
 
 using LinearAlgebra
@@ -19,7 +18,7 @@ const GROUP = get(ENV, "GROUP", "All")
         @testset "Basis" begin include("./basis/basis.jl") end
         @testset "Basis Generators" begin include("./basis/generators.jl") end
         @testset "DataDrivenProblem" begin include("./problem.jl") end
-
+        
         @testset "Sparse Identification" begin
             @testset "Pendulum" begin include("./sindy/pendulum.jl") end
             @testset "Michaelis Menten" begin include("./sindy/michaelis_menten.jl") end
