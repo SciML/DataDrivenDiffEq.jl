@@ -375,12 +375,13 @@ end
 
 
 function DataDrivenSolution(prob, k, b::BS, alg::KA; 
-    digits::Int = 10, by = :min, eval_expression = false, kwargs...) where {BS <: AbstractBasis, KA <: AbstractKoopmanAlgorithm}
+    digits::Int = 10, by = :min, eval_expression = false, operator_only = false, kwargs...) where {BS <: AbstractBasis, KA <: AbstractKoopmanAlgorithm}
     k_, _... = select_by(by, k) 
     @unpack inds = k
     K, B, C, P, Q = k_
+    operator_only && return (K = K, B = B, C = C, P = P, Q = Q)
     # Build parameterized equations, inds indicate the location of basis elements containing an input
-    Ξ = zeros(eltype(B), size(C,2), length(b))
+    Ξ = zeros(eltype(C), size(C,2), length(b))
 
 
     Ξ[:, inds] .= real.(Matrix(K))

@@ -251,7 +251,14 @@ function DirectDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, Y::Abstra
 end
 
 Base.length(prob::AbstractDataDrivenProblem) = size(prob.X, 2)
+# Special case of Discrete
+Base.length(prob::AbstractDiscreteProb) = size(prob.X, 2)-1
+
 Base.size(prob::AbstractDataDrivenProblem) = size(prob.X)
+Base.size(prob::AbstractDiscreteProb) = begin
+    n,m = size(prob.X)
+    return (n, m-1)
+end
 
 """
 $(SIGNATURES)
@@ -300,8 +307,6 @@ function ModelingToolkit.controls(p::AbstractDataDrivenProblem, i = :, j = :)
     x = getfield(p, :U)
     isempty(x) ? x : getindex(x, i, j)
 end
-
-
 
 function Base.getindex(p::AbstractDataDrivenProblem, i = :, j = :)
     return (

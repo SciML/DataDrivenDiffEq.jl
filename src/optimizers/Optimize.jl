@@ -42,9 +42,9 @@ $(SIGNATURES)
 
 Initialize the optimizer with the least square solution for explicit and `zeros` for implicit optimization.
 """
-init(o::AbstractOptimizer, A, Y) = A \ Y
+CommonSolve.init(o::AbstractOptimizer, A, Y) = A \ Y
 
-init(o::AbstractSubspaceOptimizer, A, Y) = zeros(eltype(A), size(A, 2), size(Y, 2))
+CommonSolve.init(o::AbstractSubspaceOptimizer, A, Y) = zeros(eltype(A), size(A, 2), size(Y, 2))
 
 """
 $(SIGNATURES)

@@ -50,7 +50,7 @@ function CommonSolve.init(prob::AbstractDataDrivenProblem{N,C,P}, alg::AbstractK
     
     b = Basis([x; u], x, controls = u, iv = t)
     
-    init(prob, b, alg, args...; B = B, kwargs...)
+    init(prob, b, alg, args...; kwargs...)
 end
 
 # All (g(E))DMD like
@@ -60,9 +60,13 @@ function CommonSolve.init(prob::AbstractDiscreteProb{N,C}, b::AbstractBasis, alg
     @unpack X,p,t,U = prob
 
     x = b(X[:,1:end-1], p, t[1:end-1], U[:,1:end-1])
-    y = b(X[2:end-1], p, t[2:end], U[:, 2:end])
-
-    inds = .! is_dependent(map(eq->Num(eq.rhs),equations(b)), Num.(controls(b)))[1,:]
+    y = b(X[:, 2:end], p, t[2:end], U[:, 2:end])
+    
+    if !isempty(controls(b))
+        inds = .! is_dependent(map(eq->Num(eq.rhs),equations(b)), Num.(controls(b)))[1,:]
+    else
+        inds = ones(Bool, length(b))
+    end
 
     options = DataDrivenCommonOptions(alg, N; kwargs...)
     
@@ -123,18 +127,19 @@ function derive_operator(alg, x, y, b, z, inds)
         P = x*x'
         C = z / y[inds, :]
     end
-    return K, B, C, P, Q
+    return (K, B, C, P, Q,)
 end
 
 function operator_error(f, g)
     (x,y,K,B,C,P,Q,inds) -> begin
         k_ = Matrix(K)
-        isempty(B) && g(f(k_*x, C, y))
-        g(f(k_*x[inds, :]+B*x[.! inds, :], C, y))
+        isempty(B) && return g(f(k_*x, C, y))
+        return g(f(k_*x[inds, :]+B*x[.! inds, :], C, y))
     end
 end
 
 function CommonSolve.solve!(k::KoopmanProblem)
+    
     @unpack x, y, b, inds, prob, basis, train, test, alg, options, eval_expression = k
     @unpack normalize, denoise, sampler, maxiter, abstol, reltol, verbose, progress,f,g,digits,kwargs = options
     
@@ -148,10 +153,11 @@ function CommonSolve.solve!(k::KoopmanProblem)
     ops = []
 
     for (i,t) in enumerate(train)
+        
         op = derive_operator(alg, x[:, t], y[:, t], b, z[:, t], inds)
-
+       
         push!(ops, op)
-
+        
         testerror[i] = fg(xₜ, zₜ, op..., inds)
 
         for (j, tt) in enumerate(train)
