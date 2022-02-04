@@ -3,7 +3,7 @@ $(TYPEDEF)
 
 Common options for all methods provided via `DataDrivenDiffEq`. 
 """
-mutable struct DataDrivenCommonOptions{T}
+mutable struct DataDrivenCommonOptions{T,K}
     """Maximum iterations"""
     maxiter::Int
     """Absolute tolerance"""
@@ -31,7 +31,7 @@ mutable struct DataDrivenCommonOptions{T}
     digits::Int 
 
     """Additional kwargs"""
-    kwargs::Base.Pairs
+    kwargs::K
 end
 
 DataDrivenCommonOptions(opt::AbstractKoopmanAlgorithm, ::Type{T} = Float64, args...; 
@@ -40,7 +40,7 @@ DataDrivenCommonOptions(opt::AbstractKoopmanAlgorithm, ::Type{T} = Float64, args
     denoise = false, normalize = false, 
     sampler = DataSampler(),
     f = F(opt), g = G(opt), digits = 10, kwargs...) where T = begin
-   DataDrivenCommonOptions{eltype(T)}(
+   DataDrivenCommonOptions{eltype(T), typeof(kwargs)}(
        maxiter, abstol, reltol, 
        progress, verbose, denoise, normalize, 
        sampler, f, g, digits, kwargs
@@ -55,7 +55,7 @@ DataDrivenCommonOptions(opt::AbstractOptimizer{T}, args...;
     f = F(opt), g = G(opt), 
     digits = 10,
     kwargs...) where T = begin
-   DataDrivenCommonOptions{eltype(T)}(
+   DataDrivenCommonOptions{eltype(T), typeof(kwargs)}(
        maxiter, abstol, reltol, 
        progress, verbose, denoise, normalize, 
        sampler, f, g, digits, kwargs
