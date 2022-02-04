@@ -108,7 +108,7 @@ struct DataDrivenProblem{dType, cType, probType} <: AbstractDataDrivenProblem{dT
 end
 
 
-function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = Symbol(""), kwargs...)
+function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem), kwargs...)
     dType = Base.promote_eltype(X, t, DX, Y, U, p)
     cType = isempty(U)
     name = isa(name, Symbol) ? name : Symbol(name)
