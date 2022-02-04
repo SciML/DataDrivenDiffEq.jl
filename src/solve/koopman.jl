@@ -90,8 +90,17 @@ function CommonSolve.init(prob::AbstracContProb{N,C}, b::AbstractBasis, alg::A, 
 
     J = jacobian(b)
 
-    for i in 1:length(prob)
-       y[:, i] .= J(X[:, i], p, t[i], U[:, i])*DX[:, i]
+    if !isempty(U)
+        # Find the indexes of the control states
+        inds = .! is_dependent(map(eq->Num(eq.rhs),equations(b)), Num.(controls(b)))[1,:]
+        for i in 1:length(prob)
+           y[:, i] .= J(X[:, i], p, t[i], U[:, i])*DX[:, i]
+        end
+    else
+        inds = ones(Bool, length(b))
+        for i in 1:length(prob)
+            y[:, i] .= J(X[:, i], p, t[i])*DX[:, i]
+        end
     end
 
     options = DataDrivenCommonOptions(alg, N; kwargs...)
@@ -101,9 +110,6 @@ function CommonSolve.init(prob::AbstracContProb{N,C}, b::AbstractBasis, alg::A, 
     # Right now just ignore this 
     #train , test = nothing, nothing
     train, test = sampler(prob)
-
-    # Find the indexes of the control states
-    inds = .! is_dependent(map(eq->Num(eq.rhs),equations(b)), Num.(controls(b)))[1,:]
 
     return KoopmanProblem(
         x, y, B, inds, prob, b, train, test, alg, options, eval_expression
@@ -157,7 +163,7 @@ function CommonSolve.solve!(k::KoopmanProblem)
         op = derive_operator(alg, x[:, t], y[:, t], b, z[:, t], inds)
        
         push!(ops, op)
-        
+
         testerror[i] = fg(xₜ, zₜ, op..., inds)
 
         for (j, tt) in enumerate(train)

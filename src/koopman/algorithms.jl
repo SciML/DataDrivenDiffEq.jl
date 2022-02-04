@@ -19,7 +19,7 @@ function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where T <: Number
     return U, S, V
 end
 
-
+## Cost functions
 # Pareto functions
 G(opt::AbstractKoopmanAlgorithm) = g(f) = first(f)
 
@@ -29,6 +29,11 @@ function F(opt::AbstractKoopmanAlgorithm)
     return f
 end
 
+# General method with inputs
+function (x::AbstractKoopmanAlgorithm)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
+    K, _ = x(X, Y-B*U)
+    return (K, B)
+end
 
 """
 $(TYPEDEF)
@@ -67,10 +72,6 @@ function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
     return (eigen(K), B)
 end
 
-# DMDC
-function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
-    return (x(X, Y-B*U), B)
-end
 
 """
 $(TYPEDEF)
@@ -140,9 +141,6 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray) wh
     return (Eigen(λ, φ), B̃)
 end
 
-function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray) where T <: Real
-    return (x(X, Y-B*U), B)
-end
 
 """
 $(TYPEDEF)
@@ -181,5 +179,6 @@ end
 
 function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
     _ , _, Q = truncated_svd([X; Y], x.truncation)
-    return x.alg(X*Q, (Y-B*U)*Q), B
+    K, _ = x.alg(X*Q, (Y-B*U)*Q)
+    return (K, B)
 end
