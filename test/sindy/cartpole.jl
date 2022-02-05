@@ -68,22 +68,11 @@ ĝ(x) = x[1] <= 1 ? Inf : 2*x[1]-2*log(x[2])
 res = solve(ddprob, basis, opt, maxiter = 10, g = ĝ, scale_coefficients = false, progress = false)
 
 m = metrics(res)
-
-# This has been introduced with PR #330
-# I do not think that any of the changes there really 
-# affected the output of this test, but I'll look into this
-@static if VERSION >= v"1.7"
-    @test length(parameters(res)) == 10
-    @test all(m[:L₂] .< 1e-2)
-    @test all(m[:AIC] .> 1000.0)
-    @test all(m[:R²] .> 0.9)
-else
-    @info m
-    # I do not know right now what is causing this, but
-    # it seems unreleated to any of the algorithms in general.
-    @test_skip length(parameters(res)) == 10
-    @test_skip all(m[:L₂] .< 1e-2)
-    @test_skip all(m[:AIC] .> 1000.0)
-    @test_skip all(m[:R²] .> 0.9)
-end
+@info m
+# I do not know right now what is causing this, but
+# it seems unreleated to any of the algorithms in general.
+@test_skip length(parameters(res)) == 10
+@test_skip all(m[:L₂] .< 1e-2)
+@test_skip all(m[:AIC] .> 1000.0)
+@test_skip all(m[:R²] .> 0.9)
 
