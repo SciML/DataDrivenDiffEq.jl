@@ -26,8 +26,8 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-Compat = "3.0"
 CommonSolve = "0.2"
+Compat = "3.0"
 DataInterpolations = "3"
 DiffEqBase = "6"
 Distributions = "^0.25.9, 0.25"
