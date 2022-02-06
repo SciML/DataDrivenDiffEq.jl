@@ -179,7 +179,7 @@ function (x::fbDMD{T})(X::AbstractArray, Y::AbstractArray) where T <: Real
     B₂ = X*V₂*Sinv₂
     A₂ = U₂'B₂  # Backward DMD
 
-    Ã = (A₁/A₂)^(0.5)
+    Ã = sqrt(A₁/A₂)
     # Compute the modes
     λ, ω = eigen(Ã)
     φ = B₁*ω
