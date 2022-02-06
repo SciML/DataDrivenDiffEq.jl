@@ -23,6 +23,31 @@
     end
 end
 
+# test adopted for fbDMD from https://github.com/mathLab/PyDMD/blob/master/tests/test_fbdmd.py
+@testset "Linear Discrete System from PyDMD" begin
+    # Create some linear data
+    A = (1/√3)*[1 1;-1 2];
+    y = [[.5; 1.]];
+    for i in 1:99
+        push!(y, A*y[end])
+    end
+    X= hcat(y...);
+    prob = DiscreteDataDrivenProblem(X, t = 1:100);
+
+    for alg in [DMDPINV(), DMDSVD(), fbDMD() ,TOTALDMD()]
+        # Returns a named
+        estimator = solve(prob, alg , operator_only = true)
+        @test isapprox(Matrix(estimator.K), A, atol = 1e-2)
+        @test isapprox(eigvals(estimator.K), eigvals(A), atol = 1e-2)
+        @test estimator.C ≈ diagm(ones(2))
+        @test isempty(estimator.B)
+        res = solve(prob, alg , operator_only = false)
+        m = metrics(res)
+        @test all(m[:L₂] ./ size(X, 2) .< 3e-1)
+        @test Matrix(result(res)) ≈ Matrix(estimator.K)
+    end
+end
+
 @testset "Linear Continuous System" begin
     A = [-0.9 0.1; 0.0 -0.2]
     f(u, p, t) = A*u
