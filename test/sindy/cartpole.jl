@@ -17,7 +17,7 @@ end
 
 u0 = [0.3; 0; 1.0; 0]
 tspan = (0.0, 5.0)
-dt = 0.1
+dt = 0.05
 cart_pole_prob = ODEProblem(cart_pole, u0, tspan)
 solution = solve(cart_pole_prob, Tsit5(), saveat = dt)
 
@@ -32,7 +32,6 @@ t = solution.t
 ddprob = ContinuousDataDrivenProblem(
     X , t, DX = DX[3:4, :], U = (u,p,t) -> [-0.2 + 0.5*sin(6*t)]
 )
-
 
 @variables u[1:4] x[1:1] t
 du = [Symbolics.variable("du", i) for i in 3:4]
@@ -58,21 +57,16 @@ push!(implicits, x[1]*sin(u[1]))
 basis= Basis(implicits, u, controls = x,  iv = t, implicits = du)
 
 # Simply use any optimizer you would use for sindy
-λ = [1e-4;5e-4;1e-3;2e-3;3e-3;4e-3;5e-3;6e-3;7e-3;8e-3;9e-3;1e-2;2e-2;3e-2;4e-2;5e-2;
-6e-2;7e-2;8e-2;9e-2;1e-1;2e-1;3e-1;4e-1;5e-1;6e-1;7e-1;8e-1;9e-1;1;1.5;2;2.5;3;3.5;4;4.5;5;
-6;7;8;9;10;20;30;40;50;100;200];
+λ = [1e-4;5e-4;1e-3;2e-3;3e-3;4e-3;5e-3;6e-3;7e-3;8e-3;9e-3;1e-2;2e-2;3e-2;4e-2;5e-2]
 
 opt = ImplicitOptimizer(λ)
 # AICC
 ĝ(x) = x[1] <= 1 ? Inf : 2*x[1]-2*log(x[2])
-res = solve(ddprob, basis, opt, maxiter = 10, g = ĝ, scale_coefficients = false, progress = false)
+res = solve(ddprob, basis, opt,g = ĝ, maxiter = 1000, scale_coefficients = false, progress = false, normalize = false)
 
 m = metrics(res)
-@info m
-# I do not know right now what is causing this, but
-# it seems unreleated to any of the algorithms in general.
-@test_skip length(parameters(res)) == 10
-@test_skip all(m[:L₂] .< 1e-2)
-@test_skip all(m[:AIC] .> 1000.0)
-@test_skip all(m[:R²] .> 0.9)
 
+@test length(parameters(res)) == 10
+@test all(m[:L₂] .< 1e-2)
+@test all(m[:AIC] .> 1000.0)
+@test all(m[:R²] .> 0.9)
