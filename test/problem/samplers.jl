@@ -18,8 +18,6 @@ end
     for n in 2:5, repeat_ in [true, false], shuffle_ in [true, false]
         batch = Batcher(n = n, repeated = repeat_, shuffle = shuffle_)
         train, test = batch(prob)
-        @info n repeat_ shuffle_
-        @info train
         @test length(train) == n
         @test all(length.(train) .>= round(Int, 100/n))
         @test sum(length.(train)) == 100
