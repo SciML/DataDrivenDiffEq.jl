@@ -1,17 +1,3 @@
-module Optimize
-
-using LinearAlgebra
-using Statistics
-
-using ProgressMeter
-using DocStringExtensions
-
-abstract type AbstractOptimizerHistory end;
-
-abstract type AbstractProximalOperator end;
-
-abstract type AbstractOptimizer{T} end;
-abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end;
 
 # Overload the norm
 LinearAlgebra.norm(x, p, λ) = norm(x[abs.(x) .> λ], p)
@@ -38,15 +24,11 @@ $(SIGNATURES)
 
 Set the threshold(s) of an optimizer to (a) specific value(s).
 """
-function set_threshold!(opt::AbstractOptimizer{T}, threshold::T) where T <: AbstractVector
+function set_threshold!(opt::AbstractOptimizer{T}, threshold::T) where T 
     @assert all(threshold .> zero(T)) "Threshold must be positive definite"
     opt.λ .= threshold
 end
 
-function set_threshold!(opt::AbstractOptimizer{T}, threshold::T) where T <: Number
-    @assert all(threshold .> zero(T)) "Threshold must be positive definite"
-    opt.λ = threshold
-end
 
 """
 $(SIGNATURES)
@@ -60,9 +42,9 @@ $(SIGNATURES)
 
 Initialize the optimizer with the least square solution for explicit and `zeros` for implicit optimization.
 """
-init(o::AbstractOptimizer, A::AbstractArray, Y::AbstractArray) = A \ Y
+CommonSolve.init(o::AbstractOptimizer, A, Y) = A \ Y
 
-init(o::AbstractSubspaceOptimizer, A::AbstractArray, Y::AbstractArray) = zeros(eltype(A), size(A, 2), size(Y, 2))
+CommonSolve.init(o::AbstractSubspaceOptimizer, A, Y) = zeros(eltype(A), size(A, 2), size(Y, 2))
 
 """
 $(SIGNATURES)
@@ -80,17 +62,14 @@ end
 include("./utils.jl")
 
 include("./proximals.jl")
-export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
 
 # Remove the trace right now
-#include("./history.jl")
 
 include("./stlsq.jl")
 include("./admm.jl")
 include("./sr3.jl")
 
 #Nullspace for implicit sindy
-#include("./adm.jl")
 include("./implicit.jl")
 
 
@@ -106,9 +85,3 @@ end
 
 
 include("./sparseregression.jl")
-export sparse_regression!
-export init, init!, set_threshold!, get_threshold
-export STLSQ, ADMM, SR3
-export ImplicitOptimizer
-
-end

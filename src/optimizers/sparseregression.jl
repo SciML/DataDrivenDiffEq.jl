@@ -1,4 +1,3 @@
-
 """
 $(SIGNATURES)
 
@@ -18,38 +17,20 @@ used for finding the pareto-optimal solution to the sparse regression.
 function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
     maxiter::Int = maximum(size(A)),
     abstol = eps(eltype(T)), progress::Bool = false,
-    progress_outer::Int = 1, progress_offset::Int = 0, kwargs...) where T <: Number
-
-    λ = get_threshold(opt)
-
-    if progress
-        progress =  init_progress(opt, X, A, Y, maxiter*progress_outer, progress_offset)
-    else
-        progress = nothing
-    end
-
-    @views opt(X, A, Y, λ, maxiter = maxiter, abstol = abstol, progress = progress)
-
-    return
-end
-
-function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
-    maxiter::Int = maximum(size(A)),
-    abstol = eps(eltype(T)), progress::Bool = false,
     f::Function = F(opt),
     g::Function = G(opt),
-    progress_outer::Int = 1, progress_offset::Int = 0, kwargs...) where T <: AbstractVector
+    progress_outer::Int = 1, progress_offset::Int = 0, kwargs...) where T
 
     # Closure for the pareto function
     fg(x, A, y, lambda) = (g∘f)(x, A, y, lambda)
-    #return fg
-
+    
     # TODO Tmp Result
     X_tmp = similar(X)
     X_tmp .= X
 
-    λ = sort(get_threshold(opt))
-    λs = fill(first(λ), (size(Y, 2),))
+    λ = get_threshold(opt)
+    λ = issorted(λ) ? λ : sort(λ)
+    λs = zeros(eltype(λ), size(Y,2))
 
     if progress
         progress =  init_progress(opt, X, A, Y, length(λ)*progress_outer, progress_offset)
@@ -64,9 +45,11 @@ function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
 
     @views for (i,λi) in enumerate(λ)
         init!(X_tmp, opt, A, Y)
+
         opt(X_tmp, A, Y, λi, maxiter = maxiter, abstol = abstol, f = f, g = g)
+        
         # Increasing the threshold makes no sense
-        all(X_tmp .== zero(eltype(X))) && break
+        all(iszero(X_tmp)) && break
 
 
         for j in 1:size(Y, 2)

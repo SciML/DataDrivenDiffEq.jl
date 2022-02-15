@@ -6,13 +6,16 @@ module DataDrivenDiffEq
 using DocStringExtensions
 using LinearAlgebra
 using DiffEqBase
+using CommonSolve
 using ModelingToolkit
 
 using Distributions
 using QuadGK
 using Statistics
 using DataInterpolations
-
+using Parameters
+using Random
+using Measurements
 
 using Requires
 using ProgressMeter
@@ -21,6 +24,7 @@ using Compat
 using DocStringExtensions
 using RecipesBase
 
+@reexport using DiffEqBase: solve
 @reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls, get_iv
 @reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
 using Symbolics: scalarize, variable
@@ -45,7 +49,11 @@ abstract type AbstractSymbolicRegression end
 abstract type AbstractDataDrivenProblem{dType, cType, probType} end
 abstract type AbstractDataDrivenSolution end
 
-
+# Optimizer
+abstract type AbstractProximalOperator end;
+abstract type AbstractOptimizer{T} end;
+abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end;
+    
 
 
 ## Basis
@@ -55,7 +63,7 @@ include("./basis/utils.jl")
 include("./basis/type.jl")
 export Basis
 export jacobian, dynamics
-export free_parameters
+export free_parameters, implicit_variables
 
 include("./utils/basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis
@@ -76,11 +84,11 @@ export burst_sampling, subsample
 ## Sparse Regression
 
 include("./optimizers/Optimize.jl")
-@reexport using DataDrivenDiffEq.Optimize: sparse_regression!
-@reexport using DataDrivenDiffEq.Optimize: set_threshold!, get_threshold
-@reexport using DataDrivenDiffEq.Optimize: STLSQ, ADMM, SR3
-@reexport using DataDrivenDiffEq.Optimize: ImplicitOptimizer
-@reexport using DataDrivenDiffEq.Optimize: SoftThreshold, HardThreshold, ClippedAbsoluteDeviation
+export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
+export sparse_regression!
+export init, init!, set_threshold!, get_threshold
+export STLSQ, ADMM, SR3
+export ImplicitOptimizer
 
 ## Koopman
 
@@ -110,21 +118,33 @@ const AbstractDiscreteProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(2)}
 const AbstracContProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(3)}
 
 
-include("./problem.jl")
+include("./problem/type.jl")
 
 export DataDrivenProblem
 export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem, DirectDataDrivenProblem
 export is_autonomous, is_discrete, is_direct, is_continuous, is_parametrized, has_timepoints
-export is_valid
+export is_valid, @is_applicable, get_name
+
+include("./problem/sample.jl")
+export DataSampler, Split, Batcher
+
+# Result selection
+select_by(x, y::AbstractMatrix) = y 
+select_by(x, sol) = select_by(Val(x), sol)
+
 
 include("./solution.jl")
 export DataDrivenSolution
 export result, parameters, parameter_map, algorithm
 export output, metrics, error, aic, determination, get_problem
 
-include("./solve/sindy.jl")
+
+include("./solve/common.jl")
+export DataDrivenCommonOptions
+include("./solve/sparse_identification.jl")
+#include("./solve/sindy.jl")
 include("./solve/koopman.jl")
-export solve
+#export solve
 
 include("./recipes/problem_result.jl")
 

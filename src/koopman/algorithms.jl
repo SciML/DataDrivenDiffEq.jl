@@ -19,6 +19,21 @@ function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where T <: Number
     return U, S, V
 end
 
+## Cost functions
+# Pareto functions
+G(opt::AbstractKoopmanAlgorithm) = g(f) = first(f)
+
+# Evaluate F
+function F(opt::AbstractKoopmanAlgorithm)
+    f(x, A, y::AbstractArray) = [norm(y .- A*x, 2)] # explicit
+    return f
+end
+
+# General method with inputs
+function (x::AbstractKoopmanAlgorithm)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
+    K, _ = x(X, Y-B*U)
+    return (K, B)
+end
 
 """
 $(TYPEDEF)
@@ -41,8 +56,8 @@ mutable struct DMDPINV <: AbstractKoopmanAlgorithm end;
 
 # Fast but more allocations
 function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray)
-     K = Y / X
-     return eigen(K)
+    K = Y / X    
+    return (eigen(K),[])
  end
 
 # DMDC
@@ -51,17 +66,12 @@ function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
     nu, m = size(U)
 
     K̃ = Y / [X;U]
-
     K = K̃[:, 1:nx]
     B = K̃[:, nx+1:end]
 
-    return eigen(K), B
+    return (eigen(K), B)
 end
 
-# DMDC
-function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
-    return x(X, Y-B*U), B
-end
 
 """
 $(TYPEDEF)
@@ -102,7 +112,7 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where T <: Real
     # Compute the modes
     λ, ω = eigen(Ã)
     φ = B*ω
-    return Eigen(λ, φ)
+    return (Eigen(λ, φ),[])
 end
 
 # DMDc
@@ -128,12 +138,9 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray) wh
     # Compute the modes
     λ, ω = eigen(Ã)
     φ = C*U₁'Û*ω
-    return Eigen(λ, φ), B̃
+    return (Eigen(λ, φ), B̃)
 end
 
-function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray) where T <: Real
-    return x(X, Y-B*U), B
-end
 
 """
 $(TYPEDEF)
@@ -172,5 +179,6 @@ end
 
 function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
     _ , _, Q = truncated_svd([X; Y], x.truncation)
-    return x.alg(X*Q, (Y-B*U)*Q), B
+    K, _ = x.alg(X*Q, (Y-B*U)*Q)
+    return (K, B)
 end

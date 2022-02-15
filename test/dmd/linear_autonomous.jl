@@ -40,7 +40,7 @@ end
         @test isempty(estimator.B)
         res = solve(prob, alg , operator_only = false)
         m = metrics(res)
-        @test all(m[:L₂] ./ size(X, 2) .< 3e-1)
+        @test all(m[:L₂] ./ length(prob) .< 3e-1)
         @test Matrix(result(res)) ≈ Matrix(estimator.K)
     end
 end
@@ -65,7 +65,7 @@ end
         m = metrics(res)
         @test Q'*K*Q ≈ K̃ atol = 1e-1
         @test Q*K̃*Q' ≈ K atol = 1e-1
-        @test all(m[:L₂] ./ size(X, 2) .< 1e-2)
+        @test all(m[:L₂] ./ length(ddprob) .< 1e-2)
     end
 end
 
