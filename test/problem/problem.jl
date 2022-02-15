@@ -24,6 +24,18 @@ U = hcat(map(i -> u_(X[:, i], p, t[i]), 1:length(t))...)
     @test isequal(p4.p, p)
 end
 
+@testset "Collocation" begin
+    t_ = 0.0:0.001:10.0
+    x_ = permutedims(sin.(t_))
+    y_ = permutedims(cos.(t_))
+    for m in [EpanechnikovKernel, UniformKernel,TriangularKernel,QuarticKernel,
+        TriweightKernel, TricubeKernel, GaussianKernel, CosineKernel,
+        LogisticKernel, SigmoidKernel, SilvermanKernel]
+        p_ = ContinuousDataDrivenProblem(x_, t_)
+        @test norm(y_ .- p_.DX) < 1e-1
+    end
+end
+
 @testset "ContinuousProblem" begin
     p2 = ContinuousDataDrivenProblem(X, t, GaussianKernel())
     p3 = ContinuousDataDrivenProblem(X, DX)

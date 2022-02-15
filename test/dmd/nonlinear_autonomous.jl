@@ -23,6 +23,16 @@
     @test isapprox(eigvals(b), [2*p[1]; p[1]; p[2]], atol = 1e-1)
     @test all(m[:L₂] .< 1e-10)
 
+    @test is_stable(b)
+    
+    @test_throws AssertionError operator(b)
+    @test_nowarn generator(b)
+    vls, vcs = eigen(b)
+    @test vcs == modes(b)
+    @test vls == frequencies(b)
+    @test isapprox(outputmap(b) , [1.0 0.0 0.0; 0.0 1.0 0.0])
+    @test updatable(b)
+
     _prob = ODEProblem((args...)->b(args...), u0, tspan, parameters(res))
     _sol = solve(_prob, Tsit5(), saveat = solution.t)
     @test norm(solution - _sol)/size(solution, 2) < 1e-1
@@ -54,5 +64,14 @@ end
     m = metrics(res)
     @test isapprox(eigvals(b), [p[1]; p[2]; p[1]^2], atol = 1e-1)
     @test all(m[:L₂] .< 3e-1)
+
+    @test_throws AssertionError generator(b)
+    @test_nowarn operator(b)
+    vls, vcs = eigen(b)
+    @test vcs == eigvecs(b)
+    @test vls == eigvals(b)
+    @test isapprox(outputmap(b) , [1.0 0.0 0.0; 0.0 1.0 1.0])
+    @test updatable(b)
   end
 end
+

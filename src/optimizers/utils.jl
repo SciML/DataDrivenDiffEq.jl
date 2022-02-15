@@ -25,18 +25,6 @@ function F(opt::AbstractOptimizer{T} where T)
     return f
 end
 
-# Pareto
-function evaluate_pareto!(current_parameter, tmp_parameter, fg::Function, args...)
-    if fg(tmp_parameter, args...) < fg(current_parameter, args...)
-        for i in eachindex(current_parameter)
-            current_parameter[i] = tmp_parameter[i]
-        end
-        return true
-    else
-        return false
-    end
-end
-
 
 # Derive the best n linear independent columns of a matrix
 function linear_independent_columns(A::AbstractMatrix{T}, rtol::T = convert(T, 0.1)) where T
