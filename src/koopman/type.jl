@@ -164,7 +164,6 @@ Returns `true` if the `AbstractKoopmanOperator` `k` is discrete in time.
 is_discrete(k::AbstractKoopman) = getfield(k, :is_discrete)
 
 
-
 """
 $(SIGNATURES)
 
@@ -230,7 +229,7 @@ $(SIGNATURES)
 
 Return the array `C`, mapping the Koopman space back onto the state space.
 """
-outputmap(k::AbstractKoopman) = k.C
+outputmap(k::AbstractKoopman) = Symbolics.unwrap(k.C)
 
 """
 $(SIGNATURES)
