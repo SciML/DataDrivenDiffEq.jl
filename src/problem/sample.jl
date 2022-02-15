@@ -114,7 +114,7 @@ function (p::Batcher)(data, rng = Random.GLOBAL_RNG)
 
     @assert n < n_obs "Number of splits has to be less than data size."
 
-    batchsize = floor(Int, n_obs/(n+1))
+    batchsize = floor(Int, n_obs/n-1)
     batchsize = max(batchsize, batchsize_min)
 
     if !shuffle && !repeated
@@ -125,37 +125,27 @@ function (p::Batcher)(data, rng = Random.GLOBAL_RNG)
             start += batchsize+1
             training[cs]
         end, test
+
     elseif !repeated
         idx = randperm(rng, n_obs)
-        
+        start = first(training)
+
         return map(1:n) do n_
-            idx[(n_-1)*batchsize+1:n_*batchsize]
+            cs = start:(n_ == n ? n_obs : start+batchsize)
+            start += batchsize+1
+            idx[cs]
         end, test
     else
+        s = 0
         return map(1:n) do n_
             idx = shuffle ? randperm(rng, n_obs) : training
-            sample(rng, idx, batchsize, replace = false)
+            if n_ == n 
+                sample(rng, idx, n_obs-s, replace = false)
+            else
+                s += batchsize+1
+                sample(rng, idx, batchsize+1, replace = false)
+            end
         end, test
     end
 end
-
-
-#function subsample(n_obs, freq, start = 1)
-#    @assert 0 < freq < n_obs/2 "Subsampling frequency in (0, n/2)."
-#    start:freq:n_obs 
-#end
-
-#function subsample(t::AbstractVector{T}, period::T) where T <: Real
-#    @assert period > zero(typeof(period)) "Sampling period has to be positive."
-#    @assert t[end]-t[1]>= period "Subsampling impossible. Sampling period exceeds time window."
-#    idx = Int64[1]
-#    t_now = t[1]
-#    @inbounds for (i, t_current) in enumerate(t)
-#        if t_current  >= period -5*eps() + t_now
-#            push!(idx, i)
-#            t_now = t_current
-#        end
-#    end
-#    return idx
-#end
 
