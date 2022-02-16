@@ -7,7 +7,7 @@ using DataDrivenDiffEq
 using ModelingToolkit
 using LinearAlgebra
 using OrdinaryDiffEq
-using Plots #md
+#md using Plots 
 
 A = [-0.9 0.2; 0.0 -0.2]
 u0 = [10.0; -10.0]
@@ -29,7 +29,7 @@ prob = ContinuousDataDrivenProblem(X, t)
 
 # And plot the problems data.
 
-plot(prob) #md
+#md plot(prob) 
 
 # We can see that the derivative has been automatically added via a [`collocation`](@ref) method, which defaults to a `LinearInterpolation`. 
 # We can do a visual check and compare our derivatives
@@ -39,27 +39,27 @@ plot(prob) #md
 
 # Since we have a linear system, we can use `gDMD`, which approximates the generator of the dynamics
 
-res = solve(prob, DMDSVD(), digits = 1) #md 
-println(res) # hide
+res = solve(prob, DMDSVD()) #md 
+#md println(res) # hide
 
 # !info 
 # We see that the system has been recovered correctly, indicated by the small error and high AIC score of the result. We can confirm this by looking at the resulting [`Basis`](@ref)
 
 system = result(res) #md 
-println(system) # hide
+#md println(system) # hide
 
 # And also plot the prediction of the recovered dynamics
 
-plot(res) #md
+#md plot(res) 
 
 # Or a have a look at the metrics of the result
 
-metrics(res) #md 
+#md metrics(res) 
 
 # And check the parameters of the result or the generator of the system
 
-parameters(res)
-Matrix(generator(system))
+#md parameters(res)
+#md Matrix(generator(system))
 
 # to see that the operator is slightly off, but within expectations. 
 # In a real example, this could have many reasons, e.g. noisy data, insufficient time samples or missing states.
@@ -75,7 +75,7 @@ basis = Basis(x, x, independent_variable = t, name = :LinearBasis)
 
 # Afterwards, we simply `solve` the already defined problem with our `Basis` and a `SparseOptimizer`
 
-sparse_res = solve(prob, basis, STLSQ())
+sparse_res = solve(prob, basis, STLSQ(), digits = 1)
 #md println(sparse_res) #hide
 
 # Which holds the same equations
@@ -104,14 +104,14 @@ estimate = solve(ode_prob, Tsit5(), saveat = prob.t)
 #md plot(sol, color = :black)
 #md plot!(estimate, color = :red, linestyle = :dash)
 
-#!md ## Test the result
-#!md for r_ in [res, sparse_res] 
-#!md     m = metrics(r_) 
-#!md     @test all(m[:L₂] .<= 5e-10) 
-#!md     @test all(m[:AIC] .>= 1e3) 
-#!md     @test all(m[:R²] .>= 0.97) 
-#!md end 
-#!md @test Array(sol) ≈ Array(estimate) 
+## Test the result  #src
+for r_ in [sparse_res]  #src
+    m = metrics(r_)  #src
+    @test all(m[:L₂] .<= 5e-1) #src 
+    @test all(m[:AIC] .>= 1e3)  #src
+    @test all(m[:R²] .>= 0.97)  #src
+end  #src
+@test Array(sol) ≈ Array(estimate) rtol = 5e-2  #src
 
 #md # ### [Copy-Pasteable Code](@id linear_continuous_copy_paste)
 #md #

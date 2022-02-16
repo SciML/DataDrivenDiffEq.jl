@@ -56,21 +56,14 @@ const GROUP = get(ENV, "GROUP", "All")
 
             using Literate
         
-            example_dir = joinpath(@__DIR__, "..", "src", "examples")
-            output_dir = joinpath(@__DIR__, "doctests")
-            
-            # Create directory
-            if !isdir(output_dir) 
-                mkdir(output_dir)
-            end
-
-            # Examples to check 
-            examples = ["linear_discrete_system.jl", "linear_continuous_system.jl"]
-            
+            example_dir = joinpath(@__DIR__, "..", "docs", "examples")
+        
             # Check each example and create a unique testset
-            for f in examples
-                Literate.script(joinpath(example_dir, f), output_dir, execute = true)
-                @testset "$(split(f, ".")[1])" begin include(joinpath(output_dir, f)) end
+            for f in readdir(example_dir)
+                fname, fext = split(f, ".")
+                !isfile(joinpath(example_dir, f)) && continue
+                !(fext == "jl") && continue
+                @testset "$fname" begin include(joinpath(example_dir, f)) end
             end
 
         end

@@ -4,11 +4,11 @@
 # 
 # At first, we simulate the correspoding system using `OrdinaryDiffEq.jl` and generate a [`DiscreteDataDrivenProblem`](@ref DataDrivenProblem) from the simulated data.
 
-using DataDrivenDiffEq
-using ModelingToolkit
-using LinearAlgebra
-using OrdinaryDiffEq
-using Plots #md
+#md using DataDrivenDiffEq
+#md using ModelingToolkit
+#md using LinearAlgebra
+#md using OrdinaryDiffEq
+#md using Plots
 
 A = [0.9 -0.2; 0.0 0.2]
 u0 = [10.0; -10.0]
@@ -25,8 +25,8 @@ prob = DataDrivenProblem(sol)
 
 # And plot the solution and the problem 
 
-plot(sol, label = string.([:x₁ :x₂])) #md
-scatter!(prob) #md
+#md plot(sol, label = string.([:x₁ :x₂])) 
+#md scatter!(prob)
 
 # To estimate the underlying operator in the states ``x_1, x_2``, we `solve` the estimation problem using the [`DMDSVD`](@ref) algorithm for approximating the operator. First, we will have a look at the [`DataDrivenSolution`](@ref)
 
@@ -40,7 +40,7 @@ system = result(res)
 
 # And also plot the prediction of the recovered dynamics
 
-plot(res) #md
+#md plot(res)
 
 # Or a have a look at the metrics of the result
 
@@ -56,9 +56,9 @@ plot(res) #md
 
 # And plot the stability margin of the discrete System
 
-φ = 0:0.01π:2π #md
-plot(sin.(φ), cos.(φ), xlabel = "Real", ylabel = "Im", label = "Stability margin", color = :red, linestyle = :dash) #md
-scatter!(real(eigvals(system)), imag(eigvals(system)), label = "Eigenvalues", color = :black, marker = :cross) #md
+#md φ = 0:0.01π:2π 
+#md plot(sin.(φ), cos.(φ), xlabel = "Real", ylabel = "Im", label = "Stability margin", color = :red, linestyle = :dash)
+#md scatter!(real(eigvals(system)), imag(eigvals(system)), label = "Eigenvalues", color = :black, marker = :cross) 
 
 # Similarly, we could use a sparse regression to derive our system from our data. We start by defining a [`Basis`](@ref)
 
@@ -100,14 +100,14 @@ estimate = solve(discrete_prob, FunctionMap())
 #md plot(sol, color = :black)
 #md plot!(estimate, color = :red, linestyle = :dash)
 
-#!md ## Test the result
-#!md for r_ in [res, sparse_res] 
-#!md     m = metrics(r_) 
-#!md     @test all(m[:L₂] .<= 1e-10) 
-#!md     @test all(m[:AIC] .>= 1e10) 
-#!md     @test all(m[:R²] .≈ 1.0) 
-#!md end 
-#!md @test Array(sol) ≈ Array(estimate) 
+## Test the result #src
+for r_ in [res, sparse_res] #src
+    m = metrics(r_) #src
+    @test all(m[:L₂] .<= 1e-10)  #src
+    @test all(m[:AIC] .>= 1e10)  #src
+    @test all(m[:R²] .≈ 1.0)  #src
+end  #src
+@test Array(sol) ≈ Array(estimate)  #src
 
 #md # ### [Copy-Pasteable Code](@id linear_discrete_copy_paste)
 #md #
