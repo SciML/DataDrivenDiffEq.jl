@@ -65,7 +65,7 @@ const GROUP = get(ENV, "GROUP", "All")
             end
 
             # Examples to check 
-            examples = ["linear_discrete_system.jl"]
+            examples = ["linear_discrete_system.jl", "linear_continuous_system.jl"]
             
             # Check each example and create a unique testset
             for f in examples

@@ -8,7 +8,7 @@ ENV["GKSwstype"] = "100"
 
 # Evaluate the example directory
 example_files = [
-  "linear_discrete_system.jl",
+  "linear_discrete_system.jl", "linear_continuous_system.jl"
 ]
 example_dir = joinpath(@__DIR__, "..", "src", "examples")
 output_dir = joinpath(@__DIR__, "src", "examples")
