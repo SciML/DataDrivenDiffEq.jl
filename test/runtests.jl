@@ -35,9 +35,7 @@ const GROUP = get(ENV, "GROUP", "All")
             @testset "Nonlinear Autonomous" begin include("./dmd/nonlinear_autonomous.jl") end
             @testset "Nonlinear Forced" begin include("./dmd/nonlinear_forced.jl") end
         end
-
     end
-
     if GROUP == "All" || GROUP == "Optional"
 
         @info "Loading Flux"
@@ -48,6 +46,33 @@ const GROUP = get(ENV, "GROUP", "All")
         @testset "Symbolic Regression" begin
             @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl") end
             @testset "SymbolicRegression" begin include("./symbolic_regression/symbolic_regression.jl") end
+        end
+    end
+
+    if GROUP == "All" || GROUP == "Docs"
+        @info "Testing documentation examples"
+        
+        @testset "Documentation" begin 
+
+            using Literate
+        
+            example_dir = joinpath(@__DIR__, "..", "src", "examples")
+            output_dir = joinpath(@__DIR__, "doctests")
+            
+            # Create directory
+            if !isdir(output_dir) 
+                mkdir(output_dir)
+            end
+
+            # Examples to check 
+            examples = ["linear_discrete_system.jl"]
+            
+            # Check each example and create a unique testset
+            for f in examples
+                Literate.script(joinpath(example_dir, f), output_dir, execute = true)
+                @testset "$(split(f, ".")[1])" begin include(joinpath(output_dir, f)) end
+            end
+
         end
     end
 
