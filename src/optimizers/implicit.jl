@@ -82,15 +82,13 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
         x_tmp[inds, j:j] .= init(exopt, A[:, inds], A[:, j:j])
 
         # Use optimizer
-        λs = @views sparse_regression!(x_tmp[inds, j:j], A[:, inds], A[:, j:j],exopt,
-            f = f, g = g, maxiter = maxiter, abstol = abstol)
-
+        λs = sparse_regression!(x_tmp[inds, j:j], A[:, inds], A[:, j:j],exopt, maxiter = maxiter, abstol = abstol)
+        
         # Normalize
         if scale_coefficients
-            x_tmp[j,j] *= maximum(x_tmp[inds, j:j])
-            x_tmp[inds, j:j] ./= x_tmp[j,j]
+            x_tmp[inds,j:j] ./= maximum(abs.(x_tmp[inds, j:j]))
         end
-        #x_tmp[:,j:j] .= x_tmp[:, j:j] ./ maximum(x_tmp[:, j:j])
+
         if _progress
             sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j], λs[1])
 

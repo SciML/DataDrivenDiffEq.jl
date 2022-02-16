@@ -64,8 +64,15 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol
         
     if !eval_expression
         # Compute the errors
+
         x, _, t, u = get_oop_args(prob)
-        e = get_target(prob) - b(x, p, t, u)
+        y = get_target(prob)
+
+        if is_implicit(b)
+            e = b([x; y], p, t, u)
+        else
+            e = get_target(prob) - b(x, p, t, u)
+        end
 
         l2 = sum(abs2, e, dims = 2)[:,1]
         aic = 2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
@@ -237,12 +244,12 @@ end
 
 # Check linearity
 
-function assert_linearity(eqs::AbstractVector{Equation}, x::AbstractVector{Num})
+function assert_linearity(eqs::AbstractVector{Equation}, x::AbstractVector)
     return assert_linearity(map(x->Num(x.rhs), eqs), x)
 end
 
 # Returns true iff x is not in the arguments of the jacobian of eqs
-function assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector{Num})
+function assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector)
     j = Symbolics.jacobian(eqs, x)
     # Check if any of the variables is in the jacobian
     v = unique(reduce(vcat, map(get_variables, j)))
@@ -255,7 +262,7 @@ end
 function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symbol = :continuous, is_implicit = false, eval_expression = false)
 
     # Create additional variables
-    sp = Int(norm(X, 0))
+    sp = sum(.! iszero.(X))
     sps = norm.(eachcol(X), 0)
     inds = sps .> zero(eltype(X))
     pl = length(parameters(b))
@@ -287,20 +294,25 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
         if length(eqs) == length(states(b))
             if lhs == :continuous
                 d = Differential(get_iv(b))
+                eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
             elseif lhs == :discrete
                 d = Difference(get_iv(b), dt = dt)
+                eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
             end
-            eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
         end
     else
-        eqs = 0 .~ eqs
         if !isempty(implicits)
+            eqs = eqs .~ 0
             if assert_linearity(eqs, implicits)
-                # Try to solve the eq for the implicits
-                eqs = ModelingToolkit.solve_for(eqs, implicits)
-                eqs = implicits .~ eqs
+                try
+                    # Try to solve the eq for the implicits
+                    eqs = ModelingToolkit.solve_for(eqs, implicits)
+                    eqs = implicits .~ eqs
+                    implicits = []
+                catch 
+                    @warn "Failed to solve recovered equations for implicit variables. Returning implicit equations."
+                end
             end
-            xs = [s for s in xs if !any(map(i->isequal(i, s), implicits))]
         end
     end
 
@@ -308,6 +320,7 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
         eqs, xs,
         parameters = [parameters(b); p], iv = get_iv(b),
         controls = controls(b), observed = observed(b),
+        implicits = implicits,
         name = gensym(:Basis),
         eval_expression = eval_expression
     ), ps
@@ -319,6 +332,7 @@ function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
     end
     return x
 end
+
 
 function assert_lhs(prob)
     dt = mean(diff(prob.t))
@@ -333,7 +347,9 @@ function assert_lhs(prob)
     return lhs, dt
 end
 
-function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix, opt::Optimize.AbstractOptimizer, b::Basis, implicits = Num[]; eval_expression = false, digits::Int = 10, kwargs...)
+function DataDrivenSolution(prob, s, b::B, opt::O, implicits = Num[]; 
+    eval_expression = false, digits::Int = 10, by = :min, kwargs...) where {B <: AbstractBasis, O <: AbstractOptimizer}
+    Ξ, _... = select_by(by, s) 
     # Build a basis and returns a solution
     if all(iszero.(Ξ))
         @warn "Sparse regression failed! All coefficients are zero."
@@ -346,7 +362,7 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix,
 
     sol , ps = construct_basis(round.(Ξ, digits = digits), b, implicits, 
         lhs = lhs, dt = dt,
-        is_implicit = isa(opt, Optimize.AbstractSubspaceOptimizer) ,eval_expression = eval_expression
+        is_implicit = isa(opt, AbstractSubspaceOptimizer) ,eval_expression = eval_expression
         )
 
     
@@ -354,18 +370,22 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, Ξ::AbstractMatrix,
 
     
     return DataDrivenSolution(
-        sol, ps, :solved, opt, Ξ, prob, true, eval_expression = eval_expression
+        sol, ps, :solved, opt, s, prob, true, eval_expression = eval_expression
     )
 end
 
 
-function DataDrivenSolution(prob::AbstractDataDrivenProblem, k, C, B, Q, P, inds, b::AbstractBasis, alg::AbstractKoopmanAlgorithm; 
-    digits::Int = 10, eval_expression = false, kwargs...)
+function DataDrivenSolution(prob, k, b::BS, alg::KA; 
+    digits::Int = 10, by = :min, eval_expression = false, operator_only = false, kwargs...) where {BS <: AbstractBasis, KA <: AbstractKoopmanAlgorithm}
+    k_, _... = select_by(by, k) 
+    @unpack inds = k
+    K, B, C, P, Q = k_
+    operator_only && return (K = K, B = B, C = C, P = P, Q = Q)
     # Build parameterized equations, inds indicate the location of basis elements containing an input
-    Ξ = zeros(eltype(B), size(C,2), length(b))
+    Ξ = zeros(eltype(C), size(C,2), length(b))
 
 
-    Ξ[:, inds] .= real.(Matrix(k))
+    Ξ[:, inds] .= real.(Matrix(K))
     if !isempty(B)
         Ξ[:, .! inds] .= B
     end
@@ -381,13 +401,13 @@ function DataDrivenSolution(prob::AbstractDataDrivenProblem, k, C, B, Q, P, inds
     res_ = Koopman(equations(bs), states(bs),
         parameters = parameters(bs),
         controls = controls(bs), iv = get_iv(bs),
-        K = k, C = C, Q = Q, P = P, lift = get_f(b),
+        K = K, C = C, Q = Q, P = P, lift = get_f(b),
         is_discrete = is_discrete(prob),
         eval_expression = eval_expression)
 
     ps = isempty(parameters(b)) ? ps : vcat(prob.p, ps)
 
     return DataDrivenSolution(
-        res_, ps, :solved, alg, Ξ, prob, true, eval_expression = eval_expression
+        res_, ps, :solved, alg, k, prob, true, eval_expression = eval_expression
     )
 end

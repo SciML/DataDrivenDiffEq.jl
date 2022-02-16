@@ -154,13 +154,14 @@ lifting(k::AbstractKoopman) = getfield(k, :lift)
 # Get K
 _get_K(k::AbstractKoopman) = getfield(k, :K)
 
+implicit_variables(k::AbstractKoopman) = []
+
 """
 $(SIGNATURES)
 
 Returns `true` if the `AbstractKoopmanOperator` `k` is discrete in time.
 """
 is_discrete(k::AbstractKoopman) = getfield(k, :is_discrete)
-
 
 
 """
@@ -228,7 +229,7 @@ $(SIGNATURES)
 
 Return the array `C`, mapping the Koopman space back onto the state space.
 """
-outputmap(k::AbstractKoopman) = k.C
+outputmap(k::AbstractKoopman) = Symbolics.unwrap(k.C)
 
 """
 $(SIGNATURES)

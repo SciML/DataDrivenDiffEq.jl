@@ -94,8 +94,8 @@ X[3, :] .= 5 * X[3, :]
 Y = similar(X)
 basis(Y, X)
 @test Y ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0] * X
-f = DataDrivenDiffEq.jacobian(basis)
-@test f([1; 1; 1], [0.0; 0.0], 0.0) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
+f = jacobian(basis)
+@test f([1.0; 1.0; 1.0], [0.0; 0.0], 0.0) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
 @test_nowarn [xi for xi in basis]
 @test_nowarn basis[2:end];
 

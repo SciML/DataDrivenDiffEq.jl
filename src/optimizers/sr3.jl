@@ -76,15 +76,12 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
    conv_measure = xzero
 
    _progress = isa(progress, Progress)
-   initial_prog = _progress ? progress.counter : 0
-
 
    @views while (iters < maxiter) && !converged
        iters += 1
 
        # Solve ridge regression
        X .= H \ (X̂ .+ W*ν) 
-       #ldiv!(X, H, X̂ .+ W*ν)
        # Proximal
        opt.R(W, X, λ)
 
@@ -106,15 +103,6 @@ function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
 
        if conv_measure < abstol
            converged = true
-
-           #if _progress
-
-            #   ProgressMeter.update!(
-            #   progress,
-            #   initial_prog + maxiter
-            #   )
-           #end
-
        else
            w_i .= W
        end
