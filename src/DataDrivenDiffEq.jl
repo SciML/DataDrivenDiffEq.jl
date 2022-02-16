@@ -171,7 +171,7 @@ function __init__()
         include("./symbolic_regression/symbolic_regression.jl")
         export EQSearch
 
-        @info "DataDrivenDiffEq : Symboolic Regression is available."
+        @info "DataDrivenDiffEq : Symbolic Regression is available."
     end
 
 end
