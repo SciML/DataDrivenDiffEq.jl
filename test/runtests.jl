@@ -54,8 +54,6 @@ const GROUP = get(ENV, "GROUP", "All")
         
         @testset "Documentation" begin 
 
-            using Literate
-        
             example_dir = joinpath(@__DIR__, "..", "docs", "examples")
         
             # Check each example and create a unique testset
