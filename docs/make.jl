@@ -1,26 +1,29 @@
-push!(LOAD_PATH,"../src/")
+#push!(LOAD_PATH,"../src/")
 
 using Documenter, DataDrivenDiffEq
-using Flux, SymbolicRegression
+#using Flux, SymbolicRegression
 using Literate
 
 ENV["GKSwstype"] = "100"
 
 # Evaluate the example directory
-# This workflow is based on the implementation of JuAFem.jl
 
-example_files = [
-  "linear_discrete_system.jl", "linear_continuous_system.jl"
-]
-example_dir = joinpath(@__DIR__, "examples")
-output_dir = joinpath(@__DIR__, "src", "examples")
+src = joinpath(@__DIR__, "src")
+lit = joinpath(@__DIR__, "examples")
 
-for example in example_files
-  s_ = joinpath(example_dir, example)
-  script = Literate.script(s_, output_dir, execute = false, comments = false)
+tutorials = []
+
+for (root, _, files) ∈ walkdir(lit), file ∈ files
+  fname, fext = splitext(file)
+  fext == ".jl" || continue
+  ipath = joinpath(root, file)
+  opath = joinpath(splitdir(replace(ipath, lit=>src))[1], "examples")
+  script = Literate.script(ipath, opath, execute = false, comments = false)
   code = strip(read(script, String))
   mdpost(str) = replace(str, "@__CODE__" => code)
-  Literate.markdown(s_, output_dir, execute = false, postprocess = mdpost)
+  Literate.markdown(ipath, opath)
+  Literate.markdown(ipath, opath, execute = false, postprocess = mdpost)
+  push!(tutorials, relpath(joinpath(opath, fname*".md"), src))
 end
 
 
@@ -36,7 +39,7 @@ makedocs(
     pages=[
         "Home" => "index.md",
         #"Getting Started" => "getting_started.md",
-        "Tutorials" => [joinpath("examples", split(f, ".")[1]*".md") for f in example_files],
+        "Tutorials" => tutorials,
         #"Unifying SINDy and DMD" => "sindy_dmd.md",
         #"Problems" => "problems.md",
         #"Basis" => "basis.md",

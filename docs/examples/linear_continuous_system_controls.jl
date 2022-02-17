@@ -1,7 +1,7 @@
-# # [Linear Time Continuous System](@id linear_continuous)
+# # [Linear Time Continuous System with Controls](@id linear_continuous_controls)
 # 
-# Similar to the [`linear time discrete example`](@ref linear_discrete), we will now estimate a linear time continuous system ``\partial_t u = A u``. 
-# We simulate the correspoding system using `OrdinaryDiffEq.jl` and generate a [`ContinuousDataDrivenProblem`](@ref DataDrivenProblem) from the simulated data.
+# Now we will extend the [`previous example`](@ref linear_continuous) by adding some exegeneous control signals.
+# As always, we will generate some data via `OrdinaryDiffEq.jl`
 
 using DataDrivenDiffEq
 using ModelingToolkit
@@ -10,72 +10,54 @@ using OrdinaryDiffEq
 #md using Plots 
 
 A = [-0.9 0.2; 0.0 -0.2]
+B = [0.0; 1.0]
 u0 = [10.0; -10.0]
 tspan = (0.0, 10.0)
 
-f(u,p,t) = A*u
+f(u,p,t) = A*u .+ B .* sin(0.5*t)
 
 sys = ODEProblem(f, u0, tspan)
 sol = solve(sys, Tsit5(), saveat = 0.05);
 
-# We could use the `DESolution` to define our problem, but here we want to use the data for didactic purposes.
-# For a [`ContinuousDataDrivenProblem`](@ref DataDrivenProblem), we need either the state trajectory and the timepoints or the state trajectory and its derivate.
-
+# We will use the data provided by our problem, but add the control signal `U = sin(0.5*t)` to it. 
 X = Array(sol) 
 t = sol.t 
-prob = ContinuousDataDrivenProblem(X, t)
+control(u,p,t) = [sin(0.5*t)]
+prob = ContinuousDataDrivenProblem(X, t, U = control)
 
 # And plot the problems data.
 
 #md plot(prob) 
 
-# We can see that the derivative has been automatically added via a [`collocation`](@ref) method, which defaults to a `LinearInterpolation`. 
-# We can do a visual check and compare our derivatives with the interpolation of the `ODESolution`.
+# Again, we will use `gDMD` to estimate the systems dynamics. Since we have a control signal 
+# defined in the problem, the algorithm will detect it automatically and use `gDMDc`:
 
-#md DX = Array(sol(t, Val{1}))
-#md scatter(t, DX', label = ["Solution" nothing], color = :red, legend = :bottomright) 
-#md plot!(t, prob.DX', label = ["Linear Interpolation" nothing], color = :black)
-
-# Since we have a linear system, we can use `gDMD`, which approximates the generator of the dynamics
-
-#md res = solve(prob, DMDSVD())
+res = solve(prob, DMDSVD(), digits = 1)
 #md println(res) 
 
 # We see that the system has been recovered correctly, indicated by the small error and high AIC score of the result. We can confirm this by looking at the resulting [`Basis`](@ref)
 
-#md system = result(res)
+#md 
+system = result(res)
 #md println(system)
 
 # And also plot the prediction of the recovered dynamics
 
 #md plot(res) 
 
-# Or a have a look at the metrics of the result
+# Again, we can have a look at the generator of the system, which is independent from the inputs.
 
-#md metrics(res) 
-
-# And check the parameters of the result 
-
-#md parameters(res)
-
-# or the generator of the system
-
-#md Matrix(generator(system))
-
-# to see that the operator is slightly off, but within expectations. 
-# In a real example, this could have many reasons, e.g. noisy data, insufficient time samples or missing states.
+generator(system)
 
 # Sticking to the same procedure as earlier, we now use a linear sparse regression to solve the problem
 
-using ModelingToolkit
-
 @parameters t
-@variables x[1:2](t)
+@variables x[1:2](t) u[1:1](t)
 
-basis = Basis(x, x, independent_variable = t, name = :LinearBasis)
+basis = Basis([x; u], x, controls = u, independent_variable = t, name = :LinearBasis)
 #md print(basis) #hide
 
-
+# Note that we added a new variable `u[1](t)` as a control to both the equations and the basis constructor. 
 # Afterwards, we simply `solve` the already defined problem with our `Basis` and a `SparseOptimizer`
 
 sparse_res = solve(prob, basis, STLSQ(1e-1))
@@ -83,7 +65,8 @@ sparse_res = solve(prob, basis, STLSQ(1e-1))
 
 # Which holds the same equations
 sparse_system = result(sparse_res)
-#md println(sparse_system)
+#md 
+println(sparse_system)
 
 # Again, we can have a look at the result
 
@@ -91,10 +74,17 @@ sparse_system = result(sparse_res)
 #md     plot(prob), plot(sparse_res), layout = (1,2)
 #md )
 
-# Both results can be converted into an `ODESystem`
+# Both results can be converted into an `ODESystem`. To include the control signal, we simply 
+# substitute the control variables in the corresponding equations.
+
+subs_control = (u[1] => sin(0.5*t))
+
+eqs = map(equations(sparse_system)) do eq
+    eq.lhs ~ substitute(eq.rhs, subs_control)
+end
 
 @named sys = ODESystem(
-    equations(sparse_system), 
+    eqs, 
     get_iv(sparse_system),
     states(sparse_system), 
     parameters(sparse_system)

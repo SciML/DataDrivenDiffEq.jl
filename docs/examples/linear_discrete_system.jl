@@ -1,4 +1,4 @@
-# ## [Linear Time Discrete System](@id linear_discrete)
+# # [Linear Time Discrete System](@id linear_discrete)
 # 
 # We will start by estimating the underlying dynamical system of a time discrete process based on some measurements via [Dynamic Mode Decomposition](https://arxiv.org/abs/1312.0041) on a simple linear system of the form ``u(k+1) = A u(k)``.
 # 
@@ -36,6 +36,8 @@ res = solve(prob, DMDSVD(), digits = 1)
 # We see that the system has been recovered correctly, indicated by the small error and high AIC score of the result. We can confirm this by looking at the resulting [`Basis`](@ref)
 
 system = result(res)
+using Symbolics
+
 #md println(system) # hide
 
 # And also plot the prediction of the recovered dynamics
@@ -68,6 +70,7 @@ using ModelingToolkit
 @variables x[1:2](t)
 
 basis = Basis(x, x, independent_variable = t, name = :LinearBasis)
+#md print(basis) #hide
 
 # Afterwards, we simply `solve` the already defined problem with our `Basis` and a `SparseOptimizer`
 
@@ -87,6 +90,7 @@ sparse_system = result(sparse_res)
 # Both results can be converted into a `DiscreteProblem`
 
 @named sys = DiscreteSystem(equations(sparse_system), get_iv(sparse_system),states(sparse_system), parameters(sparse_system))
+#md println(sys) #hide
 
 # And simulated using `OrdinaryDiffEq.jl` using the (known) initial conditions and the parameter mapping of the estimation.
 
@@ -94,24 +98,24 @@ x0 = [x[1] => u0[1], x[2] => u0[2]]
 ps = parameter_map(sparse_res)
 
 discrete_prob = DiscreteProblem(sys, x0, tspan, ps)
-estimate = solve(discrete_prob, FunctionMap())
+estimate = solve(discrete_prob, FunctionMap());
 
 # And look at the result
 #md plot(sol, color = :black)
 #md plot!(estimate, color = :red, linestyle = :dash)
 
-## Test the result #src
-for r_ in [res, sparse_res] #src
-    m = metrics(r_) #src
-    @test all(m[:L₂] .<= 1e-10)  #src
-    @test all(m[:AIC] .>= 1e10)  #src
-    @test all(m[:R²] .≈ 1.0)  #src
-end  #src
-@test Array(sol) ≈ Array(estimate)  #src
-
-#md # ### [Copy-Pasteable Code](@id linear_discrete_copy_paste)
+#md # ## [Copy-Pasteable Code](@id linear_discrete_copy_paste)
 #md #
 #md # ```julia
 #md # @__CODE__
 #md # ```
+
+## Test the result #src
+for r_ in [res, sparse_res] #src
+    @test all(l2error(r_) .<= 1e-10) #src
+    @test all(aic(r_) .>= 1e10) #src
+    @test all(determination(r_) .≈ 1.0) #src
+end  #src
+@test Array(sol) ≈ Array(estimate) #src
+
 
