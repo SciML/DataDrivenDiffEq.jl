@@ -164,7 +164,7 @@ $(SIGNATURES)
 
 Returns the L₂ norm error of the result.
 """
-error(r::DataDrivenSolution) = begin
+l2error(r::DataDrivenSolution) = begin
     isdefined(r, :l2_error) && return r.l2_error
     return NaN
 end

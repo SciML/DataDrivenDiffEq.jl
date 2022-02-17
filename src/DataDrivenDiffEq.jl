@@ -136,7 +136,7 @@ select_by(x, sol) = select_by(Val(x), sol)
 include("./solution.jl")
 export DataDrivenSolution
 export result, parameters, parameter_map, algorithm
-export output, metrics, error, aic, determination, get_problem
+export output, metrics, l2error, aic, determination, get_problem
 
 
 include("./solve/common.jl")
