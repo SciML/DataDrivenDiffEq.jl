@@ -4,10 +4,10 @@
 # 
 # At first, we simulate the correspoding system using `OrdinaryDiffEq.jl` and generate a [`DiscreteDataDrivenProblem`](@ref DataDrivenProblem) from the simulated data.
 
-#md using DataDrivenDiffEq
-#md using ModelingToolkit
-#md using LinearAlgebra
-#md using OrdinaryDiffEq
+using DataDrivenDiffEq
+using ModelingToolkit
+using LinearAlgebra
+using OrdinaryDiffEq
 #md using Plots
 
 A = [0.9 -0.2; 0.0 0.2]

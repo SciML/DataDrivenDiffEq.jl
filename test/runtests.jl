@@ -52,16 +52,31 @@ const GROUP = get(ENV, "GROUP", "All")
     if GROUP == "All" || GROUP == "Docs"
         @info "Testing documentation examples"
         
-        @testset "Documentation" begin 
+        @safetestset "Documentation" begin 
 
             example_dir = joinpath(@__DIR__, "..", "docs", "examples")
+
+            function test_literate_script(file, path)
+                f_path = joinpath(path, file)
+                !isfile(f_path) && return
+                fname, fext = split(file, ".")
+                !(fext == "jl") && return 
+                f_mod = gensym(string(fname))
+                # This is similar to SafeTestsets, but works for my case
+                eval(quote
+                        @eval module $f_mod
+                            using Test
+                            @testset $fname begin 
+                                include($f_path) 
+                            end
+                        end
+                        nothing
+                end)
+            end
         
             # Check each example and create a unique testset
             for f in readdir(example_dir)
-                fname, fext = split(f, ".")
-                !isfile(joinpath(example_dir, f)) && continue
-                !(fext == "jl") && continue
-                @testset "$fname" begin include(joinpath(example_dir, f)) end
+                test_literate_script(f, example_dir)
             end
 
         end

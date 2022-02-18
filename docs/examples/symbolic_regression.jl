@@ -34,7 +34,7 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 # By default, it takes in a `Vector` of `Functions` and additional [keyworded arguments](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#Options). For now, we will stick to simple operations 
 # like addition, subtraction and multiplication, use a `L1DistLoss` and limit the maximum depth of the equation trees.
 
-alg = EQSearch([+, *, -], loss = L1DistLoss(), maxdepth = 3)
+alg = EQSearch([+, *, -], loss = L1DistLoss(), maxdepth = 2)
 
 # Again, we `solve` the problem to obtain a [`DataDrivenResult`](@ref). Note that any additional keyworded arguments are passed onto 
 # symbolic regressions [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#EquationSearch)
@@ -88,7 +88,6 @@ estimate = solve(ode_prob, Tsit5(), saveat = prob.t);
 #md # ```julia
 #md # @__CODE__
 #md # ```
-println(res)
-println(system)
+
 @test all(l2error(res) .<= 5e-1) #src
 @test Array(sol) ≈ Array(estimate) rtol = 5e-2 #src
