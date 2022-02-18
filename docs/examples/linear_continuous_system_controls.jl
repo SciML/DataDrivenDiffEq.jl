@@ -65,8 +65,7 @@ sparse_res = solve(prob, basis, STLSQ(1e-1))
 
 # Which holds the same equations
 sparse_system = result(sparse_res)
-#md 
-println(sparse_system)
+#md println(sparse_system)
 
 # Again, we can have a look at the result
 

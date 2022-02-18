@@ -1,7 +1,7 @@
 #push!(LOAD_PATH,"../src/")
 
 using Documenter, DataDrivenDiffEq
-#using Flux, SymbolicRegression
+using Flux, SymbolicRegression
 using Literate
 
 ENV["GKSwstype"] = "100"
@@ -41,17 +41,17 @@ makedocs(
         #"Getting Started" => "getting_started.md",
         "Tutorials" => tutorials,
         #"Unifying SINDy and DMD" => "sindy_dmd.md",
-        #"Problems" => "problems.md",
-        #"Basis" => "basis.md",
-        #"Solvers" => Any[
-        #  "solvers/koopman.md",
-        #  "solvers/optimization.md",
-        #  "solvers/symbolic_regression.md"
-        #],
-        #"Solutions" => "solutions.md",
-        #"Utilities" => "utils.md",
-        #"Contributing" => "contributions.md",
-        #"Citing" => "citations.md"
+        "Problems" => "problems.md",
+        "Basis" => "basis.md",
+        "Solvers" => Any[
+          "solvers/koopman.md",
+          "solvers/optimization.md",
+          "solvers/symbolic_regression.md"
+        ],
+        "Solutions" => "solutions.md",
+        "Utilities" => "utils.md",
+        "Contributing" => "contributions.md",
+        "Citing" => "citations.md"
         ]
 )
 
