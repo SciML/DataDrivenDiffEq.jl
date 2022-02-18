@@ -19,7 +19,7 @@ t = sol.t
 U = permutedims(sin.(0.5*t))
 prob = ContinuousDataDrivenProblem(X, t, U = U)
 
-alg = EQSearch([+, *, -], loss = L1DistLoss(), maxdepth = 3)
+alg = EQSearch([+, *, -], loss = L1DistLoss(), maxdepth = 2)
 
 res = solve(prob, alg, numprocs = 0, multithreading = false)
 
@@ -46,9 +46,6 @@ x0 = [x[1] => u0[1], x[2] => u0[2]]
 
 ode_prob = ODEProblem(sys, x0, tspan)
 estimate = solve(ode_prob, Tsit5(), saveat = prob.t);
-
-println(res)
-println(system)
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
 
