@@ -166,12 +166,18 @@ function __init__()
     end
 
     @require SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb" begin
+        using PkgVersion
+        # We need to restrict to the latest version of SymbolicUtils here
+        const SymbolicRegressionVersion = Pkg.Version(SymbolicRegression)
+        if SymbolicRegressionVersion < v"0.7.0"
+            using .SymbolicRegression
+            include("./symbolic_regression/symbolic_regression.jl")
+            export EQSearch
 
-        using .SymbolicRegression
-        include("./symbolic_regression/symbolic_regression.jl")
-        export EQSearch
-
-        @info "DataDrivenDiffEq : Symbolic Regression is available."
+            @info "DataDrivenDiffEq : Symbolic Regression is available."
+        else
+            @warn "DataDrivenDiffEq : SymbolicRegression is on version $(SymbolicRegressionVersion), which is currently not supported. Consider downgrading to a version < v0.7.0."
+        end
     end
 
 end
