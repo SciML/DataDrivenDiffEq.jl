@@ -8,6 +8,9 @@ using ModelingToolkit
 using LinearAlgebra
 using OrdinaryDiffEq
 using SymbolicRegression
+# We want to have reproduceable results
+using Random 
+Random.seed!(1234)
 #md using Plots 
 
 A = [-0.9 0.2; 0.0 -0.2]
@@ -32,14 +35,15 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 
 # To solve our problem, we will use [`EQSearch`](@ref), which provides a wrapper for the symbolic regression interface.
 # By default, it takes in a `Vector` of `Functions` and additional [keyworded arguments](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#Options). For now, we will stick to simple operations 
-# like addition, subtraction and multiplication, use a `L1DistLoss` and limit the maximum depth of the equation trees.
+# like addition and multiplication, use a `L1DistLoss` , limit the maximum depth and punish complex equations. 
 
-alg = EQSearch([+, *, -], loss = L1DistLoss(), maxdepth = 2)
+alg = EQSearch([+, *], loss = L1DistLoss(), maxdepth = 0, parsimony = 0.001f0)
 
 # Again, we `solve` the problem to obtain a [`DataDrivenResult`](@ref). Note that any additional keyworded arguments are passed onto 
-# symbolic regressions [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#EquationSearch)
+# symbolic regressions [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#EquationSearch) with the exception of `niterations` which 
+# is `max_iter`
 
-res = solve(prob, alg, numprocs = 0, multithreading = false)
+res = solve(prob, alg, max_iter = 50, numprocs = 0, multithreading = false)
 #md println(res) 
 
 # We see that the system has been recovered correctly, indicated by the small error. A closer look at the equations r
