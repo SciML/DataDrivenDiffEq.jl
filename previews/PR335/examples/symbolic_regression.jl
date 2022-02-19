@@ -4,6 +4,9 @@ using LinearAlgebra
 using OrdinaryDiffEq
 using SymbolicRegression
 
+using Random
+Random.seed!(1234)
+
 A = [-0.9 0.2; 0.0 -0.2]
 B = [0.0; 1.0]
 u0 = [10.0; -10.0]
@@ -19,9 +22,9 @@ t = sol.t
 U = permutedims(sin.(0.5*t))
 prob = ContinuousDataDrivenProblem(X, t, U = U)
 
-alg = EQSearch([+, *, -], loss = L1DistLoss(), maxdepth = 2)
+alg = EQSearch([+, *], loss = L1DistLoss(), maxdepth = 0, parsimony = 0.001f0)
 
-res = solve(prob, alg, numprocs = 0, multithreading = false)
+res = solve(prob, alg, max_iter = 50, numprocs = 0, multithreading = false)
 
 system = result(res)
 
