@@ -23,7 +23,7 @@ end
 
 u0 = [0.3; 0; 1.0; 0]
 tspan = (0.0, 5.0)
-dt = 0.1
+dt = 0.05
 cart_pole_prob = ODEProblem(cart_pole, u0, tspan)
 solution = solve(cart_pole_prob, Tsit5(), saveat = dt)
 
