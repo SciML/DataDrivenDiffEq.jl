@@ -18,7 +18,7 @@ tspan = (0.0, 10.0)
 f(u,p,t) = A*u .+ B .* sin(0.5*t)
 
 sys = ODEProblem(f, u0, tspan)
-sol = solve(sys, Tsit5(), saveat = 0.05);
+sol = solve(sys, Tsit5(), saveat = 0.01);
 
 # We will use the data provided by our problem, but add the control signal `U = sin(0.5*t)` to it. Instead of using a function, like in [another example](@ref linear_continuous_control)
 X = Array(sol) 
