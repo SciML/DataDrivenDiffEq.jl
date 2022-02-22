@@ -13,7 +13,7 @@ using SymbolicRegression
 A = [-0.9 0.2; 0.0 -0.5]
 B = [0.0; 1.0]
 u0 = [10.0; -10.0]
-tspan = (0.0, 10.0)
+tspan = (0.0, 20.0)
 
 f(u,p,t) = A*u .+ B .* sin(0.5*t)
 
@@ -43,6 +43,7 @@ alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching
 res = solve(prob, alg, max_iter = 100, numprocs = 0, multithreading = false)
 #md println(res) 
 
+#note # Symbolic regression is working on estimating the 
 # We see that the system has been recovered correctly, indicated by the small error. A closer look at the equations r
 
 system = result(res)
