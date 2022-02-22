@@ -8,12 +8,9 @@ using ModelingToolkit
 using LinearAlgebra
 using OrdinaryDiffEq
 using SymbolicRegression
-# We want to have reproduceable results
-using Random 
-Random.seed!(1234)
 #md using Plots 
 
-A = [-0.9 0.2; 0.0 -0.2]
+A = [-0.9 0.2; 0.0 -0.5]
 B = [0.0; 1.0]
 u0 = [10.0; -10.0]
 tspan = (0.0, 10.0)
@@ -34,22 +31,24 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 #md plot(prob) 
 
 # To solve our problem, we will use [`EQSearch`](@ref), which provides a wrapper for the symbolic regression interface.
-# By default, it takes in a `Vector` of `Functions` and additional [keyworded arguments](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#Options). For now, we will stick to simple operations 
-# like addition and multiplication, use a `L1DistLoss` , limit the maximum depth and punish complex equations. 
+# By default, it takes in a `Vector` of `Functions` and additional [keyworded arguments](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#Options). We will stick to simple operations 
+# like subtraction and multiplication, use a `L1DistLoss` , limit the maximum size and punish complex equations while fitting our equations on minibatches. 
 
-alg = EQSearch([+, *], loss = L1DistLoss(), maxdepth = 0, parsimony = 0.001f0)
+alg = EQSearch([-, *], loss = L1DistLoss(), maxsize = 9, batching = true, batchSize = 50, parsimony = 0.001f0)
 
 # Again, we `solve` the problem to obtain a [`DataDrivenResult`](@ref). Note that any additional keyworded arguments are passed onto 
 # symbolic regressions [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#EquationSearch) with the exception of `niterations` which 
 # is `max_iter`
 
-res = solve(prob, alg, max_iter = 50, numprocs = 0, multithreading = false)
-#md println(res) 
+res = solve(prob, alg, max_iter = 100, numprocs = 0, multithreading = true)
+#md 
+println(res) 
 
 # We see that the system has been recovered correctly, indicated by the small error. A closer look at the equations r
 
 system = result(res)
-#md println(system)
+#md 
+println(system)
 
 # Shows that while not obvious, the representation 
 # And also plot the prediction of the recovered dynamics
