@@ -1,3 +1,5 @@
+#note # Symbolic regression is using  regularized evolution, simulated annealing, and gradient-free optimization to find suitable equations. Hence, the performance might differ and depends strongly on the hyperparameters of the optimization. This example might not recover the groundtruth, but is showing off the use within `DataDrivenDiffEq.jl`.
+
 using DataDrivenDiffEq
 using ModelingToolkit
 using LinearAlgebra
@@ -19,11 +21,9 @@ t = sol.t
 U = permutedims(sin.(0.5*t))
 prob = ContinuousDataDrivenProblem(X, t, U = U)
 
-alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching = true, batchSize = 50, parsimony = 0.001f0)
+alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching = true, batchSize = 50, parsimony = 0.01f0)
 
-res = solve(prob, alg, max_iter = 100, numprocs = 0, multithreading = false)
-
-#note # Symbolic regression is working on estimating the
+res = solve(prob, alg, max_iter = 300, numprocs = 0, multithreading = false)
 
 system = result(res)
 println(system)

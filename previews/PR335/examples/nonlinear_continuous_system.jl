@@ -1,5 +1,3 @@
-#Similarly, we can use the Extended Dynamic Mode Decomposition](https://link.springer.com/article/10.1007/s00332-015-9258-5) via a nonlinear [`Basis` of observables. Here, we will look at a rather [famous example](https://arxiv.org/pdf/1510.03007.pdf) with a finite dimensional solution.
-
 using DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
