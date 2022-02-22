@@ -1,5 +1,3 @@
-#note # Symbolic regression is using  regularized evolution, simulated annealing, and gradient-free optimization to find suitable equations. Hence, the performance might differ and depends strongly on the hyperparameters of the optimization. This example might not recover the groundtruth, but is showing off the use within `DataDrivenDiffEq.jl`.
-
 using DataDrivenDiffEq
 using ModelingToolkit
 using LinearAlgebra
