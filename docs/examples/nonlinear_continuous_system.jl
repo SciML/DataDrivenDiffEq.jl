@@ -26,8 +26,9 @@ prob = ContinuousDataDrivenProblem(solution)
 
 # Additionally, we need to define the [`Basis`](@ref) for our lifting, before we `solve` the problem in the lifted space.
     
-@variables u[1:2]
-Ψ = Basis([u; u[1]^2], u)
+@parameters t
+@variables u[1:2](t)
+Ψ = Basis([u; u[1]^2], u, independent_variable = t)
 res = solve(prob, Ψ, DMDPINV(), digits = 1)
 system = result(res)
 #md println(res) # hide
@@ -54,6 +55,30 @@ parameter_map(res)
 # a vector suitable to use with `ModelingToolkit`.
 
 parameter_map(sparse_res)
+
+# To simulate the system, we create an `ODESystem` from the result
+
+# Both results can be converted into an `ODESystem`
+
+@named sys = ODESystem(
+    equations(sparse_system), 
+    get_iv(sparse_system),
+    states(sparse_system), 
+    parameters(sparse_system)
+    );
+
+    
+x0 = [u[1] => u0[1], u[2] => u0[2]]
+ps = parameter_map(sparse_res)
+    
+# And simulated using `OrdinaryDiffEq.jl` using the (known) initial conditions and the parameter mapping of the estimation.
+
+ode_prob = ODEProblem(sys, x0, tspan, ps)
+estimate = solve(ode_prob, Tsit5(), saveat = prob.t);
+
+# And look at the result
+#md plot(solution, color = :black)
+#md plot!(estimate, color = :red, linestyle = :dash)
 
 #md # ## [Copy-Pasteable Code](@id linear_discrete_copy_paste)
 #md #
