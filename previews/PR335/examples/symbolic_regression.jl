@@ -12,17 +12,16 @@ tspan = (0.0, 10.0)
 f(u,p,t) = A*u .+ B .* sin(0.5*t)
 
 sys = ODEProblem(f, u0, tspan)
-sol = solve(sys, Tsit5(), saveat = 0.05);
+sol = solve(sys, Tsit5(), saveat = 0.01);
 
 X = Array(sol)
 t = sol.t
 U = permutedims(sin.(0.5*t))
 prob = ContinuousDataDrivenProblem(X, t, U = U)
 
-alg = EQSearch([-, *], loss = L1DistLoss(), maxsize = 9, batching = true, batchSize = 50, parsimony = 0.001f0)
+alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching = true, batchSize = 50, parsimony = 0.001f0)
 
-res = solve(prob, alg, max_iter = 100, numprocs = 0, multithreading = true)
-println(res)
+res = solve(prob, alg, max_iter = 100, numprocs = 0, multithreading = false)
 
 system = result(res)
 println(system)
