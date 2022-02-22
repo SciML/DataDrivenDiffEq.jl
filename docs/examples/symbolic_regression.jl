@@ -1,5 +1,6 @@
 # # [Symbolic Regression](@id symbolic_regression_simple)
 # 
+#note # Symbolic regression is using  regularized evolution, simulated annealing, and gradient-free optimization to find suitable equations. Hence, the performance might differ and depends strongly on the hyperparameters of the optimization. This example might not recover the groundtruth, but is showing off the use within `DataDrivenDiffEq.jl`.
 # DataDrivenDiffEq offers an interface to [`SymbolicRegression.jl`](https://github.com/MilesCranmer/SymbolicRegression.jl) to infer more complex functions. To 
 # use it, simply load a sufficient version of `SymbolicRegression` (currently we supported version 0.6.14 to 0.6.19).
 
@@ -34,16 +35,15 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 # By default, it takes in a `Vector` of `Functions` and additional [keyworded arguments](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#Options). We will stick to simple operations 
 # like subtraction and multiplication, use a `L1DistLoss` , limit the maximum size and punish complex equations while fitting our equations on minibatches. 
 
-alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching = true, batchSize = 50, parsimony = 0.001f0)
+alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching = true, batchSize = 50, parsimony = 0.01f0)
 
 # Again, we `solve` the problem to obtain a [`DataDrivenResult`](@ref). Note that any additional keyworded arguments are passed onto 
 # symbolic regressions [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#EquationSearch) with the exception of `niterations` which 
 # is `max_iter`
 
-res = solve(prob, alg, max_iter = 100, numprocs = 0, multithreading = false)
+res = solve(prob, alg, max_iter = 300, numprocs = 0, multithreading = false)
 #md println(res) 
 
-#note # Symbolic regression is working on estimating the 
 # We see that the system has been recovered correctly, indicated by the small error. A closer look at the equations r
 
 system = result(res)

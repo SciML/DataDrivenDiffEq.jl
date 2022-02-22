@@ -14,40 +14,40 @@ using Test
 const GROUP = get(ENV, "GROUP", "All")
 
 @time begin
-    #if GROUP == "All" || GROUP == "DataDrivenDiffEq" || GROUP == "Standard"
-    #    @testset "Basis" begin include("./basis/basis.jl") end
-    #    @testset "Basis Generators" begin include("./basis/generators.jl") end
-    #    
-    #    @testset "DataDrivenProblem" begin 
-    #        include("./problem/problem.jl") 
-    #        include("./problem/samplers.jl")
-    #    end
-#
-    #    @testset "Sparse Identification" begin
-    #        @testset "Pendulum" begin include("./sindy/pendulum.jl") end
-    #        @testset "Michaelis Menten" begin include("./sindy/michaelis_menten.jl") end
-    #        @testset "Cartpole" begin include("./sindy/cartpole.jl") end
-    #    end
-#
-    #    @testset "Koopman" begin
-    #        @testset "Linear Autonomous" begin include("./dmd/linear_autonomous.jl") end
-    #        @testset "Linear Forced" begin include("./dmd/linear_forced.jl") end
-    #        @testset "Nonlinear Autonomous" begin include("./dmd/nonlinear_autonomous.jl") end
-    #        @testset "Nonlinear Forced" begin include("./dmd/nonlinear_forced.jl") end
-    #    end
-    #end
-    #if GROUP == "All" || GROUP == "Optional"
-#
-    #    @info "Loading Flux"
-    #    using Flux
-    #    @info "Loading Symbolic Regression"
-    #    using SymbolicRegression
-#
-    #    @testset "Symbolic Regression" begin
-    #        @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl") end
-    #        @testset "SymbolicRegression" begin include("./symbolic_regression/symbolic_regression.jl") end
-    #    end
-    #end
+    if GROUP == "All" || GROUP == "DataDrivenDiffEq" || GROUP == "Standard"
+        @testset "Basis" begin include("./basis/basis.jl") end
+        @testset "Basis Generators" begin include("./basis/generators.jl") end
+        
+        @testset "DataDrivenProblem" begin 
+            include("./problem/problem.jl") 
+            include("./problem/samplers.jl")
+        end
+
+        @testset "Sparse Identification" begin
+            @testset "Pendulum" begin include("./sindy/pendulum.jl") end
+            @testset "Michaelis Menten" begin include("./sindy/michaelis_menten.jl") end
+            @testset "Cartpole" begin include("./sindy/cartpole.jl") end
+        end
+
+        @testset "Koopman" begin
+            @testset "Linear Autonomous" begin include("./dmd/linear_autonomous.jl") end
+            @testset "Linear Forced" begin include("./dmd/linear_forced.jl") end
+            @testset "Nonlinear Autonomous" begin include("./dmd/nonlinear_autonomous.jl") end
+            @testset "Nonlinear Forced" begin include("./dmd/nonlinear_forced.jl") end
+        end
+    end
+    if GROUP == "All" || GROUP == "Optional"
+
+        @info "Loading Flux"
+        using Flux
+        @info "Loading Symbolic Regression"
+        using SymbolicRegression
+
+        @testset "Symbolic Regression" begin
+            @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl") end
+            @testset "SymbolicRegression" begin include("./symbolic_regression/symbolic_regression.jl") end
+        end
+    end
 
     if GROUP == "All" || GROUP == "Docs"
         @info "Testing documentation examples"
