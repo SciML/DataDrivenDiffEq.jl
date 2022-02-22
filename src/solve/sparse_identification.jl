@@ -128,5 +128,5 @@ function CommonSolve.solve!(p::SparseIdentificationProblem)#::DataDrivenSolution
     sol = SparseLinearSolution(
         Ξ, λs, (train, test), testerror, trainerror, optimizer, options
     )
-    return DataDrivenSolution(prob, sol, basis, optimizer, implicit_variables(basis); eval_expression = eval_expression)
+    return DataDrivenSolution(prob, sol, basis, optimizer, implicit_variables(basis); eval_expression = eval_expression, kwargs...)
 end
