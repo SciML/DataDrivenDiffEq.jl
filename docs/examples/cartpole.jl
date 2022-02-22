@@ -38,10 +38,10 @@ ddprob = ContinuousDataDrivenProblem(
     X , t, DX = DX[3:4, :], U = (u,p,t) -> [-0.2 + 0.5*sin(6*t)]
 )
 
+#md plot(ddprob)
 
-#md plot(solution)
-
-# Next, we define a sufficient [`Basis`](@ref):
+# Next, we define a sufficient [`Basis`](@ref). Again, we need to include `implicits` in the definition of 
+# our candidate functions and inform the [`Basis`](@ref) of it.  
 
 @parameters t
 @variables u[1:4] du[1:2] x[1:1] 
@@ -95,9 +95,9 @@ println(system) #hide
 
 ## Test #src
 for r_ in [res] #src
-    @test all(l2error(r_) .< 0.4) #src
-    @test all(aic(r_) .> 5e2) #src
-    @test all(determination(r_) .>= 0.7) #src
+    @test all(l2error(r_) .< 0.1) #src
+    @test all(aic(r_) .> 1e3) #src
+    @test all(determination(r_) .>= 0.9) #src
 end #src
 
 
