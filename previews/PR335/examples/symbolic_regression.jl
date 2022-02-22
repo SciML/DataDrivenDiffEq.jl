@@ -7,7 +7,7 @@ using SymbolicRegression
 A = [-0.9 0.2; 0.0 -0.5]
 B = [0.0; 1.0]
 u0 = [10.0; -10.0]
-tspan = (0.0, 10.0)
+tspan = (0.0, 20.0)
 
 f(u,p,t) = A*u .+ B .* sin(0.5*t)
 
@@ -22,6 +22,8 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching = true, batchSize = 50, parsimony = 0.001f0)
 
 res = solve(prob, alg, max_iter = 100, numprocs = 0, multithreading = false)
+
+#note # Symbolic regression is working on estimating the
 
 system = result(res)
 println(system)
