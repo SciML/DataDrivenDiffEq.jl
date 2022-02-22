@@ -13,7 +13,7 @@ metrics
 parameters
 parameter_map
 aic
-error
+l2error
 determination
 algorithm
 output
