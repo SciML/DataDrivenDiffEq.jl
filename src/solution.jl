@@ -326,14 +326,6 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
     ), ps
 end
 
-function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
-    for i in eachindex(x)
-        x[i] = round(x[i], digits = digits)
-    end
-    return x
-end
-
-
 function assert_lhs(prob)
     dt = mean(diff(prob.t))
     lhs = :direct

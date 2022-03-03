@@ -1,8 +1,8 @@
-# [Symbolic Regression](@id symbolic_regression)
+# [Symbolic Regression](@id symbolic_regression_api)
 
 `DataDrivenDiffEq` includes the following symbolic regression algorithms.
 
-## SymbolicRegression
+## SymbolicRegression.jl
 
 !!! warning
     This feature requires the explicit loading of [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) in addition to `DataDrivenDiffEq`. It will _only_ be useable if loaded like:
@@ -10,6 +10,7 @@
     using DataDrivenDiffEq
     using SymbolicRegression
     ```
+    Currently `DataDrivenDiffEq` supports version 0.6.14 up to 0.6.19.
 
 ### Symbolic Regression
 See the [tutorial](@ref symbolic_regression_tutorial).
@@ -18,7 +19,7 @@ See the [tutorial](@ref symbolic_regression_tutorial).
 EQSearch
 ```
 
-## OccamNet
+## [OccamNet](@id occamnet_api)
 See the [tutorial](@ref occam_net_tutorial).
 
 !!! warning
@@ -33,7 +34,6 @@ OccamNet
 OccamSR
 ProbabilityLayer
 ```
-
 ### Related Functions
 
 ```@docs

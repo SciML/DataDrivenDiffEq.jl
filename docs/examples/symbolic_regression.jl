@@ -1,12 +1,13 @@
-# # [Symbolic Regression](@id symbolic_regression_simple)
+# # [Symbolic Regression of Nonlinear Time Continuous Systems](@id symbolic_regression_simple)
 # 
 # !!! note 
-#   Symbolic regression is using  regularized evolution, simulated annealing, and gradient-free optimization to find suitable equations. 
+#
+#   Symbolic regression is using regularized evolution, simulated annealing, and gradient-free optimization to find suitable equations. 
 #   Hence, the performance might differ and depends strongly on the hyperparameters of the optimization. 
 #   This example might not recover the groundtruth, but is showing off the use within `DataDrivenDiffEq.jl`.
 #
 # DataDrivenDiffEq offers an interface to [`SymbolicRegression.jl`](https://github.com/MilesCranmer/SymbolicRegression.jl) to infer more complex functions. To 
-# use it, simply load a sufficient version of `SymbolicRegression` (currently we supported version 0.6.14 to 0.6.19).
+# use it, simply load a sufficient version of `SymbolicRegression` (currently we support version 0.6.14 to 0.6.19).
 
 using DataDrivenDiffEq
 using ModelingToolkit

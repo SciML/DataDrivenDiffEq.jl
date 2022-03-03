@@ -23,7 +23,7 @@ end
 
 u0 = [0.3; 0; 1.0; 0]
 tspan = (0.0, 5.0)
-dt = 0.01
+dt = 0.05
 cart_pole_prob = ODEProblem(cart_pole, u0, tspan)
 solution = solve(cart_pole_prob, Tsit5(), saveat = dt)
 
@@ -40,12 +40,15 @@ ddprob = ContinuousDataDrivenProblem(
 
 #md plot(ddprob)
 
+# Note that we just included the third and forth time derivative, assuming that we already know that the velocity `x[3:4]` is equal to the time 
+# derivative of the position `x[1:2]`.
 # Next, we define a sufficient [`Basis`](@ref). Again, we need to include `implicits` in the definition of 
 # our candidate functions and inform the [`Basis`](@ref) of it.  
 
 @parameters t
 @variables u[1:4] du[1:2] x[1:1] 
 u, du, x = map(collect, [u, du, x])
+
 polys = polynomial_basis(u, 2)
 push!(polys, sin.(u[1]))
 push!(polys, cos.(u[1]))
@@ -56,6 +59,7 @@ push!(polys, sin.(u[1]).*u[3:4].^2...)
 push!(polys, sin.(u[1]).*cos.(u[1])...)
 push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4]...)
 push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4].^2...)
+
 implicits = [du;  du[1] .* u; du[2] .* u; du .* cos(u[1]);   du .* cos(u[1])^2; polys]
 push!(implicits, x...)
 push!(implicits, x[1]*cos(u[1]))
@@ -68,15 +72,13 @@ println(basis) # hide
 # Additionally we activate the `scale_coefficients` option for the [`ImplicitOptimizer`](@ref), which helps to find sparse equations by normalizing the resulting coefficient matrix after each suboptimization.
 # To evaluate the pareto optimal solution, we use the functions `f` and `g` which can be passed as keyword arguments into the `solve` function. `f` is a function with different signatures for different optimizers, but returns the ``L_0`` norm of the coefficients and the ``L_2`` error of the current model. `g` takes this vector and projects it down onto a scalar, using the ``L_2`` norm per default. However, here we want to use the `AIC`  of the output of `f`. A noteworthy exception is of course, that we want only results with two or more active coefficents. Hence, we modify `g` accordingly.
 
-λ = [1e-4;5e-4;1e-3;2e-3;3e-3;4e-3;5e-3;6e-3;7e-3;8e-3;9e-3;1e-2;2e-2;3e-2;4e-2;5e-2;
-6e-2;7e-2;8e-2;9e-2;1e-1;2e-1;3e-1;4e-1;5e-1;6e-1;7e-1;8e-1;9e-1;1;1.5;2;2.5;3;3.5;4;4.5;5;
-6;7;8;9;10;20;30;40;50;100;200];
+λ = [1e-4;5e-4;1e-3;2e-3;3e-3;4e-3;5e-3;6e-3;7e-3;8e-3;9e-3;1e-2;2e-2;3e-2;4e-2;5e-2]
 
 opt = ImplicitOptimizer(λ)
 
 g(x) = x[1] <= 1 ? Inf : 2*x[1]-2*log(x[2])
 
-res = solve(ddprob, basis, opt, du, maxiter = 1000, g = g, scale_coefficients = true)
+res = solve(ddprob, basis, opt, du, maxiter = 1000, g = g, show_progress = true)
 system = result(res)
 println(system) #hide
 
@@ -95,7 +97,7 @@ println(system) #hide
 
 ## Test #src
 for r_ in [res] #src
-    @test all(l2error(r_) .< 0.1) #src
+    @test all(l2error(r_) .< 0.5) #src
     @test all(aic(r_) .> 1e3) #src
     @test all(determination(r_) .>= 0.9) #src
 end #src

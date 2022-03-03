@@ -133,26 +133,20 @@ function create_linear_independent_eqs(ops::AbstractVector, simplify_eqs::Bool =
 end
 
 function is_dependent(x::Num, y::Num)
-    any(map(xi->isequal(xi,y), get_variables(x)))
+    occursin(y.val, x.val)
 end
 
 function is_dependent(x::Num, y::AbstractVector{Num})
     map(yi->is_dependent(x, yi), y)
 end
+
 function is_dependent(x::AbstractVector{Num}, y::AbstractVector{Num})
     inds = reduce(hcat, map(xi->is_dependent(xi, y), x))
     inds = reshape(inds, length(y), length(x))
 end
 
-function is_not_dependent(x::Num, y::Num)
-    v = get_variables(x)
-    isempty(v) && return true
-    all(map(vi->!isequal(vi, y), v))
-end
-function is_not_dependent(x::AbstractVector{Num}, y::Num)
-    permutedims(map(xi->is_not_dependent(xi, y), x))
-end
+is_not_dependent(x, y) = .! is_dependent(x, y)
 
 function candidate_matrix(x::Vector{Num}, y::Vector{Num})
-    return reduce(vcat, map(xi->is_not_dependent(x, xi), y))
+    return reduce(hcat, map(xi->is_not_dependent(xi, y), x))
 end

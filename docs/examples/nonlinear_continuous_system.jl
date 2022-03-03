@@ -41,12 +41,12 @@ system = result(res)
 # Similarly we could use sparse identification to solve the problem
 
 sparse_res = solve(prob, Ψ, STLSQ(), digits = 1)
-println(sparse_res)
+#md println(sparse_res)
 
 # And the resulting system
 
 sparse_system = result(sparse_res)
-println(sparse_system)
+#md println(sparse_system)
 
 # We can also directly look at the parameters of each result
 

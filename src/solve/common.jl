@@ -2,6 +2,10 @@
 $(TYPEDEF)
 
 Common options for all methods provided via `DataDrivenDiffEq`. 
+
+# Fields
+$(FIELDS)
+    
 """
 mutable struct DataDrivenCommonOptions{T,K}
     """Maximum iterations"""
@@ -86,14 +90,16 @@ function candidate_matrix(b::Basis, n_o::Int)
     eqs = map(x->x.rhs, equations(b))
     xs = states(b)
     ys = implicit_variables(b)
-    
-    isempty(ys) && return ones(Bool, n_o, length(eqs))
 
+    isempty(ys) && return ones(Bool, n_o, length(eqs))
     c = zeros(Bool, length(ys), length(eqs))
 
     for i in 1:length(ys), j in 1:length(eqs)
+        # Either we have a dependency on this variable
         c[i,j] = is_dependent(Num(eqs[j]), Num(ys[i]))
+        # Return 
         c[i,j] && continue
+        # Or to no other implicit variable
         c[i,j] = all(map(xi->is_not_dependent(Num(eqs[j]), Num(xi)), ys))
     end
 
