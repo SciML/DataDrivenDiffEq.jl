@@ -53,8 +53,6 @@ system = result(res)
 ode_prob = ODEProblem(ode, x0, tspan, parameter_map(res));
 
 prediction = solve(ode_prob, Tsit5(), saveat = 0.2);
-plot(de_solution, label = ["Groundtruth" nothing]) #hide
-scatter!(prediction, label = ["Prediction" nothing]) #hide
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
 
