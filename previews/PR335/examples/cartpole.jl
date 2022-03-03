@@ -16,7 +16,7 @@ end
 
 u0 = [0.3; 0; 1.0; 0]
 tspan = (0.0, 5.0)
-dt = 0.01
+dt = 0.05
 cart_pole_prob = ODEProblem(cart_pole, u0, tspan)
 solution = solve(cart_pole_prob, Tsit5(), saveat = dt)
 
@@ -34,6 +34,7 @@ ddprob = ContinuousDataDrivenProblem(
 @parameters t
 @variables u[1:4] du[1:2] x[1:1]
 u, du, x = map(collect, [u, du, x])
+
 polys = polynomial_basis(u, 2)
 push!(polys, sin.(u[1]))
 push!(polys, cos.(u[1]))
@@ -44,6 +45,7 @@ push!(polys, sin.(u[1]).*u[3:4].^2...)
 push!(polys, sin.(u[1]).*cos.(u[1])...)
 push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4]...)
 push!(polys, sin.(u[1]).*cos.(u[1]).*u[3:4].^2...)
+
 implicits = [du;  du[1] .* u; du[2] .* u; du .* cos(u[1]);   du .* cos(u[1])^2; polys]
 push!(implicits, x...)
 push!(implicits, x[1]*cos(u[1]))
@@ -52,15 +54,13 @@ push!(implicits, x[1]*sin(u[1]))
 basis= Basis(implicits, u, implicits = du, controls = x,  iv = t);
 println(basis) # hide
 
-λ = [1e-4;5e-4;1e-3;2e-3;3e-3;4e-3;5e-3;6e-3;7e-3;8e-3;9e-3;1e-2;2e-2;3e-2;4e-2;5e-2;
-6e-2;7e-2;8e-2;9e-2;1e-1;2e-1;3e-1;4e-1;5e-1;6e-1;7e-1;8e-1;9e-1;1;1.5;2;2.5;3;3.5;4;4.5;5;
-6;7;8;9;10;20;30;40;50;100;200];
+λ = [1e-4;5e-4;1e-3;2e-3;3e-3;4e-3;5e-3;6e-3;7e-3;8e-3;9e-3;1e-2;2e-2;3e-2;4e-2;5e-2]
 
 opt = ImplicitOptimizer(λ)
 
 g(x) = x[1] <= 1 ? Inf : 2*x[1]-2*log(x[2])
 
-res = solve(ddprob, basis, opt, du, maxiter = 1000, g = g, scale_coefficients = true)
+res = solve(ddprob, basis, opt, du, maxiter = 1000, g = g, show_progress = true)
 system = result(res)
 println(system) #hide
 

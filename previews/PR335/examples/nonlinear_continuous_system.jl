@@ -24,10 +24,8 @@ res = solve(prob, Ψ, DMDPINV(), digits = 1)
 system = result(res)
 
 sparse_res = solve(prob, Ψ, STLSQ(), digits = 1)
-println(sparse_res)
 
 sparse_system = result(sparse_res)
-println(sparse_system)
 
 parameter_map(res)
 
