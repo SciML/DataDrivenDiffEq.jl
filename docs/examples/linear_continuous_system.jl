@@ -29,7 +29,7 @@ prob = ContinuousDataDrivenProblem(X, t)
 
 #md plot(prob) 
 
-# We can see that the derivative has been automatically added via a [`collocation`](@ref) method, which defaults to a `LinearInterpolation`. 
+# We can see that the derivative has been automatically added via a [`collocation`](@ref collocation) method, which defaults to a `LinearInterpolation`. 
 # We can do a visual check and compare our derivatives with the interpolation of the `ODESolution`.
 
 #md DX = Array(sol(t, Val{1}))

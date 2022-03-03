@@ -3,10 +3,9 @@
 ```@docs
 DataDrivenProblem
 ```
-
 ## Defining a Problem
 
-Problems of identification, estimation, or inference are defined by data. These data contain at least measurements of the states `X`, which would be sufficient to describe a `DiscreteDataDrivenProblem` with unit time steps similar to the [first example on dynamic mode decomposition](@ref Linear-Systems-via-Dynamic-Mode-Decomposition). Of course, we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like:
+Problems of identification, estimation, or inference are defined by data. These data contain at least measurements of the states `X`, which would be sufficient to describe a `DiscreteDataDrivenProblem` with unit time steps similar to the [first example on dynamic mode decomposition](@ref linear_discrete). Of course, we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like:
 
 ```julia
 problem = DiscreteDataDrivenProblem(X)
@@ -16,7 +15,7 @@ problem = DiscreteDataDrivenProblem(X, t, U, p = p)
 problem = DiscreteDataDrivenProblem(X, t, (x,p,t)->u(x,p,t))
 ```
 
-Similarly, a `ContinuousDataDrivenProblem` would need at least measurements and time-derivatives (`X` and `DX`) or measurements, time information and a way to derive the time derivatives(`X`, `t` and a [Collocation](@ref) method). Again, this can be extended by including a control input as measurements or a function and possible parameters:
+Similarly, a `ContinuousDataDrivenProblem` would need at least measurements and time-derivatives (`X` and `DX`) or measurements, time information and a way to derive the time derivatives(`X`, `t` and a [Collocation](@ref collocation) method). Again, this can be extended by including a control input as measurements or a function and possible parameters:
 
 ```julia
 # Using available data
@@ -55,4 +54,12 @@ problem = DirectDataDrivenProblem(X, t, Y, (x,p,t)->u(x,p,t), p = p)
 DiscreteDataDrivenProblem
 ContinuousDataDrivenProblem
 DirectDataDrivenProblem
+```
+
+## DataSampler
+
+```@docs
+DataSampler
+Split
+Batcher
 ```

@@ -13,14 +13,13 @@
     Currently `DataDrivenDiffEq` supports version 0.6.14 up to 0.6.19.
 
 ### Symbolic Regression
-See the [tutorial](@ref symbolic_regression_tutorial).
+See the [tutorial](@ref symbolic_regression_simple).
 
 ```@docs
 EQSearch
 ```
 
 ## [OccamNet](@id occamnet_api)
-See the [tutorial](@ref occam_net_tutorial).
 
 !!! warning
     This feature requires the explicit loading of [Flux.jl](https://fluxml.ai/) in addition to `DataDrivenDiffEq`. It will _only_ be useable if loaded like:

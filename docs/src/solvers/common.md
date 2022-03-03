@@ -18,7 +18,7 @@ All of the above methods return a [`DataDrivenSolution`](@ref) if not enforced o
 Many of the algorithms implemented directly in `DataDrivenDiffEq` share common options. These can be passed into the `solve` call via keyworded arguments and get collected into the `CommonOptions` struct, which is given below. 
 
 ```@docs
-DataDrivenDiffEq.CommonOptions
+DataDrivenCommonOptions
 ```
 
 !!! info
@@ -32,7 +32,7 @@ DataDrivenDiffEq.CommonOptions
 
 ## Solving the Problem
 
-After defining a [`problem`](@ref), we choose a method to [`solve`](@ref) it. Depending on the input arguments and the type of problem, the function will return a result derived the algorithm of choice. Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. A [`Basis`](@ref) can be used for lifting the measurements.
+After defining a [`problem`](@ref problem), we choose a method to [`solve`](@ref solve) it. Depending on the input arguments and the type of problem, the function will return a result derived the algorithm of choice. Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. A [`Basis`](@ref) can be used for lifting the measurements.
 
 ```julia
 # Use a Koopman based inference

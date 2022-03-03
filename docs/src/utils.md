@@ -1,4 +1,4 @@
-# Collocation
+# [Collocation](@id collocation)
 
 ```@docs
 InterpolationMethod
