@@ -40,7 +40,7 @@ de_problem = ODEProblem(sys, x0, tspan)
 de_solution = solve(de_problem, Tsit5(), saveat = 0.005)
 #md plot(de_solution)
 
-# As always, we start by defining a [DataDrivenProblem](@ref) and a sufficient basis for sparse regression.
+# As always, we start by defining a [DataDrivenProblem](@ref problem) and a sufficient basis for sparse regression.
 
 dd_prob = ContinuousDataDrivenProblem(de_solution)
 
