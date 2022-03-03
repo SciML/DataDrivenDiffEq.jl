@@ -10,11 +10,13 @@ ENV["GKSwstype"] = "100"
 
 src = joinpath(@__DIR__, "src")
 lit = joinpath(@__DIR__, "examples")
-
+excludes = []#["symbolic_regression.jl"]
 tutorials = []
 
 for (root, _, files) ∈ walkdir(lit), file ∈ files
+  file ∈ excludes && continue
   fname, fext = splitext(file)
+
   fext == ".jl" || continue
   ipath = joinpath(root, file)
   opath = joinpath(splitdir(replace(ipath, lit=>src))[1], "examples")
@@ -23,9 +25,12 @@ for (root, _, files) ∈ walkdir(lit), file ∈ files
   mdpost(str) = replace(str, "@__CODE__" => code)
   Literate.markdown(ipath, opath)
   Literate.markdown(ipath, opath, execute = false, postprocess = mdpost)
-  push!(tutorials, relpath(joinpath(opath, fname*".md"), src))
+  if fname == "0_getting_started"
+    pushfirst!(tutorials,  relpath(joinpath(opath, fname*".md"), src))
+  else
+    push!(tutorials, relpath(joinpath(opath, fname*".md"), src))
+  end
 end
-
 
 # Create the docs
 makedocs(
@@ -38,16 +43,15 @@ makedocs(
                              canonical="https://datadriven.sciml.ai/stable/"),
     pages=[
         "Home" => "index.md",
-        #"Getting Started" => "getting_started.md",
         "Tutorials" => tutorials,
-        #"Unifying SINDy and DMD" => "sindy_dmd.md",
         "Problems" => "problems.md",
-        "Basis" => "basis.md",
         "Solvers" => Any[
+          "solvers/common.md",
           "solvers/koopman.md",
           "solvers/optimization.md",
           "solvers/symbolic_regression.md"
-        ],
+          ],
+        "Basis" => "basis.md",
         "Solutions" => "solutions.md",
         "Utilities" => "utils.md",
         "Contributing" => "contributions.md",

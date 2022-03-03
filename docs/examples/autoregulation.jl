@@ -69,7 +69,7 @@ print(result(res)) #hide
 
 system = result(res)
 @named ode = ODESystem(equations(system), t, x, parameters(system));
-ode_prob = ODEProblem(ode, x0, tspan, parameter_map(dd_result));
+ode_prob = ODEProblem(ode, x0, tspan, parameter_map(res));
 
 prediction = solve(ode_prob, Tsit5(), saveat = 0.2);
 plot(de_solution, label = ["Groundtruth" nothing]) #hide
