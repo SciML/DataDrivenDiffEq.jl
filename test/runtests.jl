@@ -53,7 +53,7 @@ const GROUP = get(ENV, "GROUP", "All")
         @info "Testing documentation examples"
         
         @safetestset "Documentation" begin 
-            excludes = ["symbolic_regression.jl"]
+            excludes = ["8_symbolic_regression.jl"]
             example_dir = joinpath(@__DIR__, "..", "docs", "examples")
 
             function test_literate_script(file, path)
