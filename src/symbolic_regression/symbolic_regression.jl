@@ -79,7 +79,8 @@ function pareto_optimal_equations(hof::Vector{HallOfFame}, prob, alg)
     x, _, t, c = DataDrivenDiffEq.get_oop_args(prob)
     X =  vcat([x for x in (x, c, permutedims(t)) if !isempty(x)]...)
     
-    @variables x[1:size(prob.X, 1)] u[1:size(prob.U,1)] t
+    @parameters t
+    @variables x[1:size(prob.X, 1)](t) u[1:size(prob.U,1)](t)
     x = Symbolics.scalarize(x)
     u = Symbolics.scalarize(u)
     x_ = Num[x;u;t]
@@ -89,7 +90,6 @@ function pareto_optimal_equations(hof::Vector{HallOfFame}, prob, alg)
 
 
     eqs = map(1:size(hof, 1)) do i
-        @show i
         d = calculateParetoFrontier(X, y[i,:], hof[i], opts)
         isempty(d) && return Num(0)
         eq_ = node_to_symbolic(last(d).tree, opts)
@@ -130,7 +130,7 @@ function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, hof; eva
             elseif lhs == :discrete
                 d = Difference(t, dt = dt)
             end
-            eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
+            eqs = [d(x[i]) ~ eq for (i,eq) in enumerate(eqs)]
     end
 
     res_ = Basis(

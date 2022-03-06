@@ -136,7 +136,7 @@ select_by(x, sol) = select_by(Val(x), sol)
 include("./solution.jl")
 export DataDrivenSolution
 export result, parameters, parameter_map, algorithm
-export output, metrics, error, aic, determination, get_problem
+export output, metrics, l2error, aic, determination, get_problem
 
 
 include("./solve/common.jl")
@@ -166,12 +166,18 @@ function __init__()
     end
 
     @require SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb" begin
+        using PkgVersion
+        # We need to restrict to the latest version of SymbolicRegression here
+        const SymbolicRegressionVersion = PkgVersion.Version(SymbolicRegression)
+        if SymbolicRegressionVersion < v"0.7.0"
+            using .SymbolicRegression
+            include("./symbolic_regression/symbolic_regression.jl")
+            export EQSearch
 
-        using .SymbolicRegression
-        include("./symbolic_regression/symbolic_regression.jl")
-        export EQSearch
-
-        @info "DataDrivenDiffEq : Symboolic Regression is available."
+            @info "DataDrivenDiffEq : Symbolic Regression is available."
+        else
+            @warn "DataDrivenDiffEq : SymbolicRegression is $(SymbolicRegressionVersion), which is currently not supported. Consider downgrading to a version < $(v"0.7.0")"
+        end
     end
 
 end

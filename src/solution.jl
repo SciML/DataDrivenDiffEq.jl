@@ -164,7 +164,7 @@ $(SIGNATURES)
 
 Returns the L₂ norm error of the result.
 """
-error(r::DataDrivenSolution) = begin
+l2error(r::DataDrivenSolution) = begin
     isdefined(r, :l2_error) && return r.l2_error
     return NaN
 end
@@ -325,14 +325,6 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
         eval_expression = eval_expression
     ), ps
 end
-
-function _round!(x::AbstractArray{T, N}, digits::Int) where {T, N}
-    for i in eachindex(x)
-        x[i] = round(x[i], digits = digits)
-    end
-    return x
-end
-
 
 function assert_lhs(prob)
     dt = mean(diff(prob.t))

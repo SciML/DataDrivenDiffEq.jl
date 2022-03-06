@@ -35,9 +35,7 @@ const GROUP = get(ENV, "GROUP", "All")
             @testset "Nonlinear Autonomous" begin include("./dmd/nonlinear_autonomous.jl") end
             @testset "Nonlinear Forced" begin include("./dmd/nonlinear_forced.jl") end
         end
-
     end
-
     if GROUP == "All" || GROUP == "Optional"
 
         @info "Loading Flux"
@@ -48,6 +46,40 @@ const GROUP = get(ENV, "GROUP", "All")
         @testset "Symbolic Regression" begin
             @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl") end
             @testset "SymbolicRegression" begin include("./symbolic_regression/symbolic_regression.jl") end
+        end
+    end
+
+    if GROUP == "All" || GROUP == "Docs"
+        @info "Testing documentation examples"
+        
+        @safetestset "Documentation" begin 
+            excludes = ["8_symbolic_regression.jl"]
+            example_dir = joinpath(@__DIR__, "..", "docs", "examples")
+
+            function test_literate_script(file, path)
+                f_path = joinpath(path, file)
+                !isfile(f_path) && return
+                fname, fext = split(file, ".")
+                !(fext == "jl") && return 
+                f_mod = gensym(string(fname))
+                # This is similar to SafeTestsets, but works for my case
+                eval(quote
+                        @eval module $f_mod
+                            using Test
+                            @testset $fname begin 
+                                include($f_path) 
+                            end
+                        end
+                        nothing
+                end)
+            end
+        
+            # Check each example and create a unique testset
+            for f in readdir(example_dir)
+                f ∈ excludes && continue
+                test_literate_script(f, example_dir)
+            end
+
         end
     end
 
