@@ -32,7 +32,7 @@ prob = ODEProblem(step, u0, (t0, t1))
 alg = KenCarp4() 
 de_solution = solve(prob, alg)
 
-#md plot(de_solution)
+#md plot(de_solution, legend = nothing)
 
 # Using DiffEqOperators.jl, we can define the difference operators up to order $n =4$ and vectorize the result. 
 
@@ -62,7 +62,8 @@ problem = DataDrivenProblem(
     d(u)
 end
 
-basis = Basis([monomial_basis([u], 5);∂u], [u], independent_variable = t, controls = ∂u)
+basis = Basis([monomial_basis([u], 5);∂u], [u], independent_variable = t, controls = ∂u);
+println(basis) #hide
 
 # Afterwards, we define a sampler for the available data which performs a 80-20 train-test split and partions the training 
 # data into 10 batches and solve the sparse regression using STLSQ.
