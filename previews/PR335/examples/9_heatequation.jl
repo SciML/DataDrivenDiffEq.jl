@@ -44,7 +44,8 @@ problem = DataDrivenProblem(
     d(u)
 end
 
-basis = Basis([monomial_basis([u], 5);∂u], [u], independent_variable = t, controls = ∂u)
+basis = Basis([monomial_basis([u], 5);∂u], [u], independent_variable = t, controls = ∂u);
+println(basis) #hide
 
 sampler = DataSampler(Split(ratio = 0.8), Batcher(n = 10))
 solution = solve(problem, basis, STLSQ(1e-2:1e-2:5e-1), sampler = sampler, by = :best)
