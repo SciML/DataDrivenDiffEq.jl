@@ -8,7 +8,7 @@
     X = hcat(y...)
     prob = DiscreteDataDrivenProblem(X, t = 1:11)
 
-    for alg in [DMDPINV(), DMDSVD(), TOTALDMD()]
+    for alg in [DMDPINV(), DMDSVD(), TOTALDMD(), FBDMD()]
         # Returns a named
         estimator = solve(prob, alg , operator_only = true)
         @test Matrix(estimator.K) ≈ A
@@ -32,7 +32,7 @@ end
 
     prob = DataDrivenProblem(sol)
 
-    for alg in [DMDPINV(), DMDSVD(), TOTALDMD()]
+    for alg in [DMDPINV(), DMDSVD(), TOTALDMD(), FBDMD()]
         estimator = solve(prob, alg , operator_only = true)
         @test isapprox(Matrix(estimator.K), A, atol = 1e-2)
         @test isapprox(eigvals(estimator.K), eigvals(A), atol = 1e-2)

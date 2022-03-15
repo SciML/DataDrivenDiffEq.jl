@@ -11,7 +11,7 @@
 
     ddprob = ContinuousDataDrivenProblem(sol_cont, U = U)
 
-    for alg in [DMDPINV(); DMDSVD(); TOTALDMD(3, DMDPINV())]
+    for alg in [DMDPINV(); DMDSVD(); TOTALDMD(3, DMDPINV()); FBDMD()]
         k = solve(ddprob, alg, digits = 2)
         b = result(k)
         m = metrics(k)
@@ -30,7 +30,7 @@ end
 
     ddprob = DiscreteDataDrivenProblem(X, t = 1:5, U = U)
 
-    for alg in [DMDPINV(); DMDSVD(); TOTALDMD(2, DMDPINV())]
+    for alg in [DMDPINV(); DMDSVD(); TOTALDMD(2, DMDPINV()); FBDMD()]
         res = solve(ddprob, alg, B = B)
         b = result(res)
         m = metrics(res)
@@ -40,3 +40,4 @@ end
         @test length(controls(b)) == 1
     end
 end
+
