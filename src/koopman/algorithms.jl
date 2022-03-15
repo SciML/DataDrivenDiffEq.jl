@@ -218,7 +218,7 @@ function (x::FBDMD)(X::AbstractArray{T}, Y::AbstractArray{T}) where T
 end
 
 function (x::FBDMD)(X::AbstractArray{T}, Y::AbstractArray{T}, U::AbstractArray{T}) where T
-    @warn "FBDMD does not support exegenous signals without input matrix. Falling back to DMDSVD."
+    @warn "FBDMD does not support exegenous signals without input matrix. Using DMDSVD."
     return x.alg(X, Y, U)
 end
 
