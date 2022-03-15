@@ -249,7 +249,7 @@ Returns `true` if either:
 is_stable(k::AbstractKoopman) = begin 
     K = _get_K(k)
     is_discrete(k) && all(real.(eigvals(k)) .< real.(one(eltype(K)))) 
-    all(real.(eigvals(k)) .< zero(eltype(K)))
+    all(real.(eigvals(k)) .< real.(zero(eltype(K))))
 end
 
 # TODO This does not work, since we are using the reduced basis instead of the

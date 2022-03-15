@@ -100,7 +100,7 @@ export modes, frequencies, outputmap, updatable
 export update!
 
 include("./koopman/algorithms.jl")
-export DMDPINV, DMDSVD, TOTALDMD
+export DMDPINV, DMDSVD, TOTALDMD, FBDMD
 
 
 ## Problem and Solution

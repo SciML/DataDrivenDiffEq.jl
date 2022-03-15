@@ -19,24 +19,12 @@
   @variables u[1:2] y[1:1] t
   Ψ = Basis([u; u[1]^2; y], u, controls = y, iv = t)
 
-  for alg in [DMDPINV(); DMDSVD(); TOTALDMD()]
+  for alg in [DMDPINV(); DMDSVD(); TOTALDMD(); FBDMD()]
     res = solve(prob, Ψ, alg, digits = 1)
     b = result(res)
     m = metrics(res)
     @test isapprox(eigvals(b), [2*p[1]; p[1]; p[2]], atol = 1e-1)
     @test all(m[:L₂] .< 3e-1)
-
-    # TODO This does not work right now, but it should
-    #sdict = Dict([y[1] => sin(t^2)])
-
-    #for (i,eq) in enumerate(equations(b))
-    #  lhs, rhs = eq.lhs, eq.rhs
-    #  b[i] = Num(lhs) ~ substitute(Num(rhs), sdict)
-    #end
-
-    #_prob = ODEProblem((args...)->b(args...), u0, tspan, parameters(res))
-    #_sol = solve(_prob, Tsit5(), saveat = solution.t)
-    #@test norm(solution - _sol)/size(X, 2) < 5e-1
   end
 end
 
@@ -61,7 +49,7 @@ end
 
   Ψ = Basis([u[1]; u[1]^2; u[2]-u[1]^2; y], u, controls = y, iv = t)
 
-  for alg in [DMDPINV(); DMDSVD(); TOTALDMD()]
+  for alg in [DMDPINV(); DMDSVD(); TOTALDMD(); FBDMD()]
     res = solve(ddprob, Ψ, alg, digits = 1)
     b = result(res)
     m = metrics(res)

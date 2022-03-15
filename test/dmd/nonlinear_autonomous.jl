@@ -16,7 +16,7 @@
 
   @variables u[1:2]
   Ψ = Basis([u; u[1]^2], u)
-  for alg in [DMDPINV(); DMDSVD(); TOTALDMD()]
+  for alg in [DMDPINV(); DMDSVD(); TOTALDMD(); FBDMD()]
     res = solve(prob, Ψ, alg, digits = 1)
     b = result(res)
     m = metrics(res)
@@ -58,7 +58,7 @@ end
 
   Ψ = Basis([u[1]; u[1]^2; u[2]-u[1]^2], u)
 
-  for alg in [DMDPINV(); DMDSVD(); TOTALDMD()]
+  for alg in [DMDPINV(); DMDSVD(); TOTALDMD(); FBDMD()]
     res = solve(ddprob, Ψ, alg, digits = 1)
     b = result(res)
     m = metrics(res)
