@@ -326,7 +326,7 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
     ), ps
 end
 
-function assert_lhs(prob::AbstractContProb)
+function assert_lhs(prob::AbstracContProb)
     return :continuous, 0.0
 end
 
