@@ -31,7 +31,7 @@ struct DataDrivenSolution{L, A, O} <: AbstractDataDrivenSolution
     aic::AbstractVector
     "Coefficient of determinantion"
     rsquared::AbstractVector
-, assemble_crj
+
     function DataDrivenSolution(linearity::Bool,b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg::A, out::O, prob::AbstractDataDrivenProblem; kwargs...) where {A,O}
         return new{linearity, A,O}(
             b, p, retcode, alg, out, prob
