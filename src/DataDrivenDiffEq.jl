@@ -125,6 +125,9 @@ export DiscreteDataDrivenProblem, ContinuousDataDrivenProblem, DirectDataDrivenP
 export is_autonomous, is_discrete, is_direct, is_continuous, is_parametrized, has_timepoints
 export is_valid, @is_applicable, get_name
 
+include("./problem/set.jl")
+export DataDrivenDataset
+
 include("./problem/sample.jl")
 export DataSampler, Split, Batcher
 
