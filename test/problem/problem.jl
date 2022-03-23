@@ -32,7 +32,9 @@ end
         TriweightKernel, TricubeKernel, GaussianKernel, CosineKernel,
         LogisticKernel, SigmoidKernel, SilvermanKernel]
         p_ = ContinuousDataDrivenProblem(x_, t_)
+        p_2 = ContinuousDataDrivenProblem(x_, t_, crop = true)
         @test norm(y_ .- p_.DX) < 1e-1
+        @test norm(y_[:, 2:end-1] - p_2.DX) < 1e-1
     end
 end
 

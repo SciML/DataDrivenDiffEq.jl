@@ -224,12 +224,12 @@ function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, DX::A
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, collocation = InterpolationMethod(); kwargs...)
-    dx, x = collocate_data(X, t, collocation)
+    dx, x, t = collocate_data(X, t, collocation; kwargs...)
     return DataDrivenProblem(x; t = t, DX = dx, probtype = DDProbType(3), kwargs...)
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector,  U::AbstractMatrix, collocation; kwargs...)
-    dx, x = collocate_data(X, t, collocation)
+    dx, x, t = collocate_data(X, t, collocation; kwargs...)
     return DataDrivenProblem(x; t = t, DX = dx, U = U, probtype = DDProbType(3), kwargs...)
 end
 
