@@ -28,8 +28,15 @@ end
 
 # Constructor
 
-function DataDrivenDataset(probs; name = gensym(:DDSet), kwargs...) where T <: AbstractDataDrivenProblem
+function DataDrivenDataset(probs::Vararg{T, N}; name = gensym(:DDSet), kwargs...) where {T <: AbstractDataDrivenProblem, N}
     return DataDrivenDataset(name, probs, map(length, probs))
+end
+
+function DataDrivenDataset(solutions::Vararg{T, N}; name = gensym(:DDSet), kwargs...) where {T <: DiffEqBase.DESolution, N}
+    probs = map(solutions) do s
+        DataDrivenProblem(s; kwargs...)
+    end
+    return DataDrivenDataset(probs..., name = name)
 end
 
 function DirectDataset(s::NamedTuple; name = gensym(:DDSet), kwargs...)
@@ -39,7 +46,7 @@ function DirectDataset(s::NamedTuple; name = gensym(:DDSet), kwargs...)
         DataDrivenProblem(si[:X]; probtype = DDProbType(1), _kwargs...)
     end
 
-    DataDrivenDataset(probs; name = name)
+    DataDrivenDataset(probs...; name = name)
 end
 
 function DiscreteDataset(s::NamedTuple; name = gensym(:DDSet), kwargs...)
@@ -48,7 +55,7 @@ function DiscreteDataset(s::NamedTuple; name = gensym(:DDSet), kwargs...)
         _kwargs = collect_problem_kwargs(si; kwargs...)
         DataDrivenProblem(si[:X]; probtype = DDProbType(2), _kwargs...)
     end
-    DataDrivenDataset(probs; name = name)
+    DataDrivenDataset(probs...; name = name)
 end
 
 function ContinuousDataset(s::NamedTuple; name = gensym(:DDSet), collocation = InterpolationMethod(), kwargs...)
@@ -62,10 +69,10 @@ function ContinuousDataset(s::NamedTuple; name = gensym(:DDSet), collocation = I
             dx, x = collocate_data(si[:X], si[:t], collocation)
             return DataDrivenProblem(x; DX = dx, probtype = DDProbType(3), _kwargs...)
         else
-            @error "A continuous problem $(k) needs to have either derivative or time information specified!"
+            throw(ArgumentError("A continuous problem $(k) needs to have either derivative or time information specified!"))
         end
     end
-    DataDrivenDataset(probs; name = name)
+    DataDrivenDataset(probs...; name = name)
 end
 
 

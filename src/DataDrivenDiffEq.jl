@@ -127,6 +127,7 @@ export is_valid, @is_applicable, get_name
 
 include("./problem/set.jl")
 export DataDrivenDataset
+export DirectDataset, DiscreteDataset, ContinuousDataset
 
 include("./problem/sample.jl")
 export DataSampler, Split, Batcher

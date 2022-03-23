@@ -127,3 +127,55 @@ end
 end
 
 
+@testset "DataDrivenDataset" begin 
+    p1 = ContinuousDataDrivenProblem(X, t)
+    p2 = ContinuousDataDrivenProblem(X, t, DX = DX)
+
+    data = (
+        prob1 = (X = X, t = t, Y = Y), 
+        prob2 = (X = X, t = t, Y = Y, DX = DX)
+    )
+
+    s1 = DataDrivenDataset(p1, p2)
+    s2 = ContinuousDataset(data)
+    s3 = DirectDataset(data)
+    s4 = DiscreteDataset(data)
+
+    sets = [s1, s2, s3, s4]
+
+    # Information
+    @test is_discrete(s4)
+    @test is_continuous(s2)
+    @test is_direct(s3)
+
+    # Sizes
+    for s in sets
+        @test size(s) == (first(size(p1)), is_discrete(s) ? 2*size(X, 2)-2 : 2*size(X, 2))
+        @test DataDrivenDiffEq.is_valid(s)
+    end
+
+    # Targets
+    @test DataDrivenDiffEq.get_target(s1) == DataDrivenDiffEq.get_target(s2)
+    @test DataDrivenDiffEq.get_target(s1) == hcat(DataDrivenDiffEq.get_target(p1), DataDrivenDiffEq.get_target(p2))
+    @test DataDrivenDiffEq.get_target(s3) == hcat(Y, Y)
+    @test DataDrivenDiffEq.get_target(s4) == hcat(X[:, 2:end], X[:, 2:end])
+
+    # Args
+    @test DataDrivenDiffEq.get_oop_args(s1) == DataDrivenDiffEq.get_oop_args(s2)
+    @test DataDrivenDiffEq.get_implicit_oop_args(s1) == DataDrivenDiffEq.get_implicit_oop_args(s2)
+
+    # Basis handling 
+    @variables x[1:size(X, 1)]
+    b = Basis(x, x)
+    @test b(s1) == hcat(b(p1), b(p2))
+    @test b(s2) == b(s1)
+    @test hcat(X, X) == b(s3)
+    @test hcat(X[:, 1:end-1], X[:, 1:end-1]) == b(s4)
+
+    # Check if misspecified data is detected
+    wrong_data = (
+        prob1 = (X = X, Y = Y), 
+        prob2 = (X = X, t = t, Y = Y)
+        )
+    @test_throws ArgumentError ContinuousDataset(wrong_data)
+end
