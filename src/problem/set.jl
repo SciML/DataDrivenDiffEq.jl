@@ -77,8 +77,13 @@ end
 
 
 collect_problem_kwargs(s ; kwargs...) = begin
-    kys = Tuple([k for k in keys(s) if k != :X])
-    merge(s[kys], kwargs)
+    _kwargs = Dict()
+    for k in keys(s)
+        if k ∈ [:DX, :t, :Y, :U, :p] # Very specific subset
+            _kwargs[k] = s[k]
+        end
+    end
+    merge(_kwargs, kwargs)
 end
 
 
