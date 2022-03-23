@@ -7,21 +7,25 @@ function michaelis_menten(u, p, t)
     [0.6 - 1.5u[1]/(0.3+u[1])]
 end
 
+
 u0 = [0.5]
 
 problem_1 = ODEProblem(michaelis_menten, u0, (0.0, 4.0))
 solution_1 = solve(problem_1, Tsit5(), saveat = 0.1)
 problem_2 = ODEProblem(michaelis_menten, 2*u0, (4.0, 8.0))
 solution_2 = solve(problem_2, Tsit5(), saveat = 0.1)
-X = [solution_1[:,:] solution_2[:,:]]
-ts = [solution_1.t; solution_2.t]
 
-DX = similar(X)
-for (i, xi) in enumerate(eachcol(X))
-    DX[:, i] = michaelis_menten(xi, [], ts[i])
+function michaelis_menten(X::AbstractMatrix, p, t::AbstractVector)
+    reduce(hcat, map((x,ti)->michaelis_menten(x, p, ti), eachcol(X), t))
 end
 
-prob = ContinuousDataDrivenProblem(X, ts, DX = DX)
+data = (
+    Experiment_1 = (X = Array(solution_1), t = solution_1.t, DX = michaelis_menten(Array(solution_1),[], solution_1.t) ),
+    Experiment_2 = (X = Array(solution_2), t = solution_2.t, DX = michaelis_menten(Array(solution_2),[], solution_2.t))
+)
+
+
+prob = DataDrivenDiffEq.ContinuousDataset(data)
 
 @parameters t
 D = Differential(t)
