@@ -53,12 +53,13 @@ has_timepoints(x::AbstractDataDrivenProblem{N,U,C}) where {N,U,C} = !isempty(x.t
 $(TYPEDEF)
 
 The `DataDrivenProblem` defines a general estimation problem given measurements, inputs and (in the near future) observations.
-Two construction methods are available:
+Three construction methods are available:
 
++ `DirectDataDrivenProblem` for direct mappings
 + `DiscreteDataDrivenProblem` for time discrete systems
 + `ContinousDataDrivenProblem` for systems continuous in time
 
-both are aliases for constructing a problem.
+where all are aliases for constructing a problem.
 
 # Fields
 $(FIELDS)

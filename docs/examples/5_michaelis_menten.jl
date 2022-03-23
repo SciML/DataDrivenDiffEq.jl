@@ -15,22 +15,33 @@ function michaelis_menten(u, p, t)
     [0.6 - 1.5u[1]/(0.3+u[1])]
 end
 
+
 u0 = [0.5]
 
 problem_1 = ODEProblem(michaelis_menten, u0, (0.0, 4.0))
 solution_1 = solve(problem_1, Tsit5(), saveat = 0.1)
 problem_2 = ODEProblem(michaelis_menten, 2*u0, (4.0, 8.0))
 solution_2 = solve(problem_2, Tsit5(), saveat = 0.1)
-X = [solution_1[:,:] solution_2[:,:]]
-ts = [solution_1.t; solution_2.t]
 
-DX = similar(X)
-for (i, xi) in enumerate(eachcol(X))
-    DX[:, i] = michaelis_menten(xi, [], ts[i])
+# Since we have multiple trajectories at hand, we define a [`DataDrivenDataset`](@ref), which collects multiple problems but handles them as a unit
+# for the processing.
+
+function michaelis_menten(X::AbstractMatrix, p, t::AbstractVector)
+    reduce(hcat, map((x,ti)->michaelis_menten(x, p, ti), eachcol(X), t))
 end
 
-prob = ContinuousDataDrivenProblem(X, ts, DX = DX)
-#md plot(prob)
+data = (
+    Experiment_1 = (X = Array(solution_1), t = solution_1.t, DX = michaelis_menten(Array(solution_1),[], solution_1.t) ), 
+    Experiment_2 = (X = Array(solution_2), t = solution_2.t, DX = michaelis_menten(Array(solution_2),[], solution_2.t))
+)
+
+
+prob = DataDrivenDiffEq.ContinuousDataset(data)
+#md pls = []
+#md for p in prob.probs
+#md     push!(pls, plot(p, title = string(p.name)))
+#md end
+#md plot(pls...)
 
 # Next, we define our [`Basis`](@ref). Since we want to identify an implicit system, we have to include  
 # some candidate terms which use these as an argument and inform our constructor about the meaning of these variables.

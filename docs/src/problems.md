@@ -56,6 +56,21 @@ ContinuousDataDrivenProblem
 DirectDataDrivenProblem
 ```
 
+# [Datasets](@id dataset)
+
+```@docs
+DataDrivenDataset
+```
+
+A `DataDrivenDataset` collects several [`DataDrivenProblem`s](@ref problem) of the same type but treads them as union used for system identification. 
+## Concrete Types
+```@docs
+DiscreteDataset
+ContinuousDataset
+DirectDataset
+```
+
+
 ## DataSampler
 
 ```@docs

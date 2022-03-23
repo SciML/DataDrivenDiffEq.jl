@@ -326,18 +326,22 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
     ), ps
 end
 
-function assert_lhs(prob)
-    dt = mean(diff(prob.t))
-    lhs = :direct
-    if isa(prob, AbstracContProb)
-        lhs = :continuous
-    elseif isa(prob, AbstractDiscreteProb)
-        lhs = :discrete
-    else
-        lhs = :direct
-    end 
-    return lhs, dt
+function assert_lhs(prob::AbstracContProb)
+    return :continuous, 0.0
 end
+
+function assert_lhs(prob::AbstractDiscreteProb)
+    return :discrete, mean(independent_variable(prob))
+end
+
+function assert_lhs(prob::AbstractDataDrivenProblem)
+    return :direct, 0.0
+end
+
+function assert_lhs(prob::DataDrivenDataset)
+    return assert_lhs(first(prob.probs))
+end
+
 
 function DataDrivenSolution(prob, s, b::B, opt::O, implicits = Num[]; 
     eval_expression = false, digits::Int = 10, by = :min, kwargs...) where {B <: AbstractBasis, O <: AbstractOptimizer}
