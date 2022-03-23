@@ -153,9 +153,9 @@ given the `data`, where each column is a snapshot of the timeseries at
 
 # Examples
 ```julia
-u′,u = collocate_data(data,tpoints,kernel=SigmoidKernel())
-u′,u = collocate_data(data,tpoints,tpoints_sample,interp,args...)
-u′,u = collocate_data(data,tpoints,interp)
+u′,u,t = collocate_data(data,tpoints,kernel=SigmoidKernel())
+u′,u,t = collocate_data(data,tpoints,tpoints_sample,interp,args...)
+u′,u,t = collocate_data(data,tpoints,interp)
 ```
 
 # Collocation Kernels
@@ -184,7 +184,7 @@ See [DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl) fo
 + BSplineApprox
 + Curvefit
 """
-function collocate_data(data,tpoints,kernel=TriangularKernel())
+function collocate_data(data,tpoints,kernel=TriangularKernel(); crop = false, kwargs...)
   _one = oneunit(first(data))
   _zero = zero(first(data))
   e1 = [_one;_zero]
@@ -206,22 +206,23 @@ function collocate_data(data,tpoints,kernel=TriangularKernel())
   end
   estimated_derivative = reduce(hcat,transpose.(first.(x)))
   estimated_solution = reduce(hcat,transpose.(last.(x)))
-  estimated_derivative,estimated_solution
+  crop && return estimated_derivative[:,2:end-1], estimated_derivative[:, 2:end-1], tpoints[2:end-1]
+  estimated_derivative,estimated_solution, tpoints
 end
 
 
 # Adapted to dispatch on InterpolationMethod
-collocate_data(data, tpoints, interp::InterpolationMethod) = collocate_data(data, tpoints, tpoints, interp)
+collocate_data(data, tpoints, interp::InterpolationMethod; kwargs...) = collocate_data(data, tpoints, tpoints, interp; kwargs...)
 
 function collocate_data(data::AbstractVector,tpoints::AbstractVector,tpoints_sample::AbstractVector,
-                        interp::InterpolationMethod)
-  u, du = collocate_data(reshape(data, 1, :),tpoints,tpoints_sample,interp)
-  return du[1, :], u[1, :]
+                        interp::InterpolationMethod; kwargs...)
+  u, du, tpoints = collocate_data(reshape(data, 1, :),tpoints,tpoints_sample,interp; kwargs...)
+  return du[1, :], u[1, :] , tpoints
 end
 
 # Adapted to dispatch on InterpolationMethod
 function collocate_data(data::AbstractMatrix{T},tpoints::AbstractVector{T},
-                        tpoints_sample::AbstractVector{T},interp::InterpolationMethod) where T
+                        tpoints_sample::AbstractVector{T},interp::InterpolationMethod; crop = false, kwargs...) where T
 
   u = zeros(T,size(data, 1),length(tpoints_sample))
   du = zeros(T,size(data, 1),length(tpoints_sample))
@@ -230,5 +231,6 @@ function collocate_data(data::AbstractMatrix{T},tpoints::AbstractVector{T},
     u[d1,:] .= interpolation.(tpoints_sample)
     du[d1,:] .= DataInterpolations.derivative.((interpolation,), tpoints_sample)
   end
-  return du, u
+  crop && return du[:, 2:end-1], u[:, 2:end-1], tpoints[2:end-1]
+  return du, u, tpoints
 end
