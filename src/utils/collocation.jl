@@ -8,6 +8,7 @@ create and return an interpolation of `u` over `t`.
 The first argument of the constructor always defines the interpolation method,
 all following arguments will be used in the interpolation.
 
+The additional keyword `crop = false` indicates to discard the first and last element of the time series. 
 
 # Example
 
