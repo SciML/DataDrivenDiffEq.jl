@@ -39,6 +39,11 @@ function DataDrivenDataset(solutions::Vararg{T, N}; name = gensym(:DDSet), kwarg
     return DataDrivenDataset(probs..., name = name)
 end
 
+"""
+A direct `DataDrivenDataset` useable for problems of the form `f(x,p,t,u) ↦ y`.
+
+$(SIGNATURES)
+"""
 function DirectDataset(s::NamedTuple; name = gensym(:DDSet), kwargs...)
     probs = map(keys(s)) do k
         si = s[k]
@@ -49,6 +54,11 @@ function DirectDataset(s::NamedTuple; name = gensym(:DDSet), kwargs...)
     DataDrivenDataset(probs...; name = name)
 end
 
+"""
+A time discrete `DataDrivenDataset` useable for problems of the form `f(x,p,t,u) ↦ x(t+1)`.
+
+$(SIGNATURES)
+"""
 function DiscreteDataset(s::NamedTuple; name = gensym(:DDSet), kwargs...)
     probs = map(keys(s)) do k
         si = s[k]
@@ -58,6 +68,14 @@ function DiscreteDataset(s::NamedTuple; name = gensym(:DDSet), kwargs...)
     DataDrivenDataset(probs...; name = name)
 end
 
+"""
+A time continuous `DataDrivenDataset` useable for problems of the form `f(x,p,t,u) ↦ dx/dt`.
+
+$(SIGNATURES)
+
+Automatically constructs derivatives via an additional collocation method, which can be either a collocation
+or an interpolation from `DataInterpolations.jl` wrapped by an `InterpolationMethod` provided by the `collocation` keyworded argument.
+"""
 function ContinuousDataset(s::NamedTuple; name = gensym(:DDSet), collocation = InterpolationMethod(), kwargs...)
     probs = map(keys(s)) do k
         si = s[k]
@@ -66,7 +84,7 @@ function ContinuousDataset(s::NamedTuple; name = gensym(:DDSet), collocation = I
         if :DX ∈ keys(_kwargs)
             return DataDrivenProblem(si[:X]; probtype = DDProbType(3), _kwargs...)
         elseif :t ∈ keys(_kwargs)
-            dx, x = collocate_data(si[:X], si[:t], collocation)
+            dx, x = collocate_data(si[:X], si[:t], collocation; kwargs...)
             return DataDrivenProblem(x; DX = dx, probtype = DDProbType(3), _kwargs...)
         else
             throw(ArgumentError("A continuous problem $(k) needs to have either derivative or time information specified!"))
