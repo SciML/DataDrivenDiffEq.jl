@@ -3,7 +3,8 @@
 LinearAlgebra.norm(x, p, λ) = norm(x[abs.(x) .> λ], p)
 
 # Dispatch on vector
-function (opt::AbstractOptimizer{T} where T)(
+using DocStringExtensions: cleanpath
+@views function (opt::AbstractOptimizer{T} where T)(
         X::AbstractArray, A::AbstractArray, Y::AbstractVector{V} where V,
         args...; kwargs...
     )
@@ -11,7 +12,7 @@ function (opt::AbstractOptimizer{T} where T)(
     return opt(X, A, Y, args...; kwargs...)
 end
 
-function (opt::AbstractOptimizer{T} where T)(
+@views function (opt::AbstractOptimizer{T} where T)(
         X::AbstractArray, A::AbstractArray, Y::Adjoint{V, AbstractVector{V}} where V,
         args...; kwargs...
     )
@@ -36,17 +37,26 @@ end
         reset!(cache)
     end
 
-    copyto!(X ,cache.X_opt)
+    cleanup!(cache, X)
+    
     return cache.λ_opt
 end
 
 reset!(s::AbstractOptimizerCache) = reset!(s.state)
 
+@views cleanup!(s::AbstractOptimizerCache, X) = begin
+    cleanup!(s.state)
+    for i in axes(X, 2)
+        clip_by_threshold!(X[:, i], s.X_opt[:, i], s.λ_opt[i])
+    end
+    return
+end
+
 is_runable(s::AbstractOptimizerCache) = is_runable(s.state) 
 
 @views set_cache!(s::AbstractOptimizerCache, X, A, Y, λ) = begin
     is_convergend!(s.state, X, s.X_prev) && return
-    copyto!(s.X_prev, X)
+    copy!(s.X_prev, X)
     set_metrics!(s.state, A, X, Y, λ)
     eval_pareto!(s, s.state, A, Y, λ)
     increment!(s.state)
@@ -113,7 +123,5 @@ include("./implicit.jl")
 
 # Init the progressmeters
 # For a general optimizer
-
-
 
 include("./sparseregression.jl")

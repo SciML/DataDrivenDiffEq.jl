@@ -14,7 +14,16 @@ progressbar.
 If used with a `Vector` of thresholds, the functions `f` with signature `f(X, A, Y)` and `g` with signature `g(x, threshold) = G(f(X, A, Y))` with the arguments given as stated above can be passed in. These are
 used for finding the pareto-optimal solution to the sparse regression. 
 """
-sparse_regression!(X, A, Y, opt::AbstractOptimizer; kwargs...) = opt(X, A, Y; kwargs...)
+@views sparse_regression!(X, A, Y, opt::AbstractOptimizer; kwargs...) = begin 
+    init!(X, opt, A, Y) 
+    λ_opt =  opt(X, A, Y; kwargs...)
+
+    for i in axes(Y, 2)
+        clip_by_threshold!(X[:, i], λ_opt[i])
+    end
+    
+   λ_opt
+end
 
 #function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
 #    maxiter::Int = maximum(size(A)),

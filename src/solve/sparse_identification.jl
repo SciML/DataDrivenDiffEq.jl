@@ -112,6 +112,7 @@ function CommonSolve.solve!(p::SparseIdentificationProblem)#::DataDrivenSolution
 
             λs[i,j:j] .= sparse_regression!(X, A, Y, optimizer; 
                 maxiter = maxiter, abstol = abstol, f = f, g = g, progress = progress,
+                verbose = verbose,
                 kwargs...
             )
         end
@@ -128,5 +129,6 @@ function CommonSolve.solve!(p::SparseIdentificationProblem)#::DataDrivenSolution
     sol = SparseLinearSolution(
         Ξ, λs, (train, test), testerror, trainerror, optimizer, options
     )
+    
     return DataDrivenSolution(prob, sol, basis, optimizer, implicit_variables(basis); eval_expression = eval_expression, kwargs...)
 end

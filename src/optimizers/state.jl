@@ -1,7 +1,3 @@
-using Printf
-using ProgressMeter
-using LinearAlgebra
-
 mutable struct OptimizerState{T, P}
     error::T
     sparsity::T
@@ -18,9 +14,9 @@ mutable struct OptimizerState{T, P}
     progress::P
 end
 
-function init_progress(opt::AbstractOptimizer, maxiters, start)
+function init_progress(opt::AbstractOptimizer, maxiters)
     Progress(
-        maxiters .* length(get_threshold(opt)), summary(opt), start
+        maxiters .* length(get_threshold(opt)), desc = summary(opt), dt = 1.0
     )
 end
 
@@ -33,7 +29,7 @@ function OptimizerState(opt::AbstractOptimizer{T};
         (g∘f)(x, A, y, lambda)
     end
     
-    progress = show_progress ? init_progress(opt, maxiters, 0) : nothing
+    progress = show_progress ? init_progress(opt, maxiters) : nothing
 
     return OptimizerState{eltype(T), typeof(progress)}(
         convert(eltype(T), Inf), convert(eltype(T), Inf), fg, abstol, reltol, 
@@ -46,10 +42,14 @@ function reset!(s::OptimizerState{T}) where T
     s.sparsity = convert(T, Inf)
     s.converged = false
     s.iters = 0
-    if s.show_progress 
-        s.progress.counter = 0
-    end
     return 
+end
+
+function cleanup!(s::OptimizerState)
+    if s.show_progress 
+        ProgressMeter.finish!(s.progress)
+    end
+    return
 end
 
 increment!(s::OptimizerState) = s.iters += 1
@@ -61,10 +61,12 @@ increment!(s::OptimizerState) = s.iters += 1
 end
 
 @views is_convergend!(s::OptimizerState, x, x_prev)::Bool = begin
-    if norm(x .- x_prev, 2) <= s.abstol 
-        s.converged = true
-    else
-        s.converged = false
+    if s.iters > 1 
+        if norm(x .- x_prev, 2) <= s.abstol 
+            s.converged = true
+        else
+            s.converged = false
+        end
     end
     return s.converged
 end
@@ -104,6 +106,7 @@ function Base.print(io::IO, s::OptimizerState{T}, λ::T = zero(T)) where T
         @printf io " Iter    Threshold          Error         Sparsity\n"
         @printf io "------ -------------- -------------- --------------\n"
     end
-    @printf io "%6d %10e %10e %10e\n" s.iters λ s.error s.sparsity
+
+    @printf io "%6d %14e %14e %14e\n" s.iters λ s.error s.sparsity
     return 
 end

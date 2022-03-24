@@ -71,7 +71,7 @@ end
 @views init_cache(opt::SR3, X, A, Y, λ = first(opt.λ); kwargs...) = begin
     X_prev = zero(X)
     X_opt = similar(X)
-    X_opt .= X
+    X_opt .= zero(X)
     λ_opt = zeros(typeof(λ), size(X, 2))
 
     nu = opt.ν

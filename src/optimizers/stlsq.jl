@@ -21,6 +21,7 @@ opt = STLQS()
 opt = STLQS(1e-1)
 opt = STLQS(Float32[1e-2; 1e-1])
 ```
+
 ## Note
 This was formally `STRRidge` and has been renamed.
 """
@@ -48,10 +49,10 @@ mutable struct STLSQCache{T, B, V} <: AbstractOptimizerCache
     state::OptimizerState{V}
 end
 
-@views init_cache(opt::STLSQ, X, λ = first(opt.λ); kwargs...) = begin
+@views init_cache(opt::STLSQ, X, A, Y, λ = first(opt.λ); kwargs...) = begin
     X_prev = zero(X)
     X_opt = similar(X)
-    X_opt .= X
+    X_opt .= zero(X)
     λ_opt = zeros(typeof(λ), size(X, 2))
     biginds = abs.(X) .> λ
     state = OptimizerState(opt; kwargs...)
@@ -62,7 +63,9 @@ end
     is_convergend!(s.state, X, s.X_prev) && return
     s.biginds .= abs.(X) .> λ
     s.X_prev .= zero(X)
-    copyto!(s.X_prev[s.biginds], X[s.biginds])
+    #s.X_prev[s.biginds] .=  X[s.biginds]
+    copy!(s.X_prev[s.biginds], X[s.biginds])
+    copy!(X, s.X_prev)
     set_metrics!(s.state, A, X, Y, λ)
     eval_pareto!(s, s.state, A, Y, λ)
     increment!(s.state)

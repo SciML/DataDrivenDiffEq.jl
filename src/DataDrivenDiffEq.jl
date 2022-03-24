@@ -19,6 +19,7 @@ using Measurements
 
 using Requires
 using ProgressMeter
+using Printf
 using Reexport
 using Compat
 using DocStringExtensions
@@ -84,12 +85,12 @@ export burst_sampling, subsample
 
 ## Sparse Regression
 
-#include("./optimizers/Optimize.jl")
-#export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
-#export sparse_regression!
-#export init, init!, set_threshold!, get_threshold
-#export STLSQ, ADMM, SR3
-#export ImplicitOptimizer
+include("./optimizers/Optimize.jl")
+export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
+export sparse_regression!
+export init, init!, set_threshold!, get_threshold
+export STLSQ, ADMM, SR3
+export ImplicitOptimizer
 
 ## Koopman
 

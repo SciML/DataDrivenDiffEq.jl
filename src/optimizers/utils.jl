@@ -4,10 +4,19 @@ $(SIGNATURES)
 Clips the solution by the given threshold `λ` and ceils the entries to the corresponding decimal.
 """
 function clip_by_threshold!(x::AbstractArray, λ::T, rounding::Bool = true) where T <: Real
-    #dplace = ceil(Int, -log10(λ))
+    dplace = max(ceil(Int, -log10(λ)), -10)
     for i in eachindex(x)
         x[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
-        #x[i] = rounding ? round(x[i], digits = dplace) : x[i]
+        x[i] = rounding ? round(x[i], digits = dplace) : x[i]
+    end
+    return
+end
+
+function clip_by_threshold!(y::AbstractArray, x::AbstractArray, λ::T, rounding::Bool = true) where T <: Real
+    dplace = max(ceil(Int, -log10(λ)), -10)
+    for i in eachindex(x)
+        y[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
+        x[i] = rounding ? round(x[i], digits = dplace) : x[i]
     end
     return
 end
