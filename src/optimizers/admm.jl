@@ -30,77 +30,60 @@ end
 
 Base.summary(::ADMM) = "ADMM"
 
-function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
-    maxiter::Int64 = maximum(size(A)), abstol::U = eps(eltype(T)), progress = nothing, kwargs...)  where {T, H, U}
+mutable struct ADMMCache{T, P, B, S, V} <: AbstractOptimizerCache
+    X_prev::T
+    u::T
+    z::T
+    A::P
+    b::B
+    rho::V
+
+    R::S
+
+    X_opt::T
+    λ_opt::AbstractVector{V}
+
+    state::OptimizerState{V}
+end
+
+@views init_cache(opt::ADMM, X, A, Y, λ = first(opt.λ); kwargs...) = begin
+    X_prev = zero(X)
+    X_opt = similar(X)
+    X_opt .= X
+    λ_opt = zeros(typeof(λ), size(X, 2))
 
     n, m = size(A)
+    rho = opt.ρ
 
-    ρ = opt.ρ
+    P = factorize(A'A + rho * I)
+    b = A'Y
 
-    x_i = zero(X)
     u = zero(X)
     z = zero(X)
-
-    x_i .= X
-
-    P = A'A .+ Diagonal(ρ .* ones(eltype(X),m))
-    P = cholesky!(P)
-    c = A'*Y
-
+    
     R = SoftThreshold()
+    state = OptimizerState(opt; kwargs...)
 
-    iters = 0
-    converged = false
-
-    xzero = zero(eltype(X))
-    obj = xzero
-    sparsity = xzero
-    conv_measure = xzero
-
-    _progress = isa(progress, Progress)
-    initial_prog = _progress ? progress.counter : 0
-
-
-
-    @views while (iters < maxiter) && !converged
-        iters += 1
-
-        #ldiv!(z, P, c .+ ρ .* (z .- u))
-        z .= P \ (c .+ ρ .* (z .- u))
-        R(X, z .+ u, λ ./ ρ)
-        u .= u .+ z .- X
-
-        conv_measure = norm(x_i .- X, 2)
-
-        if _progress
-            obj = norm(Y .- A*X, 2)
-            sparsity = norm(X, 0, λ)
-
-            ProgressMeter.next!(
-            progress;
-            showvalues = [
-                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
-                (:Convergence, conv_measure)
-            ]
-            )
-        end
-
-
-        if conv_measure < abstol
-            converged = true
-
-            if _progress
-
-                ProgressMeter.update!(
-                progress,
-                initial_prog + maxiter
-                )
-            end
-
-        else
-            x_i .= X
-        end
-    end
-    @views clip_by_threshold!(X, λ)
-    return
+    return ADMMCache(
+        X_prev, u, z, P, b, rho, R, X_opt, λ_opt, state
+    )
 end
+
+
+@views function step!(cache::ADMMCache, X, A, Y, λ)
+    
+    u = cache.u
+    z = cache.z
+    R = cache.R
+    rho = cache.rho
+    A_ = cache.A
+    b = cache.b
+
+    ldiv!(z, A_, b .+ rho .* (X.-u))
+    R(X, z .+ u, λ .* rho)
+    u .+= z .- X
+
+    set_cache!(cache, X, A, Y, λ)
+    return 
+end
+

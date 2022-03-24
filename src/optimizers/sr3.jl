@@ -51,64 +51,135 @@ end
 
 Base.summary(::SR3) = "SR3"
 
-function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
-    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing, kwargs...)  where {T, V, R}
+mutable struct SR3Cache{T, P, B, S, V} <: AbstractOptimizerCache
+    X_prev::T
+    W::T
 
-   n, m = size(A)
-   ν = opt.ν
-   W = copy(X)
+    A::P
+    b::B
+    
+    nu::V
 
-   # Init matrices
-   H = A'*A+I(m)*ν
-   H = cholesky!(H)
-   X̂ = A'*Y
+    R::S
 
-   w_i = similar(W)
-   w_i .= W
-   iters = 0
+    X_opt::T
+    λ_opt::AbstractVector{V}
 
-   iters = 0
-   converged = false
-
-   xzero = zero(eltype(X))
-   obj = xzero
-   sparsity = xzero
-   conv_measure = xzero
-
-   _progress = isa(progress, Progress)
-
-   @views while (iters < maxiter) && !converged
-       iters += 1
-
-       # Solve ridge regression
-       X .= H \ (X̂ .+ W*ν) 
-       # Proximal
-       opt.R(W, X, λ)
-
-       conv_measure = norm(w_i .- W, 2)
-
-       if _progress
-           obj = norm(Y - A*X, 2)
-           sparsity = norm(X, 0, λ)
-
-           ProgressMeter.next!(
-           progress;
-           showvalues = [
-               (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
-               (:Convergence, conv_measure)
-           ]
-           )
-       end
-
-
-       if conv_measure < abstol
-           converged = true
-       else
-           w_i .= W
-       end
-   end
-   # We really search for W here
-   X .= W
-   @views clip_by_threshold!(X, λ)
-   return
+    state::OptimizerState{V}
 end
+
+@views init_cache(opt::SR3, X, A, Y, λ = first(opt.λ); kwargs...) = begin
+    X_prev = zero(X)
+    X_opt = similar(X)
+    X_opt .= X
+    λ_opt = zeros(typeof(λ), size(X, 2))
+
+    nu = opt.ν
+
+    P = factorize(A'A + nu * I)
+    b = A'Y
+
+    W = similar(X)
+    W .= X
+    
+    R = opt.R
+
+    state = OptimizerState(opt; kwargs...)
+
+    return SR3Cache(
+        X_prev, W, P, b, nu, R, X_opt, λ_opt, state
+    )
+end
+
+@views set_cache!(s::SR3Cache, X, A, Y, λ) = begin
+    is_convergend!(s.state, X, s.X_prev) && return
+    copyto!(s.X_prev, X)
+    set_metrics!(s.state, A, X, Y, λ)
+    eval_pareto!(s, s.state, A, Y, λ)
+    increment!(s.state)
+    print(s.state, λ)
+    return
+end
+
+@views function step!(cache::SR3Cache, X, A, Y, λ)
+    
+    W = cache.W
+    R = cache.R
+    nu = cache.nu
+    A_ = cache.A
+    b = cache.b
+
+    # Solve ridge regression
+    ldiv!(W , A_ , (b .+ X*nu) )
+    # Proximal
+    R(X, W, λ)
+
+    set_cache!(cache, X, A, Y, λ)
+    return 
+end
+
+
+
+
+#function (opt::SR3{T,V,R})(X, A, Y, λ::V = first(opt.λ);
+#    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)), progress = nothing, kwargs...)  where {T, V, R}
+#
+#   n, m = size(A)
+#   ν = opt.ν
+#   W = copy(X)
+#
+#   # Init matrices
+#   H = A'*A+I(m)*ν
+#   H = cholesky!(H)
+#   X̂ = A'*Y
+#
+#   w_i = similar(W)
+#   w_i .= W
+#   iters = 0
+#
+#   iters = 0
+#   converged = false
+#
+#   xzero = zero(eltype(X))
+#   obj = xzero
+#   sparsity = xzero
+#   conv_measure = xzero
+#
+#   _progress = isa(progress, Progress)
+#
+#   @views while (iters < maxiter) && !converged
+#       iters += 1
+#
+#       # Solve ridge regression
+#       X .= H \ (X̂ .+ W*ν) 
+#       # Proximal
+#       opt.R(W, X, λ)
+#
+#       conv_measure = norm(w_i .- W, 2)
+#
+#       if _progress
+#           obj = norm(Y - A*X, 2)
+#           sparsity = norm(X, 0, λ)
+#
+#           ProgressMeter.next!(
+#           progress;
+#           showvalues = [
+#               (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
+#               (:Convergence, conv_measure)
+#           ]
+#           )
+#       end
+#
+#
+#       if conv_measure < abstol
+#           converged = true
+#       else
+#           w_i .= W
+#       end
+#   end
+#   # We really search for W here
+#   X .= W
+#   @views clip_by_threshold!(X, λ)
+#   return
+#end
+#

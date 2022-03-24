@@ -38,71 +38,43 @@ end
 
 Base.summary(::STLSQ) = "STLSQ"
 
-function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
-    maxiter = maximum(size(A)), abstol::U = eps(eltype(T)),
-    progress = nothing, kwargs...) where {T,U}
+mutable struct STLSQCache{T, B, V} <: AbstractOptimizerCache
+    X_prev::T
+    biginds::B
 
-    smallinds = abs.(X) .<= λ
-    biginds = @. ! smallinds[:, 1]
+    X_opt::T
+    λ_opt::AbstractVector{V}
 
-    x_i = similar(X)
-    x_i .= X
+    state::OptimizerState{V}
+end
 
-    xzero = zero(eltype(X))
-    obj = xzero
-    sparsity = xzero
-    conv_measure = xzero
+@views init_cache(opt::STLSQ, X, λ = first(opt.λ); kwargs...) = begin
+    X_prev = zero(X)
+    X_opt = similar(X)
+    X_opt .= X
+    λ_opt = zeros(typeof(λ), size(X, 2))
+    biginds = abs.(X) .> λ
+    state = OptimizerState(opt; kwargs...)
+    return STLSQCache(X_prev, biginds, X_opt, λ_opt,  state) 
+end
 
-    iters = 0
-    converged = false
-
-    _progress = isa(progress, Progress)
-    initial_prog = _progress ? progress.counter : 0
-
-
-    @views while (iters < maxiter) && !converged
-        iters += 1
-
-        smallinds .= abs.(X) .<= λ
-        X[smallinds] .= xzero
-
-        for j in 1:size(Y, 2)
-            @. biginds = ! smallinds[:, j]
-            X[biginds, j] .= A[:, biginds] \ Y[:,j]
-        end
-
-        conv_measure = norm(x_i .- X, 2)
-
-        if _progress
-            obj = norm(Y - A*X, 2)
-            sparsity = norm(X, 0, λ)
-
-            ProgressMeter.next!(
-            progress;
-            showvalues = [
-                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
-                (:Convergence, conv_measure)
-            ]
-            )
-        end
-
-        if conv_measure < abstol
-            converged = true
-
-            _progress ? (progress.counter = initial_prog + maxiter) : nothing
-
-            #    ProgressMeter.update!(
-            #    progress,
-            #    initial_prog + maxiter
-            #    )
-            #end
-
-
-        else
-            x_i .= X
-        end
-    end
-
-    clip_by_threshold!(X, λ)
+@views set_cache!(s::STLSQCache, X, A, Y, λ) = begin
+    is_convergend!(s.state, X, s.X_prev) && return
+    s.biginds .= abs.(X) .> λ
+    s.X_prev .= zero(X)
+    copyto!(s.X_prev[s.biginds], X[s.biginds])
+    set_metrics!(s.state, A, X, Y, λ)
+    eval_pareto!(s, s.state, A, Y, λ)
+    increment!(s.state)
+    print(s.state, λ)
     return
 end
+
+@views function step!(cache::STLSQCache, X, A, Y, λ)
+    biginds = cache.biginds
+    for i in axes(Y, 2)
+        X[biginds[:, i], i] .= A[:, biginds[:, i]] \ Y[:, i]
+    end 
+    set_cache!(cache, X, A, Y, λ)
+end
+

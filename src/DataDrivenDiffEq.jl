@@ -51,6 +51,7 @@ abstract type AbstractDataDrivenSolution end
 
 # Optimizer
 abstract type AbstractProximalOperator end;
+abstract type AbstractOptimizerCache end; 
 abstract type AbstractOptimizer{T} end;
 abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end;
     
@@ -83,12 +84,12 @@ export burst_sampling, subsample
 
 ## Sparse Regression
 
-include("./optimizers/Optimize.jl")
-export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
-export sparse_regression!
-export init, init!, set_threshold!, get_threshold
-export STLSQ, ADMM, SR3
-export ImplicitOptimizer
+#include("./optimizers/Optimize.jl")
+#export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
+#export sparse_regression!
+#export init, init!, set_threshold!, get_threshold
+#export STLSQ, ADMM, SR3
+#export ImplicitOptimizer
 
 ## Koopman
 

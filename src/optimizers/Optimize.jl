@@ -19,6 +19,42 @@ function (opt::AbstractOptimizer{T} where T)(
     return opt(X, A, Y, args...; kwargs...)
 end
 
+@views function optimize!(cache::AbstractOptimizerCache, X, A, Y, λ)
+    while is_runable(cache)
+        step!(cache, X, A, Y, λ)
+        # If all coefficients go to zero, break
+        all(X .≈ zero(λ)) && break
+    end
+end
+
+@views function (opt::AbstractOptimizer)(X, A, Y; kwargs...)
+    
+    cache = init_cache(opt, X, A, Y, first(opt.λ); kwargs...)
+
+    for λ in opt.λ
+        optimize!(cache, X, A, Y, λ) 
+        reset!(cache)
+    end
+
+    copyto!(X ,cache.X_opt)
+    return cache.λ_opt
+end
+
+reset!(s::AbstractOptimizerCache) = reset!(s.state)
+
+is_runable(s::AbstractOptimizerCache) = is_runable(s.state) 
+
+@views set_cache!(s::AbstractOptimizerCache, X, A, Y, λ) = begin
+    is_convergend!(s.state, X, s.X_prev) && return
+    copyto!(s.X_prev, X)
+    set_metrics!(s.state, A, X, Y, λ)
+    eval_pareto!(s, s.state, A, Y, λ)
+    increment!(s.state)
+    print(s.state, λ)
+    return
+end
+
+
 """
 $(SIGNATURES)
 
@@ -63,6 +99,8 @@ include("./utils.jl")
 
 include("./proximals.jl")
 
+include("./state.jl")
+
 # Remove the trace right now
 
 include("./stlsq.jl")
@@ -75,13 +113,7 @@ include("./implicit.jl")
 
 # Init the progressmeters
 # For a general optimizer
-default_prg_msg(o::AbstractOptimizer) = summary(o)
 
-function init_progress(opt::AbstractOptimizer, X, A, Y, maxiters, start)
-    Progress(
-        maxiters, default_prg_msg(opt), start
-    )
-end
 
 
 include("./sparseregression.jl")
