@@ -64,21 +64,24 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol
         
     if !eval_expression
         # Compute the errors
-
-        x, _, t, u = get_oop_args(prob)
         y = get_target(prob)
+        e = similar(y)
 
         if is_implicit(b)
-            e = b([x; y], p, t, u)
+            x, _, t, u = get_implicit_oop_args(prob)
+            e .= b(x, p, t, u)
         else
-            e = get_target(prob) - b(x, p, t, u)
+            x, _, t, u = get_oop_args(prob)
+            e .= y .- b(x, p, t, u)
         end
-
+        
         l2 = sum(abs2, e, dims = 2)[:,1]
+
         aic = 2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
         
         if linearity
-            rsquared = 1 .- mean(e, dims = 2)[:,1] ./ var(get_target(prob), dims = 2)[:,1]
+
+            rsquared = 1 .- l2 ./ sum(abs2, y .- mean(y, dims = 2), dims = 2)[:,1]
             #return l2, aic, rsquared
             return DataDrivenSolution(
                 b, p, retcode, alg, out, prob, l2, aic, rsquared
