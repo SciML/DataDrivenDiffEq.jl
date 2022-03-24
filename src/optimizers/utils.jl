@@ -16,7 +16,7 @@ function clip_by_threshold!(y::AbstractArray, x::AbstractArray, λ::T, rounding:
     dplace = max(ceil(Int, -log10(λ)), -10)
     for i in eachindex(x)
         y[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
-        x[i] = rounding ? round(x[i], digits = dplace) : x[i]
+        y[i] = rounding ? round(y[i], digits = dplace) : y[i]
     end
     return
 end

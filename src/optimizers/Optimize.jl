@@ -47,7 +47,7 @@ reset!(s::AbstractOptimizerCache) = reset!(s.state)
 @views cleanup!(s::AbstractOptimizerCache, X) = begin
     cleanup!(s.state)
     for i in axes(X, 2)
-        clip_by_threshold!(X[:, i], s.X_opt[:, i], s.λ_opt[i])
+        clip_by_threshold!(X[:, i:i], s.X_opt[:, i:i], s.λ_opt[i])
     end
     return
 end
