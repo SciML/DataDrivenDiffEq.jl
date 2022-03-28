@@ -65,31 +65,41 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol
     if !eval_expression
         # Compute the errors
         y = get_target(prob)
-        e = similar(y)
-
+        n , m = size(y)
+        rss = ones(n) .* convert(eltype(y), Inf)
+        
         if is_implicit(b)
             x, _, t, u = get_implicit_oop_args(prob)
-            e .= b(x, p, t, u)
+            ŷ = b(x, p, t, u) # This is actually the error
+            map(1:size(ŷ,1)) do i
+                rss[i] = sum(abs2, ŷ[i,:]) / m
+                return
+            end
         else
             x, _, t, u = get_oop_args(prob)
-            e .= y .- b(x, p, t, u)
+            ŷ = b(x, p, t, u)
+            map(1:size(ŷ,1)) do i
+                rss[i] = sum(abs2, ŷ[i,:]-y[i,:]) / m
+            end
         end
         
-        l2 = sum(abs2, e, dims = 2)[:,1]
-
-        aic = size(e, 2) .* log.(l2)  .+ 2*length(p)
+        # TODO This should be adapted to the individual equations
+        aic = m .* log.(rss)  .+ 2*length(p)
         
         if linearity
+            rsquared = zeros(eltype(y), n)
 
-            rsquared = 1 .- l2 ./ sum(abs2, y .- mean(y, dims = 2), dims = 2)[:,1]
-            #return l2, aic, rsquared
+            map(1:size(ŷ, 1)) do i 
+                rsquared[i] = cor(y[i,:], ŷ[i,:])
+            end #1 .- rss ./ sum(abs2, y .- mean(y, dims = 2), dims = 2)[:,1]
+           
             return DataDrivenSolution(
-                b, p, retcode, alg, out, prob, l2, aic, rsquared
+                b, p, retcode, alg, out, prob, rss, aic, rsquared
             )
         end
 
         return DataDrivenSolution(
-            linearity, b, p, retcode, alg, out, prob, l2, aic
+            linearity, b, p, retcode, alg, out, prob, rss, aic
         )
     end
 
@@ -262,7 +272,14 @@ function assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector)
     return true
 end
 
-function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symbol = :continuous, is_implicit = false, eval_expression = false)
+function construct_basis(A, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symbol = :continuous, is_implicit = false, digits = 10, eval_expression = false)
+
+    X = zero(A)
+    @info digits
+    for i in eachindex(A)
+        X[i] = round(A[i], digits = digits)
+    end
+
 
     # Create additional variables
     sp = sum(.! iszero.(X))
@@ -348,20 +365,22 @@ end
 
 function DataDrivenSolution(prob, s, b::B, opt::O, implicits = Num[]; 
     eval_expression = false, digits::Int = 10, by = :min, kwargs...) where {B <: AbstractBasis, O <: AbstractOptimizer}
+    
     Ξ, _... = select_by(by, s) 
+
     # Build a basis and returns a solution
     if all(iszero.(Ξ))
         @warn "Sparse regression failed! All coefficients are zero."
-        return DataDrivenSolution(
-        b, [], :failed, opt, Ξ, prob)
+        return DataDrivenSolution(b, [], :failed, opt, Ξ, prob)
     end
  
     # Assert continuity
     lhs, dt = assert_lhs(prob)
 
-    sol , ps = construct_basis(round.(Ξ, digits = digits), b, implicits, 
+    sol , ps = construct_basis(Ξ, b, implicits, 
         lhs = lhs, dt = dt,
-        is_implicit = isa(opt, AbstractSubspaceOptimizer) ,eval_expression = eval_expression
+        is_implicit = isa(opt, AbstractSubspaceOptimizer),
+        digits = digits, eval_expression = eval_expression
         )
 
     
@@ -392,8 +411,8 @@ function DataDrivenSolution(prob, k, b::BS, alg::KA;
     # Assert continuity
     lhs, dt = assert_lhs(prob)
     
-    bs, ps = construct_basis(round.(C*Ξ, digits = digits)', b, 
-        lhs = lhs, dt = dt,
+    bs, ps = construct_basis(C*Ξ', b, 
+        lhs = lhs, dt = dt, digits = digits,
         eval_expression = eval_expression)
 
 
