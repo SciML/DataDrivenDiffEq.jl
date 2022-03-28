@@ -66,10 +66,10 @@ function CommonSolve.init(prob::AbstractDataDrivenProblem{N,C,P}, basis::Abstrac
     return SparseIdentificationProblem(Ξ, prob, basis, train, test, opt, options, eval_expression)
 end
 
-function CommonSolve.solve!(p::SparseIdentificationProblem)#::DataDrivenSolution
+@views function CommonSolve.solve!(p::SparseIdentificationProblem)#::DataDrivenSolution
 
     @unpack Ξ, prob, basis, train, test, optimizer, options, eval_expression = p
-    @unpack normalize, denoise, sampler, maxiter, abstol, reltol, verbose, progress,f,g, kwargs = options
+    @unpack normalize, denoise, sampler, maxiter, digits, abstol, reltol, verbose, progress,f,g, kwargs = options
 
     
     T = eltype(Ξ)
@@ -80,7 +80,7 @@ function CommonSolve.solve!(p::SparseIdentificationProblem)#::DataDrivenSolution
     
     Θ = zeros(T, length(basis), length(prob))
     
-    @views if is_implicit
+    if is_implicit
         basis(Θ, get_implicit_oop_args(prob)...)
     else
         basis(Θ, prob)
@@ -104,8 +104,8 @@ function CommonSolve.solve!(p::SparseIdentificationProblem)#::DataDrivenSolution
     Aₜ = Θ[:, test]'
     Yₜ = DX[:, test]'
 
-    @views for (i,t) in enumerate(train)
-        for (j, cj) in enumerate(eachrow(c))
+    for (i,t) in enumerate(train)
+        @views for (j, cj) in enumerate(eachrow(c))
             A = Θ[cj,t]'
             Y = DX[j:j, t]'
             X = Ξ[i, cj, j:j] 
@@ -122,13 +122,12 @@ function CommonSolve.solve!(p::SparseIdentificationProblem)#::DataDrivenSolution
         end
 
         testerror[i] = fg(Ξ[i,:,:], Aₜ, Yₜ)
-
-        rescale_xi!(Ξ[i,:,:], scales, true)
+        
+        rescale_xi!(Ξ[i,:,:], scales, false)
     end
-
+    @info Ξ[1,:,:]
     sol = SparseLinearSolution(
         Ξ, λs, (train, test), testerror, trainerror, optimizer, options
     )
-    
-    return DataDrivenSolution(prob, sol, basis, optimizer, implicit_variables(basis); eval_expression = eval_expression, kwargs...)
+    return DataDrivenSolution(prob, sol, basis, optimizer, implicit_variables(basis); digits = digits, eval_expression = eval_expression, kwargs...)
 end

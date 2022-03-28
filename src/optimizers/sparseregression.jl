@@ -17,77 +17,8 @@ used for finding the pareto-optimal solution to the sparse regression.
 @views sparse_regression!(X, A, Y, opt::AbstractOptimizer; kwargs...) = begin 
     init!(X, opt, A, Y) 
     λ_opt =  opt(X, A, Y; kwargs...)
-
-    for i in axes(Y, 2)
-        clip_by_threshold!(X[:, i], λ_opt[i])
+    for i in axes(X, 2)
+        clip_by_threshold!(X[:,i], λ_opt[i])
     end
-    
-   λ_opt
+    λ_opt
 end
-
-#function sparse_regression!(X, A, Y, opt::AbstractOptimizer{T};
-#    maxiter::Int = maximum(size(A)),
-#    abstol = eps(eltype(T)), progress::Bool = false,
-#    f::Function = F(opt),
-#    g::Function = G(opt),
-#    progress_outer::Int = 1, progress_offset::Int = 0, kwargs...) where T
-#
-#    # Closure for the pareto function
-#    fg(x, A, y, lambda) = (g∘f)(x, A, y, lambda)
-#    
-#    # TODO Tmp Result
-#    X_tmp = similar(X)
-#    X_tmp .= X
-#
-#    λ = get_threshold(opt)
-#    λ = issorted(λ) ? λ : sort(λ)
-#    λs = zeros(eltype(λ), size(Y,2))
-#
-#    if progress
-#        progress =  init_progress(opt, X, A, Y, length(λ)*progress_outer, progress_offset)
-#    else
-#        progress = nothing
-#    end
-#
-#    obj = zero(eltype(X))
-#    objtmp = zero(eltype(X))
-#    sparsity = zero(eltype(X))
-#    sparsitytmp = zero(eltype(X))
-#
-#    @views for (i,λi) in enumerate(λ)
-#        init!(X_tmp, opt, A, Y)
-#
-#        opt(X_tmp, A, Y, λi, maxiter = maxiter, abstol = abstol, f = f, g = g)
-#        
-#        # Increasing the threshold makes no sense
-#        all(iszero(X_tmp)) && break
-#
-#
-#        for j in 1:size(Y, 2)
-#            if fg(X_tmp[:, j], A, Y[:, j], λi) < fg(X[:, j], A, Y[:, j], λi)
-#                λs[j] =λi
-#                X[:, j] .= X_tmp[:, j]
-#            end
-#        end
-#
-#        if !isnothing(progress)
-#            sparsity, obj = f(X, A, Y, λi)
-#            sparsitytmp, objtmp = f(X_tmp, A, Y, λi)
-#
-#            ProgressMeter.next!(
-#            progress;
-#            showvalues = [
-#                (:Threshold, λi), (Symbol("Best Objective"), obj), (Symbol("Best Sparsity"), sparsity),
-#                (Symbol("Current Objective"), objtmp), (Symbol("Current Sparsity"), sparsitytmp)
-#            ]
-#            )
-#        end
-#    end
-#
-#    for i in 1:size(Y, 2)
-#        @views clip_by_threshold!(X[:, i], λs[i])
-#    end
-#
-#    return λs
-#end
-#

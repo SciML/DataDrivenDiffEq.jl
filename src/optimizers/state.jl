@@ -80,11 +80,12 @@ end
 @views function eval_pareto!(cache, s::OptimizerState, A, Y, λ)
     X = cache.X_prev
     X̂ = cache.X_opt
-    λ_ = cache.λ_opt
     for i in axes(Y, 2)
-        if s.pareto(X[:, i], A, Y[:, i], λ) < s.pareto(X̂[:, i], A, Y[:,i], λ_[i])
-            X̂[:, i] .= X[:,i]
-            λ_[i] = λ
+        # We do not want zeros
+        all(X[:, i] .≈ zero(λ)) && continue
+        if s.pareto(X[:, i], A, Y[:, i], λ) < s.pareto(X̂[:, i], A, Y[:,i], λ)
+            cache.X_opt[:, i] .=  X[:,i]
+            cache.λ_opt[i] = λ
         end
     end
 end

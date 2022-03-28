@@ -62,10 +62,7 @@ end
 @views set_cache!(s::STLSQCache, X, A, Y, λ) = begin
     is_convergend!(s.state, X, s.X_prev) && return
     s.biginds .= abs.(X) .> λ
-    s.X_prev .= zero(X)
-    #s.X_prev[s.biginds] .=  X[s.biginds]
-    copy!(s.X_prev[s.biginds], X[s.biginds])
-    copy!(X, s.X_prev)
+    s.X_prev .= X
     set_metrics!(s.state, A, X, Y, λ)
     eval_pareto!(s, s.state, A, Y, λ)
     increment!(s.state)
@@ -75,6 +72,7 @@ end
 
 @views function step!(cache::STLSQCache, X, A, Y, λ)
     biginds = cache.biginds
+    X .= zero(X)
     for i in axes(Y, 2)
         X[biginds[:, i], i] .= A[:, biginds[:, i]] \ Y[:, i]
     end 

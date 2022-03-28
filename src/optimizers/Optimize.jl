@@ -31,14 +31,19 @@ end
 @views function (opt::AbstractOptimizer)(X, A, Y; kwargs...)
     
     cache = init_cache(opt, X, A, Y, first(opt.λ); kwargs...)
-
+    
     for λ in opt.λ
+        init!(X, opt, A, Y)
         optimize!(cache, X, A, Y, λ) 
         reset!(cache)
+        # Check if all coefficients are zero -> break
+        if all(X .≈ zero(λ)) 
+            break
+        end
     end
 
     cleanup!(cache, X)
-    
+    @info X
     return cache.λ_opt
 end
 
@@ -46,9 +51,6 @@ reset!(s::AbstractOptimizerCache) = reset!(s.state)
 
 @views cleanup!(s::AbstractOptimizerCache, X) = begin
     cleanup!(s.state)
-    for i in axes(X, 2)
-        clip_by_threshold!(X[:, i:i], s.X_opt[:, i:i], s.λ_opt[i])
-    end
     return
 end
 
@@ -56,7 +58,7 @@ is_runable(s::AbstractOptimizerCache) = is_runable(s.state)
 
 @views set_cache!(s::AbstractOptimizerCache, X, A, Y, λ) = begin
     is_convergend!(s.state, X, s.X_prev) && return
-    copy!(s.X_prev, X)
+    copyto!(s.X_prev,X)
     set_metrics!(s.state, A, X, Y, λ)
     eval_pareto!(s, s.state, A, Y, λ)
     increment!(s.state)

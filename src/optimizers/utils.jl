@@ -3,34 +3,40 @@ $(SIGNATURES)
 
 Clips the solution by the given threshold `λ` and ceils the entries to the corresponding decimal.
 """
-function clip_by_threshold!(x::AbstractArray, λ::T, rounding::Bool = true) where T <: Real
-    dplace = max(ceil(Int, -log10(λ)), -10)
+@views function clip_by_threshold!(x::AbstractArray, λ::T) where T <: Real
+
+
     for i in eachindex(x)
-        x[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
-        x[i] = rounding ? round(x[i], digits = dplace) : x[i]
+        if abs(x[i]) < λ
+            x[i] = zero(eltype(x))
+        end
     end
     return
 end
 
-function clip_by_threshold!(y::AbstractArray, x::AbstractArray, λ::T, rounding::Bool = true) where T <: Real
-    dplace = max(ceil(Int, -log10(λ)), -10)
+@views function clip_by_threshold!(y::AbstractArray, x::AbstractArray, λ::T) where T <: Real
+ #   dplace = min(max(ceil(Int, -log10(λ)), -10), 1)
+
     for i in eachindex(x)
-        y[i] = abs(x[i]) < λ ? zero(eltype(x)) : x[i]
-        y[i] = rounding ? round(y[i], digits = dplace) : y[i]
+        if abs(x[i]) < λ
+            y[i] = zero(eltype(x))
+        else
+            y[i] = x[i]
+        end
     end
     return
 end
 
 
 # Evaluate the results for pareto
-G(opt::AbstractOptimizer{T} where T) = f->f[1] < 1 ? Inf : norm(f, 2) # 2*f[1]-2*log(f[2])
-G(opt::AbstractSubspaceOptimizer{T} where T) = f->f[1] < 2 ? Inf : norm(f, 2) # 2*f[1]-2*log(f[2])
+G(opt::AbstractOptimizer{T} where T) = f->f[1] < 1 ? Inf : sum(f) # 2*f[1]-2*log(f[2])
+G(opt::AbstractSubspaceOptimizer{T} where T) = f->f[1] < 2 ? Inf : sum(f) # 2*f[1]-2*log(f[2])
 # Evaluate F
 function F(opt::AbstractOptimizer{T} where T)
-    f(x, A, y::AbstractArray) = [norm(x, 0); norm(y .- A*x, 2)] # explicit
-    f(x, A, y::AbstractArray, λ) = [norm(x, 0, λ); norm(y .- A*x, 2, λ)]
+    f(x, A, y::AbstractArray) = [norm(x, 1); norm(y .- A*x, 2)] # explicit
+    f(x, A, y::AbstractArray, λ) = [norm(x, 1, λ); norm(y .- A*x, 2, λ)]
     f(x, A) = [norm(x,0); norm(A*x, 2)] # implicit
-    f(x, A, λ::Number) = [norm(x,0,λ); norm(A*x, 2,λ)] # implicit
+    f(x, A, λ::Number) = [norm(x,1,λ); norm(A*x, 1,λ)] # implicit
     return f
 end
 

@@ -79,8 +79,8 @@ function rescale_xi!(xi::AbstractMatrix, scales::AbstractVector, round_::Bool)
     digs = 10
     @inbounds for i in 1:length(scales), j in 1:size(xi, 2)
         iszero(xi[i,j]) ? continue : nothing
-        round_ && (xi[i,j] % 1) != zero(xi[i,j]) ? digs = round(Int64,-log10(abs(xi[i,j]) % 1))+1 : nothing
         xi[i,j] = xi[i,j] / scales[i]
+        round_ && (xi[i,j] % 1) != zero(xi[i,j]) ? digs = round(Int64,-log10(abs(xi[i,j]) % 1))+1 : nothing
         round_ ? xi[i,j] = round(xi[i,j], digits = digs) : nothing
     end
     return

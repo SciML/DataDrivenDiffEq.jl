@@ -77,7 +77,7 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol
         
         l2 = sum(abs2, e, dims = 2)[:,1]
 
-        aic = 2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
+        aic = size(e, 2) .* log.(l2)  .+ 2*length(p)
         
         if linearity
 
