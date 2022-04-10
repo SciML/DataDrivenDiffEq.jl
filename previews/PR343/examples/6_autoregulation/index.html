@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Implicit Nonlinear Dynamics : Autoregulation · DataDrivenDiffEq.jl</title><script async src="https://www.googletagmanager.com/gtag/js?id=UA-90474609-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-90474609-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link rel="canonical" href="https://datadriven.sciml.ai/stable/examples/6_autoregulation/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">DataDrivenDiffEq.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../0_getting_started/">Getting Started</a></li><li><a class="tocitem" href="../10_noisy_nonlinear/">Sparse Identification with noisy data</a></li><li><a class="tocitem" href="../1_linear_discrete_system/">Linear Time Discrete System</a></li><li><a class="tocitem" href="../2_linear_continuous_system/">Linear Time Continuous System</a></li><li><a class="tocitem" href="../3_linear_continuous_system_controls/">Linear Time Continuous System with Controls</a></li><li><a class="tocitem" href="../4_nonlinear_continuous_system/">Nonlinear Time Continuous System</a></li><li><a class="tocitem" href="../5_michaelis_menten/">Implicit Nonlinear Dynamics : Michaelis Menten</a></li><li class="is-active"><a class="tocitem" href>Implicit Nonlinear Dynamics : Autoregulation</a><ul class="internal"><li><a class="tocitem" href="#autoregulation_copy_paste"><span>Copy-Pasteable Code</span></a></li></ul></li><li><a class="tocitem" href="../7_cartpole/">Implicit Nonlinear Dynamics : Cartpole</a></li><li><a class="tocitem" href="../8_symbolic_regression/">Symbolic Regression of Nonlinear Time Continuous Systems</a></li><li><a class="tocitem" href="../9_heatequation/">PDE Discovery : Heat equations</a></li></ul></li><li><a class="tocitem" href="../../problems/">Problems</a></li><li><span class="tocitem">Solvers</span><ul><li><a class="tocitem" href="../../solvers/common/">Solve</a></li><li><a class="tocitem" href="../../solvers/koopman/">Koopman Inference</a></li><li><a class="tocitem" href="../../solvers/optimization/">Sparse Optimizers</a></li><li><a class="tocitem" href="../../solvers/symbolic_regression/">Symbolic Regression</a></li></ul></li><li><a class="tocitem" href="../../basis/">Basis</a></li><li><a class="tocitem" href="../../solutions/">Solutions</a></li><li><a class="tocitem" href="../../utils/">Utilities</a></li><li><a class="tocitem" href="../../contributions/">Contributing</a></li><li><a class="tocitem" href="../../citations/">Citing</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Implicit Nonlinear Dynamics : Autoregulation</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Implicit Nonlinear Dynamics : Autoregulation</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/master/docs/examples/6_autoregulation.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="autoregulation"><a class="docs-heading-anchor" href="#autoregulation">Implicit Nonlinear Dynamics : Autoregulation</a><a id="autoregulation-1"></a><a class="docs-heading-anchor-permalink" href="#autoregulation" title="Permalink"></a></h1><p>The following is another example on how to use the <a href="../../solvers/optimization/#DataDrivenDiffEq.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> describing a biological autoregulation process using two coupled implicit equations.</p><pre><code class="language- hljs">using DataDrivenDiffEq
+using ModelingToolkit
+using OrdinaryDiffEq
+using LinearAlgebra
+using Plots
+gr()
+
+@parameters begin
+    t
+    α = 1.0
+    β = 1.3
+    γ = 2.0
+    δ = 0.5
+end
+
+@variables begin
+    x[1:2](t) = [20.0; 12.0]
+end
+
+x = collect(x)
+D = Differential(t)
+
+eqs = [
+    D(x[1]) ~ α/(1+x[2])-β*x[1];
+    D(x[2]) ~ γ/(1+x[1])-δ*x[2];
+]
+
+sys = ODESystem(eqs, t, x, [α, β, γ, δ], name = :Autoregulation)
+
+x0 = [x[1] =&gt; 20.0; x[2] =&gt; 12.0]
+
+tspan = (0.0, 5.0)
+
+de_problem = ODEProblem(sys, x0, tspan)
+de_solution = solve(de_problem, Tsit5(), saveat = 0.005)
+plot(de_solution)</code></pre><p>As always, we start by defining a <a href="../../problems/#problem">DataDrivenProblem</a> and a sufficient basis for sparse regression.</p><pre><code class="language- hljs">dd_prob = ContinuousDataDrivenProblem(de_solution)
+
+eqs = [
+    polynomial_basis(x, 4); D.(x); x .* D(x[1]); x .* D(x[2])
+    ]
+
+basis = Basis(eqs, x, independent_variable = t, implicits = D.(x))
+
+plot(dd_prob)</code></pre><p>Next to varying over different sparsity penalties, we want also to batch our data using the <a href="../../problems/#DataSampler">DataSampler</a>. We define a train-test split of 80-20 for our data and batch the resulting training data into 10 minibatches, allowing shuffled and repeated values. Our goal is to find the model with the minimal error.</p><pre><code class="language- hljs">sampler = DataSampler(
+    Split(ratio = 0.8), Batcher(n = 10, shuffle = true, repeated = true, batchsize_min = 30)
+)
+
+res = solve(dd_prob, basis, ImplicitOptimizer(STLSQ(1e-1:1e-1:9e-1)), by = :min, sampler = sampler, digits = 1)
+print(res) #hide
+print(result(res)) #hide</code></pre><p>We have recovered the correct equations of motion! Another visual check using the problem and the result yields</p><pre><code class="language- hljs">system = result(res)
+@named ode = ODESystem(equations(system), t, x, parameters(system));
+ode_prob = ODEProblem(ode, x0, tspan, parameter_map(res));
+
+prediction = solve(ode_prob, Tsit5(), saveat = 0.2);
+plot(de_solution, label = [&quot;Groundtruth&quot; nothing])
+scatter!(prediction, label = [&quot;Prediction&quot; nothing])</code></pre><h2 id="autoregulation_copy_paste"><a class="docs-heading-anchor" href="#autoregulation_copy_paste">Copy-Pasteable Code</a><a id="autoregulation_copy_paste-1"></a><a class="docs-heading-anchor-permalink" href="#autoregulation_copy_paste" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDrivenDiffEq
+using ModelingToolkit
+using OrdinaryDiffEq
+using LinearAlgebra
+
+@parameters begin
+    t
+    α = 1.0
+    β = 1.3
+    γ = 2.0
+    δ = 0.5
+end
+
+@variables begin
+    x[1:2](t) = [20.0; 12.0]
+end
+
+x = collect(x)
+D = Differential(t)
+
+eqs = [
+    D(x[1]) ~ α/(1+x[2])-β*x[1];
+    D(x[2]) ~ γ/(1+x[1])-δ*x[2];
+]
+
+sys = ODESystem(eqs, t, x, [α, β, γ, δ], name = :Autoregulation)
+
+x0 = [x[1] =&gt; 20.0; x[2] =&gt; 12.0]
+
+tspan = (0.0, 5.0)
+
+de_problem = ODEProblem(sys, x0, tspan)
+de_solution = solve(de_problem, Tsit5(), saveat = 0.005)
+
+dd_prob = ContinuousDataDrivenProblem(de_solution)
+
+eqs = [
+    polynomial_basis(x, 4); D.(x); x .* D(x[1]); x .* D(x[2])
+    ]
+
+basis = Basis(eqs, x, independent_variable = t, implicits = D.(x))
+
+sampler = DataSampler(
+    Split(ratio = 0.8), Batcher(n = 10, shuffle = true, repeated = true, batchsize_min = 30)
+)
+
+res = solve(dd_prob, basis, ImplicitOptimizer(STLSQ(1e-1:1e-1:9e-1)), by = :min, sampler = sampler, digits = 1)
+print(res) #hide
+print(result(res)) #hide
+
+system = result(res)
+@named ode = ODESystem(equations(system), t, x, parameters(system));
+ode_prob = ODEProblem(ode, x0, tspan, parameter_map(res));
+
+prediction = solve(ode_prob, Tsit5(), saveat = 0.2);
+
+# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../5_michaelis_menten/">« Implicit Nonlinear Dynamics : Michaelis Menten</a><a class="docs-footer-nextpage" href="../7_cartpole/">Implicit Nonlinear Dynamics : Cartpole »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.15 on <span class="colophon-date" title="Sunday 10 April 2022 19:40">Sunday 10 April 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
