@@ -4,12 +4,12 @@ The [`SINDy`](@ref sparse_optimization) and [`Koopman`](@ref koopman_algorithms)
 
 The table below provides an overview, which class of algorithms support which class of problems.
 
-| Class | Direct     | Discrete | Continuous | Basis | 
-|:---------- | ---------- |:------------:|:------------:|:------------:|
-| Koopman    |    No       | Explicit             |  Optional   Explicit        | Optional |
-| Sparse Regression    | Explit/Implicit  | Explit/Implicit | Explit/Implicit | Necessary |
-| Symbolic Regression    | Explicit  | Explicit | Explicit | No | 
-| OccamNet    | Explicit  | Explicit | Explicit | No |
+| Class | Direct     | Discrete | Continuous | Basis | Requires |
+|:---------- | ---------- |:------------:|:------------:|:------------:| |:------------:|
+| Koopman    |    No       | Explicit             |  Optional   Explicit        | Optional | 
+| Sparse Regression    | Explit/Implicit  | Explit/Implicit | Explit/Implicit | Necessary | 
+| EQSearch    | Explicit  | Explicit | Explicit | No | [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl)
+| OccamNet    | Explicit  | Explicit | Explicit | No | [Flux.jl](https://github.com/FluxML/Flux.jl)
 
 All of the above methods return a [`DataDrivenSolution`](@ref) if not enforced otherwise.
 
