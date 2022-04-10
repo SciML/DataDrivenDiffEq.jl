@@ -32,6 +32,36 @@ function gather_plot_information(x::AbstractDataDrivenProblem{N, C, D}) where {N
     return returns, ylab
 end
 
+
+function gather_plot_information(x::DataDrivenDataset{N, C, D}) where {N,C, D}
+    
+    data = map([:X, :Y, :DX, :U]) do s
+        reduce(hcat, map(x.probs) do prob
+            getproperty(prob, s)
+        end)
+    end
+
+    #X = getfield(x, :X)
+    #Y = getfield(x, :Y)
+    #DX = getfield(x, :DX)
+    #U = getfield(x, :U)
+    
+    t = reduce(vcat, map(x.probs) do prob
+        getproperty(prob, :t)
+    end)
+    
+    ylab = is_direct(x) ? "Sample ID" : "t"
+
+    returns = []
+
+    for (xi, si) in zip(data, ["x", "\U02202\U0209C"*"x", "y", "u"])
+        isempty(xi) && continue
+        push!(returns, (t, xi, si))
+    end
+
+    return returns, ylab
+end
+
 function gather_plot_information(x::AbstractDataDrivenSolution)
     p = get_problem(x)
     t = p.t 
