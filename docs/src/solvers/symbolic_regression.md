@@ -2,7 +2,7 @@
 
 `DataDrivenDiffEq` includes the following symbolic regression algorithms.
 
-## SymbolicRegression.jl
+## [EQSearch](@id eqsearch_api)
 
 !!! warning
     This feature requires the explicit loading of [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) in addition to `DataDrivenDiffEq`. It will _only_ be useable if loaded like:
@@ -12,6 +12,7 @@
     ```
     Currently `DataDrivenDiffEq` supports version 0.6.14 up to 0.6.19.
 
+This algorithm wraps [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl).
 ### Symbolic Regression
 See the [tutorial](@ref symbolic_regression_simple).
 
