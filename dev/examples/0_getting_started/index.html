@@ -7,11 +7,28 @@
 using ModelingToolkit
 using LinearAlgebra</code></pre><p>Generate a test problem</p><pre><code class="language-julia hljs">f(u) = u.^2 .+ 2.0u .- 1.0
 X = randn(1, 100);
-Y = reduce(hcat, map(f, eachcol(X)));</code></pre><p>Create a problem from the data</p><pre><code class="language-julia hljs">problem = DirectDataDrivenProblem(X, Y, name = :Test)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Direct DataDrivenProblem{Float64} Test in 1 dimensions and 100 samples</code></pre><p>Choose a basis</p><pre><code class="language- hljs">@variables u
+Y = reduce(hcat, map(f, eachcol(X)));</code></pre><p>Create a problem from the data</p><pre><code class="language-julia hljs">problem = DirectDataDrivenProblem(X, Y, name = :Test)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Direct DataDrivenProblem{Float64} Test in 1 dimensions and 100 samples</code></pre><p>Choose a basis</p><pre><code class="language-julia hljs">@variables u
 basis = Basis(monomial_basis([u], 2), [u])
-println(basis)</code></pre><p>Solve the problem, using the solver of your choosing</p><pre><code class="language- hljs">res = solve(problem, basis, STLSQ())
+println(basis)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Model ##Basis#344 with 3 equations
+States : u
+Independent variable: t
+Equations
+φ₁ = 1
+φ₂ = u
+φ₃ = u^2</code></pre><p>Solve the problem, using the solver of your choosing</p><pre><code class="language-julia hljs">res = solve(problem, basis, STLSQ())
 println(res)
-println(result(res))</code></pre><h2 id="getting_started_code"><a class="docs-heading-anchor" href="#getting_started_code">Copy-Pasteable Code</a><a id="getting_started_code-1"></a><a class="docs-heading-anchor-permalink" href="#getting_started_code" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDrivenDiffEq
+println(result(res))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Linear Solution with 1 equations and 3 parameters.
+Returncode: solved
+L₂ Norm error : [1.8681520460556188e-30]
+AIC : [14617.554648842099]
+R² : [1.0]
+
+Model ##Basis#347 with 1 equations
+States : u
+Parameters : p₁ p₂ p₃
+Independent variable: t
+Equations
+φ₁ = p₁ + p₂*u + p₃*(u^2)</code></pre><h2 id="getting_started_code"><a class="docs-heading-anchor" href="#getting_started_code">Copy-Pasteable Code</a><a id="getting_started_code-1"></a><a class="docs-heading-anchor-permalink" href="#getting_started_code" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDrivenDiffEq
 using ModelingToolkit
 using LinearAlgebra
 
@@ -29,4 +46,4 @@ res = solve(problem, basis, STLSQ())
 println(res)
 println(result(res))
 
-# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../10_noisy_nonlinear/">Sparse Identification with noisy data »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.15 on <span class="colophon-date" title="Saturday 9 April 2022 12:48">Saturday 9 April 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../10_noisy_nonlinear/">Sparse Identification with noisy data »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.15 on <span class="colophon-date" title="Tuesday 12 April 2022 11:11">Tuesday 12 April 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
