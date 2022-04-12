@@ -1,15 +1,15 @@
 # [Solve](@id solve)
 
-The [`SINDy`](@ref sparse_optimization) and [`Koopman`](@ref koopman_algorithms) algorithms have been combined under a single interface to match the interface of other SciML packages. Thus, you can simply define a Problem, and then seamlessly switch between solvers. 
+All algorithms have been combined under a single API to match the interface of other SciML packages. Thus, you can simply define a Problem, and then seamlessly switch between solvers. 
 
 The table below provides an overview, which class of algorithms support which class of problems.
 
-| Class | Direct     | Discrete | Continuous | Basis | 
-|:---------- | ---------- |:------------:|:------------:|:------------:|
-| Koopman    |    No       | Explicit             |  Optional   Explicit        | Optional |
-| Sparse Regression    | Explit/Implicit  | Explit/Implicit | Explit/Implicit | Necessary |
-| Symbolic Regression    | Explicit  | Explicit | Explicit | No | 
-| OccamNet    | Explicit  | Explicit | Explicit | No |
+|  | Direct     | Discrete | Continuous | Basis | Requires |
+|:---------- | ---------- |:------------:|:------------:|:------------:|:------------:|
+| [Koopman](@ref koopman_algorithms)    |     -      | +             |  +        | Optional | 
+| [Sparse Regression](@ref sparse_optimization)    | +  | + | + | Necessary | 
+| [EQSearch](@ref eqsearch_api)    | +  | + | + | No | [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl)
+| [OccamNet](@ref occamnet_api)    | +  | + | + | No | [Flux.jl](https://github.com/FluxML/Flux.jl)
 
 All of the above methods return a [`DataDrivenSolution`](@ref) if not enforced otherwise.
 

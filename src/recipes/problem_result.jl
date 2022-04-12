@@ -32,18 +32,41 @@ function gather_plot_information(x::AbstractDataDrivenProblem{N, C, D}) where {N
     return returns, ylab
 end
 
+
+function gather_plot_information(x::DataDrivenDataset{N, C, D}) where {N,C, D}
+    
+    data = map([:X, :Y, :DX, :U]) do s
+        reduce(hcat, map(x.probs) do prob
+            getproperty(prob, s)
+        end)
+    end
+    
+    t = reduce(vcat, map(x.probs) do prob
+        getproperty(prob, :t)
+    end)
+    
+    ylab = is_direct(x) ? "Sample ID" : "t"
+
+    returns = []
+
+    for (xi, si) in zip(data, ["x", "\U02202\U0209C"*"x", "y", "u"])
+        isempty(xi) && continue
+        push!(returns, (t, xi, si))
+    end
+
+    return returns, ylab
+end
+
 function gather_plot_information(x::AbstractDataDrivenSolution)
     p = get_problem(x)
-    t = p.t 
+    X, _, t, u = get_oop_args(p)
+    Y = get_target(p)
     
-    t = is_discrete(p) ? t[2:end] : t
     ylab = is_direct(p) ? "Sample ID" : "t"
     
-    Y = get_target(p)
     outsym = is_direct(p) ? "y" : (is_discrete(p) ? "x" : "\U02202\U0209C"*"x")
     est_sym = outsym * "\U00302"
-    X, _, ts, u = get_oop_args(p)
-    Ŷ = x.basis(X, parameters(x), ts, u)
+    Ŷ = x.basis(X, parameters(x), t, u)
     return [(t, Y, outsym), (t, Ŷ, est_sym)], ylab
 end
 
