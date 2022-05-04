@@ -47,8 +47,9 @@ RecipesBase = "1"
 Reexport = "1.0"
 Requires = "1"
 StatsBase = "0.32.0, 0.33"
-SymbolicRegression = "0.6.14 - 0.6.19"
-Symbolics = "4.0 - 4.3.1"
+SymbolicRegression = "0.9"
+SymbolicUtils = "0.19"
+Symbolics = "4.3.1"
 julia = "1.6"
 
 [extras]
