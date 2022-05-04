@@ -377,6 +377,14 @@ function Base.deleteat!(b::Symbolics.Arr{T,N}, idxs) where {T,N}
     deleteat!(Symbolics.unwrap(b), idxs)
 end
 
+function unique!(x::AbstractArray{Symbolics.Symbolic}, simplify_eqs::Bool)
+    unique!(Num.(x), simplify_eqs)
+end
+
+function unique(x::AbstractArray{Symbolics.Symbolic}, simplify_eqs::Bool)
+    unique(Num.(x), simplify_eqs)
+end
+
 function unique(b::AbstractArray{Num}, simplify_eqs::Bool)
     b = simplify_eqs ? simplify.(b) : b
     returns = ones(Bool, size(b)...)
