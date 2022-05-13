@@ -37,7 +37,7 @@ x0 = [x[1] => 20.0; x[2] => 12.0]
 tspan = (0.0, 5.0) 
 
 de_problem = ODEProblem(sys, x0, tspan) 
-de_solution = solve(de_problem, Tsit5(), saveat = 0.005)
+de_solution = solve(de_problem, Tsit5(), saveat = 0.005);
 #md plot(de_solution)
 
 # As always, we start by defining a [DataDrivenProblem](@ref problem) and a sufficient basis for sparse regression.

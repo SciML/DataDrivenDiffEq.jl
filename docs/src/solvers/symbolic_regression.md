@@ -10,7 +10,7 @@
     using DataDrivenDiffEq
     using SymbolicRegression
     ```
-    Currently `DataDrivenDiffEq` supports version 0.6.14 up to 0.6.19.
+    Currently `DataDrivenDiffEq` supports version >= 0.9.
 
 This algorithm wraps [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl).
 ### Symbolic Regression
