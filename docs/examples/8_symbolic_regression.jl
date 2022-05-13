@@ -7,7 +7,7 @@
 #   This example might not recover the groundtruth, but is showing off the use within `DataDrivenDiffEq.jl`.
 #
 # DataDrivenDiffEq offers an interface to [`SymbolicRegression.jl`](https://github.com/MilesCranmer/SymbolicRegression.jl) to infer more complex functions. To 
-# use it, simply load a sufficient version of `SymbolicRegression` (currently we support version 0.6.14 to 0.6.19).
+# use it, simply load a sufficient version of `SymbolicRegression` (currently we support version >= 0.9).
 
 using DataDrivenDiffEq
 using ModelingToolkit

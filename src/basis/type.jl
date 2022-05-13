@@ -377,7 +377,7 @@ function Base.deleteat!(b::Symbolics.Arr{T,N}, idxs) where {T,N}
     deleteat!(Symbolics.unwrap(b), idxs)
 end
 
-function unique(b::AbstractArray{Num}, simplify_eqs::Bool)
+function Base.unique(b::AbstractArray{SymbolicUtils.Sym}, simplify_eqs::Bool)
     b = simplify_eqs ? simplify.(b) : b
     returns = ones(Bool, size(b)...)
     N = maximum(eachindex(b))
@@ -387,8 +387,12 @@ function unique(b::AbstractArray{Num}, simplify_eqs::Bool)
     return Num.(b[returns])
 end
 
+function Base.unique(b::AbstractArray{Num}, y::Bool)
+    unique(collect(map(x->x.val, b)), y)
+end
 
-function Base.unique!(b::AbstractArray{Num}, simplify_eqs = false)
+
+function Base.unique!(b::AbstractArray{T}, simplify_eqs = false) where {T <: Union{Num, SymbolicUtils.Sym}}
     bs = simplify_eqs ? simplify.(b) : b
     removes = zeros(Bool, size(bs)...)
     N = maximum(eachindex(bs))
@@ -398,7 +402,7 @@ function Base.unique!(b::AbstractArray{Num}, simplify_eqs = false)
     deleteat!(b, removes)
 end
 
-function unique(b::AbstractArray{Equation}, simplify_eqs::Bool)
+function Base.unique(b::AbstractArray{Equation}, simplify_eqs::Bool)
     b = simplify_eqs ? simplify.(b) : b
     returns = ones(Bool, size(b)...)
     N = maximum(eachindex(b))

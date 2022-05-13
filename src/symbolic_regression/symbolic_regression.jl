@@ -1,6 +1,3 @@
-using SymbolicRegression
-using DataDrivenDiffEq
-
 
 """
 $(TYPEDEF)
@@ -81,12 +78,13 @@ function pareto_optimal_equations(hof::Vector{HallOfFame}, prob, alg)
     
     @parameters t
     @variables x[1:size(prob.X, 1)](t) u[1:size(prob.U,1)](t)
-    x = Symbolics.scalarize(x)
-    u = Symbolics.scalarize(u)
+    x = collect(x)
+    u = collect(u)
     x_ = Num[x;u;t]
 
     # Build a dict
-    subs = Dict([SymbolicUtils.Sym{Number}(Symbol("x$(i)")) => x_[i] for i in 1:size(x_, 1)]...)
+    
+    subs = Dict([SymbolicUtils.Sym{LiteralReal}(Symbol("x$(i)")) => x_[i] for i in 1:size(x_, 1)]...)
 
 
     eqs = map(1:size(hof, 1)) do i
@@ -96,28 +94,13 @@ function pareto_optimal_equations(hof::Vector{HallOfFame}, prob, alg)
         substitute(eq_, subs)
     end
 
-    return eqs, x, u, t
+    return Num.(eqs), x, u, t
 end
 
 
 
 function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, hof; eval_expression = false)
 
-    #opt = to_options(alg)
-#
-    #@variables x[1:size(prob.X, 1)] u[1:size(prob.U,1)] t
-    #x = Symbolics.scalarize(x)
-    #u = Symbolics.scalarize(u)
-    #x_ = [x;u;t]
-
-    # Build a dict
-    #subs = Dict([SymbolicUtils.Sym{Number}(Symbol("x$(i)")) => x_[i] for i in 1:size(x_, 1)]...)
-
-
-    # Create a variable
-    #eqs = vcat(map(x->node_to_symbolic(x[end].tree, opt), doms))
-    #eqs = map(x->substitute(x, subs), eqs)
-    
     eqs, x, u, t = pareto_optimal_equations(hof, prob, alg)
     
     lhs, dt = assert_lhs(prob)
@@ -142,10 +125,9 @@ function build_solution(prob::AbstractDataDrivenProblem, alg::EQSearch, hof; eva
 
 
 
-    error = sum(abs2, X-Y, dims = 2)[:,1]
     retcode = :converged 
     
     return DataDrivenSolution(
-        false, res_, [], retcode, alg, hof, prob, error
+        res_, [], retcode, alg, hof, prob, false
     )
 end

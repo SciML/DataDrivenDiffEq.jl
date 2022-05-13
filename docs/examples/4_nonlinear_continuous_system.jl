@@ -18,7 +18,7 @@ tspan = (0.0, 5.0)
 p = [-0.8; -0.7]
 
 problem = ODEProblem(slow_manifold, u0, tspan, p)
-solution = solve(problem, Tsit5(), saveat = 0.01)
+solution = solve(problem, Tsit5(), saveat = 0.01);
 #md plot(solution) 
 
 # Since we are dealing with a continuous system in time, we define the associated [`DataDrivenProblem`](@ref) accordingly using the measured states `X`, their derivatives `DX` and the time `t`.
