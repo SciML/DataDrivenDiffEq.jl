@@ -13,7 +13,7 @@ tspan = (0.0, 5.0)
 p = [-0.8; -0.7]
 
 problem = ODEProblem(slow_manifold, u0, tspan, p)
-solution = solve(problem, Tsit5(), saveat = 0.01)
+solution = solve(problem, Tsit5(), saveat = 0.01);
 
 prob = ContinuousDataDrivenProblem(solution)
 

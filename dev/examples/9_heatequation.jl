@@ -21,7 +21,7 @@ u0 = u_analytic.(knots, t0)
 step(u,p,t) = Δ*bc*u
 prob = ODEProblem(step, u0, (t0, t1))
 alg = KenCarp4()
-de_solution = solve(prob, alg)
+de_solution = solve(prob, alg);
 
 ∂U = reduce(vcat, map(1:4) do n
     δ = CenteredDifference(n, ord_approx, h, nknots)
