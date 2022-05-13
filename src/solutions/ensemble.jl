@@ -81,7 +81,7 @@ end
 function DataDrivenEnsembleSolution(prob, results, success, b::Basis, alg::AbstractOptimizer; digits::Int = 10, by = :min, eval_expression = false, kwargs...)
     # Compute the averages
     Ξ, errors, λ = select_by(by, map(output, results[success]))
-
+    
     # Assert continuity
     lhs, dt = assert_lhs(prob)
 

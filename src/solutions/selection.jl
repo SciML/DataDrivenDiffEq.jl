@@ -71,9 +71,9 @@ select_by(by::Val, sol::AbstractVector{T}; kwargs...) where T <: AbstractSparseS
     w = Weights(1 .- (errors .- minimum(errors)) ./ (maximum(errors) - minimum(errors)))
     
     # Take the average of the threshold
-    λ̄ = mean(lambdas, w, dims = 2)[:,1]
-    Ξ = mean(xis, w, dims = 1)
-    Ξ_std =  reshape(std(xis, w, 1, mean = Ξ), size(Ξ, 2), size(Ξ, 3))
+    λ̄ = mean(lambdas, dims = 2)[:,1]
+    Ξ = mean(xis, dims = 1)
+    Ξ_std =  reshape(std(xis, dims = 1, mean = Ξ), size(Ξ, 2), size(Ξ, 3))
     Ξ = reshape(Ξ, size(Ξ, 2), size(Ξ, 3))
 
     for i in size(Ξ, 2)
