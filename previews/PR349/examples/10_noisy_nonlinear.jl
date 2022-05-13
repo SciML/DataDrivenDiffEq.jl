@@ -12,7 +12,7 @@ end
 u0 = [0.99π; -1.0]
 tspan = (0.0, 15.0)
 prob = ODEProblem(pendulum, u0, tspan)
-sol = solve(prob, Tsit5(), saveat = 0.01)
+sol = solve(prob, Tsit5(), saveat = 0.01);
 
 X = sol[:,:] + 0.2 .* randn(size(sol));
 ts = sol.t;
