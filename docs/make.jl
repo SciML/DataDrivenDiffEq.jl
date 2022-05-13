@@ -10,7 +10,7 @@ ENV["GKSwstype"] = "100"
 
 src = joinpath(@__DIR__, "src")
 lit = joinpath(@__DIR__, "examples")
-excludes = []#["symbolic_regression.jl"]
+excludes = ["11_ensemble.jl", "12_ensemble_mm.jl"]
 tutorials = []
 
 for (root, _, files) ∈ walkdir(lit), file ∈ files

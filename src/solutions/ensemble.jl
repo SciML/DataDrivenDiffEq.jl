@@ -17,7 +17,7 @@ struct DataDrivenEnsembleSolution{L, A, O} <: AbstractDataDrivenSolution
     "Algorithm"
     alg::A
     "Weights"
-    weights::AbstractWeights
+    weights::AbstractVecOrMat
     "Problem"
     prob::DataDrivenEnsemble
     "Individual results"
@@ -78,9 +78,9 @@ function metrics(r::DataDrivenEnsembleSolution, id)
     map(metrics, get_solution(r, id))
 end
 
-function DataDrivenEnsembleSolution(prob, results, success, b::Basis, alg::AbstractOptimizer; digits::Int = 10, by = :min, eval_expression = false, kwargs...)
+function DataDrivenEnsembleSolution(prob, results, b::Basis, alg::AbstractOptimizer; digits::Int = 10, by = :min, eval_expression = false, kwargs...)
     # Compute the averages
-    Ξ, errors, λ = select_by(by, map(output, results[success]))
+    Ξ, errors, λ, ips = select_by(by, map(output, results))
     
     # Assert continuity
     lhs, dt = assert_lhs(prob)
@@ -93,15 +93,15 @@ function DataDrivenEnsembleSolution(prob, results, success, b::Basis, alg::Abstr
     ps = isempty(parameters(b)) ? ps : vcat(prob.p, ps)
 
     return DataDrivenEnsembleSolution(
-        sol, ps, :solved, alg, Weights([s ? 1.0 : 0.0 for s in success]), prob, [r for r in results]
+        sol, ps, :solved, alg, ips, prob, [r for r in results]
     )
 end
 
 
-function DataDrivenEnsembleSolution(prob, results, success, b::Basis, alg::AbstractKoopmanAlgorithm; 
+function DataDrivenEnsembleSolution(prob, results,  b::Basis, alg::AbstractKoopmanAlgorithm; 
     operator_only = false, digits::Int = 10, by = :min, eval_expression = false, kwargs...)
     # Compute the averages
-    Ξ, errors = select_by(by, map(output, results[success]))
+    Ξ, errors = select_by(by, map(output, results))
     
     @unpack inds = k
     K, B, C, P, Q = k_

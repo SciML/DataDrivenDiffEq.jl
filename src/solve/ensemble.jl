@@ -8,11 +8,10 @@ function CommonSolve.solve(prob::DataDrivenEnsemble, args...; kwargs...)
             results[i] = solve(p, args...; kwargs...)
             success[i] = true
         catch e
-            @debug "Failed to solve $(p.name): "
-            results[i] = DataDrivenSolution(b, [], :failed, opt, Ξ, prob)
+            @debug "Failed to solve $(p.name)"
         end
     end
     DataDrivenEnsembleSolution(
-        prob, results, success, args...; kwargs...
+        prob, results[success], args...; kwargs...
     )    
 end

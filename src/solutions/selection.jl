@@ -56,7 +56,7 @@ select_by(by::Val, sol::AbstractVector{T}; kwargs...) where T <: AbstractKoopman
     Ξ_std =  reshape(std(xis, w, 1, mean = Ξ), size(Ξ, 2), size(Ξ, 3))
     Ξ = reshape(Ξ, size(Ξ, 2), size(Ξ, 3))
 
-    measurement.(Ξ, Ξ_std), mean(errors, w)
+    measurement.(Ξ, Ξ_std), mean(errors, w), vec(w)
 end
 
 select_by(by::Val, sol::AbstractVector{T}; kwargs...) where T <: AbstractSparseSolution= begin
@@ -72,7 +72,7 @@ select_by(by::Val, sol::AbstractVector{T}; kwargs...) where T <: AbstractSparseS
     
     # Take the average of the threshold
     λ̄ = mean(lambdas, dims = 2)[:,1]
-    Ξ = mean(xis, dims = 1)
+    Ξ = mean(xis, w, dims = 1)
     Ξ_std =  reshape(std(xis, dims = 1, mean = Ξ), size(Ξ, 2), size(Ξ, 3))
     Ξ = reshape(Ξ, size(Ξ, 2), size(Ξ, 3))
 
@@ -82,5 +82,5 @@ select_by(by::Val, sol::AbstractVector{T}; kwargs...) where T <: AbstractSparseS
         Ξ_std[idxs, i] .= zero(eltype(Ξ))
     end
 
-    measurement.(Ξ, Ξ_std), mean(errors, w), λ̄
+    measurement.(Ξ, Ξ_std), mean(errors, w), λ̄, vec(w)
 end
