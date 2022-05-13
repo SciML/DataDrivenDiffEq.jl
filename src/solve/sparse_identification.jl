@@ -11,7 +11,7 @@ struct SparseIdentificationProblem{X, PR, B, TR, TS, P, O}
 end
 
 ## Solution
-struct SparseLinearSolution{X, L, S, E, F, O,P} 
+struct SparseLinearSolution{X, L, S, E, F, O,P} <: AbstractSparseSolution
     Ξ::X
     λ::L
     sets::S
@@ -21,29 +21,6 @@ struct SparseLinearSolution{X, L, S, E, F, O,P}
     options::P
 end
 
-# Selection
-
-select_by(::Val, sol::SparseLinearSolution) = begin
-    @unpack Ξ, error, λ = sol
-    i = argmin(error)
-    return Ξ[i,:,:], error[i], λ[i,:]
-end
-
-select_by(::Val{:kfold}, sol::SparseLinearSolution) = begin
-    @unpack Ξ, folds, error, λ = sol
-    size(Ξ, 1) <= 1 && return select_by(1, sol)
-    i = argmin(mean(folds, dims = 1)[1,:])
-    return Ξ[i,:,:], error[i], λ[i,:]
-end
-
-select_by(::Val{:stat}, sol::SparseLinearSolution) = begin
-    @unpack Ξ, folds, error, λ = sol
-    size(Ξ, 1) <= 1 && return select_by(1, sol)
-    best = argmin(error)
-    ξ = mean(Ξ, dims = 1)[1,:,:]
-    s = std(Ξ, dims = 1)[1,:,:]
-    return measurement.(ξ, s), error[best], λ[best,:]
-end
 
 ## Solve!
 

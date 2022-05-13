@@ -11,7 +11,7 @@ struct KoopmanProblem{X,Y,U,C,PR,B,TR,TS,P,O}
     options::O
     eval_expression::Bool
 end
-struct KoopmanSolution{O,IN,S, E, F, A, P}
+struct KoopmanSolution{O,IN,S, E, F, A, P} <: AbstractKoopmanSolution
     k::O
     inds::IN
     sets::S
@@ -19,20 +19,6 @@ struct KoopmanSolution{O,IN,S, E, F, A, P}
     folds::F
     alg::A
     options::P
-end
-
-
-select_by(::Val, sol::KoopmanSolution) = begin
-    @unpack k, error = sol
-    i = argmin(error)
-    return k[i], error[i]
-end
-
-select_by(::Val{:kfold}, sol::KoopmanSolution) = begin
-    @unpack k, folds, error  = sol
-    size(k, 1) <= 1 && return select_by(1, sol)
-    i = argmin(mean(folds, dims = 1)[1,:])
-    return k[i], error[i]
 end
 
 

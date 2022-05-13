@@ -12,6 +12,7 @@ using ModelingToolkit
 using Distributions
 using QuadGK
 using Statistics
+using StatsBase
 using DataInterpolations
 using Parameters
 using Random
@@ -49,11 +50,16 @@ abstract type AbstractSymbolicRegression end
 abstract type AbstractDataDrivenProblem{dType, cType, probType} end
 abstract type AbstractDataDrivenSolution end
 
+# Abstract intermediate types for the solution
+abstract type AbstractKoopmanSolution end
+abstract type AbstractSparseSolution end
+
+
 # Optimizer
 abstract type AbstractProximalOperator end;
 abstract type AbstractOptimizer{T} end;
 abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end;
-    
+
 
 
 ## Basis
@@ -68,6 +74,8 @@ export free_parameters, implicit_variables
 include("./utils/basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis
 export sin_basis, cos_basis, fourier_basis
+
+## Utilities
 
 include("./utils/collocation.jl")
 export InterpolationMethod
@@ -103,7 +111,8 @@ include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD, FBDMD
 
 
-## Problem and Solution
+## Problem 
+
 # Use to distinguish the problem types
 @enum DDProbType begin
     Direct=1 # Direct problem without further information
@@ -132,24 +141,30 @@ export DirectDataset, DiscreteDataset, ContinuousDataset
 include("./problem/sample.jl")
 export DataSampler, Split, Batcher
 
-# Result selection
-select_by(x, y::AbstractMatrix) = y 
-select_by(x, sol) = select_by(Val(x), sol)
+include("./problem/ensembles.jl")
+export DataDrivenEnsemble
+export DirectDataEnsemble, DiscreteDataEnsemble, ContinuousDataEnsemble
+
+## Solutions
+include("./solutions/selection.jl")
+include("./solutions/utils.jl")
+include("./solutions/type.jl")
+include("./solutions/ensemble.jl")
 
 
-include("./solution.jl")
 export DataDrivenSolution
+export DataDrivenEnsembleSolution
 export result, parameters, parameter_map, algorithm
 export output, metrics, l2error, aic, determination, get_problem
 
-
 include("./solve/common.jl")
 export DataDrivenCommonOptions
-include("./solve/sparse_identification.jl")
-#include("./solve/sindy.jl")
-include("./solve/koopman.jl")
-#export solve
 
+include("./solve/sparse_identification.jl")
+include("./solve/koopman.jl")
+include("./solve/ensemble.jl")
+
+## Plot Recipes
 include("./recipes/problem_result.jl")
 
 # Optional
