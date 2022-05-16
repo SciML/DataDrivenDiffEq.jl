@@ -20,7 +20,6 @@ using Measurements
 using Requires
 using ProgressMeter
 using Reexport
-using Compat
 using DocStringExtensions
 using RecipesBase
 

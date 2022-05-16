@@ -5,7 +5,6 @@ version = "0.8.1"
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
-Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -29,7 +28,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 CommonSolve = "0.2"
-Compat = "3.0"
 DataInterpolations = "3"
 DiffEqBase = "6"
 Distributions = "^0.25.9, 0.25"
