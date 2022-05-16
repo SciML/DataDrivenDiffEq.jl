@@ -29,7 +29,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 CommonSolve = "0.2"
-Compat = "3.0"
+Compat = "3.0, 4"
 DataInterpolations = "3"
 DiffEqBase = "6"
 Distributions = "^0.25.9, 0.25"
