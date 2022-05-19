@@ -17,7 +17,6 @@ using Parameters
 using Random
 using Measurements
 
-using Requires
 using ProgressMeter
 using Reexport
 using DocStringExtensions
@@ -150,30 +149,5 @@ include("./solve/koopman.jl")
 #export solve
 
 include("./recipes/problem_result.jl")
-
-# Optional
-function __init__()
-    # Load and export OccamNet
-    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
-
-        using .Flux
-        include("./symbolic_regression/occamnet.jl")
-
-        export OccamNet,ProbabilityLayer
-        export set_temp!
-        export probability, logprobability
-        export probabilities, logprobabilities
-        export OccamSR
-
-        @info "DataDrivenDiffEq : OccamNet is available."
-    end
-
-    @require SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb" begin
-        using .SymbolicRegression
-        include("./symbolic_regression/symbolic_regression.jl")
-        export EQSearch
-    end
-
-end
 
 end # module

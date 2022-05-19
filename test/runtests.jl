@@ -13,6 +13,11 @@ using Test
 
 const GROUP = get(ENV, "GROUP", "All")
 
+function dev_subpkg(subpkg)
+    subpkg_path = joinpath(dirname(@__DIR__), "lib", subpkg)
+    Pkg.develop(PackageSpec(path=subpkg_path))
+end
+
 @time begin
     if GROUP == "All" || GROUP == "DataDrivenDiffEq" || GROUP == "Standard"
         @testset "Basis" begin include("./basis/basis.jl") end
@@ -34,18 +39,6 @@ const GROUP = get(ENV, "GROUP", "All")
             @testset "Linear Forced" begin include("./dmd/linear_forced.jl") end
             @testset "Nonlinear Autonomous" begin include("./dmd/nonlinear_autonomous.jl") end
             @testset "Nonlinear Forced" begin include("./dmd/nonlinear_forced.jl") end
-        end
-    end
-    if GROUP == "All" || GROUP == "Optional"
-
-        @info "Loading Flux"
-        using Flux
-        @info "Loading Symbolic Regression"
-        using SymbolicRegression
-
-        @testset "Symbolic Regression" begin
-            @testset "OccamNet" begin include("./symbolic_regression/occamnet.jl") end
-            @testset "SymbolicRegression" begin include("./symbolic_regression/symbolic_regression.jl") end
         end
     end
 
@@ -81,6 +74,12 @@ const GROUP = get(ENV, "GROUP", "All")
             end
 
         end
+    end
+
+    if GROUP == "DataDrivenDiffEqOccamNet" || GROUP == "DataDrivenDiffEqSymbolicRegression"
+        dev_subpkg(GROUP)
+        subpkg_path = joinpath(dirname(@__DIR__), "lib", GROUP)
+        Pkg.test(PackageSpec(name=GROUP, path=subpkg_path))
     end
 
     # These are excluded right now, until the deps are figured out

@@ -1,0 +1,17 @@
+name = "DataDrivenDiffEqOccamNet"
+uuid = "c9c2540b-0981-4052-845a-fb3fd6c174bd"
+authors = ["Julius Martensen <julius.martensen@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+
+[compat]
+julia = "1.6"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

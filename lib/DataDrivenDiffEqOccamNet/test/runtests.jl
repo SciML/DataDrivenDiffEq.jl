@@ -1,3 +1,5 @@
+using DataDrivenDiffEq, DataDrivenDiffEqOccamNet
+
 @testset "OccamNet Flux API" begin
     Random.seed!(1223)
     # Generate a multivariate function for OccamNet
