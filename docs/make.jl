@@ -4,6 +4,8 @@ using Documenter, DataDrivenDiffEq
 using Flux, SymbolicRegression
 using Literate
 
+include("pages.jl")
+
 ENV["GKSwstype"] = "100"
 
 # Evaluate the example directory
@@ -41,22 +43,7 @@ makedocs(
     format = Documenter.HTML(analytics = "UA-90474609-3",
                              assets = ["assets/favicon.ico"],
                              canonical="https://datadriven.sciml.ai/stable/"),
-    pages=[
-        "Home" => "index.md",
-        "Tutorials" => tutorials,
-        "Problems" => "problems.md",
-        "Solvers" => Any[
-          "solvers/common.md",
-          "solvers/koopman.md",
-          "solvers/optimization.md",
-          "solvers/symbolic_regression.md"
-          ],
-        "Basis" => "basis.md",
-        "Solutions" => "solutions.md",
-        "Utilities" => "utils.md",
-        "Contributing" => "contributions.md",
-        "Citing" => "citations.md"
-        ]
+    pages=pages
 )
 
 deploydocs(
