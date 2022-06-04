@@ -1,6 +1,6 @@
 # # [Sparse Identification with noisy data](@id noisy_sindy)
 #
-# Many data real world data sources are corrupted with measurment noise, which can have 
+# Many real world data sources are corrupted with measurment noise, which can have 
 # a big impact on the recovery of the underlying equations of motion. This example show how we can 
 # use [`collocation`](@ref collocation) and [`batching`](@ref DataSampler) to perform SINDy in the presence of 
 # noise. 
