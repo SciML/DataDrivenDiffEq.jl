@@ -4,7 +4,6 @@ using Documenter, DataDrivenDiffEq
 using Flux, SymbolicRegression
 using Literate
 
-include("pages.jl")
 
 ENV["GKSwstype"] = "100"
 
@@ -33,6 +32,9 @@ for (root, _, files) ∈ walkdir(lit), file ∈ files
     push!(tutorials, relpath(joinpath(opath, fname*".md"), src))
   end
 end
+
+# Must be after tutorials is created
+include("pages.jl")
 
 # Create the docs
 makedocs(
