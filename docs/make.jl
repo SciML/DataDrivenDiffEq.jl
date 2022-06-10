@@ -4,17 +4,17 @@ using Documenter, DataDrivenDiffEq
 using Flux, SymbolicRegression
 using Literate
 
-include("pages.jl")
 
 ENV["GKSwstype"] = "100"
 
 # Evaluate the example directory
-
 src = joinpath(@__DIR__, "src")
 lit = joinpath(@__DIR__, "examples")
-excludes = []#["symbolic_regression.jl"]
+
+excludes = []
 tutorials = []
 
+#function create_pages(dirname = @__DIR__)
 for (root, _, files) ∈ walkdir(lit), file ∈ files
   file ∈ excludes && continue
   fname, fext = splitext(file)
@@ -33,6 +33,9 @@ for (root, _, files) ∈ walkdir(lit), file ∈ files
     push!(tutorials, relpath(joinpath(opath, fname*".md"), src))
   end
 end
+
+# Must be after tutorials is created
+include("pages.jl")
 
 # Create the docs
 makedocs(
