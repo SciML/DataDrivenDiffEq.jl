@@ -8,12 +8,13 @@ using Literate
 ENV["GKSwstype"] = "100"
 
 # Evaluate the example directory
-
 src = joinpath(@__DIR__, "src")
 lit = joinpath(@__DIR__, "examples")
-excludes = []#["symbolic_regression.jl"]
+
+excludes = []
 tutorials = []
 
+#function create_pages(dirname = @__DIR__)
 for (root, _, files) ∈ walkdir(lit), file ∈ files
   file ∈ excludes && continue
   fname, fext = splitext(file)

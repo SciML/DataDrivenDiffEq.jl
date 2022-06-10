@@ -108,7 +108,7 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
 end
 
 
-function Basis(eqs::AbstractVector{Equation}, states::AbstractVector;
+function Basis(eqs::AbstractVector{Symbolics.Equation}, states::AbstractVector;
     parameters::AbstractVector = [], iv = nothing,
     controls::AbstractVector = [], implicits = [],
     observed::AbstractVector = [],
@@ -116,7 +116,7 @@ function Basis(eqs::AbstractVector{Equation}, states::AbstractVector;
     simplify = false, linear_independent = false,
     eval_expression = false,
     kwargs...)
-
+    
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     eqs = scalarize(eqs)
