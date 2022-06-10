@@ -71,6 +71,20 @@ mutable struct Basis <: AbstractBasis
     name::Symbol
     """Internal systems"""
     systems::Vector{Basis}
+    
+    function Basis(eqs, states, ctrls, ps, observed, iv, implicit, f, name, systems;
+        checks::Bool = true)
+
+        if checks
+            # Currently do nothing here
+            #check_variables(dvs, iv)
+            #check_parameters(ps, iv)
+            #check_equations(deqs, iv)
+            #check_equations(equations(events), iv)
+            #all_dimensionless([dvs; ps; iv]) || check_units(deqs)
+        end
+        new(eqs, states, ctrls, ps, observed, iv, implicit, f, name, systems)
+    end
 end
 
 ## Constructors
@@ -116,7 +130,7 @@ function Basis(eqs::AbstractVector{Symbolics.Equation}, states::AbstractVector;
     simplify = false, linear_independent = false,
     eval_expression = false,
     kwargs...)
-    
+
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     eqs = scalarize(eqs)
