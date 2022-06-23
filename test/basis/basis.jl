@@ -12,8 +12,7 @@ p0 = randn(2)
 t0 = 0.0
 u0 = randn(2)
 
-true_res(x, p, t, u) =
-    [sum(x[1:2] .* p); x[2] .* u[1]; u[2] .* x[3] .+ exp.(-t)]
+true_res(x, p, t, u) = [sum(x[1:2] .* p); x[2] .* u[1]; u[2] .* x[3] .+ exp.(-t)]
 true_res_(x, p, t) =
     scalarize.(hcat([true_res(x[:, i], p, t[i], zeros(2)) for i = 1:100]...))
 true_res_(x, p, t, u) =
@@ -40,11 +39,10 @@ u0 = randn(2, 100)
 @parameters w[1:2] t
 @variables u[1:3](t)
 
-h = [u[1]; u[2]; cos(w[1] * u[2] + w[2] * u[3]); 5*u[3] + u[2]]
+h = [u[1]; u[2]; cos(w[1] * u[2] + w[2] * u[3]); 5 * u[3] + u[2]]
 h_not_unique = [u[1]; u[1]; u[1]^1; h; 1]
 basis = Basis(h_not_unique, u, parameters = w, iv = t)
-basis_2 =
-    Basis(h_not_unique, u, parameters = w, iv = t, linear_independent = true)
+basis_2 = Basis(h_not_unique, u, parameters = w, iv = t, linear_independent = true)
 # Check getters
 @test isequal(states(basis), u)
 @test isequal(parameters(basis), w)
@@ -56,16 +54,13 @@ basis_2 =
 @test free_parameters(basis_2) == 6
 @test free_parameters(basis, operations = [+, cos]) == 8
 @test free_parameters(basis_2, operations = [+, cos]) == 7
-@test DataDrivenDiffEq.count_operation(
-    (1 + cos(u[2]) * sin(u[1]))^3,
-    [+, cos, ^, *],
-) == 4
+@test DataDrivenDiffEq.count_operation((1 + cos(u[2]) * sin(u[1]))^3, [+, cos, ^, *]) == 4
 
 # Check array functionalities
 basis_2 = unique(basis)
 @test isequal(basis, basis_2)
 @test size(basis) == (5,)
-@test basis([1.0; 2.0; π], [0.0; 1.0]) ≈ [1.0; 2.0; -1.0; 5*π + 2.0; 1.0]
+@test basis([1.0; 2.0; π], [0.0; 1.0]) ≈ [1.0; 2.0; -1.0; 5 * π + 2.0; 1.0]
 @test size(basis) == size(basis_2)
 push!(basis_2, sin(u[2]))
 @test size(basis_2)[1] == length(h) + 2
@@ -75,7 +70,7 @@ basis_3 = merge(basis, basis_2)
 @test isequal(parameters(basis_3), parameters(basis_2))
 merge!(basis_3, basis)
 @test basis_3 == basis_2
-push!(basis, 5*u[3] + u[2])
+push!(basis, 5 * u[3] + u[2])
 unique!(basis) # Does not remove
 @test size(basis) == (5,)
 

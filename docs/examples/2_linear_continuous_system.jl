@@ -13,7 +13,7 @@ A = [-0.9 0.2; 0.0 -0.2]
 u0 = [10.0; -10.0]
 tspan = (0.0, 10.0)
 
-f(u,p,t) = A*u
+f(u, p, t) = A * u
 
 sys = ODEProblem(f, u0, tspan)
 sol = solve(sys, Tsit5(), saveat = 0.05);
@@ -21,8 +21,8 @@ sol = solve(sys, Tsit5(), saveat = 0.05);
 # We could use the `DESolution` to define our problem, but here we want to use the data for didactic purposes.
 # For a [`ContinuousDataDrivenProblem`](@ref DataDrivenProblem), we need either the state trajectory and the timepoints or the state trajectory and its derivate.
 
-X = Array(sol) 
-t = sol.t 
+X = Array(sol)
+t = sol.t
 prob = ContinuousDataDrivenProblem(X, t)
 
 # And plot the problems data.
@@ -94,11 +94,11 @@ sparse_system = result(sparse_res)
 # Both results can be converted into an `ODESystem`
 
 @named sys = ODESystem(
-    equations(sparse_system), 
+    equations(sparse_system),
     get_iv(sparse_system),
-    states(sparse_system), 
-    parameters(sparse_system)
-    );
+    states(sparse_system),
+    parameters(sparse_system),
+);
 
 # And simulated using `OrdinaryDiffEq.jl` using the (known) initial conditions and the parameter mapping of the estimation.
 

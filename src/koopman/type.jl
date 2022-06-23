@@ -63,26 +63,36 @@ mutable struct Koopman{O,M,G,T} <: AbstractKoopman
     P::T
 end
 
-function Koopman(eqs::AbstractVector{Equation}, states::AbstractVector;
+function Koopman(
+    eqs::AbstractVector{Equation},
+    states::AbstractVector;
     K::O = diagm(ones(eltype(states), length(eqs))),
     C::AbstractMatrix = diagm(ones(eltype(K), length(eqs))),
-    Q::AbstractMatrix = zeros(eltype(states), 0,0),
-    P::AbstractMatrix = zeros(eltype(states), 0,0),
-    lift::Function = (X, args...)->identity(X),
-    parameters::AbstractVector = [], iv = nothing,
-    controls::AbstractVector = [], observed::AbstractVector = [],
-    name = gensym(:Koopman), is_discrete::Bool = true,
+    Q::AbstractMatrix = zeros(eltype(states), 0, 0),
+    P::AbstractMatrix = zeros(eltype(states), 0, 0),
+    lift::Function = (X, args...) -> identity(X),
+    parameters::AbstractVector = [],
+    iv = nothing,
+    controls::AbstractVector = [],
+    observed::AbstractVector = [],
+    name = gensym(:Koopman),
+    is_discrete::Bool = true,
     digits::Int = 10, # Round all coefficients
-    simplify = false, linear_independent = false,
+    simplify = false,
+    linear_independent = false,
     eval_expression = false,
-    kwargs...) where O <: Union{AbstractMatrix, Eigen, Factorization}
+    kwargs...,
+) where {O<:Union{AbstractMatrix,Eigen,Factorization}}
 
     iv === nothing && (iv = Variable(:t))
     iv = value(iv)
     eqs = scalarize(eqs)
-    states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
+    states, controls, parameters, observed = value.(scalarize(states)),
+    value.(scalarize(controls)),
+    value.(scalarize(parameters)),
+    value.(scalarize(observed))
 
-    eqs = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
+    eqs = [eq for eq in eqs if ~isequal(Num(eq), zero(Num))]
 
     lhs = Num[x.lhs for x in eqs]
     eqs_ = Num[x.rhs for x in eqs]
@@ -95,35 +105,66 @@ function Koopman(eqs::AbstractVector{Equation}, states::AbstractVector;
 
     unique!(eqs_, !simplify)
 
-    f = DataDrivenDiffEq._build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
+    f = DataDrivenDiffEq._build_ddd_function(
+        eqs_,
+        states,
+        parameters,
+        iv,
+        controls,
+        eval_expression,
+    )
 
-    eqs = [lhs[i] ~ eq for (i,eq) ∈ enumerate(eqs_)]
+    eqs = [lhs[i] ~ eq for (i, eq) ∈ enumerate(eqs_)]
 
-    return Koopman{typeof(K), typeof(C), typeof(Q), typeof(P)}(eqs,
-    states, controls, parameters, observed , iv, f, lift, name, Basis[],
-    is_discrete, K, C, Q, P)
+    return Koopman{typeof(K),typeof(C),typeof(Q),typeof(P)}(
+        eqs,
+        states,
+        controls,
+        parameters,
+        observed,
+        iv,
+        f,
+        lift,
+        name,
+        Basis[],
+        is_discrete,
+        K,
+        C,
+        Q,
+        P,
+    )
 end
 
-function Koopman(eqs::AbstractVector{Num}, states::AbstractVector;
+function Koopman(
+    eqs::AbstractVector{Num},
+    states::AbstractVector;
     K::O = diagm(ones(eltype(states), length(eqs))),
     C::AbstractMatrix = diagm(ones(eltype(K), length(eqs))),
-    Q::AbstractMatrix = zeros(eltype(states), 0,0),
-    P::AbstractMatrix = zeros(eltype(states), 0,0),
-    lift::Function = (X, args...)->identity(X),
-    parameters::AbstractVector = [], iv = nothing,
-    controls::AbstractVector = [], observed::AbstractVector = [],
-    name = gensym(:Koopman), is_discrete::Bool = true,
+    Q::AbstractMatrix = zeros(eltype(states), 0, 0),
+    P::AbstractMatrix = zeros(eltype(states), 0, 0),
+    lift::Function = (X, args...) -> identity(X),
+    parameters::AbstractVector = [],
+    iv = nothing,
+    controls::AbstractVector = [],
+    observed::AbstractVector = [],
+    name = gensym(:Koopman),
+    is_discrete::Bool = true,
     digits::Int = 10, # Round all coefficients
-    simplify = false, linear_independent = false,
+    simplify = false,
+    linear_independent = false,
     eval_expression = false,
-    kwargs...) where O <: Union{AbstractMatrix, Eigen, Factorization}
+    kwargs...,
+) where {O<:Union{AbstractMatrix,Eigen,Factorization}}
 
     iv === nothing && (iv = Variable(:t))
     iv = value(iv)
     eqs = scalarize(eqs)
-    states, controls, parameters, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(observed))
+    states, controls, parameters, observed = value.(scalarize(states)),
+    value.(scalarize(controls)),
+    value.(scalarize(parameters)),
+    value.(scalarize(observed))
 
-    eqs_ = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
+    eqs_ = [eq for eq in eqs if ~isequal(Num(eq), zero(Num))]
 
     if linear_independent
         eqs_ = create_linear_independent_eqs(eqs_, simplify)
@@ -133,14 +174,35 @@ function Koopman(eqs::AbstractVector{Num}, states::AbstractVector;
 
     unique!(eqs_, !simplify)
 
-    f = DataDrivenDiffEq._build_ddd_function(eqs_, states, parameters, iv, controls, eval_expression)
+    f = DataDrivenDiffEq._build_ddd_function(
+        eqs_,
+        states,
+        parameters,
+        iv,
+        controls,
+        eval_expression,
+    )
     D = Differential(iv)
 
-    eqs = [D(states[i]) ~ eq for (i,eq) ∈ enumerate(eqs_)]
+    eqs = [D(states[i]) ~ eq for (i, eq) ∈ enumerate(eqs_)]
 
-    return Koopman{typeof(K), typeof(C), typeof(Q), typeof(P)}(eqs,
-    states, controls, parameters, observed, iv, f, lift, name, Basis[],
-    is_discrete, K, C, Q, P)
+    return Koopman{typeof(K),typeof(C),typeof(Q),typeof(P)}(
+        eqs,
+        states,
+        controls,
+        parameters,
+        observed,
+        iv,
+        f,
+        lift,
+        name,
+        Basis[],
+        is_discrete,
+        K,
+        C,
+        Q,
+        P,
+    )
 end
 
 
@@ -176,9 +238,9 @@ $(SIGNATURES)
 
 Return the eigendecomposition of the `AbstractKoopmanOperator`.
 """
-LinearAlgebra.eigen(k::AbstractKoopman) = begin 
+LinearAlgebra.eigen(k::AbstractKoopman) = begin
     K = _get_K(k)
-    isa(K, Eigen) && return K 
+    isa(K, Eigen) && return K
     eigen(K)
 end
 
@@ -201,28 +263,32 @@ $(SIGNATURES)
 
 Return the eigenvectors of a continuous `AbstractKoopmanOperator`.
 """
-modes(k::AbstractKoopman) = is_continuous(k) ? eigvecs(k) : throw(AssertionError("Koopman is discrete."))
+modes(k::AbstractKoopman) =
+    is_continuous(k) ? eigvecs(k) : throw(AssertionError("Koopman is discrete."))
 
 """
 $(SIGNATURES)
 
 Return the eigenvalues of a continuous `AbstractKoopmanOperator`.
 """
-frequencies(k::AbstractKoopman) = is_continuous(k) ? eigvals(k) : throw(AssertionError("Koopman is discrete."))
+frequencies(k::AbstractKoopman) =
+    is_continuous(k) ? eigvals(k) : throw(AssertionError("Koopman is discrete."))
 
 """
 $(SIGNATURES)
 
 Return the approximation of the discrete Koopman operator stored in `k`.
 """
-operator(k::AbstractKoopman) = is_discrete(k) ? _get_K(k) : throw(AssertionError("Koopman is continouos."))
+operator(k::AbstractKoopman) =
+    is_discrete(k) ? _get_K(k) : throw(AssertionError("Koopman is continouos."))
 
 """
 $(SIGNATURES)
 
 Return the approximation of the continuous Koopman generator stored in `k`.
 """
-generator(k::AbstractKoopman) = is_continuous(k) ? _get_K(k) : throw(AssertionError("Koopman is discrete."))
+generator(k::AbstractKoopman) =
+    is_continuous(k) ? _get_K(k) : throw(AssertionError("Koopman is discrete."))
 
 """
 $(SIGNATURES)
@@ -246,9 +312,9 @@ Returns `true` if either:
 + the Koopman operator has just eigenvalues with magnitude less than one or
 + the Koopman generator has just eigenvalues with a negative real part
 """
-is_stable(k::AbstractKoopman) = begin 
+is_stable(k::AbstractKoopman) = begin
     K = _get_K(k)
-    is_discrete(k) && all(real.(eigvals(k)) .< real.(one(eltype(K)))) 
+    is_discrete(k) && all(real.(eigvals(k)) .< real.(one(eltype(K))))
     all(real.(eigvals(k)) .< real.(zero(eltype(K))))
 end
 
@@ -262,27 +328,31 @@ the L2 error of the prediction exceeds the `threshold`.
 
 `p` and `t` are the parameters of the basis and the vector of timepoints, if necessary.
 """
-function update!(k::AbstractKoopman,
-    X::AbstractArray, Y::AbstractArray;
-    p::AbstractArray = [], t::AbstractVector = [],
+function update!(
+    k::AbstractKoopman,
+    X::AbstractArray,
+    Y::AbstractArray;
+    p::AbstractArray = [],
+    t::AbstractVector = [],
     U::AbstractArray = [],
-    threshold::T = eps()) where {T <: Real}
+    threshold::T = eps(),
+) where {T<:Real}
     @assert updatable(k) "Linear Koopman is not updatable."
 
     Ψ₀ = k(X, p, t, U)
     Ψ₁ = k(Y, p, t, U)
 
-    ϵ = norm(Ψ₁-Matrix(k)*Ψ₀, 2)
+    ϵ = norm(Ψ₁ - Matrix(k) * Ψ₀, 2)
 
     if ϵ < threshold
         return
     end
 
-    k.Q += Ψ₁*Ψ₀'
-    k.P += Ψ₀*Ψ₀'
+    k.Q += Ψ₁ * Ψ₀'
+    k.P += Ψ₀ * Ψ₀'
     k.operator .= k.Q / k.P
 
-    if norm(Y - outputmap(k)*Matrix(k)*Ψ₀) < threshold
+    if norm(Y - outputmap(k) * Matrix(k) * Ψ₀) < threshold
         return
     end
 

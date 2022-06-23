@@ -28,7 +28,7 @@ mutable struct STLSQ{T} <: AbstractOptimizer{T}
     """Sparsity threshold"""
     λ::T
 
-    function STLSQ(threshold::T = 1e-1) where T
+    function STLSQ(threshold::T = 1e-1) where {T}
         @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
 
         return new{typeof(threshold)}(threshold)
@@ -38,12 +38,19 @@ end
 
 Base.summary(::STLSQ) = "STLSQ"
 
-function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
-    maxiter = maximum(size(A)), abstol::U = eps(eltype(T)),
-    progress = nothing, kwargs...) where {T,U}
+function (opt::STLSQ{T})(
+    X,
+    A,
+    Y,
+    λ::U = first(opt.λ);
+    maxiter = maximum(size(A)),
+    abstol::U = eps(eltype(T)),
+    progress = nothing,
+    kwargs...,
+) where {T,U}
 
     smallinds = abs.(X) .<= λ
-    biginds = @. ! smallinds[:, 1]
+    biginds = @. !smallinds[:, 1]
 
     x_i = similar(X)
     x_i .= X
@@ -66,23 +73,25 @@ function (opt::STLSQ{T})(X, A, Y, λ::U = first(opt.λ);
         smallinds .= abs.(X) .<= λ
         X[smallinds] .= xzero
 
-        for j in 1:size(Y, 2)
-            @. biginds = ! smallinds[:, j]
-            X[biginds, j] .= A[:, biginds] \ Y[:,j]
+        for j = 1:size(Y, 2)
+            @. biginds = !smallinds[:, j]
+            X[biginds, j] .= A[:, biginds] \ Y[:, j]
         end
 
         conv_measure = norm(x_i .- X, 2)
 
         if _progress
-            obj = norm(Y - A*X, 2)
+            obj = norm(Y - A * X, 2)
             sparsity = norm(X, 0, λ)
 
             ProgressMeter.next!(
-            progress;
-            showvalues = [
-                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
-                (:Convergence, conv_measure)
-            ]
+                progress;
+                showvalues = [
+                    (:Threshold, λ),
+                    (:Objective, obj),
+                    (:Sparsity, sparsity),
+                    (:Convergence, conv_measure),
+                ],
             )
         end
 

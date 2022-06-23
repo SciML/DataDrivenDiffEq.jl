@@ -14,7 +14,7 @@ A = [0.9 -0.2; 0.0 0.2]
 u0 = [10.0; -10.0]
 tspan = (0.0, 11.0)
 
-f(u,p,t) = A*u
+f(u, p, t) = A * u
 
 sys = DiscreteProblem(f, u0, tspan)
 sol = solve(sys, FunctionMap());
@@ -89,7 +89,12 @@ sparse_system = result(sparse_res)
 
 # Both results can be converted into a `DiscreteProblem`
 
-@named sys = DiscreteSystem(equations(sparse_system), get_iv(sparse_system),states(sparse_system), parameters(sparse_system))
+@named sys = DiscreteSystem(
+    equations(sparse_system),
+    get_iv(sparse_system),
+    states(sparse_system),
+    parameters(sparse_system),
+)
 #md println(sys) #hide
 
 # And simulated using `OrdinaryDiffEq.jl` using the (known) initial conditions and the parameter mapping of the estimation.

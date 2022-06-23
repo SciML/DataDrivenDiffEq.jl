@@ -14,24 +14,32 @@ opt = ADMM()
 opt = ADMM(1e-1, 2.0)
 ```
 """
-mutable struct ADMM{T, R} <: AbstractOptimizer{T}
+mutable struct ADMM{T,R} <: AbstractOptimizer{T}
     """Sparsity threshold"""
     λ::T
     """Augmented Lagrangian parameter"""
     ρ::R
 
 
-    function ADMM(threshold::T = 1e-1, ρ::R = 1.0) where {T, R}
+    function ADMM(threshold::T = 1e-1, ρ::R = 1.0) where {T,R}
         @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
         @assert zero(R) < ρ "Augemented lagrangian parameter should be positive definite"
-        return new{T, R}(threshold, ρ)
+        return new{T,R}(threshold, ρ)
     end
 end
 
 Base.summary(::ADMM) = "ADMM"
 
-function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
-    maxiter::Int64 = maximum(size(A)), abstol::U = eps(eltype(T)), progress = nothing, kwargs...)  where {T, H, U}
+function (opt::ADMM{T,H})(
+    X,
+    A,
+    Y,
+    λ::U = first(opt.λ);
+    maxiter::Int64 = maximum(size(A)),
+    abstol::U = eps(eltype(T)),
+    progress = nothing,
+    kwargs...,
+) where {T,H,U}
 
     n, m = size(A)
 
@@ -43,9 +51,9 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
 
     x_i .= X
 
-    P = A'A .+ Diagonal(ρ .* ones(eltype(X),m))
+    P = A'A .+ Diagonal(ρ .* ones(eltype(X), m))
     P = cholesky!(P)
-    c = A'*Y
+    c = A' * Y
 
     R = SoftThreshold()
 
@@ -73,15 +81,17 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
         conv_measure = norm(x_i .- X, 2)
 
         if _progress
-            obj = norm(Y .- A*X, 2)
+            obj = norm(Y .- A * X, 2)
             sparsity = norm(X, 0, λ)
 
             ProgressMeter.next!(
-            progress;
-            showvalues = [
-                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
-                (:Convergence, conv_measure)
-            ]
+                progress;
+                showvalues = [
+                    (:Threshold, λ),
+                    (:Objective, obj),
+                    (:Sparsity, sparsity),
+                    (:Convergence, conv_measure),
+                ],
             )
         end
 
@@ -91,10 +101,7 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
 
             if _progress
 
-                ProgressMeter.update!(
-                progress,
-                initial_prog + maxiter
-                )
+                ProgressMeter.update!(progress, initial_prog + maxiter)
             end
 
         else

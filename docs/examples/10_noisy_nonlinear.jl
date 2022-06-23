@@ -14,8 +14,8 @@ using OrdinaryDiffEq
 
 function pendulum(u, p, t)
     x = u[2]
-    y = -9.81sin(u[1]) - 0.3u[2]^3 -3.0*cos(u[1]) - 10.0*exp(-((t-5.0)/5.0)^2)
-    return [x;y]
+    y = -9.81sin(u[1]) - 0.3u[2]^3 - 3.0 * cos(u[1]) - 10.0 * exp(-((t - 5.0) / 5.0)^2)
+    return [x; y]
 end
 
 u0 = [0.99π; -1.0]
@@ -25,7 +25,7 @@ sol = solve(prob, Tsit5(), saveat = 0.01);
 
 # We add random noise to our measurements. 
 
-X = sol[:,:] + 0.2 .* randn(size(sol));
+X = sol[:, :] + 0.2 .* randn(size(sol));
 ts = sol.t;
 
 #md plot(ts, X', color = :red)
@@ -35,8 +35,13 @@ ts = sol.t;
 # Using a [Collocation](@ref) method, it automatically provides the derivative and smoothes the trajectory. Control signals can be passed
 # in as a function `(u,p,t)->control` or an array of measurements.
 
-prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel() ,
-    U = (u,p,t)->[exp(-((t-5.0)/5.0)^2)], p = ones(2))
+prob = ContinuousDataDrivenProblem(
+    X,
+    ts,
+    GaussianKernel(),
+    U = (u, p, t) -> [exp(-((t - 5.0) / 5.0)^2)],
+    p = ones(2),
+)
 
 #md plot(prob, size = (600,600))
 
@@ -50,7 +55,7 @@ u = collect(u)
 c = collect(c)
 w = collect(w)
 
-h = Num[sin.(w[1].*u[1]);cos.(w[2].*u[1]); polynomial_basis(u, 5); c]
+h = Num[sin.(w[1] .* u[1]); cos.(w[2] .* u[1]); polynomial_basis(u, 5); c]
 
 basis = Basis(h, u, parameters = w, controls = c)
 
@@ -60,7 +65,16 @@ basis = Basis(h, u, parameters = w, controls = c)
 sampler = DataSampler(Batcher(n = 5, shuffle = true, repeated = true))
 λs = exp10.(-10:0.1:-1)
 opt = STLSQ(λs)
-res = solve(prob, basis, opt, progress = false, sampler = sampler, denoise = false, normalize = false, maxiter = 5000)
+res = solve(
+    prob,
+    basis,
+    opt,
+    progress = false,
+    sampler = sampler,
+    denoise = false,
+    normalize = false,
+    maxiter = 5000,
+)
 println(res) #hide
 
 # !!! info

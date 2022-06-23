@@ -1,13 +1,13 @@
 @testset "Linear Forced System" begin
     function linear(du, u, p, t)
-        du[1] = -0.9*u[1] + 0.1*u[2]
-        du[2] = -0.8*u[2] + 3.0sin(t)
+        du[1] = -0.9 * u[1] + 0.1 * u[2]
+        du[2] = -0.8 * u[2] + 3.0sin(t)
     end
 
     u0 = [1.0; 1.0]
     prob_cont = ODEProblem(linear, u0, (0.0, 30.0))
     sol_cont = solve(prob_cont, Tsit5())
-    U = reshape(map(t->sin(t), sol_cont.t),1, length(sol_cont))
+    U = reshape(map(t -> sin(t), sol_cont.t), 1, length(sol_cont))
 
     ddprob = ContinuousDataDrivenProblem(sol_cont, U = U)
 
@@ -34,7 +34,7 @@ end
         res = solve(ddprob, alg, B = B)
         b = result(res)
         m = metrics(res)
-        @test Matrix(b) ≈[1.5 0; 0 0.1]
+        @test Matrix(b) ≈ [1.5 0; 0 0.1]
         @test !is_stable(b)
         @test all(m[:L₂] .< 1e-10)
         @test length(controls(b)) == 1
