@@ -20,19 +20,18 @@ mutable struct ADMM{T, R} <: AbstractOptimizer{T}
     """Augmented Lagrangian parameter"""
     ρ::R
 
-
     function ADMM(threshold::T = 1e-1, ρ::R = 1.0) where {T, R}
         @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
-        @assert zero(R) < ρ "Augemented lagrangian parameter should be positive definite"
+        @assert zero(R)<ρ "Augemented lagrangian parameter should be positive definite"
         return new{T, R}(threshold, ρ)
     end
 end
 
 Base.summary(::ADMM) = "ADMM"
 
-function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
-    maxiter::Int64 = maximum(size(A)), abstol::U = eps(eltype(T)), progress = nothing, kwargs...)  where {T, H, U}
-
+function (opt::ADMM{T, H})(X, A, Y, λ::U = first(opt.λ);
+                           maxiter::Int64 = maximum(size(A)), abstol::U = eps(eltype(T)),
+                           progress = nothing, kwargs...) where {T, H, U}
     n, m = size(A)
 
     ρ = opt.ρ
@@ -43,9 +42,9 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
 
     x_i .= X
 
-    P = A'A .+ Diagonal(ρ .* ones(eltype(X),m))
+    P = A'A .+ Diagonal(ρ .* ones(eltype(X), m))
     P = cholesky!(P)
-    c = A'*Y
+    c = A' * Y
 
     R = SoftThreshold()
 
@@ -60,8 +59,6 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
     _progress = isa(progress, Progress)
     initial_prog = _progress ? progress.counter : 0
 
-
-
     @views while (iters < maxiter) && !converged
         iters += 1
 
@@ -73,28 +70,23 @@ function (opt::ADMM{T,H})(X, A, Y, λ::U = first(opt.λ);
         conv_measure = norm(x_i .- X, 2)
 
         if _progress
-            obj = norm(Y .- A*X, 2)
+            obj = norm(Y .- A * X, 2)
             sparsity = norm(X, 0, λ)
 
-            ProgressMeter.next!(
-            progress;
-            showvalues = [
-                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity),
-                (:Convergence, conv_measure)
-            ]
-            )
+            ProgressMeter.next!(progress;
+                                showvalues = [
+                                    (:Threshold, λ), (:Objective, obj),
+                                    (:Sparsity, sparsity),
+                                    (:Convergence, conv_measure),
+                                ])
         end
-
 
         if conv_measure < abstol
             converged = true
 
             if _progress
-
-                ProgressMeter.update!(
-                progress,
-                initial_prog + maxiter
-                )
+                ProgressMeter.update!(progress,
+                                      initial_prog + maxiter)
             end
 
         else

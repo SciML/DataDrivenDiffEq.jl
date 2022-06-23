@@ -3,7 +3,7 @@ t = collect(0:0.1:5.0)
 f_(t) = [sin(t); cos(t)]
 df_(t) = [cos(t); -sin(t)]
 X = hcat(map(i -> f_(i), t)...)
-Y = randn(2,2)*X
+Y = randn(2, 2) * X
 DX = hcat(map(i -> df_(i), t)...)
 p = [2.7]
 u_(u, p, t) = [p[1] * u[1] - 3.0 * t]
@@ -15,7 +15,7 @@ U = hcat(map(i -> u_(X[:, i], p, t[i]), 1:length(t))...)
     p3 = DiscreteDataDrivenProblem(X, t, U)
     p4 = DiscreteDataDrivenProblem(X, t, u_, p = p)
 
-    for p_ in [p1;p2;p3;p4]
+    for p_ in [p1; p2; p3; p4]
         @test is_valid(p_)
         @test is_discrete(p_)
         @test_nowarn @is_applicable p_
@@ -28,13 +28,13 @@ end
     t_ = 0.0:0.001:10.0
     x_ = permutedims(sin.(t_))
     y_ = permutedims(cos.(t_))
-    for m in [EpanechnikovKernel, UniformKernel,TriangularKernel,QuarticKernel,
+    for m in [EpanechnikovKernel, UniformKernel, TriangularKernel, QuarticKernel,
         TriweightKernel, TricubeKernel, GaussianKernel, CosineKernel,
         LogisticKernel, SigmoidKernel, SilvermanKernel]
         p_ = ContinuousDataDrivenProblem(x_, t_)
         p_2 = ContinuousDataDrivenProblem(x_, t_, crop = true)
         @test norm(y_ .- p_.DX) < 1e-1
-        @test norm(y_[:, 2:end-1] - p_2.DX) < 1e-1
+        @test norm(y_[:, 2:(end - 1)] - p_2.DX) < 1e-1
     end
 end
 
@@ -45,7 +45,7 @@ end
     p5 = ContinuousDataDrivenProblem(X, t, DX, U)
     p6 = ContinuousDataDrivenProblem(X, t, DX, u_, p = p)
 
-    for p_ in [p2;p3;p4;p5;p6]
+    for p_ in [p2; p3; p4; p5; p6]
         @test is_valid(p_)
         @test is_continuous(p_)
     end
@@ -64,7 +64,7 @@ end
     p3 = DirectDataDrivenProblem(X, t, Y, U)
     p4 = DirectDataDrivenProblem(X, t, Y, u_, p = p)
 
-    for p_ in [p1;p2;p3;p4]
+    for p_ in [p1; p2; p3; p4]
         @test is_valid(p_)
         @test is_direct(p_)
     end
@@ -74,14 +74,15 @@ end
     @test !is_autonomous(p3)
 end
 
-@testset "Problem Basis Interaction" begin 
+@testset "Problem Basis Interaction" begin
     @variables x y z t α β u
-    b1 = Basis([α*x; β*y; z*t^2+u], [x; y; z], iv = t, parameters = [α; β], controls = [u])
-    b2 = Basis([α*x; β*y; z*t; α], [x; y; z], iv = t, parameters = [α; β])
+    b1 = Basis([α * x; β * y; z * t^2 + u], [x y z], iv = t, parameters = [α β],
+               controls = [u])
+    b2 = Basis([α * x; β * y; z * t; α], [x y z], iv = t, parameters = [α β])
     sample_size = 100
     X1 = randn(3, sample_size)
     DX1 = randn(3, sample_size)
-    DX2 = randn(3, sample_size-1)
+    DX2 = randn(3, sample_size - 1)
     X2 = randn(4, sample_size)
     Y1 = randn(3, sample_size)
     Y2 = randn(4, sample_size)
@@ -91,7 +92,7 @@ end
 
     p1 = DirectDataDrivenProblem(X1, Y1, t = t, p = ps, U = U)
     p2 = DirectDataDrivenProblem(X1, Y2, t = t, p = ps, U = U)
-    p3 = ContinuousDataDrivenProblem(X1, t, DX1,  Y = Y1, p = ps, U = U)
+    p3 = ContinuousDataDrivenProblem(X1, t, DX1, Y = Y1, p = ps, U = U)
     p4 = DiscreteDataDrivenProblem(X1, Y = Y2, t = t, p = ps, U = U)
 
     @testset "Check validity" begin
@@ -121,22 +122,18 @@ end
         @test_nowarn b1(DX2, p4)
         @test iszero(norm(DX2 - b1(p4)))
 
-
         DX1 .= 0.0
-        @test_nowarn @views b1(DX1[:,1:end-1], p4)
-        @test iszero(norm(DX1[:, 1:end-1] - b1(p4)))
+        @test_nowarn @views b1(DX1[:, 1:(end - 1)], p4)
+        @test iszero(norm(DX1[:, 1:(end - 1)] - b1(p4)))
     end
 end
 
-
-@testset "DataDrivenDataset" begin 
+@testset "DataDrivenDataset" begin
     p1 = ContinuousDataDrivenProblem(X, t)
     p2 = ContinuousDataDrivenProblem(X, t, DX = DX)
 
-    data = (
-        prob1 = (X = X, t = t, Y = Y), 
-        prob2 = (X = X, t = t, Y = Y, DX = DX)
-    )
+    data = (prob1 = (X = X, t = t, Y = Y),
+            prob2 = (X = X, t = t, Y = Y, DX = DX))
 
     s1 = DataDrivenDataset(p1, p2)
     s2 = ContinuousDataset(data)
@@ -152,19 +149,22 @@ end
 
     # Sizes
     for s in sets
-        @test size(s) == (first(size(p1)), is_discrete(s) ? 2*size(X, 2)-2 : 2*size(X, 2))
+        @test size(s) ==
+              (first(size(p1)), is_discrete(s) ? 2 * size(X, 2) - 2 : 2 * size(X, 2))
         @test DataDrivenDiffEq.is_valid(s)
     end
 
     # Targets
     @test DataDrivenDiffEq.get_target(s1) == DataDrivenDiffEq.get_target(s2)
-    @test DataDrivenDiffEq.get_target(s1) == hcat(DataDrivenDiffEq.get_target(p1), DataDrivenDiffEq.get_target(p2))
+    @test DataDrivenDiffEq.get_target(s1) ==
+          hcat(DataDrivenDiffEq.get_target(p1), DataDrivenDiffEq.get_target(p2))
     @test DataDrivenDiffEq.get_target(s3) == hcat(Y, Y)
     @test DataDrivenDiffEq.get_target(s4) == hcat(X[:, 2:end], X[:, 2:end])
 
     # Args
     @test DataDrivenDiffEq.get_oop_args(s1) == DataDrivenDiffEq.get_oop_args(s2)
-    @test DataDrivenDiffEq.get_implicit_oop_args(s1) == DataDrivenDiffEq.get_implicit_oop_args(s2)
+    @test DataDrivenDiffEq.get_implicit_oop_args(s1) ==
+          DataDrivenDiffEq.get_implicit_oop_args(s2)
 
     # Basis handling 
     @variables x[1:size(X, 1)]
@@ -172,12 +172,10 @@ end
     @test b(s1) == hcat(b(p1), b(p2))
     @test b(s2) == b(s1)
     @test hcat(X, X) == b(s3)
-    @test hcat(X[:, 1:end-1], X[:, 1:end-1]) == b(s4)
+    @test hcat(X[:, 1:(end - 1)], X[:, 1:(end - 1)]) == b(s4)
 
     # Check if misspecified data is detected
-    wrong_data = (
-        prob1 = (X = X, Y = Y), 
-        prob2 = (X = X, t = t, Y = Y)
-        )
+    wrong_data = (prob1 = (X = X, Y = Y),
+                  prob2 = (X = X, t = t, Y = Y))
     @test_throws ArgumentError ContinuousDataset(wrong_data)
 end

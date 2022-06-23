@@ -24,34 +24,32 @@ mutable struct ImplicitOptimizer{T} <: AbstractSubspaceOptimizer{T}
         return new{typeof(threshold)}(opt(threshold))
     end
 
-    function ImplicitOptimizer(opt::AbstractOptimizer{T}) where T
+    function ImplicitOptimizer(opt::AbstractOptimizer{T}) where {T}
         return new{T}(opt)
     end
-
 end
 
-
-Base.summary(opt::ImplicitOptimizer) = "Implicit Optimizer using "*summary(opt.o)
+Base.summary(opt::ImplicitOptimizer) = "Implicit Optimizer using " * summary(opt.o)
 
 get_threshold(opt::ImplicitOptimizer) = get_threshold(opt.o)
 
 function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
-    maxiter::Int64 = maximum(size(A)), abstol::V = eps(eltype(T)),
-    rtol::V = zero(eltype(T)) ,progress = nothing,
-    f::Function = F(opt),
-    g::Function = G(opt), 
-    scale_coefficients::Bool = false)  where {T, V}
-
+                                     maxiter::Int64 = maximum(size(A)),
+                                     abstol::V = eps(eltype(T)),
+                                     rtol::V = zero(eltype(T)), progress = nothing,
+                                     f::Function = F(opt),
+                                     g::Function = G(opt),
+                                     scale_coefficients::Bool = false) where {T, V}
     exopt = opt.o
 
-    n,m = size(A)
+    n, m = size(A)
     ny, my = size(Y)
     nx, mx = size(X)
-    nq, mq = 0,0
+    nq, mq = 0, 0
 
     # Closure for the pareto function
-    fg(x, A, y) = (g∘f)(x, A, y)
-    fg(x, A) = (g∘f)(x,A)
+    fg(x, A, y) = (g ∘ f)(x, A, y)
+    fg(x, A) = (g ∘ f)(x, A)
 
     xzero = zero(eltype(X))
     xone = one(eltype(X))
@@ -82,25 +80,24 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
         x_tmp[inds, j:j] .= init(exopt, A[:, inds], A[:, j:j])
 
         # Use optimizer
-        λs = sparse_regression!(x_tmp[inds, j:j], A[:, inds], A[:, j:j],exopt, maxiter = maxiter, abstol = abstol)
-        
+        λs = sparse_regression!(x_tmp[inds, j:j], A[:, inds], A[:, j:j], exopt,
+                                maxiter = maxiter, abstol = abstol)
+
         # Normalize
         if scale_coefficients
-            x_tmp[inds,j:j] ./= maximum(abs.(x_tmp[inds, j:j]))
+            x_tmp[inds, j:j] ./= maximum(abs.(x_tmp[inds, j:j]))
         end
 
         if _progress
             sparsity, obj = f(x_tmp[inds, :], A[:, inds], A[:, j:j], λs[1])
 
-            ProgressMeter.next!(
-            progress;
-            showvalues = [
-                (:Threshold, λ), (:Objective, obj), (:Sparsity, sparsity)
-                ]
-                )
+            ProgressMeter.next!(progress;
+                                showvalues = [
+                                    (:Threshold, λ), (:Objective, obj),
+                                    (:Sparsity, sparsity),
+                                ])
         end
     end
-
 
     # Reduce the solution size to linear independent columns
     @views x_tmp = linear_independent_columns(x_tmp, rtol)
@@ -111,13 +108,13 @@ function (opt::ImplicitOptimizer{T})(X, A, Y, λ::V = first(opt.o.λ);
         # Check, if already included
         any(_included[:, j]) && continue
         # Selector
-        inds .= true; inds[j] = false
-        
+        inds .= true
+        inds[j] = false
+
         if fg(x_tmp[inds, j], A[:, inds], A[:, j]) < fg(X[inds, i], A[:, inds], A[:, j])
             X[:, i] .= x_tmp[:, i]
-            _included[i,j] = true
+            _included[i, j] = true
         end
-        
     end
 
     if rank(X'X) < my

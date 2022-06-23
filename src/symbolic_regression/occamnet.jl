@@ -3,8 +3,12 @@ abstract type AbstractProbabilityLayer end
 abstract type AbstractOccam end
 
 ## Overload softmax and logsoftmax with Temperature
-NNlib.softmax(x, T; dims = 1) = T > eps() ? softmax(x ./ T, dims = dims) : softmax(x, dims = dims)
-NNlib.logsoftmax(x, T; dims =1) = T > eps() ? x ./ T .- log.(sum(exp, x ./ T, dims = dims)) : logsoftmax(x, dims)
+function NNlib.softmax(x, T; dims = 1)
+    T > eps() ? softmax(x ./ T, dims = dims) : softmax(x, dims = dims)
+end
+function NNlib.logsoftmax(x, T; dims = 1)
+    T > eps() ? x ./ T .- log.(sum(exp, x ./ T, dims = dims)) : logsoftmax(x, dims)
+end
 
 """
 $(TYPEDEF)
@@ -20,7 +24,7 @@ the result of `rand(layer)` which samples the function arguments from the underl
 $(FIELDS)
 
 """
-mutable struct ProbabilityLayer{F,W,T,A} <: AbstractProbabilityLayer
+mutable struct ProbabilityLayer{F, W, T, A} <: AbstractProbabilityLayer
     "Nonlinear functions forming the basis of the layer"
     op::F
     "Weights"
@@ -45,23 +49,24 @@ function ProbabilityLayer(inp::Int, out::Int, t::Real = 1.0; skip = false, init_
     return ProbabilityLayer(identity, w, t, arieties, skip)
 end
 
-function ProbabilityLayer(inp::Int, f::AbstractVector{Function}, t::Real = 1.0; skip = false, init_w = ones)
-    arieties = [ariety(fi,typeof(t)) for fi in f]
+function ProbabilityLayer(inp::Int, f::AbstractVector{Function}, t::Real = 1.0;
+                          skip = false, init_w = ones)
+    arieties = [ariety(fi, typeof(t)) for fi in f]
     w = init_w(eltype(t), sum(arieties), inp)
     return ProbabilityLayer(f, w, t, arieties, skip)
 end
 
 function (p::AbstractProbabilityLayer)(x::AbstractVector)
-     h̃ = softmax(p.weight, p.t, dims = 2)*x
-     idx = 1
-     res = map(1:length(p.arieties)) do i
-         # Index of input
-         args_ = h̃[idx:idx+p.arieties[i]-1]
-         idx += p.arieties[i]
-         p.op[i](args_...)
-     end
-     !p.skip && return res
-     [res;x]
+    h̃ = softmax(p.weight, p.t, dims = 2) * x
+    idx = 1
+    res = map(1:length(p.arieties)) do i
+        # Index of input
+        args_ = h̃[idx:(idx + p.arieties[i] - 1)]
+        idx += p.arieties[i]
+        p.op[i](args_...)
+    end
+    !p.skip && return res
+    [res; x]
 end
 
 function (p::AbstractProbabilityLayer)(x::AbstractVector, sample::Vector{Int64})
@@ -69,24 +74,27 @@ function (p::AbstractProbabilityLayer)(x::AbstractVector, sample::Vector{Int64})
     idx = 1
     res = map(1:length(p.arieties)) do i
         # Index of input
-        args_ = h̃[idx:idx+p.arieties[i]-1]
+        args_ = h̃[idx:(idx + p.arieties[i] - 1)]
         idx += p.arieties[i]
         p.op[i](args_...)
     end
     !p.skip && return res
-    [res;x]
+    [res; x]
 end
 
 function (p::ProbabilityLayer{typeof(identity), W, T, A})(x::AbstractVector) where {W, T, A}
-    res = softmax(p.weight, p.t, dims = 2)*x
+    res = softmax(p.weight, p.t, dims = 2) * x
     !p.skip && return res
-    [res;x]
+    [res; x]
 end
 
-function (p::ProbabilityLayer{typeof(identity), W, T, A})(x::AbstractVector, sample::Vector{Int64}) where {W, T, A}
+function (p::ProbabilityLayer{typeof(identity), W, T, A})(x::AbstractVector,
+                                                          sample::Vector{Int64}) where {W,
+                                                                                        T, A
+                                                                                        }
     res = [x[i] for i in sample]
     !p.skip && return res
-    [res;x]
+    [res; x]
 end
 
 (p::AbstractProbabilityLayer)(x::AbstractMatrix) = hcat(map(p, eachcol(x))...)
@@ -100,7 +108,7 @@ probabilities(p::AbstractProbabilityLayer) = softmax(p.weight, p.t, dims = 2)
 
 function probabilities(p::AbstractProbabilityLayer, sample::Vector{Int})
     probs = probabilities(p)
-    map(i->getindex(probs, i, sample[i]), 1:length(sample))
+    map(i -> getindex(probs, i, sample[i]), 1:length(sample))
 end
 
 """
@@ -112,7 +120,7 @@ logprobabilities(p::AbstractProbabilityLayer) = logsoftmax(p.weight, p.t, dims =
 
 function logprobabilities(p::AbstractProbabilityLayer, sample::Vector{Int})
     logprobs = logprobabilities(p)
-    map(i->getindex(logprobs, i, sample[i]), 1:length(sample))
+    map(i -> getindex(logprobs, i, sample[i]), 1:length(sample))
 end
 
 # The resulting logprob
@@ -121,19 +129,19 @@ function logprobability(p::AbstractProbabilityLayer, sample, x)
     idx = 1
     res = map(1:length(p.arieties)) do i
         # Index of input
-        logp = sum(h̃[idx:idx+p.arieties[i]-1])
+        logp = sum(h̃[idx:(idx + p.arieties[i] - 1)])
         idx += p.arieties[i]
         logp
     end
     !p.skip && return res
-    [res;x]
+    [res; x]
 end
 
-
-function logprobability(p::ProbabilityLayer{typeof(identity), W, T, A}, sample, x) where {W,T,A}
+function logprobability(p::ProbabilityLayer{typeof(identity), W, T, A}, sample,
+                        x) where {W, T, A}
     h̃ = logprobabilities(p, sample) + [x[i] for i in sample]
     !p.skip && return h̃
-    [h̃;x]
+    [h̃; x]
 end
 
 """
@@ -150,13 +158,15 @@ Set the temperature of the `ProbabilityLayer` or `OccamNet`.
 """
 set_temp!(p::AbstractProbabilityLayer, t::Real) = p.t = t
 
-Base.rand(p::AbstractProbabilityLayer) = [rand(Categorical(Vector(w))) for w in eachrow(probabilities(p))]
+function Base.rand(p::AbstractProbabilityLayer)
+    [rand(Categorical(Vector(w))) for w in eachrow(probabilities(p))]
+end
 
 function Base.show(io::IO, l::ProbabilityLayer)
-  print(io, "ProbabilityLayer(", size(l.weight, 2), ", ", size(l.weight, 1))
-  print(io, ", $(l.op)")
-  l.skip ? print(io, ", Skip") : nothing
-  print(io, ")")
+    print(io, "ProbabilityLayer(", size(l.weight, 2), ", ", size(l.weight, 1))
+    print(io, ", $(l.op)")
+    l.skip ? print(io, ", Skip") : nothing
+    print(io, ")")
 end
 
 Flux.@functor ProbabilityLayer
@@ -198,7 +208,9 @@ mutable struct OccamNet{F, C, P} <: AbstractOccam
     parameters::P # Additional learnable parameters
 end
 
-function OccamNet(inp::Int, outp::Int, layers::Int, f::Vector{Function}, t::Real = 1.0; constants = typeof(t)[], parameters::Int = 0, skip::Bool = false, init_w = ones, init_p = Flux.glorot_uniform)
+function OccamNet(inp::Int, outp::Int, layers::Int, f::Vector{Function}, t::Real = 1.0;
+                  constants = typeof(t)[], parameters::Int = 0, skip::Bool = false,
+                  init_w = ones, init_p = Flux.glorot_uniform)
     inp += parameters
     inp += length(constants)
     x0 = rand(typeof(t), inp)
@@ -212,19 +224,19 @@ function OccamNet(inp::Int, outp::Int, layers::Int, f::Vector{Function}, t::Real
     # Output layer
     push!(ls, ProbabilityLayer(inp, outp, t, skip = false, init_w = init_w))
     b = parameters > 0 ? convert.(typeof(t), init_p(parameters)) : typeof(t)[]
-    return OccamNet(Chain(ls...),constants, b)
+    return OccamNet(Chain(ls...), constants, b)
 end
 
 function Base.show(io::IO, l::OccamNet)
-  print(io, "OccamNet(", length(l.c))
-  !isempty(l.constants) ? print(io, ", Constants ", length(l.constants)) : nothing
-  !isempty(l.constants) ? print(io, ", Parameters ", length(l.parameters)) : nothing
-  print(io, ")")
+    print(io, "OccamNet(", length(l.c))
+    !isempty(l.constants) ? print(io, ", Constants ", length(l.constants)) : nothing
+    !isempty(l.constants) ? print(io, ", Parameters ", length(l.parameters)) : nothing
+    print(io, ")")
 end
 
-(o::OccamNet)(x) = o.c([x;o.constants;o.parameters])
+(o::OccamNet)(x) = o.c([x; o.constants; o.parameters])
 (o::OccamNet)(x::AbstractMatrix) = hcat(map(o, eachcol(x))...)
-set_temp!(o::OccamNet, t::Real) = map(x->set_temp!(x, t), o.c)
+set_temp!(o::OccamNet, t::Real) = map(x -> set_temp!(x, t), o.c)
 probabilities(o::OccamNet) = map(probabilities, o.c)
 probabilities(o::OccamNet, route) = map(probabilities, o.c, route)
 
@@ -234,14 +246,16 @@ logprobabilities(o::OccamNet, route) = map(logprobabilities, o.c, route)
 Base.rand(o::OccamNet) = map(rand, o.c)
 
 function (o::OccamNet)(x::AbstractVector, route::Vector{Vector{Int64}})
-    res = [x;o.constants;o.parameters]
+    res = [x; o.constants; o.parameters]
     for i in 1:length(route)
-        res = o.c[i](res,route[i])
+        res = o.c[i](res, route[i])
     end
     return res
 end
 
-(o::OccamNet)(x::AbstractMatrix, route::Vector{Vector{Int64}}) = hcat(map(xi->o(xi, route), eachcol(x))...)
+function (o::OccamNet)(x::AbstractMatrix, route::Vector{Vector{Int64}})
+    hcat(map(xi -> o(xi, route), eachcol(x))...)
+end
 
 """
 $(SIGNATURES)
@@ -265,12 +279,13 @@ Returns the probability of the result of the `OccamNet` using the specific route
 probability(o::OccamNet, route::Vector{Vector{Int64}}) = exp.(logprobability(o, route))
 
 Flux.@functor OccamNet
-Flux.trainable(u::OccamNet) = (u.parameters, Flux.trainable.(u.c)...,)
+Flux.trainable(u::OccamNet) = (u.parameters, Flux.trainable.(u.c)...)
 
-gkernel(x,y,σ = one(eltype(x))) = 1/sqrt(2π*σ^2) .* exp.(-(x-y).^2 ./(2*σ))
+gkernel(x, y, σ = one(eltype(x))) = 1 / sqrt(2π * σ^2) .* exp.(-(x - y) .^ 2 ./ (2 * σ))
 
-function gkernel(x::AbstractMatrix, y::AbstractMatrix, σ::AbstractVector = ones(eltype(x), size(x, 1)))
-    vcat(map(i->gkernel(x[i,:], y[i,:], σ[i])', 1:size(x, 1))...)
+function gkernel(x::AbstractMatrix, y::AbstractMatrix,
+                 σ::AbstractVector = ones(eltype(x), size(x, 1)))
+    vcat(map(i -> gkernel(x[i, :], y[i, :], σ[i])', 1:size(x, 1))...)
 end
 
 """
@@ -278,15 +293,14 @@ $(SIGNATURES)
 
 Overloads `Flux.train!` method to be used with an `OccamNet`.
 """
-function Flux.train!(net::OccamNet, X, Y, opt, maxiters = 10; routes = 10, nbest = 1, cb = ()->(), progress = false)
-    ny = size(Y,1)
+function Flux.train!(net::OccamNet, X, Y, opt, maxiters = 10; routes = 10, nbest = 1,
+                     cb = () -> (), progress = false)
+    ny = size(Y, 1)
     vary = [var(Y, dims = 2)...]
     ps_prob = Flux.params(net)
 
     if progress
-        prog = Progress(
-            maxiters, "Training $(net)"
-        )
+        prog = Progress(maxiters, "Training $(net)")
     end
 
     for k in 1:maxiters
@@ -309,7 +323,7 @@ function Flux.train!(net::OccamNet, X, Y, opt, maxiters = 10; routes = 10, nbest
             for c in candidates
                 res = net(X, c)
                 p = logprobability(net, c)
-                l_ += dot(p, sum(gkernel(res, Y, vary), dims =2))
+                l_ += dot(p, sum(gkernel(res, Y, vary), dims = 2))
             end
             -l_
         end
@@ -319,12 +333,11 @@ function Flux.train!(net::OccamNet, X, Y, opt, maxiters = 10; routes = 10, nbest
             rp = round.(exp.(logprobability(net, first(first(ls)))), digits = 5)
             loss = sum(abs2, net(X, first(first(ls))) - Y) / size(Y, 2)
 
-            ProgressMeter.next!(
-            prog;
-            showvalues = [
-                (:Probabilities, rp), (Symbol("Equivalent L2-Loss"), loss)
-                ]
-                )
+            ProgressMeter.next!(prog;
+                                showvalues = [
+                                    (:Probabilities, rp),
+                                    (Symbol("Equivalent L2-Loss"), loss),
+                                ])
         end
     end
     return
@@ -341,7 +354,8 @@ Options for using OccamNet within the `solve` function. Automatically creates a 
 $(FIELDS)
 
 """
-struct OccamSR{F, C, T} <: AbstractSymbolicRegression "Functions used within the network"
+struct OccamSR{F, C, T} <: AbstractSymbolicRegression
+    "Functions used within the network"
     functions::F
     "Constants added to the input"
     constants::C
@@ -353,38 +367,38 @@ struct OccamSR{F, C, T} <: AbstractSymbolicRegression "Functions used within the
     skip::Bool
 end
 
-function Base.show(io::IO, l::OccamSR{F, C, T}) where {F,C,T}
-  T ? print(io, "Implicit ") : nothing
-  print(io, "OccamSR(", length(l.functions))
-  !isempty(l.constants) ? print(io, ", Constants ", length(l.constants)) : nothing
-  l.parameters > 0 ? print(io, ", Parameters ", l.parameters) : nothing
-  print(io, ")")
+function Base.show(io::IO, l::OccamSR{F, C, T}) where {F, C, T}
+    T ? print(io, "Implicit ") : nothing
+    print(io, "OccamSR(", length(l.functions))
+    !isempty(l.constants) ? print(io, ", Constants ", length(l.constants)) : nothing
+    l.parameters > 0 ? print(io, ", Parameters ", l.parameters) : nothing
+    print(io, ")")
 end
 
 function Base.summary(io::IO, l::OccamSR)
-  print(io, "OccamSR\n")
-  print(io, "Functions ", l.functions, "\n")
-  !isempty(l.constants) ? print(io, "Constants ", l.constants, "\n") : nothing
-  l.parameters > 0 ? print(io, "Parameters ", l.parameters, "\n") : nothing
+    print(io, "OccamSR\n")
+    print(io, "Functions ", l.functions, "\n")
+    !isempty(l.constants) ? print(io, "Constants ", l.constants, "\n") : nothing
+    l.parameters > 0 ? print(io, "Parameters ", l.parameters, "\n") : nothing
 end
 
 function Base.print(io::IO, l::OccamSR)
     summary(io, l)
 end
 
-function OccamSR(;functions = [+,*,sin,exp], constants = [π, ℯ],
-    layers = 2, parameters = 0, skip = true, implicit = false,
-    kwargs...)
+function OccamSR(; functions = [+, *, sin, exp], constants = [π, ℯ],
+                 layers = 2, parameters = 0, skip = true, implicit = false,
+                 kwargs...)
     implicit && throw(error("Implicit OccamSR is not supported at the moment."))
-    return OccamSR{typeof(functions), typeof(constants), implicit}(functions, constants, layers, parameters, skip)
+    return OccamSR{typeof(functions), typeof(constants), implicit}(functions, constants,
+                                                                   layers, parameters, skip)
 end
 
 ## SOLVE
 
-function DiffEqBase.solve(
-    p, o::OccamSR{F,C, false}, opt;
-    max_iter = 1000, cb = ()->(), progress = false, routes = 10, nbest = 1, temperature = 1.0
-    ) where {F,C}
+function DiffEqBase.solve(p, o::OccamSR{F, C, false}, opt;
+                          max_iter = 1000, cb = () -> (), progress = false, routes = 10,
+                          nbest = 1, temperature = 1.0) where {F, C}
 
     # Target variables
     Y = get_target(p)
@@ -395,25 +409,26 @@ function DiffEqBase.solve(
     # Cat the inputs
     X = vcat([x for x in (X̂, U, permutedims(t)) if !isempty(x)]...)
 
-    inp = size(X,1)
-    outp = size(Y,1)
+    inp = size(X, 1)
+    outp = size(Y, 1)
 
-    net = OccamNet(inp, outp, o.layers, o.functions, temperature, constants = o.constants, parameters = o.parameters, skip = o.skip)
+    net = OccamNet(inp, outp, o.layers, o.functions, temperature, constants = o.constants,
+                   parameters = o.parameters, skip = o.skip)
 
-    Flux.train!(net, X, Y, opt, max_iter, routes = routes, nbest = nbest, cb = cb, progress = progress)
+    Flux.train!(net, X, Y, opt, max_iter, routes = routes, nbest = nbest, cb = cb,
+                progress = progress)
     build_solution(p, net, o, opt)
 end
 
 ## SOLUTION
 function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
-    eval_expression = false)
-
-    @variables x[1:size(prob.X, 1)] u[1:size(prob.U,1)] t
+                        eval_expression = false)
+    @variables x[1:size(prob.X, 1)] u[1:size(prob.U, 1)] t
     x = collect(x)
     u = collect(u)
-    x_ = [x;u;t]
+    x_ = [x; u; t]
 
-    inp = size(net.c[1].weight, 2)- length(net.constants)
+    inp = size(net.c[1].weight, 2) - length(net.constants)
     temp_ = net.c[1].t
 
     # Draw routers
@@ -424,24 +439,20 @@ function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
 
     lhs, dt = assert_lhs(prob)
 
-
     # Build the lhs
     if (length(eqs) == length(x)) && (lhs != :direct)
-            if lhs == :continuous
-                d = Differential(t)
-            elseif lhs == :discrete
-                d = Difference(t, dt = dt)
-            end
-            eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
+        if lhs == :continuous
+            d = Differential(t)
+        elseif lhs == :discrete
+            d = Difference(t, dt = dt)
+        end
+        eqs = [d(xs[i]) ~ eq for (i, eq) in enumerate(eqs)]
     end
 
     # Build a basis
-    res_ = Basis(
-        eqs, x, iv = t,
-        controls = u,
-        eval_expression = eval_expression
-    )
-
+    res_ = Basis(eqs, x, iv = t,
+                 controls = u,
+                 eval_expression = eval_expression)
 
     X = get_target(prob)
     Y = res_(get_oop_args(prob)...)
@@ -451,10 +462,8 @@ function build_solution(prob::DataDrivenProblem, net::OccamNet, o::OccamSR, opt;
     #pbs = probability(net, route)
     retcode = Symbol("$(pb)")
 
-    error = sum(abs2, X-Y, dims = 2)[:,1]
-    aic = 2*(-size(error, 2) .* log.(error ./ size(error, 2)) .+ sum(length, route))
+    error = sum(abs2, X - Y, dims = 2)[:, 1]
+    aic = 2 * (-size(error, 2) .* log.(error ./ size(error, 2)) .+ sum(length, route))
 
-    return DataDrivenSolution(
-        false, res_, [], retcode, o, net, prob, error, aic
-    )
+    return DataDrivenSolution(false, res_, [], retcode, o, net, prob, error, aic)
 end

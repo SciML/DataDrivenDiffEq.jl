@@ -24,10 +24,13 @@ using DocStringExtensions
 using RecipesBase
 
 @reexport using DiffEqBase: solve
-@reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls, get_iv
-@reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
+@reexport using ModelingToolkit: states, parameters, independent_variable, observed,
+                                 controls, get_iv
+@reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation,
+                                    QuadraticInterpolation, LagrangeInterpolation,
+                                    QuadraticSpline, CubicSpline, BSplineInterpolation,
+                                    BSplineApprox, Curvefit
 using Symbolics: scalarize, variable
-
 
 using ModelingToolkit: AbstractSystem
 using ModelingToolkit: value, operation, arguments, istree, get_observed
@@ -49,11 +52,9 @@ abstract type AbstractDataDrivenProblem{dType, cType, probType} end
 abstract type AbstractDataDrivenSolution end
 
 # Optimizer
-abstract type AbstractProximalOperator end;
-abstract type AbstractOptimizer{T} end;
-abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end;
-    
-
+abstract type AbstractProximalOperator end
+abstract type AbstractOptimizer{T} end
+abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end
 
 ## Basis
 
@@ -70,7 +71,7 @@ export sin_basis, cos_basis, fourier_basis
 
 include("./utils/collocation.jl")
 export InterpolationMethod
-export EpanechnikovKernel, UniformKernel, TriangularKernel,QuarticKernel
+export EpanechnikovKernel, UniformKernel, TriangularKernel, QuarticKernel
 export TriweightKernel, TricubeKernel, GaussianKernel, CosineKernel
 export LogisticKernel, SigmoidKernel, SilvermanKernel
 export collocate_data
@@ -83,7 +84,7 @@ export burst_sampling, subsample
 ## Sparse Regression
 
 include("./optimizers/Optimize.jl")
-export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
+export SoftThreshold, HardThreshold, ClippedAbsoluteDeviation
 export sparse_regression!
 export init, init!, set_threshold!, get_threshold
 export STLSQ, ADMM, SR3
@@ -101,21 +102,18 @@ export update!
 include("./koopman/algorithms.jl")
 export DMDPINV, DMDSVD, TOTALDMD, FBDMD
 
-
 ## Problem and Solution
 # Use to distinguish the problem types
 @enum DDProbType begin
-    Direct=1 # Direct problem without further information
-    Discrete=2 # Time discrete problem
-    Continuous=3 # Time continous problem
+    Direct = 1 # Direct problem without further information
+    Discrete = 2 # Time discrete problem
+    Continuous = 3 # Time continous problem
 end
 
-
 # Define some alias type for easier dispatch
-const AbstractDirectProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(1)}
-const AbstractDiscreteProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(2)}
-const AbstracContProb{N,C} = AbstractDataDrivenProblem{N,C,DDProbType(3)}
-
+const AbstractDirectProb{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(1)}
+const AbstractDiscreteProb{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(2)}
+const AbstracContProb{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(3)}
 
 include("./problem/type.jl")
 
@@ -132,15 +130,13 @@ include("./problem/sample.jl")
 export DataSampler, Split, Batcher
 
 # Result selection
-select_by(x, y::AbstractMatrix) = y 
+select_by(x, y::AbstractMatrix) = y
 select_by(x, sol) = select_by(Val(x), sol)
-
 
 include("./solution.jl")
 export DataDrivenSolution
 export result, parameters, parameter_map, algorithm
 export output, metrics, l2error, aic, determination, get_problem
-
 
 include("./solve/common.jl")
 export DataDrivenCommonOptions
@@ -155,11 +151,10 @@ include("./recipes/problem_result.jl")
 function __init__()
     # Load and export OccamNet
     @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
-
         using .Flux
         include("./symbolic_regression/occamnet.jl")
 
-        export OccamNet,ProbabilityLayer
+        export OccamNet, ProbabilityLayer
         export set_temp!
         export probability, logprobability
         export probabilities, logprobabilities
@@ -168,12 +163,11 @@ function __init__()
         @info "DataDrivenDiffEq : OccamNet is available."
     end
 
-    @require SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb" begin
+    @require SymbolicRegression="8254be44-1295-4e6a-a16d-46603ac705cb" begin
         using .SymbolicRegression
         include("./symbolic_regression/symbolic_regression.jl")
         export EQSearch
     end
-
 end
 
 end # module

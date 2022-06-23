@@ -17,9 +17,9 @@ const GROUP = get(ENV, "GROUP", "All")
     if GROUP == "All" || GROUP == "DataDrivenDiffEq" || GROUP == "Standard"
         @testset "Basis" begin include("./basis/basis.jl") end
         @testset "Basis Generators" begin include("./basis/generators.jl") end
-        
-        @testset "DataDrivenProblem" begin 
-            include("./problem/problem.jl") 
+
+        @testset "DataDrivenProblem" begin
+            include("./problem/problem.jl")
             include("./problem/samplers.jl")
         end
 
@@ -37,7 +37,6 @@ const GROUP = get(ENV, "GROUP", "All")
         end
     end
     if GROUP == "All" || GROUP == "Optional"
-
         @info "Loading Flux"
         using Flux
         @info "Loading Symbolic Regression"
@@ -51,8 +50,8 @@ const GROUP = get(ENV, "GROUP", "All")
 
     if GROUP == "All" || GROUP == "Docs"
         @info "Testing documentation examples"
-        
-        @safetestset "Documentation" begin 
+
+        @safetestset "Documentation" begin
             excludes = ["8_symbolic_regression.jl"]
             example_dir = joinpath(@__DIR__, "..", "docs", "examples")
 
@@ -60,26 +59,23 @@ const GROUP = get(ENV, "GROUP", "All")
                 f_path = joinpath(path, file)
                 !isfile(f_path) && return
                 fname, fext = split(file, ".")
-                !(fext == "jl") && return 
+                !(fext == "jl") && return
                 f_mod = gensym(string(fname))
                 # This is similar to SafeTestsets, but works for my case
                 eval(quote
-                        @eval module $f_mod
-                            using Test
-                            @testset $fname begin 
-                                include($f_path) 
-                            end
-                        end
-                        nothing
-                end)
+                         @eval module $f_mod
+                         using Test
+                         @testset $fname begin include($f_path) end
+                         end
+                         nothing
+                     end)
             end
-        
+
             # Check each example and create a unique testset
             for f in readdir(example_dir)
                 f ∈ excludes && continue
                 test_literate_script(f, example_dir)
             end
-
         end
     end
 

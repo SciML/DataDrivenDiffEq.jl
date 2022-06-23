@@ -21,15 +21,15 @@ B = [0.0; 1.0]
 u0 = [10.0; -10.0]
 tspan = (0.0, 20.0)
 
-f(u,p,t) = A*u .+ B .* sin(0.5*t)
+f(u, p, t) = A * u .+ B .* sin(0.5 * t)
 
 sys = ODEProblem(f, u0, tspan)
 sol = solve(sys, Tsit5(), saveat = 0.01);
 
 # We will use the data provided by our problem, but add the control signal `U = sin(0.5*t)` to it. Instead of using a function, like in [another example](@ref linear_continuous_controls)
-X = Array(sol) 
-t = sol.t 
-U = permutedims(sin.(0.5*t))
+X = Array(sol)
+t = sol.t
+U = permutedims(sin.(0.5 * t))
 prob = ContinuousDataDrivenProblem(X, t, U = U)
 
 # And plot the problems data.
@@ -40,7 +40,8 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 # By default, it takes in a `Vector` of `Functions` and additional [keyworded arguments](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#Options). We will stick to simple operations 
 # like subtraction and multiplication, use a `L1DistLoss` , limit the maximum size and punish complex equations while fitting our equations on minibatches. 
 
-alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching = true, batchSize = 50, parsimony = 0.01f0)
+alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching = true,
+               batchSize = 50, parsimony = 0.01f0)
 
 # Again, we `solve` the problem to obtain a [`DataDrivenSolution`](@ref). Note that any additional keyworded arguments are passed onto 
 # symbolic regressions [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#EquationSearch) with the exception of `niterations` which 
@@ -65,18 +66,16 @@ println(system)
 u = controls(system)
 t = get_iv(system)
 
-subs_control = (u[1] => sin(0.5*t))
+subs_control = (u[1] => sin(0.5 * t))
 
 eqs = map(equations(system)) do eq
     eq.lhs ~ substitute(eq.rhs, subs_control)
 end
 
-@named sys = ODESystem(
-    eqs, 
-    get_iv(system),
-    states(system),
-    []
-    );
+@named sys = ODESystem(eqs,
+                       get_iv(system),
+                       states(system),
+                       []);
 
 # And simulated using `OrdinaryDiffEq.jl` using the (known) initial conditions and the parameter mapping of the estimation.
 # Since the parameters are *hard numerical values* we do not need to include those.
@@ -98,4 +97,4 @@ estimate = solve(ode_prob, Tsit5(), saveat = prob.t);
 #md # ```
 
 @test all(l2error(res) .<= 5e-1) #src
-@test Array(sol) ≈ Array(estimate) rtol = 5e-2 #src
+@test Array(sol)≈Array(estimate) rtol=5e-2 #src

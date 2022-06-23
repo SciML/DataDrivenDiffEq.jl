@@ -9,14 +9,15 @@ See [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
 struct SoftThreshold <: AbstractProximalOperator end;
 
-@inline function (s::SoftThreshold)(x::AbstractArray, λ::T) where T <: Real
+@inline function (s::SoftThreshold)(x::AbstractArray, λ::T) where {T <: Real}
     for i in eachindex(x)
         x[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
     end
     return
 end
 
-@inline function (s::SoftThreshold)(y::AbstractArray, x::AbstractArray, λ::T) where T <: Real
+@inline function (s::SoftThreshold)(y::AbstractArray, x::AbstractArray,
+                                    λ::T) where {T <: Real}
     @assert all(size(y) .== size(x))
     for i in eachindex(x)
         y[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
@@ -35,17 +36,18 @@ See [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
 struct HardThreshold <: AbstractProximalOperator end;
 
-@inline function (s::HardThreshold)(x::AbstractArray, λ::T) where T <: Real
+@inline function (s::HardThreshold)(x::AbstractArray, λ::T) where {T <: Real}
     for i in eachindex(x)
-        x[i] = abs(x[i]) > sqrt(2*λ) ? x[i] : zero(eltype(x))
+        x[i] = abs(x[i]) > sqrt(2 * λ) ? x[i] : zero(eltype(x))
     end
     return
 end
 
-@inline function (s::HardThreshold)(y::AbstractArray, x::AbstractArray, λ::T) where T <: Real
+@inline function (s::HardThreshold)(y::AbstractArray, x::AbstractArray,
+                                    λ::T) where {T <: Real}
     @assert all(size(y) .== size(x))
     for i in eachindex(x)
-        y[i] = abs(x[i]) > sqrt(2*λ) ? x[i] : zero(eltype(x))
+        y[i] = abs(x[i]) > sqrt(2 * λ) ? x[i] : zero(eltype(x))
     end
     return
 end
@@ -72,25 +74,25 @@ opt = ClippedAbsoluteDeviation(1e-1)
 
 See [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
-struct ClippedAbsoluteDeviation{T} <: AbstractProximalOperator where T <: Real
+struct ClippedAbsoluteDeviation{T} <: AbstractProximalOperator where {T <: Real}
     """Upper threshold"""
     ρ::T
 end
 
 ClippedAbsoluteDeviation() = ClippedAbsoluteDeviation(NaN)
 
-function (s::ClippedAbsoluteDeviation)(x::AbstractArray, λ::T) where T <: Real
-    ρ = isnan(s.ρ) ? convert(eltype(x), 5)*λ : convert(eltype(x), s.ρ)
+function (s::ClippedAbsoluteDeviation)(x::AbstractArray, λ::T) where {T <: Real}
+    ρ = isnan(s.ρ) ? convert(eltype(x), 5) * λ : convert(eltype(x), s.ρ)
     for i in eachindex(x)
         x[i] = abs(x[i]) > ρ ? x[i] : sign(x[i]) * max(abs(x[i]) - λ, 0)
     end
     return
 end
 
-
-function (s::ClippedAbsoluteDeviation)(y::AbstractArray, x::AbstractArray, λ::T) where T <: Real
+function (s::ClippedAbsoluteDeviation)(y::AbstractArray, x::AbstractArray,
+                                       λ::T) where {T <: Real}
     @assert all(size(y) .== size(x))
-    ρ = isnan(s.ρ) ? convert(eltype(x), 5)*λ : convert(eltype(x), s.ρ)
+    ρ = isnan(s.ρ) ? convert(eltype(x), 5) * λ : convert(eltype(x), s.ρ)
     for i in eachindex(x)
         y[i] = abs(x[i]) > ρ ? x[i] : sign(x[i]) * max(abs(x[i]) - λ, 0)
     end

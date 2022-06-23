@@ -14,15 +14,15 @@ B = [0.0; 1.0]
 u0 = [10.0; -10.0]
 tspan = (0.0, 10.0)
 
-f(u,p,t) = A*u .+ B .* sin(0.5*t)
+f(u, p, t) = A * u .+ B .* sin(0.5 * t)
 
 sys = ODEProblem(f, u0, tspan)
 sol = solve(sys, Tsit5(), saveat = 0.05);
 
 # We will use the data provided by our problem, but add the control signal `U = sin(0.5*t)` to it. 
-X = Array(sol) 
-t = sol.t 
-control(u,p,t) = [sin(0.5*t)]
+X = Array(sol)
+t = sol.t
+control(u, p, t) = [sin(0.5 * t)]
 prob = ContinuousDataDrivenProblem(X, t, U = control)
 
 # And plot the problems data.
@@ -76,18 +76,16 @@ sparse_system = result(sparse_res)
 # Both results can be converted into an `ODESystem`. To include the control signal, we simply 
 # substitute the control variables in the corresponding equations.
 
-subs_control = (u[1] => sin(0.5*t))
+subs_control = (u[1] => sin(0.5 * t))
 
 eqs = map(equations(sparse_system)) do eq
     eq.lhs ~ substitute(eq.rhs, subs_control)
 end
 
-@named sys = ODESystem(
-    eqs, 
-    get_iv(sparse_system),
-    states(sparse_system), 
-    parameters(sparse_system)
-    );
+@named sys = ODESystem(eqs,
+                       get_iv(sparse_system),
+                       states(sparse_system),
+                       parameters(sparse_system));
 
 # And simulated using `OrdinaryDiffEq.jl` using the (known) initial conditions and the parameter mapping of the estimation.
 
@@ -110,4 +108,4 @@ estimate = solve(ode_prob, Tsit5(), saveat = prob.t);
 @test all(aic(sparse_res) .>= 1e3) #src
 @test all(l2error(sparse_res) .<= 5e-1) #src
 @test all(determination(sparse_res) .>= 0.97) #src
-@test Array(sol) ≈ Array(estimate) rtol = 5e-2 #src
+@test Array(sol)≈Array(estimate) rtol=5e-2 #src
