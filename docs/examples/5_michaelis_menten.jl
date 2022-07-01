@@ -79,9 +79,9 @@ println(system) # hide
 
 ## Test #src
 for r_ in [res] #src
-    @test all(l2error(r_) .< 0.4) #src
-    @test all(aic(r_) .> 5e2) #src
-    @test all(determination(r_) .>= 0.7) #src
+    @test all(l2error(r_) .< 0.01) #src
+    @test all(aic(r_) .< -600.0) #src
+    @test all(determination(r_) .>= 0.9) #src
 end #src
 
 

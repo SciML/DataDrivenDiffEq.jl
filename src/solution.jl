@@ -50,8 +50,8 @@ struct DataDrivenSolution{L, A, O} <: AbstractDataDrivenSolution
         )
     end
 
-    function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg, out, prob::AbstractDataDrivenProblem, l2::AbstractVector, aic::AbstractVector, rsquared::AbstractVector; kwargs...)
-        return new{true, typeof(alg), typeof(out)}(
+    function DataDrivenSolution(linearity::Bool, b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg, out, prob::AbstractDataDrivenProblem, l2::AbstractVector, aic::AbstractVector, rsquared::AbstractVector; kwargs...)
+        return new{linearity, typeof(alg), typeof(out)}(
             b, p, retcode, alg, out, prob, l2, aic, rsquared
         )
     end
@@ -84,17 +84,11 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol
         # This is the AIC for a lsq
         aic = size(e, 2) .* log.(l2) .+ 2*length(p) #2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
         
-        if linearity
-            rsquared = 1 .- l2 ./ sum(abs2, y .- mean(y, dims =2)[:,1], dims = 2)[:,1]
+        rsquared = 1 .- l2 ./ sum(abs2, y .- mean(y, dims =2)[:,1], dims = 2)[:,1]
             
             #return l2, aic, rsquared
-            return DataDrivenSolution(
-                b, p, retcode, alg, out, prob, l2, aic, rsquared
-            )
-        end
-
         return DataDrivenSolution(
-            linearity, b, p, retcode, alg, out, prob, l2, aic
+            linearity, b, p, retcode, alg, out, prob, l2, aic, rsquared
         )
     end
 

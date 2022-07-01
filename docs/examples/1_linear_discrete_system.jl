@@ -113,7 +113,7 @@ estimate = solve(discrete_prob, FunctionMap());
 ## Test the result #src
 for r_ in [res, sparse_res] #src
     @test all(l2error(r_) .<= 1e-10) #src
-    @test all(aic(r_) .>= 1e10) #src
+    @test all(aic(r_) .<= -1e5) #src
     @test all(determination(r_) .≈ 1.0) #src
 end  #src
 @test Array(sol) ≈ Array(estimate) #src

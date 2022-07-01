@@ -30,9 +30,10 @@ t = sol.t
     ]
 
     for opt in opts
+        res = solve(dd_prob, basis, opt, maxiter = 50000)
         m = DataDrivenDiffEq.metrics(res)
         @test all(m[:L₂] .< 1e-1*size(X, 2))
-        @test all(m[:AIC] .<= 0.0) # Perfect Match or close
+        @test all(m[:AIC] .<= 200.0) 
         @test all(m[:R²] .>= 0.9)
     end
     
@@ -59,9 +60,10 @@ X = X .+ 1e-1*randn(size(X))
     for opt in opts
         res = solve(dd_prob_noisy, basis, opt, maxiter = 50000, denoise = true, normalize = true)
         m = DataDrivenDiffEq.metrics(res)
-        @test all(m[:L₂]./size(X,2) .< [30.; 800])
-        @test all(m[:AIC] .< [350.; 1350.0])
-        @test all(m[:R²] .>= [0.97; 0.52])
+        @show m
+        @test all(m[:L₂] .< [30.; 800.0])
+        @test all(m[:AIC] .< 1400.0)
+        @test all(m[:R²] .>= [0.9; 0.5])
     end
 
 end
