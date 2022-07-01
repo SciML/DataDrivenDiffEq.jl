@@ -17,12 +17,6 @@ sol = solve(prob, Tsit5(), saveat=dt)
 X = sol[:,:]
 t = sol.t
 
-DX = similar(sol[:,:])
-
-for (i, xi) in enumerate(eachcol(sol[:,:]))
-    DX[:,i] = pendulum(xi, [], 0.0)
-end
-
 ##
 @testset "Ideal data" begin
     dd_prob = ContinuousDataDrivenProblem(
@@ -35,14 +29,13 @@ end
     SR3(1e-4)
     ]
 
-res = solve(dd_prob, basis, opts[1], maxiter = 10000)
-
     for opt in opts
         m = DataDrivenDiffEq.metrics(res)
         @test all(m[:L₂] .< 1e-1*size(X, 2))
-        @test all(m[:AIC] .>= 200) # Perfect Match or close
+        @test all(m[:AIC] .<= 0.0) # Perfect Match or close
         @test all(m[:R²] .>= 0.9)
     end
+    
 end
 
 
@@ -67,8 +60,8 @@ X = X .+ 1e-1*randn(size(X))
         res = solve(dd_prob_noisy, basis, opt, maxiter = 50000, denoise = true, normalize = true)
         m = DataDrivenDiffEq.metrics(res)
         @test all(m[:L₂]./size(X,2) .< [30.; 800])
-        @test all(-500.0 .< m[:AIC])
-        @test all(m[:R²] .>= 0.9)
+        @test all(m[:AIC] .< [350.; 1350.0])
+        @test all(m[:R²] .>= [0.97; 0.52])
     end
 
 end
