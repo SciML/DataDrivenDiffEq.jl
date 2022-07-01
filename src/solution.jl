@@ -64,28 +64,29 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol
         
     if !eval_expression
         # Compute the errors
-
         x, _, t, u = get_oop_args(prob)
         y = get_target(prob)
         e = similar(y)
-        e .= y
+        e .= Inf
+
         if is_implicit(b)
             for i in 1:length(b)
                 e[i,:] .= b([x; y], p, t, u)[i,:]
             end
         else
             for i in 1:length(b)
-                e[i,:] .= b([x; y], p, t, u)[i,:]
+                e[i,:] .= y[i,:] .- b(x, p, t, u)[i,:]
             end
         end
 
         # RSS
         l2 = sum(abs2, e, dims = 2)[:,1]
-        # This is the ΔAIC for a lsq
-        aic = size(e, 2) .* log.(l2) + 2*length(p) #2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
+        # This is the AIC for a lsq
+        aic = size(e, 2) .* log.(l2) .+ 2*length(p) #2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
         
         if linearity
-            rsquared = 1 .- mean(e, dims = 2)[:,1] ./ var(get_target(prob), dims = 2)[:,1]
+            rsquared = 1 .- l2 ./ sum(abs2, y .- mean(y, dims =2)[:,1], dims = 2)[:,1]
+            
             #return l2, aic, rsquared
             return DataDrivenSolution(
                 b, p, retcode, alg, out, prob, l2, aic, rsquared
