@@ -37,5 +37,4 @@ end
     basis = result(res)
     m = metrics(res)
     @test all(m[:L₂] .< eps())
-    @test all(m[:AIC] .> 1000.0)
 end
