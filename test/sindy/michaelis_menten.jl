@@ -1,6 +1,3 @@
-using Test
-using Random
-
 function michaelis_menten(u, p, t)
     [0.6 - 1.5u[1]/(0.3+u[1])] # Should be 0.6*0.3+0.6u[1] - 1.5u[1] = u[2]*u[1]-0.3*u[2] 
 end
@@ -35,8 +32,8 @@ basis = Basis([h; h .* u[2]], u[1:1], implicits = u[2:2])
         res = solve(prob, basis, opt,u[2:2] ,normalize = false, denoise = false, maxiter = 10000)
         m = metrics(res)
         @test all(m[:L₂] .< 1e-1)
-        @test all(m[:AIC] .> 1000.0)
-        @test all(m[:R²] .> 0.6)
+        @test all(m[:AIC] .< -413.0)
+        @test all(m[:R²] .> 0.99)
     end
 
 end
@@ -54,7 +51,7 @@ X = X .+ 1e-3*randn(size(X))
         res = solve(prob, basis, opt, u[2:2], normalize = false, denoise = true)
         m = metrics(res)
         @test all(m[:L₂] .< 1e-1)
-        @test all(m[:AIC] .> 1000.0)
+        @test all(m[:AIC] .< -759.0)
         @test all(m[:R²] .> 0.9)
     end
 
