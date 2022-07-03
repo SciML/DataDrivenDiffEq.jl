@@ -40,18 +40,18 @@ end
 
 
 Random.seed!(2345)
-X = X .+ 1e-3*randn(size(X))
-
+# Adapt the error model 
+X_n = X .+ X .* (0.1*rand(size(X)...) .- 0.05)
 
 @testset "Noisy data" begin
 
-    prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel())
+    prob = ContinuousDataDrivenProblem(X_n, ts, GaussianKernel())
 
     for opt in [ImplicitOptimizer(3e-1);ImplicitOptimizer(3e-1:0.1:7e-1)]
         res = solve(prob, basis, opt, u[2:2], normalize = false, denoise = true)
         m = metrics(res)
         @test all(m[:L₂] .< 1e-1)
-        @test all(m[:AIC] .< -759.0)
+        @test all(m[:AIC] .< 100.0)
         @test all(m[:R²] .> 0.9)
     end
 
