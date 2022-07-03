@@ -21,10 +21,11 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 
 alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching = true, batchSize = 50, parsimony = 0.01f0)
 
-res = solve(prob, alg, max_iter = 300, numprocs = 0, multithreading = false)
+res = solve(prob, alg, max_iter = 1_0, numprocs = 0, multithreading = false)
 
 system = result(res)
 println(system)
+println(res)
 
 u = controls(system)
 t = get_iv(system)
