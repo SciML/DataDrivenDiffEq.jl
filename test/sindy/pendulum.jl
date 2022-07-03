@@ -41,12 +41,12 @@ end
 
 
 Random.seed!(1234)
-X = X .+ 1e-1*randn(size(X))
+X_n = X .+ 1e-1*randn(size(X))
 
 @testset "Noisy data" begin
 
     dd_prob_noisy = ContinuousDataDrivenProblem(
-        X, t, GaussianKernel()
+        X_n, t, GaussianKernel()
         )
 
     
