@@ -46,7 +46,7 @@ alg = EQSearch([-, *], loss = L1DistLoss(), verbosity = 0, maxsize = 9, batching
 # symbolic regressions [`EquationSearch`](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#EquationSearch) with the exception of `niterations` which 
 # is `max_iter`
 
-res = solve(prob, alg, max_iter = 300, numprocs = 0, multithreading = false)
+res = solve(prob, alg, max_iter = 1_0, numprocs = 0, multithreading = false)
 #md println(res) 
 
 # We see that the system has been recovered correctly, indicated by the small error. A closer look at the equations r
@@ -54,7 +54,7 @@ res = solve(prob, alg, max_iter = 300, numprocs = 0, multithreading = false)
 system = result(res)
 #md 
 println(system)
-
+println(res)
 # Shows that while not obvious, the representation 
 # And also plot the prediction of the recovered dynamics
 

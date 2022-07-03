@@ -50,8 +50,8 @@ struct DataDrivenSolution{L, A, O} <: AbstractDataDrivenSolution
         )
     end
 
-    function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg, out, prob::AbstractDataDrivenProblem, l2::AbstractVector, aic::AbstractVector, rsquared::AbstractVector; kwargs...)
-        return new{true, typeof(alg), typeof(out)}(
+    function DataDrivenSolution(linearity::Bool, b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg, out, prob::AbstractDataDrivenProblem, l2::AbstractVector, aic::AbstractVector, rsquared::AbstractVector; kwargs...)
+        return new{linearity, typeof(alg), typeof(out)}(
             b, p, retcode, alg, out, prob, l2, aic, rsquared
         )
     end
@@ -64,29 +64,31 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol
         
     if !eval_expression
         # Compute the errors
-
         x, _, t, u = get_oop_args(prob)
         y = get_target(prob)
+        e = similar(y)
+        e .= Inf
 
         if is_implicit(b)
-            e = b([x; y], p, t, u)
+            for i in 1:length(b)
+                e[i,:] .= b([x; y], p, t, u)[i,:]
+            end
         else
-            e = get_target(prob) - b(x, p, t, u)
+            for i in 1:length(b)
+                e[i,:] .= y[i,:] .- b(x, p, t, u)[i,:]
+            end
         end
 
+        # RSS
         l2 = sum(abs2, e, dims = 2)[:,1]
-        aic = 2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
+        # This is the AIC for a lsq
+        aic = size(e, 2) .* log.(l2) .+ 2*length(p) #2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
         
-        if linearity
-            rsquared = 1 .- mean(e, dims = 2)[:,1] ./ var(get_target(prob), dims = 2)[:,1]
+        rsquared = 1 .- l2 ./ sum(abs2, y .- mean(y, dims =2)[:,1], dims = 2)[:,1]
+            
             #return l2, aic, rsquared
-            return DataDrivenSolution(
-                b, p, retcode, alg, out, prob, l2, aic, rsquared
-            )
-        end
-
         return DataDrivenSolution(
-            linearity, b, p, retcode, alg, out, prob, l2, aic
+            linearity, b, p, retcode, alg, out, prob, l2, aic, rsquared
         )
     end
 
@@ -270,8 +272,7 @@ function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symb
     p = [Symbolics.variable(:p, i) for i in (pl+1):(pl+sp)]
     p = collect(p)
     ps = zeros(eltype(X), sp)
-
-    eqs = zeros(Num, sum(inds))
+    eqs = zeros(Num, size(X,2))
     eqs_ = [e.rhs for e in equations(b)]
     cnt = 1
     for j in 1:size(X, 2)

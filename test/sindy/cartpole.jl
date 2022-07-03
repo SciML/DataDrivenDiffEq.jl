@@ -1,10 +1,3 @@
-using DataDrivenDiffEq
-using ModelingToolkit
-using LinearAlgebra
-using OrdinaryDiffEq
-using Test
-#using Symbolics: scalarize
-
 function cart_pole(u, p, t)
     du = similar(u)
     F = -0.2 + 0.5*sin(6*t) # the input
@@ -68,5 +61,5 @@ m = metrics(res)
 
 @test length(parameters(res)) == 10
 @test all(m[:L₂] .< 1e-2)
-@test all(m[:AIC] .> 1000.0)
-@test all(m[:R²] .> 0.9)
+@test all(m[:AIC] .< -500.0)
+@test all(m[:R²] .> 0.99)
