@@ -28,7 +28,8 @@ w = collect(w)
 
 h = Num[sin.(w[1].*u[1]);cos.(w[2].*u[1]); polynomial_basis(u, 5); c]
 
-basis = Basis(h, u, parameters = w, controls = c)
+basis = Basis(h, u, parameters = w, controls = c);
+println(basis) # hide
 
 sampler = DataSampler(Batcher(n = 5, shuffle = true, repeated = true))
 λs = exp10.(-10:0.1:-1)
