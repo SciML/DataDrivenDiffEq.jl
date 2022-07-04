@@ -52,7 +52,8 @@ w = collect(w)
 
 h = Num[sin.(w[1].*u[1]);cos.(w[2].*u[1]); polynomial_basis(u, 5); c]
 
-basis = Basis(h, u, parameters = w, controls = c)
+basis = Basis(h, u, parameters = w, controls = c);
+println(basis) # hide
 
 # To solve the problem, we also define a [`DataSampler`](@ref) which defines randomly shuffled minibatches of our data and selects the 
 # best fit.
