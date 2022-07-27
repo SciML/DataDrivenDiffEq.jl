@@ -50,7 +50,7 @@ same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
 
 """
-mutable struct Basis <: AbstractBasis
+mutable struct Basis{I} <: AbstractBasis
     """The equations of the basis"""
     eqs::Vector{Equation}
     """Dependent (state) variables"""
@@ -83,7 +83,8 @@ mutable struct Basis <: AbstractBasis
             #check_equations(equations(events), iv)
             #all_dimensionless([dvs; ps; iv]) || check_units(deqs)
         end
-        new(eqs, states, ctrls, ps, observed, iv, implicit, f, name, systems)
+        imp_ = !isempty(implicit)
+        new{imp_}(eqs, states, ctrls, ps, observed, iv, implicit, f, name, systems)
     end
 end
 
@@ -120,7 +121,6 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
 
     return Basis(collect(eqs), states, controls, parameters, observed, iv, implicits, f, name, Basis[])
 end
-
 
 function Basis(eqs::AbstractVector{Symbolics.Equation}, states::AbstractVector;
     parameters::AbstractVector = [], iv = nothing,
@@ -170,11 +170,11 @@ function Basis(f::Function, states::AbstractVector; parameters::AbstractVector =
     end
 end
 
-function Basis(n::Int)
-    @parameters t
-    @variables u[1:n](t)
-    return Basis(u, u, iv = t)
-end
+#function Basis(n::Int)
+#    @parameters t
+#    @variables u[1:n](t)
+#    return Basis(u, u, iv = t)
+#end
 
 ## Printing
 

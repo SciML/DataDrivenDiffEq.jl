@@ -340,6 +340,26 @@ end
     b(dx, p[:, j]...)
 end
 
+@views (b::Basis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem, j) = begin 
+    b(res, cat(get_target(p), states(p), dims = 2), parameters(p), independent_variable(p), controls(p))
+end
+
+# Implicit basis!
+@views (b::Basis{true})(p::AbstractDataDrivenProblem) = begin 
+    b(cat(get_target(p), states(p), dims = 2), parameters(p), independent_variable(p), controls(p))
+end
+
+@views (b::Basis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem) = begin 
+    b(res, cat(get_target(p), states(p), dims = 2), parameters(p), independent_variable(p), controls(p))
+end
+
+@views (b::Basis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem, j) = begin 
+    arg_ = p[:,j]
+    in_ = cat(get_target(p)[:,j], first(arg_), dims = 2) 
+    b(res, in_, Base.tail(arg_)...)
+end
+
+
 # Special case discrete problem
 
 @views (b::AbstractBasis)(p::AbstractDiscreteProb) = begin 
@@ -349,6 +369,21 @@ end
 @views (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDiscreteProb) = begin 
     b(dx, p, 1:length(p))
 end
+
+# Implicit
+@views (b::Basis{true})(p::AbstractDiscreteProb) = begin 
+    arg_ = p[:,length(p)]
+    in_ = cat(get_target(p)[:,length(p)], first(arg_), dims = 2) 
+    b(in_, Base.tail(arg_)...)
+end
+
+# Implicit
+@views (b::Basis{true})(dx::AbstractMatrix, p::AbstractDiscreteProb) = begin 
+    arg_ = p[:,length(p)]
+    in_ = cat(get_target(p)[:,length(p)], first(arg_), dims = 2) 
+    b(dx, in_, Base.tail(arg_)...)
+end
+
 
 # Check for nans, inf etc
 check_domain(x) =  @assert all(.~isnan.(x)) && all(.~isinf.(x)) ("One or more measurements contain `NaN` or `Inf`.")
