@@ -53,7 +53,7 @@ abstract type AbstractDataDrivenResult end
 
 # Problem and solution
 abstract type AbstractDataDrivenProblem{dType, cType, probType} end
-abstract type AbstractDataDrivenSolution end
+abstract type AbstractDataDrivenSolution <: StatsBase.StatisticalModel end
 
 # Optimizer
 #abstract type AbstractProximalOperator end;

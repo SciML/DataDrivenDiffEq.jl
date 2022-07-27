@@ -27,8 +27,6 @@ struct DataDrivenSolution{T} <: AbstractDataDrivenSolution
     residuals::T
     "Degrees of freedom"
     dof::Int
-    "Coefficient of determinantion"
-    rsquared::AbstractVector        
 end
 
 #function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg::A, out::O, prob::AbstractDataDrivenProblem, linearity::Bool; 
