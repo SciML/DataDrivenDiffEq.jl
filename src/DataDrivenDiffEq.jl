@@ -7,30 +7,36 @@ using DocStringExtensions
 using LinearAlgebra
 using DiffEqBase
 using CommonSolve
-using ModelingToolkit
+using Reexport
 
+using Parameters
+using Setfield
+
+using ModelingToolkit
+using ModelingToolkit: AbstractSystem
+using ModelingToolkit: value, operation, arguments, istree, get_observed
+using Symbolics: scalarize, variable
+@reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls, get_iv
+
+using Random
 using Distributions
 using QuadGK
 using Statistics
+using StatsBase
+
 using DataInterpolations
-using Parameters
-using Random
+@reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
+
 using Measurements
 
-using Requires
-using ProgressMeter
-using Reexport
+#using Requires
+#using ProgressMeter
 using DocStringExtensions
 using RecipesBase
 
 @reexport using DiffEqBase: solve
-@reexport using ModelingToolkit: states, parameters, independent_variable, observed, controls, get_iv
-@reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation, QuadraticInterpolation, LagrangeInterpolation, QuadraticSpline, CubicSpline, BSplineInterpolation, BSplineApprox, Curvefit
-using Symbolics: scalarize, variable
 
 
-using ModelingToolkit: AbstractSystem
-using ModelingToolkit: value, operation, arguments, istree, get_observed
 # Basis and Koopman
 abstract type AbstractBasis <: AbstractSystem end
 abstract type AbstractKoopman <: AbstractBasis end
@@ -39,19 +45,20 @@ abstract type AbstractInterpolationMethod end
 abstract type CollocationKernel end
 
 # Algortihms for Koopman
-abstract type AbstractKoopmanAlgorithm end
+abstract type AbstractDataDrivenAlgorithm end
+abstract type AbstractDataDrivenResult end
 
 # Abstract symbolic_regression
-abstract type AbstractSymbolicRegression end
+#abstract type AbstractSymbolicRegression end
 
 # Problem and solution
 abstract type AbstractDataDrivenProblem{dType, cType, probType} end
 abstract type AbstractDataDrivenSolution end
 
 # Optimizer
-abstract type AbstractProximalOperator end;
-abstract type AbstractOptimizer{T} end;
-abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end;
+#abstract type AbstractProximalOperator end;
+#abstract type AbstractOptimizer{T} end;
+#abstract type AbstractSubspaceOptimizer{T} <: AbstractOptimizer{T} end;
     
 
 
@@ -82,24 +89,24 @@ export burst_sampling, subsample
 
 ## Sparse Regression
 
-include("./optimizers/Optimize.jl")
-export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
-export sparse_regression!
-export init, init!, set_threshold!, get_threshold
-export STLSQ, ADMM, SR3
-export ImplicitOptimizer
-
+#include("./optimizers/Optimize.jl")
+#export SoftThreshold, HardThreshold,ClippedAbsoluteDeviation
+#export sparse_regression!
+#export init, init!, set_threshold!, get_threshold
+#export STLSQ, ADMM, SR3
+#export ImplicitOptimizer
+#
 ## Koopman
 
-include("./koopman/type.jl")
-export Koopman
-export operator, generator
-export is_stable, is_discrete, is_continuous
-export modes, frequencies, outputmap, updatable
-export update!
+#include("./koopman/type.jl")
+#export Koopman
+#export operator, generator
+#export is_stable, is_discrete, is_continuous
+#export modes, frequencies, outputmap, updatable
+#export update!
 
-include("./koopman/algorithms.jl")
-export DMDPINV, DMDSVD, TOTALDMD, FBDMD
+#include("./koopman/algorithms.jl")
+#export DMDPINV, DMDSVD, TOTALDMD, FBDMD
 
 
 ## Problem and Solution
@@ -138,42 +145,42 @@ select_by(x, sol) = select_by(Val(x), sol)
 
 include("./solution.jl")
 export DataDrivenSolution
-export result, parameters, parameter_map, algorithm
-export output, metrics, l2error, aic, determination, get_problem
+#export result, parameters, parameter_map, algorithm
+#export output, metrics, l2error, aic, determination, get_problem
 
 
-include("./solve/common.jl")
+include("./common_options.jl")
 export DataDrivenCommonOptions
-include("./solve/sparse_identification.jl")
+#include("./solve/sparse_identification.jl")
 #include("./solve/sindy.jl")
-include("./solve/koopman.jl")
+#include("./solve/koopman.jl")
 #export solve
 
 include("./recipes/problem_result.jl")
 
 # Optional
-function __init__()
-    # Load and export OccamNet
-    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
-
-        using .Flux
-        include("./symbolic_regression/occamnet.jl")
-
-        export OccamNet,ProbabilityLayer
-        export set_temp!
-        export probability, logprobability
-        export probabilities, logprobabilities
-        export OccamSR
-
-        @info "DataDrivenDiffEq : OccamNet is available."
-    end
-
-    @require SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb" begin
-        using .SymbolicRegression
-        include("./symbolic_regression/symbolic_regression.jl")
-        export EQSearch
-    end
-
-end
-
+#function __init__()
+#    # Load and export OccamNet
+#    @require Flux="587475ba-b771-5e3f-ad9e-33799f191a9c" begin
+#
+#        using .Flux
+#        include("./symbolic_regression/occamnet.jl")
+#
+#        export OccamNet,ProbabilityLayer
+#        export set_temp!
+#        export probability, logprobability
+#        export probabilities, logprobabilities
+#        export OccamSR
+#
+#        @info "DataDrivenDiffEq : OccamNet is available."
+#    end
+#
+#    @require SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb" begin
+#        using .SymbolicRegression
+#        include("./symbolic_regression/symbolic_regression.jl")
+#        export EQSearch
+#    end
+#
+#end
+#
 end # module
