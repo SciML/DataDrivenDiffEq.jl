@@ -124,6 +124,6 @@ export get_algorithm, get_result, get_basis, is_converged, get_problem
 include("./utils/common_options.jl")
 export DataDrivenCommonOptions
 
-include("./utils/problem_result.jl")
+include("./utils/plot_recipes.jl")
 
 end # module
