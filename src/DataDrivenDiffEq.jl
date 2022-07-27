@@ -121,9 +121,9 @@ include("./solution.jl")
 export DataDrivenSolution
 export get_algorithm, get_result, get_basis, is_converged, get_problem
 
-include("./common_options.jl")
+include("./utils/common_options.jl")
 export DataDrivenCommonOptions
 
-include("./recipes/problem_result.jl")
+include("./utils/problem_result.jl")
 
 end # module
