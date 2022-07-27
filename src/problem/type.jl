@@ -109,6 +109,8 @@ struct DataDrivenProblem{dType, cType, probType} <: AbstractDataDrivenProblem{dT
 end
 
 
+Base.eltype(::AbstractDataDrivenProblem{T}) where T = T
+
 function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem), kwargs...)
     dType = Base.promote_eltype(X, t, DX, Y, U, p)
     cType = isempty(U)
@@ -340,22 +342,18 @@ end
     b(dx, p[:, j]...)
 end
 
-@views (b::Basis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem, j) = begin 
-    b(res, cat(get_target(p), states(p), dims = 2), parameters(p), independent_variable(p), controls(p))
-end
-
 # Implicit basis!
 @views (b::Basis{true})(p::AbstractDataDrivenProblem) = begin 
-    b(cat(get_target(p), states(p), dims = 2), parameters(p), independent_variable(p), controls(p))
+    b(cat(get_target(p), states(p), dims = 1), parameters(p), independent_variable(p), controls(p))
 end
 
 @views (b::Basis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem) = begin 
-    b(res, cat(get_target(p), states(p), dims = 2), parameters(p), independent_variable(p), controls(p))
+    b(res, cat(get_target(p), states(p), dims = 1), parameters(p), independent_variable(p), controls(p))
 end
 
 @views (b::Basis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem, j) = begin 
     arg_ = p[:,j]
-    in_ = cat(get_target(p)[:,j], first(arg_), dims = 2) 
+    in_ = cat(get_target(p)[:,j], first(arg_), dims = 1) 
     b(res, in_, Base.tail(arg_)...)
 end
 
@@ -372,15 +370,15 @@ end
 
 # Implicit
 @views (b::Basis{true})(p::AbstractDiscreteProb) = begin 
-    arg_ = p[:,length(p)]
-    in_ = cat(get_target(p)[:,length(p)], first(arg_), dims = 2) 
+    arg_ = p[:,1:length(p)]
+    in_ = cat(get_target(p)[:,1:length(p)], first(arg_), dims = 1) 
     b(in_, Base.tail(arg_)...)
 end
 
 # Implicit
 @views (b::Basis{true})(dx::AbstractMatrix, p::AbstractDiscreteProb) = begin 
-    arg_ = p[:,length(p)]
-    in_ = cat(get_target(p)[:,length(p)], first(arg_), dims = 2) 
+    arg_ = p[:,1:length(p)]
+    in_ = cat(get_target(p)[:,1:length(p)], first(arg_), dims = 1) 
     b(dx, in_, Base.tail(arg_)...)
 end
 

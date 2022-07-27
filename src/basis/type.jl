@@ -364,7 +364,6 @@ end
 
 ## Derivatives
 
-
 """
     $(SIGNATURES)
 
@@ -520,16 +519,10 @@ end
 
 ## Additional functionalities
 
-function (==)(x::Basis, y::Basis)
+function Base.isequal(x::Basis, y::Basis)
     length(x) == length(y) || return false
-    n = zeros(Bool, length(x))
     yrhs = [yi.rhs for yi in equations(y)]
     xrhs = [xi.rhs for xi in equations(x)]
-    @inbounds for (i, xi) in enumerate(xrhs)
-        n[i] = any(isequal.([xi], yrhs))
-        !n[i] && break
-    end
-    return all(n)
+    isequal(yrhs, xrhs)
 end
 
-free_parameters(b::AbstractBasis; operations = [+]) = count_operation([xi.rhs for xi in equations(b)], operations) + length(b)

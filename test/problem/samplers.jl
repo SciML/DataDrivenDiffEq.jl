@@ -1,3 +1,6 @@
+using DataDrivenDiffEq
+using LinearAlgebra
+
 # Random Test Problem of size 100 
 X = randn(2, 100)
 Y = randn(1, 100)

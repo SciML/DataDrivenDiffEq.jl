@@ -108,7 +108,7 @@ end
 # Get the symbols of the states for plotting
 # Add extreme values for error ? 
 
-@recipe function resplot(x::AbstractDataDrivenSolution; show_data::Bool = false)
+@recipe function resplot(x::AbstractDataDrivenSolution)
     plotins, xlab = gather_plot_information(x)
     isdirec = is_direct(get_problem(x))
     layout := (2,1)
@@ -127,19 +127,16 @@ end
         t, permutedims(Ŷ)
     end
 
-    if show_data 
-        @series begin
-            label --> nothing
-            ylabel --> lab
-            subplot := 1
-            seriestype --> :path
-            primary := false
-            linestyle --> :dash
-            color --> :black
-            t, permutedims(Y)
-        end
+    @series begin
+        label --> nothing
+        ylabel --> lab
+        subplot := 1
+        seriestype --> :path
+        primary := false
+        linestyle --> :dash
+        color --> :black
+        t, permutedims(Y)
     end
-
 
     elab = lab*suff*"-"*lab_*suff
 

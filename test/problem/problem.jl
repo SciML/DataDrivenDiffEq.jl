@@ -1,3 +1,7 @@
+using DataDrivenDiffEq
+using LinearAlgebra
+using ModelingToolkit
+
 # Generate some test data
 t = collect(0:0.1:5.0)
 f_(t) = [sin(t); cos(t)]
