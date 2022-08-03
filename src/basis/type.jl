@@ -1,6 +1,5 @@
 import Base: unique, unique!, ==, deleteat!
 
-
 """
 $(TYPEDEF)
 
@@ -71,10 +70,9 @@ mutable struct Basis{I} <: AbstractBasis
     name::Symbol
     """Internal systems"""
     systems::Vector{Basis}
-    
-    function Basis(eqs, states, ctrls, ps, observed, iv, implicit, f, name, systems;
-        checks::Bool = true)
 
+    function Basis(eqs, states, ctrls, ps, observed, iv, implicit, f, name, systems;
+                   checks::Bool = true)
         if checks
             # Currently do nothing here
             #check_variables(dvs, iv)
@@ -91,21 +89,24 @@ end
 ## Constructors
 
 function Basis(eqs::AbstractVector, states::AbstractVector;
-    parameters::AbstractVector = [], iv = nothing,
-    controls::AbstractVector = [], implicits = [],
-    observed::AbstractVector = [],
-    name = gensym(:Basis),
-    simplify = false, linear_independent = false,
-    eval_expression = false,
-    kwargs...)
-    
+               parameters::AbstractVector = [], iv = nothing,
+               controls::AbstractVector = [], implicits = [],
+               observed::AbstractVector = [],
+               name = gensym(:Basis),
+               simplify = false, linear_independent = false,
+               eval_expression = false,
+               kwargs...)
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     eqs = scalarize(eqs)
 
-    states, controls, parameters, implicits, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(implicits)), value.(scalarize(observed))
+    states, controls, parameters, implicits, observed = value.(scalarize(states)),
+                                                        value.(scalarize(controls)),
+                                                        value.(scalarize(parameters)),
+                                                        value.(scalarize(implicits)),
+                                                        value.(scalarize(observed))
 
-    eqs = [eq for eq in eqs if ~isequal(Num(eq),zero(Num))]
+    eqs = [eq for eq in eqs if ~isequal(Num(eq), zero(Num))]
 
     if linear_independent
         eqs_ = create_linear_independent_eqs(eqs, simplify)
@@ -115,30 +116,35 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
 
     unique!(eqs, !simplify)
 
-    f = _build_ddd_function(eqs, [states;implicits], parameters, iv, controls, eval_expression)
+    f = _build_ddd_function(eqs, [states; implicits], parameters, iv, controls,
+                            eval_expression)
 
-    eqs = [Symbolics.variable(:φ,i) ~ eq for (i,eq) ∈ enumerate(eqs_)]
+    eqs = [Symbolics.variable(:φ, i) ~ eq for (i, eq) in enumerate(eqs_)]
 
-    return Basis(collect(eqs), states, controls, parameters, observed, iv, implicits, f, name, Basis[])
+    return Basis(collect(eqs), states, controls, parameters, observed, iv, implicits, f,
+                 name, Basis[])
 end
 
 function Basis(eqs::AbstractVector{Symbolics.Equation}, states::AbstractVector;
-    parameters::AbstractVector = [], iv = nothing,
-    controls::AbstractVector = [], implicits = [],
-    observed::AbstractVector = [],
-    name = gensym(:Basis),
-    simplify = false, linear_independent = false,
-    eval_expression = false,
-    kwargs...)
-
+               parameters::AbstractVector = [], iv = nothing,
+               controls::AbstractVector = [], implicits = [],
+               observed::AbstractVector = [],
+               name = gensym(:Basis),
+               simplify = false, linear_independent = false,
+               eval_expression = false,
+               kwargs...)
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     eqs = scalarize(eqs)
-    states, controls, parameters, implicits, observed = value.(scalarize(states)), value.(scalarize(controls)), value.(scalarize(parameters)), value.(scalarize(implicits)), value.(scalarize(observed))
+    states, controls, parameters, implicits, observed = value.(scalarize(states)),
+                                                        value.(scalarize(controls)),
+                                                        value.(scalarize(parameters)),
+                                                        value.(scalarize(implicits)),
+                                                        value.(scalarize(observed))
 
     lhs = [x.lhs for x in eqs]
     # We filter out 0s
-    eqs_ = [Num(x.rhs) for x in eqs if ~isequal(Num(x),zero(Num))]
+    eqs_ = [Num(x.rhs) for x in eqs if ~isequal(Num(x), zero(Num))]
     if linear_independent
         eqs_ = create_linear_independent_eqs(eqs_, simplify)
     else
@@ -148,23 +154,25 @@ function Basis(eqs::AbstractVector{Symbolics.Equation}, states::AbstractVector;
     isnothing(iv) && (iv = Num(variable(:t)))
     unique!(eqs_, !simplify)
 
-    f = _build_ddd_function(eqs_, [states;implicits], parameters, iv, controls, eval_expression)
+    f = _build_ddd_function(eqs_, [states; implicits], parameters, iv, controls,
+                            eval_expression)
 
-    eqs = [lhs[i] ~ eq for (i,eq) ∈ enumerate(eqs_)]
+    eqs = [lhs[i] ~ eq for (i, eq) in enumerate(eqs_)]
 
-    return Basis(collect(eqs), states, controls, parameters, observed, iv, implicits, f, name, Basis[])
-
+    return Basis(collect(eqs), states, controls, parameters, observed, iv, implicits, f,
+                 name, Basis[])
 end
 
-
-function Basis(f::Function, states::AbstractVector; parameters::AbstractVector = [], controls::AbstractVector = [], implicits::AbstractVector = [],
-     iv = nothing, kwargs...)
-
+function Basis(f::Function, states::AbstractVector; parameters::AbstractVector = [],
+               controls::AbstractVector = [], implicits::AbstractVector = [],
+               iv = nothing, kwargs...)
     isnothing(iv) && (iv = Num(Variable(:t)))
 
     try
-        eqs = isempty(controls) ? f([states;implicits], parameters, iv) : f([states;implicits], parameters, iv, controls)
-        return Basis(eqs, states, parameters = parameters, iv = iv, controls = controls, implicits = implicits; kwargs...)
+        eqs = isempty(controls) ? f([states; implicits], parameters, iv) :
+              f([states; implicits], parameters, iv, controls)
+        return Basis(eqs, states, parameters = parameters, iv = iv, controls = controls,
+                     implicits = implicits; kwargs...)
     catch e
         rethrow(e)
     end
@@ -175,7 +183,7 @@ end
 @inline function Base.print(io::IO, x::AbstractBasis)
     state = states(x)
     ps = parameters(x)
-    Base.printstyled(io, "Model $(nameof(x)) with $(length(x)) equations\n"; bold=true)
+    Base.printstyled(io, "Model $(nameof(x)) with $(length(x)) equations\n"; bold = true)
     print(io, "States :")
     if length(state) < 5
         for xi in state
@@ -186,21 +194,21 @@ end
     end
 
     if !isempty(ps)
-         print(io, "\nParameters :")
-         if length(ps) < 5
-             for p_ in ps
-                 print(io, " ", p_)
-             end
-         else
-             print(io, " ", length(ps))
-         end
-     end
+        print(io, "\nParameters :")
+        if length(ps) < 5
+            for p_ in ps
+                print(io, " ", p_)
+            end
+        else
+            print(io, " ", length(ps))
+        end
+    end
 
     println(io, "\nIndependent variable: $(get_iv(x))")
     println(io, "Equations")
-    for (i,eq) ∈ enumerate(equations(x))
+    for (i, eq) in enumerate(equations(x))
         if i < 5 || i == length(x)
-        println(io, "$(eq.lhs) = $(eq.rhs)")
+            println(io, "$(eq.lhs) = $(eq.rhs)")
         elseif i == 5
             println(io, "...")
         else
@@ -214,7 +222,7 @@ end
 
     state = states(x)
     ps = parameters(x)
-    Base.printstyled(io, "Model $(nameof(x)) with $(length(x)) equations\n"; bold=true)
+    Base.printstyled(io, "Model $(nameof(x)) with $(length(x)) equations\n"; bold = true)
     print(io, "States :")
     if length(state) < 5
         for xi in state
@@ -225,19 +233,19 @@ end
     end
 
     if !isempty(ps)
-         print(io, "\nParameters :")
-         if length(ps) < 5
-             for p_ in ps
-                 print(io, " ", p_)
-             end
-         else
-             print(io, " ", length(ps))
-         end
-     end
+        print(io, "\nParameters :")
+        if length(ps) < 5
+            for p_ in ps
+                print(io, " ", p_)
+            end
+        else
+            print(io, " ", length(ps))
+        end
+    end
 
     println(io, "\nIndependent variable: $(get_iv(x))")
     println(io, "Equations")
-    for (i,eq) ∈ enumerate(equations(x))
+    for (i, eq) in enumerate(equations(x))
         println(io, "$(eq.lhs) = $(eq.rhs)")
     end
 end
@@ -274,56 +282,61 @@ get_f(b::AbstractBasis) = getfield(b, :f)
 (b::AbstractBasis)(args...) = get_f(b)(args...)
 
 # OOP
-function (b::AbstractBasis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T = parameters(b),
-    t::T where T <: Number = get_iv(b))
-    return get_f(b)(x,p,t)
+function (b::AbstractBasis)(x::AbstractVector{T} where {T},
+                            p::AbstractVector{T} where {T} = parameters(b),
+                            t::T where {T <: Number} = get_iv(b))
+    return get_f(b)(x, p, t)
 end
 
-function (b::AbstractBasis)(x::AbstractVector{T} where T, p::AbstractVector{T} where T,
-    t::T where T <: Number , u::AbstractVector{T} where T)
-    return get_f(b)(x,p,t, u)
+function (b::AbstractBasis)(x::AbstractVector{T} where {T}, p::AbstractVector{T} where {T},
+                            t::T where {T <: Number}, u::AbstractVector{T} where {T})
+    return get_f(b)(x, p, t, u)
 end
 
-function (b::AbstractBasis)(x::AbstractMatrix{T} where T)
+function (b::AbstractBasis)(x::AbstractMatrix{T} where {T})
     t = get_iv(b)
-    return get_f(b)(x,parameters(b),[t for i in 1:size(x,2)])
+    return get_f(b)(x, parameters(b), [t for i in 1:size(x, 2)])
 end
 
-function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
+function (b::AbstractBasis)(x::AbstractMatrix{T} where {T}, p::AbstractVector{T} where {T})
     t = get_iv(b)
-    return get_f(b)(x,p,[t for i in 1:size(x,2)])
+    return get_f(b)(x, p, [t for i in 1:size(x, 2)])
 end
 
-function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
-    t::AbstractVector{T} where T <: Number)
-    return get_f(b)(x,p,t)
+function (b::AbstractBasis)(x::AbstractMatrix{T} where {T}, p::AbstractVector{T} where {T},
+                            t::AbstractVector{T} where {T <: Number})
+    return get_f(b)(x, p, t)
 end
 
-
-function (b::AbstractBasis)(x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
-    t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
-    return get_f(b)(x,p,t, u)
+function (b::AbstractBasis)(x::AbstractMatrix{T} where {T}, p::AbstractVector{T} where {T},
+                            t::AbstractVector{T} where {T <: Number},
+                            u::AbstractMatrix{T} where {T})
+    return get_f(b)(x, p, t, u)
 end
 
 # IIP
-function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T)
+function (b::AbstractBasis)(y::AbstractMatrix{T} where {T}, x::AbstractMatrix{T} where {T})
     t = get_iv(b)
-    return get_f(b)(y,x,parameters(b),[t for i in 1:size(x,2)])
+    return get_f(b)(y, x, parameters(b), [t for i in 1:size(x, 2)])
 end
 
-function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,)
+function (b::AbstractBasis)(y::AbstractMatrix{T} where {T}, x::AbstractMatrix{T} where {T},
+                            p::AbstractVector{T} where {T})
     t = get_iv(b)
-    return get_f(b)(y,x,p,[t for i in 1:size(x,2)])
+    return get_f(b)(y, x, p, [t for i in 1:size(x, 2)])
 end
 
-function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
-    t::AbstractVector{T} where T <: Number, )
-    return get_f(b)(y,x,p,t)
+function (b::AbstractBasis)(y::AbstractMatrix{T} where {T}, x::AbstractMatrix{T} where {T},
+                            p::AbstractVector{T} where {T},
+                            t::AbstractVector{T} where {T <: Number})
+    return get_f(b)(y, x, p, t)
 end
 
-function (b::AbstractBasis)(y::AbstractMatrix{T} where T, x::AbstractMatrix{T} where T, p::AbstractVector{T} where T,
-    t::AbstractVector{T} where T <: Number, u::AbstractMatrix{T} where T)
-    return get_f(b)(y,x,p,t,u)
+function (b::AbstractBasis)(y::AbstractMatrix{T} where {T}, x::AbstractMatrix{T} where {T},
+                            p::AbstractVector{T} where {T},
+                            t::AbstractVector{T} where {T <: Number},
+                            u::AbstractMatrix{T} where {T})
+    return get_f(b)(y, x, p, t, u)
 end
 
 ## Information and Iteration
@@ -340,15 +353,13 @@ Base.iterate(x::AbstractBasis, id) = iterate(equations(x), id)
 ## Internal update
 
 function update!(b::AbstractBasis, eval_expression = false)
-
     ff = _build_ddd_function([bi.rhs for bi in collect(equations(b))],
-        states(b), parameters(b), [get_iv(b)],
-        controls(b), eval_expression)
+                             states(b), parameters(b), [get_iv(b)],
+                             controls(b), eval_expression)
     Core.setfield!(b, :f, ff)
 
     return
 end
-
 
 function Base.setindex!(x::AbstractBasis, idx, val, eval_expression = false)
     setindex!(equations(x), idx, val)
@@ -369,18 +380,16 @@ end
 """
 jacobian(x::Basis, eval_expression::Bool = false) = jacobian(x, states(x), eval_expression)
 
-
 function jacobian(x::Basis, s, eval_expression::Bool = false)
-
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], s)
 
     return _build_ddd_function(j,
-        states(x), parameters(x), get_iv(x),
-        controls(x), eval_expression)
+                               states(x), parameters(x), get_iv(x),
+                               controls(x), eval_expression)
 end
 
 ## Utilities
-function Base.deleteat!(b::Symbolics.Arr{T,N}, idxs) where {T,N}
+function Base.deleteat!(b::Symbolics.Arr{T, N}, idxs) where {T, N}
     deleteat!(Symbolics.unwrap(b), idxs)
 end
 
@@ -388,23 +397,23 @@ function Base.unique(b::AbstractArray{SymbolicUtils.Sym}, simplify_eqs::Bool)
     b = simplify_eqs ? simplify.(b) : b
     returns = ones(Bool, size(b)...)
     N = maximum(eachindex(b))
-    for i ∈ eachindex(b)
-        returns[i] = !any([isequal(b[i], b[j]) for j in i+1:N])
+    for i in eachindex(b)
+        returns[i] = !any([isequal(b[i], b[j]) for j in (i + 1):N])
     end
     return Num.(b[returns])
 end
 
 function Base.unique(b::AbstractArray{Num}, y::Bool)
-    unique(collect(map(x->x.val, b)), y)
+    unique(collect(map(x -> x.val, b)), y)
 end
 
-
-function Base.unique!(b::AbstractArray{T}, simplify_eqs = false) where {T <: Union{Num, SymbolicUtils.Sym}}
+function Base.unique!(b::AbstractArray{T},
+                      simplify_eqs = false) where {T <: Union{Num, SymbolicUtils.Sym}}
     bs = simplify_eqs ? simplify.(b) : b
     removes = zeros(Bool, size(bs)...)
     N = maximum(eachindex(bs))
-    for i ∈ eachindex(bs)
-        removes[i] = any([isequal(bs[i], bs[j]) for j in i+1:N])
+    for i in eachindex(bs)
+        removes[i] = any([isequal(bs[i], bs[j]) for j in (i + 1):N])
     end
     deleteat!(b, removes)
 end
@@ -413,8 +422,8 @@ function Base.unique(b::AbstractArray{Equation}, simplify_eqs::Bool)
     b = simplify_eqs ? simplify.(b) : b
     returns = ones(Bool, size(b)...)
     N = maximum(eachindex(b))
-    for i ∈ eachindex(b)
-        returns[i] = !any([isequal(b[i].rhs, b[j].rhs) for j in i+1:N])
+    for i in eachindex(b)
+        returns[i] = !any([isequal(b[i].rhs, b[j].rhs) for j in (i + 1):N])
     end
     return b[returns]
 end
@@ -424,8 +433,8 @@ function Base.unique!(b::AbstractArray{Equation}, simplify_eqs::Bool)
     bs = simplify_eqs ? simplify.(bs) : bs
     removes = zeros(Bool, size(bs)...)
     N = maximum(eachindex(bs))
-    for i ∈ eachindex(bs)
-        removes[i] = any([isequal(bs[i], bs[j]) for j in i+1:N])
+    for i in eachindex(bs)
+        removes[i] = any([isequal(bs[i], bs[j]) for j in (i + 1):N])
     end
     deleteat!(b, removes)
 end
@@ -459,8 +468,9 @@ end
     Push the equations(s) in `eq` into the basis and update all internal fields accordingly.
     `eq` can either be a single equation or an array. If `simplify_eq` is true, the equation will be simplified.
 """
-function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expression = false)
-    @inbounds for eq ∈ eqs
+function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true;
+                    eval_expression = false)
+    @inbounds for eq in eqs
         push!(b, eq, false)
     end
     unique!(b, simplify_eqs, eval_expression = eval_expression)
@@ -468,7 +478,7 @@ function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true; eval_expr
 end
 
 function Base.push!(b::Basis, eq, simplify_eqs = true; eval_expression = false)
-    push!(equations(b), variable(:φ, length(b)+1)~eq)
+    push!(equations(b), variable(:φ, length(b) + 1) ~ eq)
     unique!(b, simplify_eqs, eval_expression = eval_expression)
     return
 end
@@ -479,21 +489,21 @@ function Base.push!(b::Basis, eq::Equation, simplify_eqs = true; eval_expression
     return
 end
 
-
 """
     $(SIGNATURES)
 
     Return a new `Basis`, which is defined via the union of `x` and `y` .
 """
 function Base.merge(x::Basis, y::Basis; eval_expression = false)
-    b =  unique(vcat([xi.rhs  for xi ∈ equations(x)], [xi.rhs  for xi ∈ equations(y)]))
+    b = unique(vcat([xi.rhs for xi in equations(x)], [xi.rhs for xi in equations(y)]))
     vs = unique(vcat(states(x), states(y)))
     ps = unique(vcat(parameters(x), parameters(y)))
 
     c = unique(vcat(controls(x), controls(y)))
     observed = unique(vcat(get_observed(x), get_observed(y)))
 
-    return Basis(Num.(b), vs, parameters = ps, controls = c, observed = observed, eval_expression = eval_expression)
+    return Basis(Num.(b), vs, parameters = ps, controls = c, observed = observed,
+                 eval_expression = eval_expression)
 end
 
 """
@@ -502,8 +512,8 @@ end
     Updates `x` to include the union of both `x` and `y`.
 """
 function Base.merge!(x::Basis, y::Basis; eval_expression = false)
-    push!(x, map(x->x.rhs, equations(y)))
-    Core.setfield!(x, :states, unique(vcat(states(x),states(y))))
+    push!(x, map(x -> x.rhs, equations(y)))
+    Core.setfield!(x, :states, unique(vcat(states(x), states(y))))
     Core.setfield!(x, :ps, unique(vcat(parameters(x), parameters(y))))
     Core.setfield!(x, :ctrls, unique(vcat(controls(x), controls(y))))
     Core.setfield!(x, :observed, unique(vcat(get_observed(x), get_observed(y))))
@@ -519,4 +529,3 @@ function Base.isequal(x::Basis, y::Basis)
     xrhs = [xi.rhs for xi in equations(x)]
     isequal(yrhs, xrhs)
 end
-

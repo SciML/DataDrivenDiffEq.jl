@@ -31,25 +31,22 @@ end
 
 _retcode(::ErrorDataDrivenResult) = :Failed
 
-function DataDrivenSolution(b::Basis, p::AbstractDataDrivenProblem, 
-    alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm(), 
-    result::AbstractDataDrivenResult = ErrorDataDrivenResult(), 
-    )
+function DataDrivenSolution(b::Basis, p::AbstractDataDrivenProblem,
+                            alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm(),
+                            result::AbstractDataDrivenResult = ErrorDataDrivenResult())
     rss = sum(abs2, get_target(p) .- b(p))
-    return DataDrivenSolution{eltype(p)}(
-        b, 
-        _retcode(result), 
-        ZeroDataDrivenAlgorithm(),
-        ErrorDataDrivenResult(),
-        p,
-        rss,
-        length(parameters(b))
-    )
+    return DataDrivenSolution{eltype(p)}(b,
+                                         _retcode(result),
+                                         ZeroDataDrivenAlgorithm(),
+                                         ErrorDataDrivenResult(),
+                                         p,
+                                         rss,
+                                         length(parameters(b)))
 end
 
 (r::DataDrivenSolution)(args...) = r.basis(args...)
 
-Base.show(io::IO, ::DataDrivenSolution{T}) where T = show(io, "DataDrivenSolution{$T}")
+Base.show(io::IO, ::DataDrivenSolution{T}) where {T} = show(io, "DataDrivenSolution{$T}")
 
 function Base.print(io::IO, r::DataDrivenSolution)
     show(io, r)
@@ -59,9 +56,7 @@ function Base.print(io::IO, r::DataDrivenSolution)
     return
 end
 
-
 function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
-
     fullview != Val{true} && return print(io, r)
 
     print(io, r)
@@ -80,26 +75,29 @@ end
 StatsBase.dof(sol::DataDrivenSolution) = getfield(sol, :dof)
 StatsBase.rss(sol::DataDrivenSolution) = getfield(sol, :residuals)
 
-StatsBase.loglikelihood(sol::DataDrivenSolution) = begin
-    -nobs(sol)/2*log.(rss(sol)/nobs(sol))
+function StatsBase.loglikelihood(sol::DataDrivenSolution)
+    begin -nobs(sol) / 2 * log.(rss(sol) / nobs(sol)) end
 end
 
-StatsBase.nobs(sol::DataDrivenSolution) = begin
-    prod(size(get_target(getfield(sol, :prob))))
+function StatsBase.nobs(sol::DataDrivenSolution)
+    begin prod(size(get_target(getfield(sol, :prob)))) end
 end
 
-@views StatsBase.nullloglikelihood(sol::DataDrivenSolution) = begin
-    Y = get_target(getfield(sol, :prob))
-    -nobs(sol)/2*log(sum(abs2, Y .- mean(Y, dims = 2))/nobs(sol))
+@views function StatsBase.nullloglikelihood(sol::DataDrivenSolution)
+    begin
+        Y = get_target(getfield(sol, :prob))
+        -nobs(sol) / 2 * log(sum(abs2, Y .- mean(Y, dims = 2)) / nobs(sol))
+    end
 end
 
 StatsBase.r2(sol::DataDrivenSolution) = r2(sol, :CoxSnell)
 
-@views StatsBase.summarystats(sol::DataDrivenSolution) = begin
-    p = getfield(sol, :prob)
-    map(summarystats, eachrow(get_target(p) .- sol(p)))
+@views function StatsBase.summarystats(sol::DataDrivenSolution)
+    begin
+        p = getfield(sol, :prob)
+        map(summarystats, eachrow(get_target(p) .- sol(p)))
+    end
 end
-
 
 """
 $(SIGNATURES)
@@ -108,14 +106,12 @@ Returns the original [`DataDrivenProblem`](@ref).
 """
 get_problem(r::DataDrivenSolution) = getfield(r, :prob)
 
-
 """
 $(SIGNATURES)
 
 Returns the recovered [`Basis`](@ref).
 """
 get_basis(r::DataDrivenSolution) = getfield(r, :basis)
-
 
 """
 $(SIGNATURES)
@@ -137,5 +133,3 @@ $(SIGNATURES)
 Assert the result of the [`DataDrivenSolution`] and returns `true` if successful, `false` otherwise.
 """
 is_converged(r::DataDrivenSolution) = getfield(r, :retcode) == :Success
-
-
