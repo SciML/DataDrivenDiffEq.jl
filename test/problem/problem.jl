@@ -1,6 +1,7 @@
 using DataDrivenDiffEq
 using LinearAlgebra
 using ModelingToolkit
+using StatsBase
 
 # Generate some test data
 t = collect(0:0.1:5.0)
@@ -60,6 +61,20 @@ end
     @test is_parametrized(p6)
     @test isequal(p6.p, p)
     @test has_timepoints(p4)
+
+    t_ = sample(0.0:0.1:50.0, 100, replace = false, ordered = true)
+    X_ = permutedims(5.0 .* t_ .+ sin.(t_) .+ sin.(2 .* t_))
+    X_ .+= 0.1 .* randn(size(X_))
+    # Just run the kernels here to check if the collocation works
+    for kernel in (
+        EpanechnikovKernel(), UniformKernel(), TriangularKernel(),
+        QuarticKernel(), TriweightKernel(), TricubeKernel(),  
+        GaussianKernel(), CosineKernel(), LogisticKernel(),
+        SigmoidKernel(), SilvermanKernel() 
+        )
+
+        @test_nowarn ContinuousDataDrivenProblem(X_, t_, kernel)
+    end
 end
 
 @testset "DirectProblem" begin

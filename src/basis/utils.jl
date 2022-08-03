@@ -1,35 +1,4 @@
-## Get unary and binary functions
-
-function is_unary(f::Function, t::Type = Number)
-    f ∈ [+, -, *, /, ^] && return false
-    for m in methods(f, (t, ))
-        m.nargs - 1 > 1 && return false
-    end
-    return true
-end
-
-function is_binary(f::Function, t::Type = Number)
-    f ∈ [+, -, *, /, ^] && return true
-    !is_unary(f, t)
-end
-
-function ariety(f::Function, t::Type = Number)
-    is_unary(f, t) && return 1
-    is_binary(f, t) && return 2
-    return 0
-end
-
-function sort_ops(f::Vector{Function})
-    U = Function[]
-    B = Function[]
-    for fi in f
-        is_unary(fi) ? push!(U, fi) : push!(B, fi)
-    end
-    return U, B
-end
-
 ## Create linear independent basis
-
 count_operation(x::Number, op::Function, nested::Bool = true) = 0
 count_operation(x::Sym, op::Function, nested::Bool = true) = 0
 count_operation(x::Num, op::Function, nested::Bool = true) = count_operation(value(x), op, nested)
@@ -149,4 +118,33 @@ is_not_dependent(x, y) = .! is_dependent(x, y)
 
 function candidate_matrix(x::Vector{Num}, y::Vector{Num})
     return reduce(hcat, map(xi->is_not_dependent(xi, y), x))
+end
+
+
+function is_unary(f::Function, t::Type = Number)
+    f ∈ [+, -, *, /, ^] && return false
+    for m in methods(f, (t, ))
+        m.nargs - 1 > 1 && return false
+    end
+    return true
+end
+
+function is_binary(f::Function, t::Type = Number)
+    f ∈ [+, -, *, /, ^] && return true
+    !is_unary(f, t)
+end
+
+function ariety(f::Function, t::Type = Number)
+    is_unary(f, t) && return 1
+    is_binary(f, t) && return 2
+    return 0
+end
+
+function sort_ops(f::Vector{Function})
+    U = Function[]
+    B = Function[]
+    for fi in f
+        is_unary(fi) ? push!(U, fi) : push!(B, fi)
+    end
+    return U, B
 end
