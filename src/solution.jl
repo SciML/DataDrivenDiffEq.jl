@@ -72,17 +72,44 @@ function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
     return
 end
 
+"""
+$(SIGNATURES)
+
+Returns the degrees of freedom of the [`DataDrivenSolution`](@ref).
+"""
 StatsBase.dof(sol::DataDrivenSolution) = getfield(sol, :dof)
+
+"""
+$(SIGNATURES)
+
+Returns the residual sum of squares of the [`DataDrivenSolution`](@ref).
+"""
 StatsBase.rss(sol::DataDrivenSolution) = getfield(sol, :residuals)
 
+"""
+$(SIGNATURES)
+
+Returns the loglikelihood of the [`DataDrivenSolution`](@ref) assuming a normal distributed error.
+"""
 function StatsBase.loglikelihood(sol::DataDrivenSolution)
     begin -nobs(sol) / 2 * log.(rss(sol) / nobs(sol)) end
 end
 
+"""
+$(SIGNATURES)
+
+Returns the number of observations of the [`DataDrivenSolution`](@ref).
+"""
 function StatsBase.nobs(sol::DataDrivenSolution)
     begin prod(size(get_target(getfield(sol, :prob)))) end
 end
 
+"""
+$(SIGNATURES)
+
+Return the nullloglikelihood of the [`DataDrivenSolution`](@ref). This corresponds to a model only fitted with an 
+intercept and a normal distributed error.
+"""
 @views function StatsBase.nullloglikelihood(sol::DataDrivenSolution)
     begin
         Y = get_target(getfield(sol, :prob))
@@ -90,13 +117,24 @@ end
     end
 end
 
+"""
+$(SIGNATURES)
+
+Return the coefficient of determinantion of the [`DataDrivenSolution`](@ref). 
+
+## Note
+Only implements `CoxSnell` based on the [`loglikelihood`](@ref) and [`nullloglikelihood`](@ref).
+"""
 StatsBase.r2(sol::DataDrivenSolution) = r2(sol, :CoxSnell)
 
+"""
+$(SIGNATURES)
+
+Returns the `summarystats` for each row of the error for the [`DataDrivenSolution`](@ref).
+"""
 @views function StatsBase.summarystats(sol::DataDrivenSolution)
-    begin
-        p = getfield(sol, :prob)
-        map(summarystats, eachrow(get_target(p) .- sol(p)))
-    end
+    p = getfield(sol, :prob)
+    map(summarystats, eachrow(get_target(p) .- sol(p)))
 end
 
 """
