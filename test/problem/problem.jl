@@ -29,20 +29,6 @@ U = hcat(map(i -> u_(X[:, i], p, t[i]), 1:length(t))...)
     @test isequal(p4.p, p)
 end
 
-@testset "Collocation" begin
-    t_ = 0.0:0.001:10.0
-    x_ = permutedims(sin.(t_))
-    y_ = permutedims(cos.(t_))
-    for m in [EpanechnikovKernel, UniformKernel,TriangularKernel,QuarticKernel,
-        TriweightKernel, TricubeKernel, GaussianKernel, CosineKernel,
-        LogisticKernel, SigmoidKernel, SilvermanKernel]
-        p_ = ContinuousDataDrivenProblem(x_, t_)
-        p_2 = ContinuousDataDrivenProblem(x_, t_, crop = true)
-        @test norm(y_ .- p_.DX) < 1e-1
-        @test norm(y_[:, 2:end-1] - p_2.DX) < 1e-1
-    end
-end
-
 @testset "ContinuousProblem" begin
     p2 = ContinuousDataDrivenProblem(X, t, GaussianKernel())
     p3 = ContinuousDataDrivenProblem(X, DX)
@@ -61,20 +47,6 @@ end
     @test is_parametrized(p6)
     @test isequal(p6.p, p)
     @test has_timepoints(p4)
-
-    t_ = sample(0.0:0.1:50.0, 100, replace = false, ordered = true)
-    X_ = permutedims(5.0 .* t_ .+ sin.(t_) .+ sin.(2 .* t_))
-    X_ .+= 0.1 .* randn(size(X_))
-    # Just run the kernels here to check if the collocation works
-    for kernel in (
-        EpanechnikovKernel(), UniformKernel(), TriangularKernel(),
-        QuarticKernel(), TriweightKernel(), TricubeKernel(),  
-        GaussianKernel(), CosineKernel(), LogisticKernel(),
-        SigmoidKernel(), SilvermanKernel() 
-        )
-
-        @test_nowarn ContinuousDataDrivenProblem(X_, t_, kernel)
-    end
 end
 
 @testset "DirectProblem" begin
