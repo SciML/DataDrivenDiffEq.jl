@@ -18,7 +18,6 @@ using Symbolics: scalarize, variable
                                  controls, get_iv
 
 using Random
-using Distributions
 using QuadGK
 using Statistics
 using StatsBase
@@ -30,8 +29,6 @@ using DataInterpolations
                                     QuadraticInterpolation, LagrangeInterpolation,
                                     QuadraticSpline, CubicSpline, BSplineInterpolation,
                                     BSplineApprox, Curvefit
-
-using Measurements
 
 using DocStringExtensions
 using RecipesBase
@@ -58,10 +55,8 @@ struct ErrorDataDrivenResult <: AbstractDataDrivenResult end
 struct ZeroDataDrivenAlgorithm <: AbstractDataDrivenAlgorithm end
 
 function CommonSolve.solve(::AbstractDataDrivenProblem, args...; kwargs...)
-    begin
-        @warn "No sufficient algorithm choosen!"
-        return ErrorDataDrivenResult()
-    end
+    @warn "No sufficient algorithm choosen!"
+    return ErrorDataDrivenResult()
 end
 
 ## Basis
@@ -88,8 +83,6 @@ include("./utils/utils.jl")
 export optimal_shrinkage, optimal_shrinkage!
 
 ## Problem and Solution
-# Use to distinguish the problem types
-
 @enum DDProbType begin
     Direct = 1 # Direct problem without further information
     Discrete = 2 # Time discrete problem
@@ -114,10 +107,6 @@ export DirectDataset, DiscreteDataset, ContinuousDataset
 
 include("./problem/sample.jl")
 export DataSampler, Split, Batcher
-
-# Result selection
-select_by(x, y::AbstractMatrix) = y
-select_by(x, sol) = select_by(Val(x), sol)
 
 include("./solution.jl")
 export DataDrivenSolution
