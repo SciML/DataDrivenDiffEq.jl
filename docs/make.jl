@@ -1,7 +1,6 @@
 #push!(LOAD_PATH,"../src/")
 
 using Documenter, DataDrivenDiffEq
-using Flux, SymbolicRegression
 using Literate
 
 ENV["GKSwstype"] = "100"
