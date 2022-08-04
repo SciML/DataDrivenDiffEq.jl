@@ -49,7 +49,7 @@ same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
 
 """
-mutable struct Basis{I} <: AbstractBasis
+mutable struct Basis{I} <: AbstractBasis{I}
     """The equations of the basis"""
     eqs::Vector{Equation}
     """Dependent (state) variables"""
@@ -246,7 +246,7 @@ function implicit_variables(b::AbstractBasis)
 end
 
 # For internal use
-is_implicit(b::AbstractBasis) = !isempty(implicit_variables(b))
+is_implicit(b::AbstractBasis{X}) where X = X
 
 ## Callable
 get_f(b::AbstractBasis) = getfield(b, :f)

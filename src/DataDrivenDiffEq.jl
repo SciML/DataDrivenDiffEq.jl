@@ -35,8 +35,8 @@ using RecipesBase
 
 @reexport using CommonSolve: solve
 
-# Basis and Koopman
-abstract type AbstractBasis <: AbstractSystem end
+# Basis with an indicator for implicit use
+abstract type AbstractBasis{J} <: AbstractSystem end
 
 # Collect the DataInterpolations Methods into an Interpolation Type
 abstract type AbstractInterpolationMethod end

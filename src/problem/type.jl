@@ -344,17 +344,17 @@ end
 end
 
 # Implicit basis!
-@views function (b::Basis{true})(p::AbstractDataDrivenProblem)
+@views function (b::AbstractBasis{true})(p::AbstractDataDrivenProblem)
     begin b(cat(get_target(p), states(p), dims = 1), parameters(p), independent_variable(p),
             controls(p)) end
 end
 
-@views function (b::Basis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem)
+@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem)
     begin b(res, cat(get_target(p), states(p), dims = 1), parameters(p),
             independent_variable(p), controls(p)) end
 end
 
-@views function (b::Basis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem, j)
+@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem, j)
     begin
         arg_ = p[:, j]
         in_ = cat(get_target(p)[:, j], first(arg_), dims = 1)
@@ -371,7 +371,7 @@ end
 end
 
 # Implicit
-@views function (b::Basis{true})(p::ABSTRACT_DISCRETE_PROB)
+@views function (b::AbstractBasis{true})(p::ABSTRACT_DISCRETE_PROB)
     begin
         arg_ = p[:, 1:length(p)]
         in_ = cat(get_target(p)[:, 1:length(p)], first(arg_), dims = 1)
@@ -380,7 +380,7 @@ end
 end
 
 # Implicit
-@views function (b::Basis{true})(dx::AbstractMatrix, p::ABSTRACT_DISCRETE_PROB)
+@views function (b::AbstractBasis{true})(dx::AbstractMatrix, p::ABSTRACT_DISCRETE_PROB)
     begin
         arg_ = p[:, 1:length(p)]
         in_ = cat(get_target(p)[:, 1:length(p)], first(arg_), dims = 1)
