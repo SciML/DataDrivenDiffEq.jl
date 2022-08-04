@@ -87,15 +87,19 @@ mutable struct Basis{I} <: AbstractBasis
     end
 end
 
-function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit,  name, systems, simplify, linear_independent, eval_expression)
+function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name, systems,
+                            simplify, linear_independent, eval_expression)
     # Check for iv
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     # Scalarize equations
     eqs = scalarize(eqs)
-    lhs = isa(eqs, AbstractVector{Symbolics.Equation}) ? map(Base.Fix2(getfield, :lhs), eqs) : map(Base.Fix1.(Symbolics.variable,:φ), 1:length(eqs))
-    rhs =  isa(eqs, AbstractVector{Symbolics.Equation}) ? map(Base.Fix2(getfield, :lhs), eqs) : eqs
-    
+    lhs = isa(eqs, AbstractVector{Symbolics.Equation}) ?
+          map(Base.Fix2(getfield, :lhs), eqs) :
+          map(Base.Fix1.(Symbolics.variable, :φ), 1:length(eqs))
+    rhs = isa(eqs, AbstractVector{Symbolics.Equation}) ?
+          map(Base.Fix2(getfield, :lhs), eqs) : eqs
+
     # Scalarize all variables
     states, controls, parameters, implicits, observed = value.(scalarize(states)),
                                                         value.(scalarize(ctrls)),
@@ -115,7 +119,6 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit,  nam
     return collect(eqs), states, ctrls, ps, observed, iv, implicit, f, name, systems
 end
 
-
 ## Constructors
 
 function Basis(eqs::AbstractVector, states::AbstractVector;
@@ -128,7 +131,9 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
                kwargs...)
     #return __preprocess_basis(eqs, states, controls, parameters, observed, iv, implicits, name, AbstractBasis[], simplify, linear_independent, eval_expression)
 
-    return Basis(__preprocess_basis(eqs, states, controls, parameters, observed, iv, implicits, name, AbstractBasis[], simplify, linear_independent, eval_expression)...)
+    return Basis(__preprocess_basis(eqs, states, controls, parameters, observed, iv,
+                                    implicits, name, AbstractBasis[], simplify,
+                                    linear_independent, eval_expression)...)
 end
 
 function Basis(f::Function, states::AbstractVector; parameters::AbstractVector = [],
@@ -363,7 +368,7 @@ end
 
 function Base.unique!(b::AbstractVector{Num}, simplify_eqs = false)
     idx = zeros(Bool, length(b))
-    for i in 1:length(b), j in i+1:length(b)
+    for i in 1:length(b), j in (i + 1):length(b)
         i == j && continue
         idx[i] && continue
         idx[i] = isequal(b[i], b[j])
@@ -380,16 +385,15 @@ Removes duplicate equations from the [`Basis`](@ref).
 """
 function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
     idx = zeros(Bool, length(b))
-    for i in 1:length(b.eqs), j in i+1:length(b.eqs)
+    for i in 1:length(b.eqs), j in (i + 1):length(b.eqs)
         i == j && continue
         idx[i] && continue
-        idx[i] = isequal(b.eqs[i].rhs, b.eqs[j].rhs) 
+        idx[i] = isequal(b.eqs[i].rhs, b.eqs[j].rhs)
     end
     deleteat!(b.eqs, idx)
     simplify_eqs && map(ModelingToolkit.simplify, b.eqs)
     __update!(b, eval_expression)
 end
-
 
 """
 $(SIGNATURES)
@@ -415,7 +419,6 @@ function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true;
     unique!(b, simplify_eqs, eval_expression = eval_expression)
     return
 end
-
 
 """
 $(SIGNATURES)
