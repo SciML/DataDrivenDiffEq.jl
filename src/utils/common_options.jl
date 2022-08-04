@@ -16,9 +16,9 @@ then construction via GeneralizedGenerated.jl is utilized to allow for
 same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
 """
-@with_kw struct DataDrivenCommonOptions{T, K}
+@with_kw struct DataDrivenCommonOptions{T, L, K, PL, PR}
     """Maximum iterations"""
-    maxiter::Int = 1_00
+    maxiters::Int = 1_00
     """Absolute tolerance"""
     abstol::T = sqrt(eps())
     """Relative tolerance"""
@@ -37,6 +37,12 @@ on sufficiently large basis functions. By default eval_expression=false.
     digits::Int = 10
     """Evaluate the expression, see [`Symbolics.build_function`](@ref)"""
     eval_expresssion::Bool = true
+    """Linear solve algorithm to use. See [LinearSolve.jl](http://linearsolve.sciml.ai/dev/) for a list of available options."""
+    linsolve::L = nothing
+    """Left preconditioner to use"""
+    Pl::PL = nothing
+    """Right preconditioner to use"""
+    Pr::PR = nothing
     """Additional kwargs"""
     kwargs::K = (;)
 end
