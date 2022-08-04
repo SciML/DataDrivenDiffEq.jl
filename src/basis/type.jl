@@ -385,13 +385,15 @@ Removes duplicate equations from the [`Basis`](@ref).
 """
 function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
     idx = zeros(Bool, length(b))
-    for i in 1:length(b.eqs), j in (i + 1):length(b.eqs)
+    eqs_ = equations(b)
+    n_eqs = length(eqs_)
+    for i in 1:n_eqs, j in (i + 1):n_eqs
         i == j && continue
         idx[i] && continue
-        idx[i] = isequal(b.eqs[i].rhs, b.eqs[j].rhs)
+        idx[i] = isequal(eqs_[i].rhs, eqs_[j].rhs)
     end
-    deleteat!(b.eqs, idx)
-    simplify_eqs && map(ModelingToolkit.simplify, b.eqs)
+    deleteat!(equations(b), idx)
+    simplify_eqs && map(ModelingToolkit.simplify, equations(b))
     __update!(b, eval_expression)
 end
 
