@@ -341,13 +341,13 @@ end
 ## Derivatives
 
 """
-    $(SIGNATURES)
+$(SIGNATURES)
 
-    Returns a function representing the jacobian matrix / gradient of the `Basis` with respect to the
-    states as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
-    If control variables are defined, the function can also be called by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
+Returns a function representing the jacobian matrix / gradient of the [`Basis`](@ref) with respect to the
+states as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
+If control variables are defined, the function can also be called by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
 
-    If the jacobian with respect to other variables is needed, it can be passed via a second argument.
+If the jacobian with respect to other variables is needed, it can be passed via a second argument.
 """
 jacobian(x::Basis, eval_expression::Bool = false) = jacobian(x, states(x), eval_expression)
 
@@ -400,7 +400,7 @@ end
 """
 $(SIGNATURES)
 
-Delete the entries specified by `inds` and update the `Basis` accordingly.
+Delete the entries specified by `inds` and update the [`Basis`](@ref) accordingly.
 """
 function Base.deleteat!(b::Basis, inds; eval_expression = false)
     deleteat!(equations(b), inds)
