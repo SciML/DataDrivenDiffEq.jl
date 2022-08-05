@@ -1,0 +1,4 @@
+name = "DataDrivenSparse"
+uuid = "5b588203-7d8b-4fab-a537-c31a7f73f46b"
+authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
+version = "0.1.0"

@@ -1,0 +1,4 @@
+name = "DataDrivenSymbolicRegression"
+uuid = "7fed8a53-d475-4873-af3a-ba53cceea094"
+authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
+version = "0.1.0"
