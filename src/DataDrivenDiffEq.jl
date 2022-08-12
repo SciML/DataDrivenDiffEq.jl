@@ -18,7 +18,7 @@ using ModelingToolkit: AbstractSystem
 using ModelingToolkit: value, operation, arguments, istree, get_observed
 using ModelingToolkit.Symbolics
 using ModelingToolkit.SymbolicUtils
-using Symbolics: scalarize, variable
+using ModelingToolkit.Symbolics: scalarize, variable
 @reexport using ModelingToolkit: states, parameters, independent_variable, observed,
                                  controls, get_iv
 
