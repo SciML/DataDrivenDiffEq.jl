@@ -130,7 +130,6 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
                simplify = false, linear_independent = false,
                eval_expression = false,
                kwargs...)
-
     return Basis(__preprocess_basis(eqs, states, controls, parameters, observed, iv,
                                     implicits, name, AbstractBasis[], simplify,
                                     linear_independent, eval_expression)...)

@@ -98,7 +98,6 @@ export collocate_data
 include("./utils/utils.jl")
 export optimal_shrinkage, optimal_shrinkage!
 
-
 # Define some alias type for easier dispatch
 const ABSTRACT_DIRECT_PROB{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(1)}
 const ABSTRACT_DISCRETE_PROB{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(2)}
