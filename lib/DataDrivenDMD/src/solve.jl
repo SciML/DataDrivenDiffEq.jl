@@ -30,12 +30,14 @@ function CommonSolve.init(prob::AbstractDataDrivenProblem,
     init(prob, b, alg, args...; kwargs...)
 end
 
-function CommonSolve.init(prob::DataDrivenDiffEq.ABSTRACT_DIRECT_PROB, b::AbstractBasis, alg::AbstractKoopmanAlgorithm, args...; kwargs...)
+function CommonSolve.init(prob::DataDrivenDiffEq.ABSTRACT_DIRECT_PROB, b::AbstractBasis,
+                          alg::AbstractKoopmanAlgorithm, args...; kwargs...)
     throw(ArgumentError("DirectDataDrivenProblems can not be solved via Koopman based inference. Please use a different algorithm."))
 end
 
 # All (g(E))DMD like
-function CommonSolve.init(prob::DataDrivenDiffEq.ABSTRACT_DISCRETE_PROB{N, C}, b::AbstractBasis, alg::A,
+function CommonSolve.init(prob::DataDrivenDiffEq.ABSTRACT_DISCRETE_PROB{N, C},
+                          b::AbstractBasis, alg::A,
                           args...; B = [], eval_expression = false,
                           kwargs...) where {N, C, A <: AbstractKoopmanAlgorithm}
     @is_applicable prob
@@ -61,7 +63,8 @@ function CommonSolve.init(prob::DataDrivenDiffEq.ABSTRACT_DISCRETE_PROB{N, C}, b
                           eval_expression)
 end
 
-function CommonSolve.init(prob::DataDrivenDiffEq.ABSTRACT_CONT_PROB{N, C}, b::AbstractBasis, alg::A, args...;
+function CommonSolve.init(prob::DataDrivenDiffEq.ABSTRACT_CONT_PROB{N, C}, b::AbstractBasis,
+                          alg::A, args...;
                           B = [], eval_expression = false,
                           kwargs...) where {N, C, A <: AbstractKoopmanAlgorithm}
     @is_applicable prob

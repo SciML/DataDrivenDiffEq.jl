@@ -354,7 +354,8 @@ end
             independent_variable(p), controls(p)) end
 end
 
-@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem, j)
+@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem,
+                                         j)
     begin
         arg_ = p[:, j]
         in_ = cat(get_target(p)[:, j], first(arg_), dims = 1)

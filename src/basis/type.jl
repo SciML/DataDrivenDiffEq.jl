@@ -246,7 +246,7 @@ function implicit_variables(b::AbstractBasis)
 end
 
 # For internal use
-is_implicit(b::AbstractBasis{X}) where X = X
+is_implicit(b::AbstractBasis{X}) where {X} = X
 
 ## Callable
 get_f(b::AbstractBasis) = getfield(b, :f)

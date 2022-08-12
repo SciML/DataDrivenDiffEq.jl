@@ -54,12 +54,14 @@ abstract type AbstractDataDrivenSolution <: StatsBase.StatisticalModel end
 struct ErrorDataDrivenResult <: AbstractDataDrivenResult end
 struct ZeroDataDrivenAlgorithm <: AbstractDataDrivenAlgorithm end
 
-function CommonSolve.solve(::AbstractDataDrivenProblem, ::AbstractDataDrivenAlgorithm, args...; kwargs...)
+function CommonSolve.solve(::AbstractDataDrivenProblem, ::AbstractDataDrivenAlgorithm,
+                           args...; kwargs...)
     @warn "No sufficient algorithm choosen!"
     return ErrorDataDrivenResult()
 end
 
-function CommonSolve.solve(::AbstractDataDrivenProblem, b::AbstractBasis, ::AbstractDataDrivenAlgorithm, args...; kwargs...)
+function CommonSolve.solve(::AbstractDataDrivenProblem, b::AbstractBasis,
+                           ::AbstractDataDrivenAlgorithm, args...; kwargs...)
     @warn "No sufficient algorithm choosen!"
     return ErrorDataDrivenResult()
 end

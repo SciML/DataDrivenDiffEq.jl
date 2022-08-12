@@ -73,28 +73,27 @@ struct Koopman{I, D, O, T} <: AbstractKoopman{I}
 end
 
 function Koopman(eqs::AbstractVector, states::AbstractVector;
-                parameters::AbstractVector = [], iv = nothing,
-                controls::AbstractVector = [], implicits = [],
-                observed::AbstractVector = [],
-                eval_expression = false,
-                K::O = diagm(ones(Float64, length(eqs))),
-                C::AbstractMatrix = diagm(ones(Float64, length(eqs))),
-                Q::AbstractMatrix = zeros(Float64, 0, 0),
-                P::AbstractMatrix = zeros(Float64, 0, 0),
-                simplify = false, linear_independent = false,
-                is_discrete::Bool = true,
-                name = is_discrete ? gensym(:KoopmanOperator) : gensym(:KoopmanGenerator),
+                 parameters::AbstractVector = [], iv = nothing,
+                 controls::AbstractVector = [], implicits = [],
+                 observed::AbstractVector = [],
+                 eval_expression = false,
+                 K::O = diagm(ones(Float64, length(eqs))),
+                 C::AbstractMatrix = diagm(ones(Float64, length(eqs))),
+                 Q::AbstractMatrix = zeros(Float64, 0, 0),
+                 P::AbstractMatrix = zeros(Float64, 0, 0),
+                 simplify = false, linear_independent = false,
+                 is_discrete::Bool = true,
+                 name = is_discrete ? gensym(:KoopmanOperator) : gensym(:KoopmanGenerator),
                  kwargs...) where {O <: Union{AbstractMatrix, Eigen, Factorization}}
-    
-    
-    args_ = DataDrivenDiffEq.__preprocess_basis(eqs, states, controls, parameters, observed, iv,
-    implicits, name, AbstractBasis[], simplify,
-    linear_independent, eval_expression)
-    
+    args_ = DataDrivenDiffEq.__preprocess_basis(eqs, states, controls, parameters, observed,
+                                                iv,
+                                                implicits, name, AbstractBasis[], simplify,
+                                                linear_independent, eval_expression)
+
     return Koopman(args_..., K, C, Q, P; is_discrete = is_discrete)
 end
 
-Base.eltype(k::Koopman{<:Any, <:Any, <:Any, T}) where T = T
+Base.eltype(k::Koopman{<:Any, <:Any, <:Any, T}) where {T} = T
 
 ## Koopman methods
 
@@ -103,7 +102,6 @@ Base.Matrix(k::AbstractKoopman) = real.(Matrix(__get_K(k)))
 
 # Get K
 __get_K(k::AbstractKoopman) = getfield(k, :K)
-
 
 """
 $(SIGNATURES)
