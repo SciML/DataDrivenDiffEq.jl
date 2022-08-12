@@ -1,6 +1,6 @@
 #push!(LOAD_PATH,"../src/")
 
-using Documenter, DataDrivenDiffEq
+using Documenter, DataDrivenDiffEq, StatsBase
 using Literate
 
 ENV["GKSwstype"] = "100"

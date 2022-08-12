@@ -27,7 +27,7 @@ on sufficiently large basis functions. By default eval_expression=false.
     progress::Bool = false
     """Display log - Not implemented right now"""
     verbose::Bool = false
-    """Denoise the data using the [`optimal threshold`](@ref optimal_shrinkage) method."""
+    """Denoise the data using the [`optimal threshold`](https://arxiv.org/abs/1305.5870) method."""
     denoise::Bool = false
     """Normalize the data"""
     normalize::Bool = false
@@ -35,7 +35,7 @@ on sufficiently large basis functions. By default eval_expression=false.
     sampler::AbstractSampler = DataSampler()
     """Significant digits for the parameters - used for rounding. Default = 10"""
     digits::Int = 10
-    """Evaluate the expression, see [`Symbolics.build_function`](@ref)"""
+    """Evaluate the expression, see [`Symbolics.build_function`](https://symbolics.juliasymbolics.org/stable/manual/build_function/)"""
     eval_expresssion::Bool = true
     """Linear solve algorithm to use. See [LinearSolve.jl](http://linearsolve.sciml.ai/dev/) for a list of available options."""
     linsolve::L = nothing
