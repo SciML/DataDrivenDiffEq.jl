@@ -38,8 +38,14 @@ using RecipesBase
 
 @reexport using CommonSolve: solve
 
+@enum DDProbType begin
+    Direct = 1 # Direct problem without further information
+    Discrete = 2 # Time discrete problem
+    Continuous = 3 # Time continous problem
+end
+
 # Basis with an indicator for implicit use
-abstract type AbstractBasis{J} <: AbstractSystem end
+abstract type AbstractBasis{Bool} <: AbstractSystem end
 
 # Collect the DataInterpolations Methods into an Interpolation Type
 abstract type AbstractInterpolationMethod end
@@ -50,7 +56,7 @@ abstract type AbstractDataDrivenAlgorithm end
 abstract type AbstractDataDrivenResult end
 
 # Problem and solution
-abstract type AbstractDataDrivenProblem{dType, cType, probType} end
+abstract type AbstractDataDrivenProblem{Number, Bool, DDProbType} end
 abstract type AbstractDataDrivenSolution <: StatsBase.StatisticalModel end
 
 # Fallback result and algorithm
@@ -92,12 +98,6 @@ export collocate_data
 include("./utils/utils.jl")
 export optimal_shrinkage, optimal_shrinkage!
 
-## Problem and Solution
-@enum DDProbType begin
-    Direct = 1 # Direct problem without further information
-    Discrete = 2 # Time discrete problem
-    Continuous = 3 # Time continous problem
-end
 
 # Define some alias type for easier dispatch
 const ABSTRACT_DIRECT_PROB{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(1)}
