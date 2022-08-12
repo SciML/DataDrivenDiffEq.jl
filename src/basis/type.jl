@@ -116,6 +116,7 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
                             eval_expression)
 
     eqs = reduce(vcat, map(Symbolics.Equation, lhs, rhs))
+    eqs = isa(eqs, AbstractVector) ? collect(eqs) : [scalarize(eqs)]
     return collect(eqs), states, ctrls, ps, observed, iv, implicit, f, name, systems
 end
 
@@ -129,7 +130,6 @@ function Basis(eqs::AbstractVector, states::AbstractVector;
                simplify = false, linear_independent = false,
                eval_expression = false,
                kwargs...)
-    #return __preprocess_basis(eqs, states, controls, parameters, observed, iv, implicits, name, AbstractBasis[], simplify, linear_independent, eval_expression)
 
     return Basis(__preprocess_basis(eqs, states, controls, parameters, observed, iv,
                                     implicits, name, AbstractBasis[], simplify,
