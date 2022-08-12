@@ -21,8 +21,6 @@ Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
-Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
@@ -39,8 +37,6 @@ Reexport = "1.0"
 Setfield ="0.8"
 StaticArrays = "1.5"
 StatsBase = "0.32.0, 0.33"
-SymbolicUtils = "0.19"
-Symbolics = "4"
 julia = "1.6"
 
 [extras]
