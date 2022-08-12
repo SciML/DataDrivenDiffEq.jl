@@ -4,6 +4,8 @@ $(DocStringExtensions.README)
 module DataDrivenDiffEq
 
 using LinearAlgebra
+using StaticArrays
+
 using DiffEqBase
 using CommonSolve
 using Reexport

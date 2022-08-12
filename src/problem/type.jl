@@ -127,6 +127,12 @@ function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem
         end
     end
 
+    # Convert all to StaticArrays (except maybe p)
+    X = SMatrix{size(X)...}(X)
+    t = SVector{length(t)}(t)
+    DX = SMatrix{size(DX)...}(DX)
+    Y = SMatrix{size(Y)...}(Y)
+    U = SMatrix{size(U)...}(U)
     return DataDrivenProblem{dType, cType, probType}(_promote(X, t, DX, Y, U, p)..., name)
 end
 
