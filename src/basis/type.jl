@@ -49,7 +49,7 @@ same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
 
 """
-mutable struct Basis{I} <: AbstractBasis{I}
+struct Basis{I} <: AbstractBasis{I}
     """The equations of the basis"""
     eqs::Vector{Equation}
     """Dependent (state) variables"""
@@ -328,7 +328,7 @@ function __update!(b::AbstractBasis, eval_expression = false)
     ff = _build_ddd_function([bi.rhs for bi in collect(equations(b))],
                              states(b), parameters(b), [get_iv(b)],
                              controls(b), eval_expression)
-    setfield!(b, :f, ff)
+    @set! b.f = ff
     return
 end
 
@@ -462,10 +462,10 @@ Merges the provided [`Basis`](@ref) inplace.
 """
 function Base.merge!(x::Basis, y::Basis; eval_expression = false)
     push!(x, equations(y))
-    setfield!(x, :states, unique(vcat(states(x), states(y))))
-    setfield!(x, :ps, unique(vcat(parameters(x), parameters(y))))
-    setfield!(x, :ctrls, unique(vcat(controls(x), controls(y))))
-    setfield!(x, :observed, unique(vcat(get_observed(x), get_observed(y))))
+    @set! x.states = unique(vcat(states(x), states(y)))
+    @set! x.ps = unique(vcat(parameters(x), parameters(y)))
+    @set! x.ctrls = unique(vcat(controls(x), controls(y)))
+    @set! x.observed = unique(vcat(get_observed(x), get_observed(y)))
     __update!(x, eval_expression)
     return
 end

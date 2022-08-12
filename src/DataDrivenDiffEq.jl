@@ -11,6 +11,7 @@ using CommonSolve
 using Reexport
 
 using Parameters
+using Setfield
 
 using ModelingToolkit
 using ModelingToolkit: AbstractSystem
