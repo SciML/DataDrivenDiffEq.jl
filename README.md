@@ -4,6 +4,7 @@
 [![pkgeval](https://juliahub.com/docs/DataDrivenDiffEq/pkgeval.svg)](https://juliahub.com/ui/Packages/DataDrivenDiffEq/EZBji)
 [![codecov.io](http://codecov.io/github/SciML/DataDrivenDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaDiffEq/DataDrivenDiffEq.jl?branch=master)
 [![DOI](https://zenodo.org/badge/212827023.svg)](https://zenodo.org/badge/latestdoi/212827023)
+[![Global Docs](https://img.shields.io/badge/docs-SciML-blue.svg)](https://docs.sciml.ai/DataDrivenDiffEq/stable/)
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 
 DataDrivenDiffEq.jl is a package in the SciML ecosystem for data-driven differential equation
@@ -11,7 +12,7 @@ structural estimation and identification. These tools include automatically disc
 from data and using this to simulate perturbed dynamics.
 
 For information on using the package,
-[see the stable documentation](https://datadriven.sciml.ai/stable/). Use the
+[see the stable documentation](https://docs.sciml.ai/DataDrivenDiffEq/stable/). Use the
 [in-development documentation](https://datadriven.sciml.ai/dev/) for the version of
 the documentation which contains the un-released features.
 
