@@ -8,8 +8,8 @@ The table below provides an overview, which class of algorithms support which cl
 |:---------- | ---------- |:------------:|:------------:|:------------:|:------------:|
 | [Koopman](@ref koopman_algorithms)    |     -      | +             |  +        | Optional | 
 | [Sparse Regression](@ref sparse_optimization)    | +  | + | + | Necessary | 
-| [EQSearch](@ref eqsearch_api)    | +  | + | + | No | [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl)
-| [OccamNet](@ref occamnet_api)    | +  | + | + | No | [Flux.jl](https://github.com/FluxML/Flux.jl)
+| [EQSearch](@ref eqsearch_api)    | +  | + | + | No | [SymbolicRegression.jl](https://docs.sciml.ai/SymbolicRegression/stable/)
+| [OccamNet](@ref occamnet_api)    | +  | + | + | No | [Flux.jl](https://docs.sciml.ai/Flux.jl/stable/)
 
 All of the above methods return a [`DataDrivenSolution`](@ref) if not enforced otherwise.
 

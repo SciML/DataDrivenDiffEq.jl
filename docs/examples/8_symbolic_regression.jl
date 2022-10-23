@@ -6,7 +6,7 @@
 #   Hence, the performance might differ and depends strongly on the hyperparameters of the optimization. 
 #   This example might not recover the groundtruth, but is showing off the use within `DataDrivenDiffEq.jl`.
 #
-# DataDrivenDiffEq offers an interface to [`SymbolicRegression.jl`](https://github.com/MilesCranmer/SymbolicRegression.jl) to infer more complex functions. To 
+# DataDrivenDiffEq offers an interface to [`SymbolicRegression.jl`](https://docs.sciml.ai/SymbolicRegression/stable/) to infer more complex functions. To
 # use it, simply load a sufficient version of `SymbolicRegression` (currently we support version >= 0.9).
 
 using DataDrivenDiffEq

@@ -1,11 +1,14 @@
 # DataDrivenDiffEq.jl
 
-[![Build Status](https://github.com/SciML/DataDrivenDiffEq.jl/workflows/CI/badge.svg)](https://github.com/SciML/DataDrivenDiffEq.jl/actions?query=workflow%3ACI)
-[![pkgeval](https://juliahub.com/docs/DataDrivenDiffEq/pkgeval.svg)](https://juliahub.com/ui/Packages/DataDrivenDiffEq/EZBji)
-[![codecov.io](http://codecov.io/github/SciML/DataDrivenDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaDiffEq/DataDrivenDiffEq.jl?branch=master)
-[![DOI](https://zenodo.org/badge/212827023.svg)](https://zenodo.org/badge/latestdoi/212827023)
+[![Join the chat at https://julialang.zulipchat.com #sciml-bridged](https://img.shields.io/static/v1?label=Zulip&message=chat&color=9558b2&labelColor=389826)](https://julialang.zulipchat.com/#narrow/stream/279055-sciml-bridged)
 [![Global Docs](https://img.shields.io/badge/docs-SciML-blue.svg)](https://docs.sciml.ai/DataDrivenDiffEq/stable/)
+[![DOI](https://zenodo.org/badge/212827023.svg)](https://zenodo.org/badge/latestdoi/212827023)
+
+[![codecov](https://codecov.io/gh/SciML/DataDrivenDiffEq.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SciML/DataDrivenDiffEq.jl)
+[![Build Status](https://github.com/SciML/DataDrivenDiffEq.jl/workflows/CI/badge.svg)](https://github.com/SciML/DataDrivenDiffEq.jl/actions?query=workflow%3ACI)
+
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
+[![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
 
 DataDrivenDiffEq.jl is a package in the SciML ecosystem for data-driven differential equation
 structural estimation and identification. These tools include automatically discovering equations
@@ -13,7 +16,7 @@ from data and using this to simulate perturbed dynamics.
 
 For information on using the package,
 [see the stable documentation](https://docs.sciml.ai/DataDrivenDiffEq/stable/). Use the
-[in-development documentation](https://datadriven.sciml.ai/dev/) for the version of
+[in-development documentation](https://docs.sciml.ai/DataDrivenDiffEq/dev/) for the version of
 the documentation which contains the un-released features.
 
 ## Quick Demonstration
