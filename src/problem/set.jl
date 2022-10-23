@@ -172,7 +172,7 @@ function get_oop_args(x::DataDrivenDataset{N,W,C}) where {N,W,C}
         else
             map(copyto!, (X[:, last:s], p, t[last:s]), get_oop_args(x.probs[i])[1:3])
         end
-        last += s
+        last = s + 1
     end
     return (X, p, t, U)
 end
@@ -187,7 +187,7 @@ function get_implicit_oop_args(x::DataDrivenDataset{N,W,C}) where {N,W,C}
         else
             map(copyto!, (X[:, last:s], p, t[last:s]), get_implicit_oop_args(x.probs[i])[1:3])
         end
-        last += s
+        last = s + 1
     end
     return (X, p, t, U)
 end
@@ -201,7 +201,7 @@ function (b::AbstractBasis)(dx::AbstractMatrix, d::DataDrivenDataset)
     last = 1
     @views for (i,s) in enumerate(cumsum(d.sizes))
         b(dx[:, last:s], d.probs[i])
-        last += s
+        last = s + 1
     end
     return
 end
