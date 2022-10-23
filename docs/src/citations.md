@@ -15,7 +15,7 @@ If you are using `DataDrivenDiffEq.jl` for research, please cite
 }
 ```
 
-If you are using the [SymbolicRegression.jl](https://github.com/MilesCranmer/SymbolicRegression.jl) API, please cite
+If you are using the [SymbolicRegression.jl](https://docs.sciml.ai/SymbolicRegression/stable/) API, please cite
 
 ```bibtex
 @software{pysr,
