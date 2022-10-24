@@ -59,20 +59,19 @@ abstract type AbstractDataDrivenResult end
 
 # Problem and solution
 abstract type AbstractDataDrivenProblem{Number, Bool, DDProbType} end
+
+# Define some alias type for easier dispatch
+const ABSTRACT_DIRECT_PROB{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(1)}
+const ABSTRACT_DISCRETE_PROB{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(2)}
+const ABSTRACT_CONT_PROB{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(3)}
+
 abstract type AbstractDataDrivenSolution <: StatsBase.StatisticalModel end
 
 # Fallback result and algorithm
 struct ErrorDataDrivenResult <: AbstractDataDrivenResult end
 struct ZeroDataDrivenAlgorithm <: AbstractDataDrivenAlgorithm end
 
-function CommonSolve.solve(::AbstractDataDrivenProblem, ::AbstractDataDrivenAlgorithm,
-                           args...; kwargs...)
-    @warn "No sufficient algorithm choosen!"
-    return ErrorDataDrivenResult()
-end
-
-function CommonSolve.solve(::AbstractDataDrivenProblem, b::AbstractBasis,
-                           ::AbstractDataDrivenAlgorithm, args...; kwargs...)
+function CommonSolve.solve(::AbstractDataDrivenProblem, args...; kwargs...)
     @warn "No sufficient algorithm choosen!"
     return ErrorDataDrivenResult()
 end
@@ -100,10 +99,6 @@ export collocate_data
 include("./utils/utils.jl")
 export optimal_shrinkage, optimal_shrinkage!
 
-# Define some alias type for easier dispatch
-const ABSTRACT_DIRECT_PROB{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(1)}
-const ABSTRACT_DISCRETE_PROB{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(2)}
-const ABSTRACT_CONT_PROB{N, C} = AbstractDataDrivenProblem{N, C, DDProbType(3)}
 
 include("./problem/type.jl")
 
@@ -127,5 +122,7 @@ include("./utils/common_options.jl")
 export DataDrivenCommonOptions
 
 include("./utils/plot_recipes.jl")
+include("./utils/build_basis.jl")
+
 
 end # module

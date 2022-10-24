@@ -31,7 +31,7 @@ end
 
 _retcode(::ErrorDataDrivenResult) = :Failed
 
-function DataDrivenSolution(b::Basis, p::AbstractDataDrivenProblem,
+function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
                             alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm(),
                             result::AbstractDataDrivenResult = ErrorDataDrivenResult())
     rss = sum(abs2, get_target(p) .- b(p))

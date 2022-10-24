@@ -93,12 +93,17 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     # Scalarize equations
-    eqs = scalarize(eqs)
-    lhs = isa(eqs, AbstractVector{Symbolics.Equation}) ?
+    eqs = collect(eqs)
+
+    lhs = isa(eqs, AbstractVector{Equation}) ?
           map(Base.Fix2(getfield, :lhs), eqs) :
-          map(Base.Fix1.(Symbolics.variable, :φ), 1:length(eqs))
-    rhs = isa(eqs, AbstractVector{Symbolics.Equation}) ?
-          map(Base.Fix2(getfield, :lhs), eqs) : eqs
+          map(Base.Fix1(Symbolics.variable, :φ), 1:length(eqs))
+
+    rhs = isa(eqs, AbstractVector{Equation}) ?
+          map(Base.Fix2(getfield, :rhs), eqs) : eqs
+
+    rhs = Num.(rhs)
+    lhs = Num.(lhs)
 
     # Scalarize all variables
     states, controls, parameters, implicits, observed = value.(scalarize(states)),
@@ -116,7 +121,8 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
                             eval_expression)
 
     eqs = reduce(vcat, map(Symbolics.Equation, lhs, rhs))
-    eqs = isa(eqs, AbstractVector) ? collect(eqs) : [scalarize(eqs)]
+    eqs = isa(eqs, AbstractVector) ? collect(eqs) : [collect(eqs)]
+    @info eqs
     return collect(eqs), states, ctrls, ps, observed, iv, implicit, f, name, systems
 end
 
