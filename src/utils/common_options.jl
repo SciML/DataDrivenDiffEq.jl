@@ -31,7 +31,7 @@ function (d::DataProcessing)(X,Y)
     
     split = split ∈ (0, 1) ? split : max(0., min(split, 1.))
     
-    batchsize = batchsize < 1 ? 1 : batchsize
+    batchsize = batchsize <= 0 ? size(X, 2) : batchsize
 
     xtrain, xtest = splitobs((X, Y), at = split, shuffle = false)
     
@@ -53,13 +53,13 @@ If no `nothing` is used, no normalization is performed.
 Given that `DataDrivenDiffEq.jl` allows for constants in the basis, the `center` keyword of `StatsBase.fit` is set to false.
 """
 struct DataNormalization{T <: Union{Nothing, ZScoreTransform, UnitRangeTransform}}
-    method::T 
 end
 
-DataNormalization() = DataNormalization(nothing)
+DataNormalization(method::Type{T} = nothing) where T = DataNormalization{T}()
 
-StatsBase.fit(::DataNormalization{Nothing}, data) = fit(ZScoreTransform, data, dims = 2, scale = false, center = false)
-StatsBase.fit(::DataNormalization{T}, data) where T = fit(T, data; dims = 2, center = false)
+StatsBase.fit(::DataNormalization{Nothing}, data) = StatsBase.fit(ZScoreTransform, data, dims = 2, scale = false, center = false)
+StatsBase.fit(::DataNormalization{UnitRangeTransform}, data) = StatsBase.fit(UnitRangeTransform, data, dims = 2)
+StatsBase.fit(::DataNormalization{ZScoreTransform}, data) where T = StatsBase.fit(ZScoreTransform, data, dims = 2, center = false)
 
 
 """
@@ -111,26 +111,56 @@ end
 ## INTERNAL USE FOR PREPROCESSING
 
 # This is a way to create a datadriven problem relatively efficient.
-struct InternalDataDrivenProblem{B <: AbstractBasis, TD, T <: DataLoader, F, O <: DataDrivenCommonOptions, P <: AbstractDataDrivenProblem}
+struct InternalDataDrivenProblem{A <: AbstractDataDrivenAlgorithm, B <: AbstractBasis, TD, T <: DataLoader, F, CI, VI, O <: DataDrivenCommonOptions, P <: AbstractDataDrivenProblem}
+    # The Algorithm
+    alg::A
+    # Data and Normalization
     testdata::TD
     traindata::T
     transform::F
+    # Indicators
+    # Indicates which basis entries are dependent on controls
+    control_idx::CI
+    # Indicates which basis entries are dependent on implicit variables
+    implicit_idx::VI
+    # Options
     options::O
+    # Basis
     basis::B
+    # The problem
     problem::P
 end
 
-# We always want a basis!
-__preprocess(prob::AbstractDataDrivenProblem, options::DataDrivenCommonOptions) = __preprocess(prob, unit_basis(prob), options)
+# This is a preprocess step, which commonly returns the implicit data.
+# For Koopman Generators this is not true
+function get_fit_targets(::AbstractDataDrivenAlgorithm, prob::AbstractDataDrivenProblem, basis::AbstractBasis)
+    get_implicit_data(prob)
+end
 
-function __preprocess(prob::AbstractDataDrivenProblem, basis::AbstractBasis , options::DataDrivenCommonOptions = DataDrivenCommonOptions())
+# We always want a basis
+CommonSolve.init(prob::AbstractDataDrivenProblem, alg::AbstractDataDrivenAlgorithm; options::DataDrivenCommonOptions = DataDrivenCommonOptions()) = init(prob, unit_basis(prob), alg;  options = options)
+
+function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis , alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm(); options::DataDrivenCommonOptions = DataDrivenCommonOptions())
     @unpack denoise, normalize, data_processing = options
 
     Θ = basis(prob)
-    Y = get_implicit_data(prob)
+    Y = get_fit_targets(alg, prob, basis)
 
     if denoise 
         optimal_shrinkage!(Θ)
+    end
+
+    # Get the information about structure
+    control_idx = zeros(Bool, length(basis), length(controls(basis)))
+    implicit_idx = zeros(Bool, length(basis), length(implicit_variables(basis)))
+    
+    for (i, eq) in enumerate(equations(basis))
+        for (j, c) in enumerate(controls(basis))
+            control_idx[i,j] = is_dependent(eq.rhs, Symbolics.unwrap(c))
+        end
+        for (k, v) in enumerate(implicit_variables(basis))
+            implicit_idx[i,k] = is_dependent(eq.rhs, Symbolics.unwrap(v))
+        end
     end
 
     # We do not center, given that we can have constants in our Basis!
@@ -141,7 +171,11 @@ function __preprocess(prob::AbstractDataDrivenProblem, basis::AbstractBasis , op
     test, loader =  data_processing(Θ, Y)
 
     return InternalDataDrivenProblem(
-        test, loader, dt, options, basis, prob
+        alg, test, loader, dt, control_idx, implicit_idx, options, basis, prob
     )
 end
 
+function CommonSolve.solve!(::InternalDataDrivenProblem{ZeroDataDrivenAlgorithm}) 
+    @warn "No sufficient algorithm choosen! Return ErrorDataDrivenResult!"
+    return ErrorDataDrivenResult()
+end

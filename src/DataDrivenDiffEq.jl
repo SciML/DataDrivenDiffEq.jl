@@ -36,6 +36,7 @@ using DataInterpolations
                                     BSplineApprox, Curvefit
 
 @reexport using MLUtils: splitobs, DataLoader
+@reexport using StatsBase: ZScoreTransform, UnitRangeTransform
 
 using DocStringExtensions
 using RecipesBase
@@ -77,10 +78,6 @@ abstract type AbstractDataDrivenSolution <: StatsBase.StatisticalModel end
 struct ErrorDataDrivenResult <: AbstractDataDrivenResult end
 struct ZeroDataDrivenAlgorithm <: AbstractDataDrivenAlgorithm end
 
-function CommonSolve.solve(::AbstractDataDrivenProblem, args...; kwargs...)
-    @warn "No sufficient algorithm choosen!"
-    return ErrorDataDrivenResult()
-end
 
 ## Basis
 
@@ -122,7 +119,7 @@ export DataDrivenSolution
 export get_algorithm, get_result, get_basis, is_converged, get_problem
 
 include("./utils/common_options.jl")
-export DataProcessing
+export DataProcessing, DataNormalization
 export DataDrivenCommonOptions
 
 include("./utils/plot_recipes.jl")
