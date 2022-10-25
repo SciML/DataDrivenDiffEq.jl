@@ -80,7 +80,7 @@ then construction via GeneralizedGenerated.jl is utilized to allow for
 same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
 """
-@with_kw struct DataDrivenCommonOptions{T, L, K, PL, PR}
+@with_kw struct DataDrivenCommonOptions{T, K}
     # Optimization options
     """Maximum iterations"""
     maxiters::Int = 1_00
@@ -96,7 +96,7 @@ on sufficiently large basis functions. By default eval_expression=false.
     """Denoise the data using the [`optimal threshold`](https://arxiv.org/abs/1305.5870) method."""
     denoise::Bool = false
     """Normalize the data, see [`DataNormalization`](@ref)"""
-    normalize::Bool = DataNormalization()
+    normalize::DataNormalization = DataNormalization()
     """Data processing pipeline, see [`DataProcessing`](@ref)"""
     data_processing::DataProcessing = DataProcessing()
     # Postprocessing
