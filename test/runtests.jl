@@ -13,4 +13,5 @@ const GROUP = get(ENV, "GROUP", "All")
     @safetestset "DataDrivenProblem" begin include("./problem/problem.jl") end
     @safetestset "DataDrivenSolution" begin include("./solution/solution.jl") end
     @safetestset "Utilities" begin include("./utils.jl") end
+    @safetestset "CommonSolve" begin include("./commonsolve/commonsolve.jl") end
 end end

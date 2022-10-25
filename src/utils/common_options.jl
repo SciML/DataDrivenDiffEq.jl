@@ -14,7 +14,7 @@ Currently, only `splitobs` for a train-test split and `DataLoader` is wrapped.
 Other algorithms may follow. 
 """
 @with_kw struct DataProcessing
-    """Train test split"""
+    """Train test split, indicates the (rough) percentage of training data"""
     split::Real = 0.8
     """Shuffle the training data"""
     shuffle::Bool = false
@@ -29,7 +29,7 @@ end
 function (d::DataProcessing)(X,Y)
     @unpack split, shuffle, batchsize, partial, rng = d
     
-    split = split ∈ (0, 1) ? split : max(0., min(split, 1.))
+    split = (0. <= split <= 1.) ? split : max(0., min(split, 1.))
     
     batchsize = batchsize <= 0 ? size(X, 2) : batchsize
 
@@ -55,7 +55,9 @@ Given that `DataDrivenDiffEq.jl` allows for constants in the basis, the `center`
 struct DataNormalization{T <: Union{Nothing, ZScoreTransform, UnitRangeTransform}}
 end
 
-DataNormalization(method::Type{T} = nothing) where T = DataNormalization{T}()
+
+DataNormalization() = DataNormalization{Nothing}()
+DataNormalization(method::Type{T}) where T = DataNormalization{T}()
 
 StatsBase.fit(::DataNormalization{Nothing}, data) = StatsBase.fit(ZScoreTransform, data, dims = 2, scale = false, center = false)
 StatsBase.fit(::DataNormalization{UnitRangeTransform}, data) = StatsBase.fit(UnitRangeTransform, data, dims = 2)
@@ -79,6 +81,8 @@ the function that generates them). If `eval_expression=false`,
 then construction via GeneralizedGenerated.jl is utilized to allow for
 same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
+
+Denoising happens before normalization!
 """
 @with_kw struct DataDrivenCommonOptions{T, K}
     # Optimization options
@@ -108,9 +112,9 @@ on sufficiently large basis functions. By default eval_expression=false.
     kwargs::K = (;)
 end
 
-## INTERNAL USE FOR PREPROCESSING
+## INTERNAL USE ONLY
 
-# This is a way to create a datadriven problem relatively efficient.
+# This is a way to create a datadriven problem relatively efficient and handle all algorithms
 struct InternalDataDrivenProblem{A <: AbstractDataDrivenAlgorithm, B <: AbstractBasis, TD, T <: DataLoader, F, CI, VI, O <: DataDrivenCommonOptions, P <: AbstractDataDrivenProblem}
     # The Algorithm
     alg::A
@@ -144,6 +148,7 @@ function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis 
     @unpack denoise, normalize, data_processing = options
 
     Θ = basis(prob)
+    # This function handles preprocessing of the variables
     Y = get_fit_targets(alg, prob, basis)
 
     if denoise 
