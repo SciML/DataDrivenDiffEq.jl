@@ -46,6 +46,13 @@ using RecipesBase
     Continuous = 3 # Time continous problem
 end
 
+# Helper for < v1.8
+if VERSION < v"1.8.0"
+    const __EMPTY_MATRIX = Array(undef, 0, 0)
+else
+    const __EMPTY_MATRIX = [;;]
+end
+
 # Basis with an indicator for implicit use
 abstract type AbstractDataDrivenFunction{Bool, Bool} end
 abstract type AbstractBasis <: AbstractSystem end
