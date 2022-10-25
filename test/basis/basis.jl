@@ -1,4 +1,3 @@
-using Revise, Test
 using DataDrivenDiffEq
 using ModelingToolkit
 
@@ -26,7 +25,7 @@ using ModelingToolkit
         p0 = randn(2)
         t0 = 0.0
         u0 = randn(2)
-    
+
         @test isequal(b(x0), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
         @test isequal(b(x0, p), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
         @test isequal(b(x0, p, t), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
@@ -34,14 +33,14 @@ using ModelingToolkit
         @test isequal(b(x0, p0, t0, zeros(2)), DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
         @test isequal(b(x0, p0, t0, u0), DataDrivenDiffEq.get_f(b)(x0, p0, t0, u0))
     end
-    
+
     @testset "Array evaluation" begin 
         # Array call
         x0 = randn(3, 100)
         p0 = randn(2)
         t0 = randn(100)
         u0 = randn(2, 100)
-    
+
         # These first two fail, since exp(-t) != exp(getindex(t,1))
         @test isequal(b(x0, p0, t0, u0), true_res_(x0, p0, t0, u0))
     end
