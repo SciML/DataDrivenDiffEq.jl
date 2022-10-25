@@ -32,6 +32,17 @@ function assert_lhs(prob::DataDrivenDataset)
     return assert_lhs(first(prob.probs))
 end
 
+function _generate_variables(sym::Symbol, n::Int, offset::Int = 0)
+    xs = [Symbolics.variable(sym, i) for i in (offset+1):(offset+n)]
+    Num.(map(ModelingToolkit.tovar, xs))
+end
+
+function _generate_parameters(sym::Symbol, n::Int, offset::Int = 0)
+    xs = [Symbolics.variable(sym, i) for i in (offset+1):(offset+n)]
+    Num.(map(ModelingToolkit.toparam, xs))
+end
+
+
 
 function __build_eqs(coeff_mat, basis, prob)
         # Create additional variables
@@ -39,7 +50,7 @@ function __build_eqs(coeff_mat, basis, prob)
         sps = norm.(eachrow(coeff_mat), 0)
         pl = length(parameters(basis))
         
-        p = [Symbolics.variable(:p, i) for i in (pl+1):(pl+sp)]
+        p = _generate_parameters(:p, sp, pl) 
         p = collect(p)
 
         ps = zeros(eltype(coeff_mat), sp)
@@ -118,4 +129,19 @@ function __construct_basis(X, b, prob, options)
         name = gensym(:Basis),
         eval_expression = eval_expresssion
     )
+end
+
+
+function unit_basis(prob::DataDrivenProblem)
+    @unpack X, p, t, U, Y, DX = prob
+    n_x = size(X, 1)
+    n_p = size(p, 1)
+    n_u = size(U, 1)
+
+    t = Num(ModelingToolkit.tovar(Symbolics.variable(:t)))
+    x = _generate_variables(:x, n_x)
+    p = _generate_parameters(:p, n_p)
+    u = _generate_variables(:u, n_u)
+
+    Basis([x; u], x, controls = u, independent_variable = t, parameters = p)
 end

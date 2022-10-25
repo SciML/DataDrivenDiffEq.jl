@@ -35,6 +35,8 @@ using DataInterpolations
                                     QuadraticSpline, CubicSpline, BSplineInterpolation,
                                     BSplineApprox, Curvefit
 
+@reexport using MLUtils: splitobs, DataLoader
+
 using DocStringExtensions
 using RecipesBase
 
@@ -115,14 +117,12 @@ include("./problem/set.jl")
 export DataDrivenDataset
 export DirectDataset, DiscreteDataset, ContinuousDataset
 
-include("./problem/sample.jl")
-export DataSampler, Split, Batcher
-
 include("./solution.jl")
 export DataDrivenSolution
 export get_algorithm, get_result, get_basis, is_converged, get_problem
 
 include("./utils/common_options.jl")
+export DataProcessing
 export DataDrivenCommonOptions
 
 include("./utils/plot_recipes.jl")
