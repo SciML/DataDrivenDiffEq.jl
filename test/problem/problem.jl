@@ -88,8 +88,6 @@ end
     p4 = DiscreteDataDrivenProblem(X1, Y = Y2, t = t, p = ps, U = U)
 
     @testset "Check validity" begin
-        @info length(b1)
-        @info length(b2)
         @test_throws AssertionError @is_applicable p2 b2
         @test_throws AssertionError @is_applicable p1 b2
         @test_throws AssertionError @is_applicable p3 b2

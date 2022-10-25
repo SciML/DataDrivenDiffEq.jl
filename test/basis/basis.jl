@@ -90,6 +90,7 @@ end
 @testset "Utils and calls" begin 
     @variables a
     @variables u[1:3]
+    @parameters w[1:2] t
     g = [u[1]; u[3]; a]
     basis = Basis(g, [u; a])
     @test basis([1; 2; 3; 4]) == [1; 3; 4]

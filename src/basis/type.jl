@@ -269,75 +269,75 @@ get_f(b::AbstractBasis) = getfield(b, :f)
 # OOP 
 
 # Without controls or implicits
-function (b::Basis{false, false})(u::AbstractVector, p::P = parameters(b), t::Number = independent_variable(b)) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+function (b::Basis{false, false})(u::AbstractVector, p::P = parameters(b), t::Number = get_iv(b)) where P <: Union{AbstractArray, Tuple}
+    f = get_f(b)
     f(u, p, t)
 end
 
 # Without implicits, with controls
 function (b::Basis{false, true})(u::AbstractVector, 
-    p::P = parameters(b), t::Number = independent_variable(b), 
+    p::P = parameters(b), t::Number = get_iv(b), 
     c::AbstractVector = controls(b)) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(u, p, t, c)
 end
 
 # With implict, without controls
 function (b::Basis{true, false})(du::AbstractVector, u::AbstractVector, 
-    p::P = parameters(b), t::Number = independent_variable(b)) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    p::P = parameters(b), t::Number = get_iv(b)) where P <: Union{AbstractArray, Tuple}
+    f = get_f(b)
     f(du, u, p, t)
 end
 
 # With implicit and controls
 function (b::Basis{true, true})(du::AbstractVector, u::AbstractVector, 
-    p::P = parameters(b), t::Number = independent_variable(b), 
+    p::P = parameters(b), t::Number = get_iv(b), 
     c::AbstractVector = controls(b)) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(du, u, p, t, c)
 end
 
 # Array
 function (b::Basis{false, false})(u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(u, p, t)
 end
 
 
 function (b::Basis{true, false})(du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(du, u, p, t)
 end
 
 function (b::Basis{false, true})(u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(u, p, t, c)
 end
 
 function (b::Basis{true, true})(du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(du, u, p, t, c)
 end
 
 
 function (b::Basis{false, false})(res::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(res, u, p, t)
 end
 
 
 function (b::Basis{true, false})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(res, du, u, p, t)
 end
 
 function (b::Basis{false, true})(res::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(res, u, p, t, c)
 end
 
 function (b::Basis{true, true})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
-    @unpack f = b
+    f = get_f(b)
     f(res,du, u, p, t, c)
 end
 
