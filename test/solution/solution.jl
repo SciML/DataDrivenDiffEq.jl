@@ -15,8 +15,9 @@ eqs = [sin(p[1] * x[1]) + x[2]; p[2] * x[3]]
 b = Basis(eqs, x, parameters = p)
 
 x = randn(rng, 3, 100)
+t = collect(0.0:1.0:99.0)
 p0 = randn(rng, 2)
-y = b(x, p0)
+y = b(x, p0, t)
 ŷ = y .+ 0.01 * randn(rng, size(y))
 prob = DirectDataDrivenProblem(x, y, p = p0)
 

@@ -1,4 +1,4 @@
-using DataDrivenDiffEq
+using DataDrivenDiffEq, Test
 using LinearAlgebra
 using ModelingToolkit
 using StatsBase
@@ -25,6 +25,7 @@ U = hcat(map(i -> u_(X[:, i], p, t[i]), 1:length(t))...)
         @test is_discrete(p_)
         @test_nowarn @is_applicable p_
     end
+
     @test isequal(p3.U, p4.U)
     @test isequal(p4.p, p)
 end
@@ -87,6 +88,8 @@ end
     p4 = DiscreteDataDrivenProblem(X1, Y = Y2, t = t, p = ps, U = U)
 
     @testset "Check validity" begin
+        @info length(b1)
+        @info length(b2)
         @test_throws AssertionError @is_applicable p2 b2
         @test_throws AssertionError @is_applicable p1 b2
         @test_throws AssertionError @is_applicable p3 b2
@@ -122,14 +125,19 @@ end
 @testset "DataDrivenDataset" begin
     p1 = ContinuousDataDrivenProblem(X, t)
     p2 = ContinuousDataDrivenProblem(X, t, DX = DX)
+    p3 = ContinuousDataDrivenProblem(X, t, DX = DX)
 
-    data = (prob1 = (X = X, t = t, Y = Y),
-            prob2 = (X = X, t = t, Y = Y, DX = DX))
+    data = (
+        prob1 = (X = X, t = t, Y = Y),
+        prob2 = (X = X, t = t, Y = Y, DX = DX),
+            )
+
 
     s1 = DataDrivenDataset(p1, p2)
     s2 = ContinuousDataset(data)
     s3 = DirectDataset(data)
     s4 = DiscreteDataset(data)
+    s5 = DataDrivenDataset(p1, p2, p3)
 
     sets = [s1, s2, s3, s4]
 
@@ -145,18 +153,6 @@ end
         @test DataDrivenDiffEq.is_valid(s)
     end
 
-    # Targets
-    @test DataDrivenDiffEq.get_target(s1) == DataDrivenDiffEq.get_target(s2)
-    @test DataDrivenDiffEq.get_target(s1) ==
-          hcat(DataDrivenDiffEq.get_target(p1), DataDrivenDiffEq.get_target(p2))
-    @test DataDrivenDiffEq.get_target(s3) == hcat(Y, Y)
-    @test DataDrivenDiffEq.get_target(s4) == hcat(X[:, 2:end], X[:, 2:end])
-
-    # Args
-    @test DataDrivenDiffEq.get_oop_args(s1) == DataDrivenDiffEq.get_oop_args(s2)
-    @test DataDrivenDiffEq.get_implicit_oop_args(s1) ==
-          DataDrivenDiffEq.get_implicit_oop_args(s2)
-
     # Basis handling 
     @variables x[1:size(X, 1)]
     b = Basis(x, x)
@@ -164,9 +160,11 @@ end
     @test b(s2) == b(s1)
     @test hcat(X, X) == b(s3)
     @test hcat(X[:, 1:(end - 1)], X[:, 1:(end - 1)]) == b(s4)
+    @test hcat(X, X, X) == b(s5)
 
     # Check if misspecified data is detected
     wrong_data = (prob1 = (X = X, Y = Y),
                   prob2 = (X = X, t = t, Y = Y))
     @test_throws ArgumentError ContinuousDataset(wrong_data)
 end
+

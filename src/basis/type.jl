@@ -49,7 +49,7 @@ same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
 
 """
-struct Basis{IMPL, CTRLS} <: AbstractBasis{IMPL, CTRLS}
+struct Basis{IMPL, CTRLS} <: AbstractBasis
     """The equations of the basis"""
     eqs::Vector{Equation}
     """Dependent (state) variables"""
@@ -245,7 +245,7 @@ end
     with the typical SciML signature `f(u,p,t)` or `f(du,u,p,t)`. If control variables are defined, the function can also be called
     by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
 """
-function dynamics(b::AbstractBasis{<:Any, <:Any})
+function dynamics(b::AbstractBasis)
     return get_f(b)
 end
 
@@ -254,18 +254,18 @@ $(SIGNATURES)
 
 Return the implicit variables of the basis.
 """
-function implicit_variables(b::AbstractBasis{<:Any, <:Any})
+function implicit_variables(b::AbstractBasis)
     return getfield(b, :implicit)
 end
 
 # For internal use
-is_implicit(b::AbstractBasis{X, <:Any}) where X = X
-is_controlled(b::AbstractBasis{<:Any, X}) where X = X
+is_implicit(b::Basis{X, <:Any}) where X = X
+is_controlled(b::Basis{<:Any, X}) where X = X
 
 ## Callable
-get_f(b::AbstractBasis{<:Any, <:Any}) = getfield(b, :f)
+get_f(b::AbstractBasis) = getfield(b, :f)
 
-(b::Basis)(args...) = get_f(b)(args...)
+#(b::Basis)(args...) = get_f(b)(args...)
 # OOP 
 
 # Without controls or implicits
@@ -298,30 +298,63 @@ function (b::Basis{true, true})(du::AbstractVector, u::AbstractVector,
 end
 
 # Array
-function (b::Basis{<:Bool, <:Bool})(du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{false, false})(u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
+    @unpack f = b
+    f(u, p, t)
+end
+
+
+function (b::Basis{true, false})(du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
+    @unpack f = b
+    f(du, u, p, t)
+end
+
+function (b::Basis{false, true})(u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
+    @unpack f = b
+    f(u, p, t, c)
+end
+
+function (b::Basis{true, true})(du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
     @unpack f = b
     f(du, u, p, t, c)
 end
 
 
-function (b::Basis{<:Bool, <:Bool})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{false, false})(res::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
     @unpack f = b
-    f(res, du, u, p, t, c) 
+    f(res, u, p, t)
 end
+
+
+function (b::Basis{true, false})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
+    @unpack f = b
+    f(res, du, u, p, t)
+end
+
+function (b::Basis{false, true})(res::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
+    @unpack f = b
+    f(res, u, p, t, c)
+end
+
+function (b::Basis{true, true})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
+    @unpack f = b
+    f(res,du, u, p, t, c)
+end
+
 
 
 
 
 ## Information and Iteration
 
-Base.length(x::AbstractBasis) = length(equations(x))
-Base.size(x::AbstractBasis) = size(equations(x))
+Base.length(x::B) where B <: AbstractBasis = length(equations(x))
+Base.size(x::B) where B <: AbstractBasis = size(equations(x))
 
-Base.getindex(x::AbstractBasis, idx) = getindex(equations(x), idx)
-Base.firstindex(x::AbstractBasis) = firstindex(equations(x))
-Base.lastindex(x::AbstractBasis) = lastindex(equations(x))
-Base.iterate(x::AbstractBasis) = iterate(equations(x))
-Base.iterate(x::AbstractBasis, id) = iterate(equations(x), id)
+Base.getindex(x::B, idx) where B <: AbstractBasis = getindex(equations(x), idx)
+Base.firstindex(x::B) where B <: AbstractBasis= firstindex(equations(x))
+Base.lastindex(x::B) where B <: AbstractBasis= lastindex(equations(x))
+Base.iterate(x::B) where B <: AbstractBasis= iterate(equations(x))
+Base.iterate(x::B, id) where B <: AbstractBasis= iterate(equations(x), id)
 
 ## Internal update
 function __update!(b::AbstractBasis, eval_expression = false)

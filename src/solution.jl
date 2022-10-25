@@ -34,7 +34,7 @@ _retcode(::ErrorDataDrivenResult) = :Failed
 function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
                             alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm(),
                             result::AbstractDataDrivenResult = ErrorDataDrivenResult())
-    rss = sum(abs2, get_target(p) .- b(p))
+    rss = sum(abs2, get_implicit_data(p) .- b(p))
     return DataDrivenSolution{eltype(p)}(b,
                                          _retcode(result),
                                          ZeroDataDrivenAlgorithm(),
@@ -101,7 +101,7 @@ $(SIGNATURES)
 Returns the number of observations of the [`DataDrivenSolution`](@ref).
 """
 function StatsBase.nobs(sol::DataDrivenSolution)
-    begin prod(size(get_target(getfield(sol, :prob)))) end
+    begin prod(size(get_implicit_data(getfield(sol, :prob)))) end
 end
 
 """
@@ -112,7 +112,7 @@ intercept and a normal distributed error.
 """
 @views function StatsBase.nullloglikelihood(sol::DataDrivenSolution)
     begin
-        Y = get_target(getfield(sol, :prob))
+        Y = get_implicit_data(getfield(sol, :prob))
         -nobs(sol) / 2 * log(sum(abs2, Y .- mean(Y, dims = 2)) / nobs(sol))
     end
 end
@@ -134,7 +134,7 @@ Returns the `summarystats` for each row of the error for the [`DataDrivenSolutio
 """
 @views function StatsBase.summarystats(sol::DataDrivenSolution)
     p = getfield(sol, :prob)
-    map(summarystats, eachrow(get_target(p) .- sol(p)))
+    map(summarystats, eachrow(get_implicit_data(p) .- sol(p)))
 end
 
 """

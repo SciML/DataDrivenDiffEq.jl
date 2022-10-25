@@ -10,7 +10,7 @@ $(SIGNATURES)
 
 Check if the problem has control inputs.
 """
-is_autonomous(::AbstractDataDrivenProblem{N, U, C}) where {N, U, C} = U
+is_autonomous(::AbstractDataDrivenProblem{N, U, C}) where {N, U, C} = U ? false : true
 
 """
 $(SIGNATURES)
@@ -381,11 +381,11 @@ is_valid(problem)
 """
 function is_valid(x::ABSTRACT_DIRECT_PROB{N, C}) where {N <: Number, C}
     map(check_domain, (x.X, x.Y, x.U, x.t, x.p))
-    if !C && !isempty(x.t)
+    if C && !isempty(x.t)
         check_lengths(x.X, x.Y, x.U, x.t)
-    elseif !C
+    elseif C
         check_lengths(x.X, x.Y, x.U)
-    elseif C && !isempty(x.t)
+    elseif !C && !isempty(x.t)
         check_lengths(x.X, x.Y, x.t)
     else
         check_lengths(x.X, x.Y)
@@ -395,11 +395,11 @@ end
 
 function is_valid(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N <: Number, C}
     map(check_domain, (x.X, x.U, x.t, x.p))
-    if !C && !isempty(x.t)
+    if C && !isempty(x.t)
         check_lengths(x.X, x.U, x.t)
-    elseif !C
+    elseif C
         check_lengths(x.X, x.U)
-    elseif C && !isempty(x.t)
+    elseif !C && !isempty(x.t)
         check_lengths(x.X, x.t)
     else
         check_lengths(x.X)
@@ -409,11 +409,11 @@ end
 
 function is_valid(x::ABSTRACT_CONT_PROB{N, C}) where {N <: Number, C}
     map(check_domain, (x.X, x.DX, x.U, x.t, x.p))
-    if !C && !isempty(x.t)
+    if C && !isempty(x.t)
         check_lengths(x.X, x.DX, x.U, x.t)
-    elseif !C
+    elseif C
         check_lengths(x.X, x.DX, x.U)
-    elseif C && !isempty(x.t)
+    elseif !C && !isempty(x.t)
         check_lengths(x.X, x.DX, x.t)
     else
         check_lengths(x.X, x.DX)

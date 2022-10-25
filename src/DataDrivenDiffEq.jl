@@ -13,7 +13,7 @@ using Reexport
 using Parameters
 using Setfield
 
-using ModelingToolkit
+@reexport using ModelingToolkit
 using ModelingToolkit: AbstractSystem
 using ModelingToolkit: value, operation, arguments, istree, get_observed
 using ModelingToolkit.Symbolics
@@ -48,7 +48,7 @@ end
 
 # Basis with an indicator for implicit use
 abstract type AbstractDataDrivenFunction{Bool, Bool} end
-abstract type AbstractBasis{Bool, Bool} <: AbstractSystem end
+abstract type AbstractBasis <: AbstractSystem end
 
 # Collect the DataInterpolations Methods into an Interpolation Type
 abstract type AbstractInterpolationMethod end
