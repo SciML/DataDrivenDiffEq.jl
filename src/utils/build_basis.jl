@@ -5,9 +5,15 @@ end
 
 # Returns true iff x is not in the arguments of the jacobian of eqs
 function __assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector)
+    @info eqs
+    @info x
     j = Symbolics.jacobian(eqs, x)
+    @info j
     # Check if any of the variables is in the jacobian
-    v = unique(reduce(vcat, map(get_variables, j)))
+    v = get_variables.(j)
+    @info v
+    isempty(v) && return true
+    v = unique(v)
     for xi in x, vi in v
         isequal(xi, vi) && return false
     end
@@ -31,7 +37,7 @@ function assert_lhs(prob::DataDrivenDataset)
 end
 
 
-function __build_eqs(coeff_mat::AbstractMatrix, basis::AbstractBasis, prob::AbstractDataDrivenProblem)
+function __build_eqs(coeff_mat, basis, prob)
         # Create additional variables
         sp = sum(.! iszero.(coeff_mat))
         sps = norm.(eachrow(coeff_mat), 0)
@@ -59,10 +65,10 @@ function __build_eqs(coeff_mat::AbstractMatrix, basis::AbstractBasis, prob::Abst
             end
         end
     
-    return __build_eqs(basis, eqs, p, prob)
+    return is_implicit(basis) ? _implicit_build_eqs(basis, eqs, p, prob) : _explicit_build_eqs(basis, eqs, p, prob)
 end
 
-function __build_eqs(basis::AbstractBasis{false, <:Bool}, eqs::Vector{Num}, p::Vector{Num}, prob::AbstractDataDrivenProblem)
+function _explicit_build_eqs(basis, eqs, p, prob)
     causality, dt = assert_lhs(prob)
 
     xs = states(basis)
@@ -82,11 +88,10 @@ function __build_eqs(basis::AbstractBasis{false, <:Bool}, eqs::Vector{Num}, p::V
     return eqs, Num.(p), Num[]
 end
 
-function __build_eqs(basis::AbstractBasis{true, <:Bool}, eqs::Vector{Num}, p::Vector{Num}, prob::AbstractDataDrivenProblem)
+function _implicit_build_eqs(basis, eqs, p, prob)
     
     implicits = implicit_variables(basis)
-
-    
+    @info implicits
     if __assert_linearity(eqs, implicits)
         eqs = eqs .~ 0
         @show "Solving"

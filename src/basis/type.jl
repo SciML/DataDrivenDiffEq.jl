@@ -122,7 +122,7 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
                              implicits, states, parameters, iv,
                              controls, eval_expression)
 
-    eqs = reduce(vcat, map(Symbolics.Equation, lhs, rhs))
+    eqs = reduce(vcat, map(Symbolics.Equation, lhs, rhs); init = Equation[])
     eqs = isa(eqs, AbstractVector) ? collect(eqs) : [collect(eqs)]
     return collect(eqs), states, ctrls, ps, observed, iv, implicit, f, name, systems
 end
@@ -245,7 +245,7 @@ end
     with the typical SciML signature `f(u,p,t)` or `f(du,u,p,t)`. If control variables are defined, the function can also be called
     by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
 """
-function dynamics(b::AbstractBasis)
+function dynamics(b::AbstractBasis{<:Any, <:Any})
     return get_f(b)
 end
 
@@ -254,7 +254,7 @@ $(SIGNATURES)
 
 Return the implicit variables of the basis.
 """
-function implicit_variables(b::AbstractBasis)
+function implicit_variables(b::AbstractBasis{<:Any, <:Any})
     return getfield(b, :implicit)
 end
 

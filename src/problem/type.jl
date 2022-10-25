@@ -115,7 +115,7 @@ Base.eltype(::AbstractDataDrivenProblem{T}) where {T} = T
 function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem),
                            kwargs...)
     dType = Base.promote_eltype(X, t, DX, Y, U, p)
-    cType = isempty(U)
+    cType = !isempty(U)
     name = isa(name, Symbol) ? name : Symbol(name)
     # We assume a discrete Problem
     if isnothing(probType)
@@ -331,69 +331,15 @@ function Base.getindex(p::AbstractDataDrivenProblem, i = :, j = :)
             ModelingToolkit.controls(p, i, j))
 end
 
-# TODO This is just for explicit basis! 
-# Make the basis callable with the problem
-# Explicit
+function (b::Basis{<:Any, <:Any})(p::AbstractDataDrivenProblem{<:Any, <:Any, <:Any})
+    @unpack f = b
+    _apply_vec_function(f, get_implicit_data(p), get_oop_args(p)...)
+end
 
-#@views function (b::AbstractBasis)(p::AbstractDataDrivenProblem)
-#    begin b(states(p), parameters(p), independent_variable(p), controls(p)) end
-#end
-#
-#@views function (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDataDrivenProblem)
-#    begin b(dx, states(p), parameters(p), independent_variable(p), controls(p)) end
-#end
-#
-#@views (b::AbstractBasis)(p::AbstractDataDrivenProblem, j) = begin b(p[:, j]...) end
-#
-#@views function (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDataDrivenProblem, j)
-#    begin b(dx, p[:, j]...) end
-#end
-#
-## Implicit basis!
-#@views function (b::AbstractBasis{true})(p::AbstractDataDrivenProblem)
-#    begin b(cat(get_target(p), states(p), dims = 1), parameters(p), independent_variable(p),
-#            controls(p)) end
-#end
-
-#@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem)
-#    begin b(res, cat(get_target(p), states(p), dims = 1), parameters(p),
-#            independent_variable(p), controls(p)) end
-#end
-#
-#@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem,
-#                                         j)
-#    begin
-#        arg_ = p[:, j]
-#        in_ = cat(get_target(p)[:, j], first(arg_), dims = 1)
-#        b(res, in_, Base.tail(arg_)...)
-#    end
-#end
-#
-# Special case discrete problem
-
-#@views (b::AbstractBasis)(p::ABSTRACT_DISCRETE_PROB) = begin b(p[:, 1:length(p)]...) end
-
-#@views function (b::AbstractBasis)(dx::AbstractMatrix, p::ABSTRACT_DISCRETE_PROB)
-#    begin b(dx, p, 1:length(p)) end
-#end
-
-# Implicit
-#@views function (b::AbstractBasis{true})(p::ABSTRACT_DISCRETE_PROB)
-#    begin
-#        arg_ = p[:, 1:length(p)]
-#        in_ = cat(get_target(p)[:, 1:length(p)], first(arg_), dims = 1)
-#        b(in_, Base.tail(arg_)...)
-#    end
-#end
-
-# Implicit
-#@views function (b::AbstractBasis{true})(dx::AbstractMatrix, p::ABSTRACT_DISCRETE_PROB)
-#    begin
-#        arg_ = p[:, 1:length(p)]
-#        in_ = cat(get_target(p)[:, 1:length(p)], first(arg_), dims = 1)
-#        b(dx, in_, Base.tail(arg_)...)
-#    end
-#end
+function (b::Basis{<:Any, <:Any})(res::AbstractMatrix, p::AbstractDataDrivenProblem{<:Any, <:Any, <:Any})
+    @unpack f = b
+    _apply_vec_function!(f, res, get_implicit_data(p), get_oop_args(p)...)
+end
 
 # Check for nans, inf etc
 function check_domain(x)
@@ -404,13 +350,14 @@ function check_lengths(args...)
 end
 
 # Return the target variables
-get_target(x::ABSTRACT_DIRECT_PROB{N, C}) where {N, C} = x.Y
-get_target(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N, C} = x.X[:, 2:end]
-get_target(x::ABSTRACT_CONT_PROB{N, C}) where {N, C} = x.DX
+get_implicit_data(x::ABSTRACT_DIRECT_PROB{N, C}) where {N, C} = x.Y
+get_implicit_data(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N, C} = x.X[:, 2:end]
+get_implicit_data(x::ABSTRACT_CONT_PROB{N, C}) where {N, C} = x.DX
 
 function get_oop_args(x::AbstractDataDrivenProblem{N, C, P}) where {N <: Number, C, P}
     map(f -> getfield(x, f), (:X, :p, :t, :U))
 end
+
 
 function get_oop_args(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N <: Number, C}
     return (x.X[:, 1:(end - 1)],
@@ -419,26 +366,6 @@ function get_oop_args(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N <: Number, C}
             x.U[:, 1:(end - 1)])
 end
 
-function get_implicit_oop_args(x::ABSTRACT_DIRECT_PROB{N, C}) where {N <: Number, C}
-    return ([x.X; x.Y],
-            x.p,
-            x.t,
-            x.U)
-end
-
-function get_implicit_oop_args(x::ABSTRACT_CONT_PROB{N, C}) where {N <: Number, C}
-    return ([x.X; x.DX],
-            x.p,
-            x.t,
-            x.U)
-end
-
-function get_implicit_oop_args(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N <: Number, C}
-    return ([x.X[:, 1:(end - 1)]; x.X[:, 2:end]],
-            x.p,
-            x.t[1:(end - 1)],
-            x.U[:, 1:(end - 1)])
-end
 
 """
 $(SIGNATURES)
@@ -537,13 +464,6 @@ macro is_applicable(problem, basis, dx)
 end
 
 ## DESolution dispatch
-
-function ContinuousDataDrivenProblem(sol::T; kwargs...) where {T <: DiffEqBase.DESolution}
-    DataDrivenProblem(sol; kwargs...)
-end
-function DiscreteDataDrivenProblem(sol::T; kwargs...) where {T <: DiffEqBase.DESolution}
-    DataDrivenProblem(sol; kwargs...)
-end
 
 function DataDrivenProblem(sol::T; use_interpolation = false,
                            kwargs...) where {T <: DiffEqBase.DESolution}
