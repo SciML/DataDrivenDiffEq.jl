@@ -46,12 +46,8 @@ using RecipesBase
     Continuous = 3 # Time continous problem
 end
 
-# Helper for < v1.8
-if VERSION < v"1.8.0"
-    const __EMPTY_MATRIX = Array(undef, 0, 0)
-else
-    const __EMPTY_MATRIX = [;;]
-end
+const __EMPTY_MATRIX = SMatrix{0, 0, Nothing, 0}()
+const __EMPTY_VECTOR = SVector{0, Nothing}()
 
 # Basis with an indicator for implicit use
 abstract type AbstractDataDrivenFunction{Bool, Bool} end

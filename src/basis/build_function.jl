@@ -43,17 +43,17 @@ end
 
 # Without controls or implicits
 function (f::DataDrivenFunction{false, false})(u::AbstractVector, p::P, t::Number) where P <: Union{AbstractArray, Tuple}
-    _apply_function(f, [], u, p, t, [])
+    _apply_function(f, __EMPTY_VECTOR, u, p, t, __EMPTY_VECTOR)
 end
 
 # Without implicits, with controls
 function (f::DataDrivenFunction{false, true})(u::AbstractVector, p::P, t::Number, c::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    _apply_function(f, [], u, p, t, c)
+    _apply_function(f, __EMPTY_VECTOR, u, p, t, c)
 end
 
 # With implict, without controls
 function (f::DataDrivenFunction{true, false})(du::AbstractVector, u::AbstractVector, p::P, t::Number) where P <: Union{AbstractArray, Tuple}
-    _apply_function(f, du, u, p, t, [])
+    _apply_function(f, du, u, p, t, __EMPTY_VECTOR)
 end
 
 # With implicit and controls
@@ -65,17 +65,17 @@ end
 
 # Without controls or implicits
 function (f::DataDrivenFunction{false, false})(res::AbstractVector, u::AbstractVector, p::P, t::Number) where P <: Union{AbstractArray, Tuple}
-    _apply_function!(f, res, [], u, p, t, [])
+    _apply_function!(f, res, __EMPTY_VECTOR, u, p, t, __EMPTY_VECTOR)
 end
 
 # Without implicits, with controls
 function (f::DataDrivenFunction{false, true})(res::AbstractVector, u::AbstractVector, p::P, t::Number, c::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    _apply_function!(f, res, [], u, p, t, c)
+    _apply_function!(f, res, __EMPTY_VECTOR, u, p, t, c)
 end
 
 # With implict, without controls
 function (f::DataDrivenFunction{true, false})(res::AbstractVector, du::AbstractVector, u::AbstractVector, p::P, t::Number) where P <: Union{AbstractArray, Tuple}
-    _apply_function!(f, res, du, u, p, t, [])
+    _apply_function!(f, res, du, u, p, t, __EMPTY_VECTOR)
 end
 
 # With implicit and controls
@@ -104,7 +104,7 @@ function _check_array_inputs(res, du, u, p, t, c)
 end
 
 function _apply_vec_function(f::DataDrivenFunction, du::AbstractMatrix, u::AbstractMatrix, p::AbstractVector, t::AbstractVector, c::AbstractMatrix) 
-    _check_array_inputs([], du, u, p, t, c)
+    _check_array_inputs(__EMPTY_MATRIX, du, u, p, t, c)
 
     reduce(hcat, map(axes(u, 2)) do i 
         _apply_function(f, 
@@ -133,29 +133,29 @@ end
 ## OOP 
 
 function (f::DataDrivenFunction{false, false})(u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    _apply_vec_function(f, [;;], u, p, t, [;;])
+    _apply_vec_function(f, __EMPTY_MATRIX, u, p, t, __EMPTY_MATRIX)
 end
 
 function (f::DataDrivenFunction{false, true})(u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
-    _apply_vec_function(f,[;;], u, p, t, c)
+    _apply_vec_function(f,__EMPTY_MATRIX, u, p, t, c)
 end
 
 function (f::DataDrivenFunction{true, false})(du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    _apply_vec_function(f, du, u, p, t, [;;])
+    _apply_vec_function(f, du, u, p, t, __EMPTY_MATRIX)
 end
 
 ## IIP 
 
 function (f::DataDrivenFunction{false, false})(res::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    _apply_vec_function!(f, res, [;;], u, p, t, [;;])
+    _apply_vec_function!(f, res, __EMPTY_MATRIX, u, p, t, __EMPTY_MATRIX)
 end
 
 function (f::DataDrivenFunction{false, true})(res::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
-    _apply_vec_function!(f, res,[;;], u, p, t, c)
+    _apply_vec_function!(f, res,__EMPTY_MATRIX, u, p, t, c)
 end
 
 function (f::DataDrivenFunction{true, false})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
-    _apply_vec_function!(f,res,du, u, p, t, [;;])
+    _apply_vec_function!(f,res,du, u, p, t, __EMPTY_MATRIX)
 end
 
 
