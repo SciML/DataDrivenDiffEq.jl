@@ -111,12 +111,13 @@ end
 ## INTERNAL USE FOR PREPROCESSING
 
 # This is a way to create a datadriven problem relatively efficient.
-struct InternalDataDrivenProblem{B <: AbstractBasis, TD, T <: DataLoader, F, O <: DataDrivenCommonOptions}
+struct InternalDataDrivenProblem{B <: AbstractBasis, TD, T <: DataLoader, F, O <: DataDrivenCommonOptions, P <: AbstractDataDrivenProblem}
     testdata::TD
     traindata::T
     transform::F
     options::O
     basis::B
+    problem::P
 end
 
 # We always want a basis!
@@ -140,7 +141,7 @@ function __preprocess(prob::AbstractDataDrivenProblem, basis::AbstractBasis , op
     test, loader =  data_processing(Θ, Y)
 
     return InternalDataDrivenProblem(
-        test, loader, dt, options, basis
+        test, loader, dt, options, basis, prob
     )
 end
 
