@@ -335,65 +335,65 @@ end
 # Make the basis callable with the problem
 # Explicit
 
-@views function (b::AbstractBasis)(p::AbstractDataDrivenProblem)
-    begin b(states(p), parameters(p), independent_variable(p), controls(p)) end
-end
+#@views function (b::AbstractBasis)(p::AbstractDataDrivenProblem)
+#    begin b(states(p), parameters(p), independent_variable(p), controls(p)) end
+#end
+#
+#@views function (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDataDrivenProblem)
+#    begin b(dx, states(p), parameters(p), independent_variable(p), controls(p)) end
+#end
+#
+#@views (b::AbstractBasis)(p::AbstractDataDrivenProblem, j) = begin b(p[:, j]...) end
+#
+#@views function (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDataDrivenProblem, j)
+#    begin b(dx, p[:, j]...) end
+#end
+#
+## Implicit basis!
+#@views function (b::AbstractBasis{true})(p::AbstractDataDrivenProblem)
+#    begin b(cat(get_target(p), states(p), dims = 1), parameters(p), independent_variable(p),
+#            controls(p)) end
+#end
 
-@views function (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDataDrivenProblem)
-    begin b(dx, states(p), parameters(p), independent_variable(p), controls(p)) end
-end
-
-@views (b::AbstractBasis)(p::AbstractDataDrivenProblem, j) = begin b(p[:, j]...) end
-
-@views function (b::AbstractBasis)(dx::AbstractMatrix, p::AbstractDataDrivenProblem, j)
-    begin b(dx, p[:, j]...) end
-end
-
-# Implicit basis!
-@views function (b::AbstractBasis{true})(p::AbstractDataDrivenProblem)
-    begin b(cat(get_target(p), states(p), dims = 1), parameters(p), independent_variable(p),
-            controls(p)) end
-end
-
-@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem)
-    begin b(res, cat(get_target(p), states(p), dims = 1), parameters(p),
-            independent_variable(p), controls(p)) end
-end
-
-@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem,
-                                         j)
-    begin
-        arg_ = p[:, j]
-        in_ = cat(get_target(p)[:, j], first(arg_), dims = 1)
-        b(res, in_, Base.tail(arg_)...)
-    end
-end
-
+#@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem)
+#    begin b(res, cat(get_target(p), states(p), dims = 1), parameters(p),
+#            independent_variable(p), controls(p)) end
+#end
+#
+#@views function (b::AbstractBasis{true})(res::AbstractMatrix, p::AbstractDataDrivenProblem,
+#                                         j)
+#    begin
+#        arg_ = p[:, j]
+#        in_ = cat(get_target(p)[:, j], first(arg_), dims = 1)
+#        b(res, in_, Base.tail(arg_)...)
+#    end
+#end
+#
 # Special case discrete problem
 
-@views (b::AbstractBasis)(p::ABSTRACT_DISCRETE_PROB) = begin b(p[:, 1:length(p)]...) end
+#@views (b::AbstractBasis)(p::ABSTRACT_DISCRETE_PROB) = begin b(p[:, 1:length(p)]...) end
 
-@views function (b::AbstractBasis)(dx::AbstractMatrix, p::ABSTRACT_DISCRETE_PROB)
-    begin b(dx, p, 1:length(p)) end
-end
-
-# Implicit
-@views function (b::AbstractBasis{true})(p::ABSTRACT_DISCRETE_PROB)
-    begin
-        arg_ = p[:, 1:length(p)]
-        in_ = cat(get_target(p)[:, 1:length(p)], first(arg_), dims = 1)
-        b(in_, Base.tail(arg_)...)
-    end
-end
+#@views function (b::AbstractBasis)(dx::AbstractMatrix, p::ABSTRACT_DISCRETE_PROB)
+#    begin b(dx, p, 1:length(p)) end
+#end
 
 # Implicit
-@views function (b::AbstractBasis{true})(dx::AbstractMatrix, p::ABSTRACT_DISCRETE_PROB)
-    begin
-        arg_ = p[:, 1:length(p)]
-        in_ = cat(get_target(p)[:, 1:length(p)], first(arg_), dims = 1)
-        b(dx, in_, Base.tail(arg_)...)
-    end
-end
+#@views function (b::AbstractBasis{true})(p::ABSTRACT_DISCRETE_PROB)
+#    begin
+#        arg_ = p[:, 1:length(p)]
+#        in_ = cat(get_target(p)[:, 1:length(p)], first(arg_), dims = 1)
+#        b(in_, Base.tail(arg_)...)
+#    end
+#end
+
+# Implicit
+#@views function (b::AbstractBasis{true})(dx::AbstractMatrix, p::ABSTRACT_DISCRETE_PROB)
+#    begin
+#        arg_ = p[:, 1:length(p)]
+#        in_ = cat(get_target(p)[:, 1:length(p)], first(arg_), dims = 1)
+#        b(dx, in_, Base.tail(arg_)...)
+#    end
+#end
 
 # Check for nans, inf etc
 function check_domain(x)

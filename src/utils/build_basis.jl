@@ -62,7 +62,7 @@ function __build_eqs(coeff_mat::AbstractMatrix, basis::AbstractBasis, prob::Abst
     return __build_eqs(basis, eqs, p, prob)
 end
 
-function __build_eqs(basis::AbstractBasis{false}, eqs::Vector{Num}, p::Vector{Num}, prob::AbstractDataDrivenProblem)
+function __build_eqs(basis::AbstractBasis{false, <:Bool}, eqs::Vector{Num}, p::Vector{Num}, prob::AbstractDataDrivenProblem)
     causality, dt = assert_lhs(prob)
 
     xs = states(basis)
@@ -82,7 +82,7 @@ function __build_eqs(basis::AbstractBasis{false}, eqs::Vector{Num}, p::Vector{Nu
     return eqs, Num.(p), Num[]
 end
 
-function __build_eqs(basis::AbstractBasis{true}, eqs::Vector{Num}, p::Vector{Num}, prob::AbstractDataDrivenProblem)
+function __build_eqs(basis::AbstractBasis{true, <:Bool}, eqs::Vector{Num}, p::Vector{Num}, prob::AbstractDataDrivenProblem)
     
     implicits = implicit_variables(basis)
 

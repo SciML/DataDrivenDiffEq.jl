@@ -47,7 +47,8 @@ using RecipesBase
 end
 
 # Basis with an indicator for implicit use
-abstract type AbstractBasis{Bool} <: AbstractSystem end
+abstract type AbstractDataDrivenFunction{Bool, Bool} end
+abstract type AbstractBasis{Bool, Bool} <: AbstractSystem end
 
 # Collect the DataInterpolations Methods into an Interpolation Type
 abstract type AbstractInterpolationMethod end
