@@ -70,12 +70,3 @@ DiscreteDataset
 ContinuousDataset
 DirectDataset
 ```
-
-
-## DataSampler
-
-```@docs
-DataSampler
-Split
-Batcher
-```

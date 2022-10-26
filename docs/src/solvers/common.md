@@ -27,31 +27,22 @@ DataDrivenCommonOptions
 
 ## Solving the Problem
 
-After defining a [`problem`](@ref problem), we choose a method to [`solve`](@ref solve) it. Depending on the input arguments and the type of problem, the function will return a result derived the algorithm of choice. Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. A [`Basis`](@ref) can be used for lifting the measurements.
+After defining a [`problem`](@ref problem), we choose a method to [`solve`](@ref solve) it. Depending on the input arguments and the type of problem, the function will return a result derived the algorithm of choice. Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. An optional [`Basis`](@ref) can be used for lifting the measurements.
 
 ```julia
-# Use a Koopman based inference
-res = solve(problem, DMDSVD(), kwargs...)
+solution = solve(DataDrivenProblem, [basis], solver; kwargs...)
+```
+
+Or more concrete examples:
+
+```julia
+# Use a Koopman based inference without a basis
+res = solve(problem, DMDSVD(); options = DataDrivenCommonOptions(), kwargs...)
 # Use a sparse identification
-res = solve(problem, basis, STLQS(), kwargs...)
+res = solve(problem, basis, STLQS(); options = DataDrivenCommonOptions(),  kwargs...)
 ```
+As we can see above, the use of a [`Basis`](@ref) is optional to invoke the estimation process. Internally, a linear [`Basis`](@ref) will be generated based on the [`DataDrivenProblem`](@ref problem) containing the states and control inputs.
 
-The [`DataDrivenSolution`](@ref) `res` contains a `result` which is the inferred system and a [`Basis`](@ref), `metrics` which is a `NamedTuple` containing different metrics of the inferred system. These can be accessed via:
-
-```julia
-# The inferred system
-system = result(res)
-# The metrics
-m = metrics(res)
-```
-
-Since the inferred system is a parametrized equation, the corresponding parameters can be accessed and returned via
-
-```julia
-# Vector
-ps = parameters(res)
-# Parameter map
-ps = parameter_map(res)
-```
+The [`DataDrivenSolution`](@ref) `res` contains a `result` which is the inferred system and a [`Basis`](@ref).
 
 

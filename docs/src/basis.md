@@ -4,6 +4,18 @@
 Basis
 ```
 
+## API 
+
+```@docs
+dynamics
+is_implicit
+is_controlled
+jacobian
+isequal
+get_parameter_values
+get_parameter_map
+```
+
 ## Generators
 
 ```@docs

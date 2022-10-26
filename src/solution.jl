@@ -175,4 +175,4 @@ Assert the result of the [`DataDrivenSolution`] and returns `true` if successful
 """
 is_converged(r::DataDrivenSolution) = getfield(r, :retcode) == DDReturnCode(1)
 
-## Conversions to DE / ODESystem here
+## Conversions to DE / ODESystem / DAE or OptimizationSystem here

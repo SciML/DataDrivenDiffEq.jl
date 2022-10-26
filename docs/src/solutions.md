@@ -1,16 +1,15 @@
-# Solutions
+# [Solutions](@id datadrivensolution)
 
 ```@docs
 DataDrivenSolution
 ```
-
 ## Functions
 
 ```@docs
 get_problem
 get_basis
 get_algorithm
-get_result
+get_results
 is_converged
 ```
 
