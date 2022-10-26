@@ -57,13 +57,13 @@ end
 function gather_plot_information(x::AbstractDataDrivenSolution)
     p = get_problem(x)
     X, _, t, u = get_oop_args(p)
-    Y = get_target(p)
+    Y = get_implicit_data(p)
 
     ylab = is_direct(p) ? "Sample ID" : "t"
 
     outsym = is_direct(p) ? "y" : (is_discrete(p) ? "x" : "\U02202\U0209C" * "x")
     est_sym = outsym * "\U00302"
-    Ŷ = x.basis(X, parameters(x), t, u)
+    Ŷ = x.basis(p)
     return [(t, Y, outsym), (t, Ŷ, est_sym)], ylab
 end
 

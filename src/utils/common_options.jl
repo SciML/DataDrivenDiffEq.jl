@@ -112,7 +112,7 @@ Denoising happens before normalization!
     """Significant digits for the parameters - used for rounding. Default = 10"""
     digits::Int = 10
     """Evaluate the expression, see [`Symbolics.build_function`](https://symbolics.juliasymbolics.org/stable/manual/build_function/)"""
-    eval_expresssion::Bool = true
+    eval_expresssion::Bool = false
     """Additional kwargs"""
     kwargs::K = (;)
 end

@@ -113,6 +113,7 @@ end
 Base.eltype(::AbstractDataDrivenProblem{T}) where {T} = T
 
 function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem),
+                            use_static_arrays = false,
                            kwargs...)
     dType = Base.promote_eltype(X, t, DX, Y, U, p)
     cType = !isempty(U)
@@ -128,11 +129,14 @@ function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem
     end
 
     # Convert all to StaticArrays (except maybe p)
-    X = SMatrix{size(X)...}(X)
-    t = SVector{length(t)}(t)
-    DX = SMatrix{size(DX)...}(DX)
-    Y = SMatrix{size(Y)...}(Y)
-    U = SMatrix{size(U)...}(U)
+    if use_static_arrays
+        X = SMatrix{size(X)...}(X)
+        t = SVector{length(t)}(t)
+        p = SVector{length(p)}(p)
+        DX = SMatrix{size(DX)...}(DX)
+        Y = SMatrix{size(Y)...}(Y)
+        U = SMatrix{size(U)...}(U)
+    end
     return DataDrivenProblem{dType, cType, probType}(_promote(X, t, DX, Y, U, p)..., name)
 end
 
