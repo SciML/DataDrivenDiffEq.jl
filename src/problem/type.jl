@@ -336,7 +336,8 @@ function (b::Basis{<:Any, <:Any})(p::AbstractDataDrivenProblem{<:Any, <:Any, <:A
     _apply_vec_function(f, get_implicit_data(p), get_oop_args(p)...)
 end
 
-function (b::Basis{<:Any, <:Any})(res::AbstractMatrix, p::AbstractDataDrivenProblem{<:Any, <:Any, <:Any})
+function (b::Basis{<:Any, <:Any})(res::AbstractMatrix,
+                                  p::AbstractDataDrivenProblem{<:Any, <:Any, <:Any})
     @unpack f = b
     _apply_vec_function!(f, res, get_implicit_data(p), get_oop_args(p)...)
 end
@@ -358,14 +359,12 @@ function get_oop_args(x::AbstractDataDrivenProblem{N, C, P}) where {N <: Number,
     map(f -> getfield(x, f), (:X, :p, :t, :U))
 end
 
-
 function get_oop_args(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N <: Number, C}
     return (x.X[:, 1:(end - 1)],
             x.p,
             x.t[1:(end - 1)],
             x.U[:, 1:(end - 1)])
 end
-
 
 """
 $(SIGNATURES)

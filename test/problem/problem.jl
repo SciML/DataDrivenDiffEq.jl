@@ -125,11 +125,8 @@ end
     p2 = ContinuousDataDrivenProblem(X, t, DX = DX)
     p3 = ContinuousDataDrivenProblem(X, t, DX = DX)
 
-    data = (
-        prob1 = (X = X, t = t, Y = Y),
-        prob2 = (X = X, t = t, Y = Y, DX = DX),
-            )
-
+    data = (prob1 = (X = X, t = t, Y = Y),
+            prob2 = (X = X, t = t, Y = Y, DX = DX))
 
     s1 = DataDrivenDataset(p1, p2)
     s2 = ContinuousDataset(data)
@@ -165,4 +162,3 @@ end
                   prob2 = (X = X, t = t, Y = Y))
     @test_throws ArgumentError ContinuousDataset(wrong_data)
 end
-

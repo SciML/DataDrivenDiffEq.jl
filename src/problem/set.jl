@@ -192,7 +192,7 @@ end
 #    return (X, p, t, U)
 #end
 
-function get_oop_args(x::DataDrivenDataset) 
+function get_oop_args(x::DataDrivenDataset)
     data = map(x.probs) do p
         get_oop_args(p)
     end

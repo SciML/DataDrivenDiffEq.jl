@@ -33,8 +33,8 @@ end
 
 function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
                             alg::AbstractDataDrivenAlgorithm,
-                            result::Vector{AbstractDataDrivenResult}, 
-                            internal_problem::InternalDataDrivenProblem, 
+                            result::Vector{AbstractDataDrivenResult},
+                            internal_problem::InternalDataDrivenProblem,
                             retcode = DDReturnCode(2))
     rss = sum(abs2, get_implicit_data(p) .- b(p))
     return DataDrivenSolution{eltype(p)}(b,
@@ -43,7 +43,7 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
                                          result,
                                          p,
                                          rss,
-                                         length(parameters(b)), 
+                                         length(parameters(b)),
                                          internal_problem)
 end
 
@@ -174,6 +174,5 @@ $(SIGNATURES)
 Assert the result of the [`DataDrivenSolution`] and returns `true` if successful, `false` otherwise.
 """
 is_converged(r::DataDrivenSolution) = getfield(r, :retcode) == DDReturnCode(1)
-
 
 ## Conversions to DE / ODESystem here

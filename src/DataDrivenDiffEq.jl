@@ -49,7 +49,7 @@ using RecipesBase
     Continuous = 3 # Time continous problem
 end
 
-@enum DDReturnCode begin 
+@enum DDReturnCode begin
     Success = 1
     Failed = 2
     ReachedMaxIters = 3
@@ -87,7 +87,6 @@ abstract type AbstractDataDrivenSolution <: StatsBase.StatisticalModel end
 struct ErrorDataDrivenResult <: AbstractDataDrivenResult end
 struct ZeroDataDrivenAlgorithm <: AbstractDataDrivenAlgorithm end
 
-
 ## Basis
 
 include("./basis/build_function.jl")
@@ -112,7 +111,6 @@ export collocate_data
 include("./utils/utils.jl")
 export optimal_shrinkage, optimal_shrinkage!
 
-
 include("./problem/type.jl")
 
 export DataDrivenProblem
@@ -124,7 +122,6 @@ include("./problem/set.jl")
 export DataDrivenDataset
 export DirectDataset, DiscreteDataset, ContinuousDataset
 
-
 include("./utils/common_options.jl")
 export DataProcessing, DataNormalization
 export DataDrivenCommonOptions
@@ -135,6 +132,5 @@ export get_algorithm, get_results, get_basis, is_converged, get_problem
 
 include("./utils/plot_recipes.jl")
 include("./utils/build_basis.jl")
-
 
 end # module

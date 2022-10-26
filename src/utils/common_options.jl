@@ -26,23 +26,20 @@ Other algorithms may follow.
     rng::Random.AbstractRNG = Random.default_rng()
 end
 
-
 function (d::DataProcessing)(data::Tuple)
     @unpack split, shuffle, batchsize, partial, rng = d
     X = first(data)
-    split = (0. <= split <= 1.) ? split : max(0., min(split, 1.))
-    
+    split = (0.0 <= split <= 1.0) ? split : max(0.0, min(split, 1.0))
+
     batchsize = batchsize <= 0 ? size(X, 2) : batchsize
 
     xtrain, xtest = splitobs(data, at = split, shuffle = false)
-    
-    xtest, DataLoader(
-        xtrain, batchsize = batchsize, partial = partial, shuffle = true, rng = rng
-    )
+
+    xtest,
+    DataLoader(xtrain, batchsize = batchsize, partial = partial, shuffle = true, rng = rng)
 end
 
-(d::DataProcessing)(X,Y) = d((X,Y))
-
+(d::DataProcessing)(X, Y) = d((X, Y))
 
 """
 $(TYPEDEF)
@@ -59,14 +56,18 @@ Given that `DataDrivenDiffEq.jl` allows for constants in the basis, the `center`
 struct DataNormalization{T <: Union{Nothing, ZScoreTransform, UnitRangeTransform}}
 end
 
-
 DataNormalization() = DataNormalization{Nothing}()
-DataNormalization(method::Type{T}) where T = DataNormalization{T}()
+DataNormalization(method::Type{T}) where {T} = DataNormalization{T}()
 
-StatsBase.fit(::DataNormalization{Nothing}, data) = StatsBase.fit(ZScoreTransform, data, dims = 2, scale = false, center = false)
-StatsBase.fit(::DataNormalization{UnitRangeTransform}, data) = StatsBase.fit(UnitRangeTransform, data, dims = 2)
-StatsBase.fit(::DataNormalization{ZScoreTransform}, data) where T = StatsBase.fit(ZScoreTransform, data, dims = 2, center = false)
-
+function StatsBase.fit(::DataNormalization{Nothing}, data)
+    StatsBase.fit(ZScoreTransform, data, dims = 2, scale = false, center = false)
+end
+function StatsBase.fit(::DataNormalization{UnitRangeTransform}, data)
+    StatsBase.fit(UnitRangeTransform, data, dims = 2)
+end
+function StatsBase.fit(::DataNormalization{ZScoreTransform}, data) where {T}
+    StatsBase.fit(ZScoreTransform, data, dims = 2, center = false)
+end
 
 """
 $(TYPEDEF)
@@ -119,7 +120,9 @@ end
 ## INTERNAL USE ONLY
 
 # This is a way to create a datadriven problem relatively efficient and handle all algorithms
-struct InternalDataDrivenProblem{A <: AbstractDataDrivenAlgorithm, B <: AbstractBasis, TD, T <: DataLoader, F, CI, VI, O <: DataDrivenCommonOptions, P <: AbstractDataDrivenProblem, K}
+struct InternalDataDrivenProblem{A <: AbstractDataDrivenAlgorithm, B <: AbstractBasis, TD,
+                                 T <: DataLoader, F, CI, VI, O <: DataDrivenCommonOptions,
+                                 P <: AbstractDataDrivenProblem, K}
     # The Algorithm
     alg::A
     # Data and Normalization
@@ -143,51 +146,58 @@ end
 
 # This is a preprocess step, which commonly returns the implicit data.
 # For Koopman Algorithms this is not true
-function get_fit_targets(::AbstractDataDrivenAlgorithm, prob::AbstractDataDrivenProblem, basis::AbstractBasis)
+function get_fit_targets(::AbstractDataDrivenAlgorithm, prob::AbstractDataDrivenProblem,
+                         basis::AbstractBasis)
     Y = get_implicit_data(prob)
     X = basis(prob)
     return X, Y
 end
 
 # We always want a basis
-CommonSolve.init(prob::AbstractDataDrivenProblem, alg::AbstractDataDrivenAlgorithm; options::DataDrivenCommonOptions = DataDrivenCommonOptions(), kwargs...) = init(prob, unit_basis(prob), alg;  options = options, kwargs...)
+function CommonSolve.init(prob::AbstractDataDrivenProblem, alg::AbstractDataDrivenAlgorithm;
+                          options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
+                          kwargs...)
+    init(prob, unit_basis(prob), alg; options = options, kwargs...)
+end
 
-function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis , alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm(); options::DataDrivenCommonOptions = DataDrivenCommonOptions(), kwargs...)
+function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis,
+                          alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm();
+                          options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
+                          kwargs...)
     @unpack denoise, normalize, data_processing = options
 
     # This function handles preprocessing of the variables
     data = get_fit_targets(alg, prob, basis)
 
-    if denoise 
+    if denoise
         optimal_shrinkage!(first(data))
     end
 
     # Get the information about structure
     control_idx = zeros(Bool, length(basis), length(controls(basis)))
     implicit_idx = zeros(Bool, length(basis), length(implicit_variables(basis)))
-    
+
     for (i, eq) in enumerate(equations(basis))
         for (j, c) in enumerate(controls(basis))
-            control_idx[i,j] = is_dependent(eq.rhs, Symbolics.unwrap(c))
+            control_idx[i, j] = is_dependent(eq.rhs, Symbolics.unwrap(c))
         end
         for (k, v) in enumerate(implicit_variables(basis))
-            implicit_idx[i,k] = is_dependent(eq.rhs, Symbolics.unwrap(v))
+            implicit_idx[i, k] = is_dependent(eq.rhs, Symbolics.unwrap(v))
         end
     end
 
     # We do not center, given that we can have constants in our Basis!
     dt = fit(normalize, first(data))
-    
-    StatsBase.transform!(dt, first(data))
-    
-    test, loader =  data_processing(data)
 
-    return InternalDataDrivenProblem(
-        alg, test, loader, dt, control_idx, implicit_idx, options, basis, prob, kwargs
-    )
+    StatsBase.transform!(dt, first(data))
+
+    test, loader = data_processing(data)
+
+    return InternalDataDrivenProblem(alg, test, loader, dt, control_idx, implicit_idx,
+                                     options, basis, prob, kwargs)
 end
 
-function CommonSolve.solve!(::InternalDataDrivenProblem{ZeroDataDrivenAlgorithm}) 
+function CommonSolve.solve!(::InternalDataDrivenProblem{ZeroDataDrivenAlgorithm})
     @warn "No sufficient algorithm choosen! Return ErrorDataDrivenResult!"
     return ErrorDataDrivenResult()
 end

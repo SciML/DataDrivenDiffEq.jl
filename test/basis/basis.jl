@@ -1,8 +1,7 @@
 using DataDrivenDiffEq
 using ModelingToolkit
 
-
-@testset "Basic Functionality" begin 
+@testset "Basic Functionality" begin
     @variables x[1:3] u[1:2]
     @parameters p[1:2] t
     x = collect(x)
@@ -14,13 +13,15 @@ using ModelingToolkit
     b = Basis(g, x, parameters = p, controls = u, iv = t)
 
     true_res(x, p, t, u) = [sum(x[1:2] .* p); x[2] .* u[1]; u[2] .* x[3] .+ exp.(-t)]
-    true_res_(x, p, t) = collect(hcat([true_res(x[:, i], p, t[i], zeros(2)) for i in 1:100]...))
+    function true_res_(x, p, t)
+        collect(hcat([true_res(x[:, i], p, t[i], zeros(2)) for i in 1:100]...))
+    end
 
     function true_res_(x, p, t, u)
         collect(hcat([true_res(x[:, i], p, t[i], u[:, i]) for i in 1:100]...))
     end
 
-    @testset "Vector evaluation" begin 
+    @testset "Vector evaluation" begin
         x0 = randn(3)
         p0 = randn(2)
         t0 = 0.0
@@ -29,12 +30,14 @@ using ModelingToolkit
         @test isequal(b(x0), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
         @test isequal(b(x0, p), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
         @test isequal(b(x0, p, t), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
-        @test isequal(b(x0, p0, t, zeros(2)), DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
-        @test isequal(b(x0, p0, t0, zeros(2)), DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
+        @test isequal(b(x0, p0, t, zeros(2)),
+                      DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
+        @test isequal(b(x0, p0, t0, zeros(2)),
+                      DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
         @test isequal(b(x0, p0, t0, u0), DataDrivenDiffEq.get_f(b)(x0, p0, t0, u0))
     end
 
-    @testset "Array evaluation" begin 
+    @testset "Array evaluation" begin
         # Array call
         x0 = randn(3, 100)
         p0 = randn(2)
@@ -44,9 +47,7 @@ using ModelingToolkit
         # These first two fail, since exp(-t) != exp(getindex(t,1))
         @test isequal(b(x0, p0, t0, u0), true_res_(x0, p0, t0, u0))
     end
-
 end
-
 
 @testset "Basis Manipulation" begin
     @parameters w[1:2] t
@@ -87,7 +88,7 @@ end
     @test size(basis) == (6,)
 end
 
-@testset "Utils and calls" begin 
+@testset "Utils and calls" begin
     @variables a
     @variables u[1:3]
     @parameters w[1:2] t
@@ -107,7 +108,7 @@ end
     f = jacobian(basis)
     @test f([1.0; 1.0; 1.0], [0.0; 0.0], 0.0) ≈ [1.0 0.0 0.0; 0.0 0.0 1.0; 0.0 1.0 0.0]
     @test_nowarn [xi for xi in basis]
-    @test_nowarn basis[2:end];
+    @test_nowarn basis[2:end]
 
     @variables u[1:3] t
 
@@ -119,11 +120,11 @@ end
     # Default values
     @test iszero(get_parameter_values(b))
     @test f_([1; 2; 3], [2; 0], 3.0) ≈ b([1; 2; 3], [2; 0], 3.0)
-    
-    @parameters w[1:2]=[1.0;2.0]
+
+    @parameters w[1:2] = [1.0; 2.0]
     w = collect(w)
     b = Basis(f_, u, parameters = w, iv = t)
     # Default values
-    @test get_parameter_values(b) == [1.0;2.0]
-    @test last.(get_parameter_map(b)) == [1.0;2.0]
+    @test get_parameter_values(b) == [1.0; 2.0]
+    @test last.(get_parameter_map(b)) == [1.0; 2.0]
 end

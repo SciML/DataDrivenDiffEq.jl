@@ -119,8 +119,8 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
     unique!(rhs, simplify)
 
     f = DataDrivenFunction(rhs,
-                             implicits, states, parameters, iv,
-                             controls, eval_expression)
+                           implicits, states, parameters, iv,
+                           controls, eval_expression)
 
     eqs = reduce(vcat, map(Symbolics.Equation, lhs, rhs); init = Equation[])
     eqs = isa(eqs, AbstractVector) ? collect(eqs) : [collect(eqs)]
@@ -259,8 +259,8 @@ function implicit_variables(b::AbstractBasis)
 end
 
 # For internal use
-is_implicit(b::Basis{X, <:Any}) where X = X
-is_controlled(b::Basis{<:Any, X}) where X = X
+is_implicit(b::Basis{X, <:Any}) where {X} = X
+is_controlled(b::Basis{<:Any, X}) where {X} = X
 
 ## Callable
 get_f(b::AbstractBasis) = getfield(b, :f)
@@ -269,98 +269,117 @@ get_f(b::AbstractBasis) = getfield(b, :f)
 # OOP 
 
 # Without controls or implicits
-function (b::Basis{false, false})(u::AbstractVector, p::P = parameters(b), t::Number = get_iv(b)) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{false, false})(u::AbstractVector, p::P = parameters(b),
+                                  t::Number = get_iv(b)) where {
+                                                                P <:
+                                                                Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(u, p, t)
 end
 
 # Without implicits, with controls
-function (b::Basis{false, true})(u::AbstractVector, 
-    p::P = parameters(b), t::Number = get_iv(b), 
-    c::AbstractVector = controls(b)) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{false, true})(u::AbstractVector,
+                                 p::P = parameters(b), t::Number = get_iv(b),
+                                 c::AbstractVector = controls(b)) where {
+                                                                         P <: Union{
+                                                                               AbstractArray,
+                                                                               Tuple}}
     f = get_f(b)
     f(u, p, t, c)
 end
 
 # With implict, without controls
-function (b::Basis{true, false})(du::AbstractVector, u::AbstractVector, 
-    p::P = parameters(b), t::Number = get_iv(b)) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{true, false})(du::AbstractVector, u::AbstractVector,
+                                 p::P = parameters(b),
+                                 t::Number = get_iv(b)) where {
+                                                               P <:
+                                                               Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(du, u, p, t)
 end
 
 # With implicit and controls
-function (b::Basis{true, true})(du::AbstractVector, u::AbstractVector, 
-    p::P = parameters(b), t::Number = get_iv(b), 
-    c::AbstractVector = controls(b)) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{true, true})(du::AbstractVector, u::AbstractVector,
+                                p::P = parameters(b), t::Number = get_iv(b),
+                                c::AbstractVector = controls(b)) where {
+                                                                        P <:
+                                                                        Union{AbstractArray,
+                                                                              Tuple}}
     f = get_f(b)
     f(du, u, p, t, c)
 end
 
 # Array
-function (b::Basis{false, false})(u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{false, false})(u::AbstractMatrix, p::P,
+                                  t::AbstractVector) where {P <:
+                                                            Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(u, p, t)
 end
 
-
-function (b::Basis{true, false})(du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{true, false})(du::AbstractMatrix, u::AbstractMatrix, p::P,
+                                 t::AbstractVector) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(du, u, p, t)
 end
 
-function (b::Basis{false, true})(u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{false, true})(u::AbstractMatrix, p::P, t::AbstractVector,
+                                 c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(u, p, t, c)
 end
 
-function (b::Basis{true, true})(du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{true, true})(du::AbstractMatrix, u::AbstractMatrix, p::P,
+                                t::AbstractVector,
+                                c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(du, u, p, t, c)
 end
 
-
-function (b::Basis{false, false})(res::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{false, false})(res::AbstractMatrix, u::AbstractMatrix, p::P,
+                                  t::AbstractVector) where {P <:
+                                                            Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(res, u, p, t)
 end
 
-
-function (b::Basis{true, false})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{true, false})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix,
+                                 p::P,
+                                 t::AbstractVector) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(res, du, u, p, t)
 end
 
-function (b::Basis{false, true})(res::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{false, true})(res::AbstractMatrix, u::AbstractMatrix, p::P,
+                                 t::AbstractVector,
+                                 c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(res, u, p, t, c)
 end
 
-function (b::Basis{true, true})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix, p::P, t::AbstractVector, c::AbstractMatrix) where P <: Union{AbstractArray, Tuple}
+function (b::Basis{true, true})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix,
+                                p::P, t::AbstractVector,
+                                c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
-    f(res,du, u, p, t, c)
+    f(res, du, u, p, t, c)
 end
-
-
-
-
 
 ## Information and Iteration
 
-Base.length(x::B) where B <: AbstractBasis = length(equations(x))
-Base.size(x::B) where B <: AbstractBasis = size(equations(x))
+Base.length(x::B) where {B <: AbstractBasis} = length(equations(x))
+Base.size(x::B) where {B <: AbstractBasis} = size(equations(x))
 
-Base.getindex(x::B, idx) where B <: AbstractBasis = getindex(equations(x), idx)
-Base.firstindex(x::B) where B <: AbstractBasis= firstindex(equations(x))
-Base.lastindex(x::B) where B <: AbstractBasis= lastindex(equations(x))
-Base.iterate(x::B) where B <: AbstractBasis= iterate(equations(x))
-Base.iterate(x::B, id) where B <: AbstractBasis= iterate(equations(x), id)
+Base.getindex(x::B, idx) where {B <: AbstractBasis} = getindex(equations(x), idx)
+Base.firstindex(x::B) where {B <: AbstractBasis} = firstindex(equations(x))
+Base.lastindex(x::B) where {B <: AbstractBasis} = lastindex(equations(x))
+Base.iterate(x::B) where {B <: AbstractBasis} = iterate(equations(x))
+Base.iterate(x::B, id) where {B <: AbstractBasis} = iterate(equations(x), id)
 
 ## Internal update
 function __update!(b::AbstractBasis, eval_expression = false)
     ff = DataDrivenFunction([bi.rhs for bi in collect(equations(b))],
-                    implicit_variables(b), states(b), parameters(b), [get_iv(b)],
-                             controls(b), eval_expression)
+                            implicit_variables(b), states(b), parameters(b), [get_iv(b)],
+                            controls(b), eval_expression)
     @set! b.f = ff
     return
 end
@@ -388,8 +407,8 @@ function jacobian(x::Basis, s, eval_expression::Bool = false)
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], s)
 
     return DataDrivenFunction(j,
-        implicit_variables(x), states(x), parameters(x), [get_iv(x)],
-        controls(x), eval_expression)
+                              implicit_variables(x), states(x), parameters(x), [get_iv(x)],
+                              controls(x), eval_expression)
 end
 
 ## Utilities
