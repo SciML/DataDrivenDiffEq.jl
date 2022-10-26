@@ -161,38 +161,3 @@ function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::
     K, _ = x.alg(X*Q, (Y-B*U)*Q)
     return (K, B)
 end
-
-"""
-$(TYPEDEF)
-Approximates the Koopman operator `K` via the forward-backward DMD.
-It is assumed that `K = sqrt(K₁*inv(K₂))`, where `K₁` is the approximation via forward and `K₂` via [DMDSVD](@ref). Based on [this paper](https://arxiv.org/pdf/1507.02264.pdf).
-If `truncation` ∈ (0, 1) is given, the singular value decomposition is reduced to include only
-entries bigger than `truncation*maximum(Σ)`. If `truncation` is an integer, the reduced SVD up to `truncation` is used for computation.
-
-# Fields
-$(FIELDS)
-
-# Signatures
-$(SIGNATURES)
-"""
-mutable struct FBDMD{R} <: AbstractKoopmanAlgorithm where {R <: Number}
-    alg::DMDSVD{R}
-end
-
-FBDMD(truncation = 0.0) = FBDMD(DMDSVD(truncation))
-
-function (x::FBDMD)(X::AbstractArray{T}, Y::AbstractArray{T}) where T
-    alg = x.alg
-    A₁, _ = alg(X, Y)
-    A₂, _ = alg(Y, X)
-    A₁ = Matrix(A₁)
-    Ã = sqrt(A₁*inv(A₂))
-    # We do not want to lose sign information here
-    Ã .= abs.(Ã) .* sign.(A₁)
-    return Matrix(eigen(Ã))
-end
-
-function (x::FBDMD)(X::AbstractArray{T}, Y::AbstractArray{T}, U::AbstractArray{T}) where T
-    @warn "FBDMD does not support exegenous signals without input matrix. Using DMDSVD."
-    return x.alg(X, Y, U)
-end

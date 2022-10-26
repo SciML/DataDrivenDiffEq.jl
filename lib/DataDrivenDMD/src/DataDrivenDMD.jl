@@ -9,6 +9,7 @@ using DataDrivenDiffEq: AbstractDataDrivenResult
 using DataDrivenDiffEq: AbstractDataDrivenProblem
 using DataDrivenDiffEq: DDReturnCode, ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB
 using DataDrivenDiffEq: InternalDataDrivenProblem
+using DataDrivenDiffEq: is_implicit, is_controlled
 
 using DocStringExtensions
 
@@ -28,7 +29,6 @@ include("./algorithms.jl")
 export DMDPINV
 export DMDSVD
 export TOTALDMD
-export FBDMD
 
 # Solve
 include("./solve.jl")
