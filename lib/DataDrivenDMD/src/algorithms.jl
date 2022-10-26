@@ -95,7 +95,9 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where T <: Real
     # Compute the modes
     λ, ω = eigen(Ã)
     φ = B*ω
-    return Matrix(Eigen(λ, φ))
+    K = Matrix(Eigen(λ, φ))
+    eltype(X) <: Real && return real.(K)
+    return K
 end
 
 function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray) where T <: Real
@@ -120,7 +122,10 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray) wh
     # Compute the modes
     λ, ω = eigen(Ã)
     φ = C*U₁'Û*ω
-    return Matrix(Eigen(λ, φ)), B̃
+    K = Matrix(Eigen(λ, φ))
+    K = eltype(X) <: Real ? real.(K) : K
+    
+    return K, B̃
 end
 
 """
