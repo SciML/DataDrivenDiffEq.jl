@@ -16,32 +16,37 @@ struct DataDrivenSolution{T} <: AbstractDataDrivenSolution
     "The basis representation of the solution"
     basis::AbstractBasis
     "Returncode"
-    retcode::Symbol
+    retcode::DDReturnCode
     "Algorithm"
     alg::AbstractDataDrivenAlgorithm
     "Original output of the solution algorithm"
-    out::AbstractDataDrivenResult
+    out::Vector{AbstractDataDrivenResult}
     "Problem"
     prob::AbstractDataDrivenProblem
     "Residual sum of squares"
     residuals::T
     "Degrees of freedom"
     dof::Int
+    """Internal problem"""
+    internal_problem::InternalDataDrivenProblem
 end
 
-_retcode(::ErrorDataDrivenResult) = :Failed
+retcode(::ErrorDataDrivenResult) = DDReturnCode(2)
 
 function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
-                            alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm(),
-                            result::AbstractDataDrivenResult = ErrorDataDrivenResult())
+                            alg::AbstractDataDrivenAlgorithm,
+                            result::Vector{AbstractDataDrivenResult}, 
+                            internal_problem::InternalDataDrivenProblem, 
+                            retcode = DDReturnCode(2))
     rss = sum(abs2, get_implicit_data(p) .- b(p))
     return DataDrivenSolution{eltype(p)}(b,
-                                         _retcode(result),
-                                         ZeroDataDrivenAlgorithm(),
-                                         ErrorDataDrivenResult(),
+                                         retcode,
+                                         alg,
+                                         result,
                                          p,
                                          rss,
-                                         length(parameters(b)))
+                                         length(parameters(b)), 
+                                         internal_problem)
 end
 
 (r::DataDrivenSolution)(args...) = r.basis(args...)
@@ -65,7 +70,7 @@ function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
         x = parameter_map(r)
         println(io, "Parameters:")
         for v in x
-            println(io, "   $(v[1]) : $(v[2])")
+            println(io, "  $(v[1]) : $(v[2])")
         end
     end
 
@@ -163,11 +168,14 @@ $(SIGNATURES)
 
 Returns the original output of the algorithm.
 """
-get_result(r::DataDrivenSolution) = getfield(r, :out)
+get_results(r::DataDrivenSolution) = getfield(r, :out)
 
 """
 $(SIGNATURES)
 
 Assert the result of the [`DataDrivenSolution`] and returns `true` if successful, `false` otherwise.
 """
-is_converged(r::DataDrivenSolution) = getfield(r, :retcode) == :Success
+is_converged(r::DataDrivenSolution) = getfield(r, :retcode) == DDReturnCode(1)
+
+
+## Conversions to DE / ODESystem here
