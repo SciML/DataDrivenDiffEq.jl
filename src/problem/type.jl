@@ -170,7 +170,7 @@ function Base.summary(io::IO, x::DataDrivenProblem{N, C, P}) where {N, C, P}
     print(io, "$P DataDrivenProblem{$N} $(x.name)")
     n, m = size(x.X)
     print(io, " in $n dimensions and $m samples")
-    C ? nothing : print(io, " with controls")
+    is_autonomous(x) ? nothing : print(io, " with controls")
     return
 end
 
