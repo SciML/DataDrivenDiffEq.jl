@@ -49,15 +49,20 @@ using RecipesBase
     Continuous = 3 # Time continous problem
 end
 
+# We want to export the ReturnCodes
+
 @enum DDReturnCode begin
-    Success = 1
-    Failed = 2
-    ReachedMaxIters = 3
-    ReachedTimeLimit = 4
-    AbsTolLimit = 5
-    RelTolLimit = 6
+    Success=1
+    Failed=2
+    ReachedMaxIters=3
+    ReachedTimeLimit=4
+    AbsTolLimit=5
+    RelTolLimit=6
 end
 
+export DDReturnCode
+
+# Helper
 const __EMPTY_MATRIX = SMatrix{0, 0, Nothing, 0}()
 const __EMPTY_VECTOR = SVector{0, Nothing}()
 
