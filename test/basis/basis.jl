@@ -125,5 +125,5 @@ end
     b = Basis(f_, u, parameters = w, iv = t)
     # Default values
     @test get_parameter_values(b) == [1.0;2.0]
-    @test get_parameter_map(b) == [w[1] => 1.0, w[2] =>2.0]
+    @test last.(get_parameter_map(b)) == [1.0;2.0]
 end
