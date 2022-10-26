@@ -20,7 +20,7 @@ struct DataDrivenSolution{T} <: AbstractDataDrivenSolution
     "Algorithm"
     alg::AbstractDataDrivenAlgorithm
     "Original output of the solution algorithm"
-    out::Vector{AbstractDataDrivenResult}
+    out::Vector{<:AbstractDataDrivenResult}
     "Problem"
     prob::AbstractDataDrivenProblem
     "Residual sum of squares"
@@ -30,8 +30,6 @@ struct DataDrivenSolution{T} <: AbstractDataDrivenSolution
     """Internal problem"""
     internal_problem::InternalDataDrivenProblem
 end
-
-retcode(::ErrorDataDrivenResult) = DDReturnCode(2)
 
 function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
                             alg::AbstractDataDrivenAlgorithm,

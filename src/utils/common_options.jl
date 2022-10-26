@@ -25,20 +25,6 @@ Other algorithms may follow.
     """Random seed"""
     rng::Random.AbstractRNG = Random.default_rng()
 end
-#
-#function (d::DataProcessing)(X,Y)
-#    @unpack split, shuffle, batchsize, partial, rng = d
-#    
-#    split = (0. <= split <= 1.) ? split : max(0., min(split, 1.))
-#    
-#    batchsize = batchsize <= 0 ? size(X, 2) : batchsize
-#
-#    xtrain, xtest = splitobs((X, Y), at = split, shuffle = false)
-#    
-#    xtest, DataLoader(
-#        xtrain, batchsize = batchsize, partial = partial, shuffle = true, rng = rng
-#    )
-#end
 
 
 function (d::DataProcessing)(data::Tuple)
@@ -54,6 +40,9 @@ function (d::DataProcessing)(data::Tuple)
         xtrain, batchsize = batchsize, partial = partial, shuffle = true, rng = rng
     )
 end
+
+(d::DataProcessing)(X,Y) = d((X,Y))
+
 
 """
 $(TYPEDEF)
