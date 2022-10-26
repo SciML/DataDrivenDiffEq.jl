@@ -113,7 +113,7 @@ end
 Base.eltype(::AbstractDataDrivenProblem{T}) where {T} = T
 
 function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem),
-                            use_static_arrays = false,
+                           use_static_arrays = false,
                            kwargs...)
     dType = Base.promote_eltype(X, t, DX, Y, U, p)
     cType = !isempty(U)
@@ -140,13 +140,11 @@ function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem
     return DataDrivenProblem{dType, cType, probType}(_promote(X, t, DX, Y, U, p)..., name)
 end
 
-function remake_problem(d::DataDrivenProblem{<:Any, <:Any, probType}; 
-    X = getfield(d, :X), t = getfield(d, :t), DX = getfield(d, :DX), 
-    Y = getfield(d, :Y), U = getfield(d, :U), p = getfield(d, :p), kwargs...
-    ) where probType
-    DataDrivenProblem(
-        probType, X, t, DX, Y, U, p; kwargs...
-    )
+function remake_problem(d::DataDrivenProblem{<:Any, <:Any, probType};
+                        X = getfield(d, :X), t = getfield(d, :t), DX = getfield(d, :DX),
+                        Y = getfield(d, :Y), U = getfield(d, :U), p = getfield(d, :p),
+                        kwargs...) where {probType}
+    DataDrivenProblem(probType, X, t, DX, Y, U, p; kwargs...)
 end
 
 function DataDrivenProblem(probtype, X, t, DX, Y, U::F, p; kwargs...) where {F <: Function}

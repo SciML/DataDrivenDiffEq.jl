@@ -31,9 +31,8 @@ function (d::DataProcessing)(data::Tuple)
     X = first(data)
     split = (0.0 <= split <= 1.0) ? split : max(0.0, min(split, 1.0))
 
-    
     xtrain, xtest = splitobs(data, at = split, shuffle = false)
-    
+
     batchsize = batchsize <= 0 ? size(first(xtrain), 2) : batchsize
     xtest,
     DataLoader(xtrain, batchsize = batchsize, partial = partial, shuffle = true, rng = rng)

@@ -1,7 +1,7 @@
-function truncated_svd(A::AbstractMatrix{T}, truncation::Real) where T <: Number
+function truncated_svd(A::AbstractMatrix{T}, truncation::Real) where {T <: Number}
     truncation = min(truncation, abs(one(T)))
     U, S, V = svd(A)
-    r = vec(S .> truncation*maximum(S))
+    r = vec(S .> truncation * maximum(S))
     U = U[:, r]
     S = S[r]
     V = V[:, r]
@@ -9,7 +9,7 @@ function truncated_svd(A::AbstractMatrix{T}, truncation::Real) where T <: Number
 end
 
 # Explicit rank
-function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where T <: Number
+function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where {T <: Number}
     U, S, V = svd(A)
     r = [((i <= truncation && S[i] > zero(T)) ? true : false) for i in eachindex(S)]
     U = U[:, r]
@@ -18,14 +18,14 @@ function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where T <: Number
     return U, S, V
 end
 
-
-function (alg::AbstractKoopmanAlgorithm)(X::AbstractMatrix, Y::AbstractMatrix, U::AbstractMatrix, ::Nothing)
+function (alg::AbstractKoopmanAlgorithm)(X::AbstractMatrix, Y::AbstractMatrix,
+                                         U::AbstractMatrix, ::Nothing)
     n_x = size(X, 1)
     if !isempty(U)
         Z = hcat(X, U)
         K̃ = alg(Z, Y)
         K = K̃[:, 1:n_x]
-        B = K̃[:, (n_x+1):end]
+        B = K̃[:, (n_x + 1):end]
     else
         K = alg(X, Y)
         B = Array{eltype(X)}(undef, 0, 0)
@@ -33,16 +33,16 @@ function (alg::AbstractKoopmanAlgorithm)(X::AbstractMatrix, Y::AbstractMatrix, U
     return K, B
 end
 
-function (alg::AbstractKoopmanAlgorithm)(X::AbstractMatrix, Y::AbstractMatrix, U::AbstractMatrix, B::AbstractMatrix)
+function (alg::AbstractKoopmanAlgorithm)(X::AbstractMatrix, Y::AbstractMatrix,
+                                         U::AbstractMatrix, B::AbstractMatrix)
     if !isempty(U) && !isempty(B)
-        Z = X - B*U
+        Z = X - B * U
         K = alg(Z, Y)
     else
         K = alg(X, Y)
     end
     return K, B
 end
-
 
 """
 $(TYPEDEF)
@@ -59,7 +59,7 @@ via the backslash.
 struct DMDPINV <: AbstractKoopmanAlgorithm end
 
 function (::DMDPINV)(X::AbstractArray, Y::AbstractArray)
-    return Y / X 
+    return Y / X
 end
 
 """
@@ -77,7 +77,7 @@ $(FIELDS)
 # Signatures
 $(SIGNATURES)
 """
-mutable struct DMDSVD{T} <: AbstractKoopmanAlgorithm where T <: Number
+mutable struct DMDSVD{T} <: AbstractKoopmanAlgorithm where {T <: Number}
     """Indiciates the truncation"""
     truncation::T
 end;
@@ -85,46 +85,47 @@ end;
 DMDSVD() = DMDSVD(0.0)
 
 # Slower but fewer allocations
-function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where T <: Real
+function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where {T <: Real}
     U, S, V = truncated_svd(X, x.truncation)
     xone = one(eltype(X))
     # Computed the reduced operator
     Sinv = Diagonal(xone ./ S)
-    B = Y*V*Sinv
+    B = Y * V * Sinv
     Ã = U'B
     # Compute the modes
     λ, ω = eigen(Ã)
-    φ = B*ω
+    φ = B * ω
     K = Matrix(Eigen(λ, φ))
     eltype(X) <: Real && return real.(K)
     return K
 end
 
-function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray, U::AbstractArray) where T <: Real
+function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray,
+                        U::AbstractArray) where {T <: Real}
     nx, m = size(X)
     nu, m = size(U)
     # Input space svd
-    Ũ, S̃, Ṽ = truncated_svd([X;U], x.truncation)
+    Ũ, S̃, Ṽ = truncated_svd([X; U], x.truncation)
     # Output space svd
     Û, _ = svd(Y)
 
     # Split the svd
-    U₁, U₂ = Ũ[1:nx,:], Ũ[nx+1:end,:]
+    U₁, U₂ = Ũ[1:nx, :], Ũ[(nx + 1):end, :]
 
     xone = one(eltype(X))
     # Computed the reduced operator
-    C = Y*Ṽ*Diagonal(xone ./ S̃ ) # Common submatrix
+    C = Y * Ṽ * Diagonal(xone ./ S̃) # Common submatrix
     # We do not project onto a reduced subspace here.
     # This would mess up our initial conditions, since sometimes we have
     # x1->x2, x2->x1
-    Ã = Û'C*U₁'Û
-    B̃ = C*U₂'
+    Ã = Û'C * U₁'Û
+    B̃ = C * U₂'
     # Compute the modes
     λ, ω = eigen(Ã)
-    φ = C*U₁'Û*ω
+    φ = C * U₁'Û * ω
     K = Matrix(Eigen(λ, φ))
     K = eltype(X) <: Real ? real.(K) : K
-    
+
     return K, B̃
 end
 
@@ -143,7 +144,8 @@ $(FIELDS)
 # Signatures
 $(SIGNATURES)
 """
-mutable struct TOTALDMD{R, A} <: AbstractKoopmanAlgorithm where {R <: Number, A <: AbstractKoopmanAlgorithm}
+mutable struct TOTALDMD{R, A} <:
+               AbstractKoopmanAlgorithm where {R <: Number, A <: AbstractKoopmanAlgorithm}
     truncation::R
     alg::A
 end
@@ -151,18 +153,18 @@ end
 TOTALDMD() = TOTALDMD(0.0, DMDPINV())
 
 function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray)
-    _ , _, Q = truncated_svd([X; Y], x.truncation)
-    return x.alg(X*Q, Y*Q)
+    _, _, Q = truncated_svd([X; Y], x.truncation)
+    return x.alg(X * Q, Y * Q)
 end
 
 function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
-    _ , _, Q = truncated_svd([X; Y], x.truncation)
-    return x.alg(X*Q, Y*Q, U*Q)
+    _, _, Q = truncated_svd([X; Y], x.truncation)
+    return x.alg(X * Q, Y * Q, U * Q)
 end
 
-
-function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray, B::AbstractArray)
-    _ , _, Q = truncated_svd([X; Y], x.truncation)
-    K, _ = x.alg(X*Q, (Y-B*U)*Q)
+function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray,
+                       B::AbstractArray)
+    _, _, Q = truncated_svd([X; Y], x.truncation)
+    K, _ = x.alg(X * Q, (Y - B * U) * Q)
     return (K, B)
 end

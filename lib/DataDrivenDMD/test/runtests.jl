@@ -10,7 +10,7 @@ for i in 1:100
 end
 X = hcat(y...)
 prob = DiscreteDataDrivenProblem(X, t = 1:101)
-prob = DiscreteDataDrivenProblem(X .+ 0.01*randn(size(X)), t = 1:101)
+prob = DiscreteDataDrivenProblem(X .+ 0.01 * randn(size(X)), t = 1:101)
 basis = DataDrivenDiffEq.unit_basis(prob)
 estimator = solve(prob, basis, DMDPINV(), options = DataDrivenCommonOptions(digits = 2))
 estimator = solve(prob, DMDSVD(), options = DataDrivenCommonOptions(digits = 2))
@@ -25,12 +25,12 @@ estimator = solve(prob, TOTALDMD(), options = DataDrivenCommonOptions(digits = 2
 #print(sol)
 
 # Use a good system 
-A = diagm(-rand(50)) 
-x0 = [10*randn(50)]
+A = diagm(-rand(50))
+x0 = [10 * randn(50)]
 t = [0.0]
 for i in 1:200
-    push!(x0, exp(A*t[end]) * x0[1])
-    push!(t, t[end]+0.01)
+    push!(x0, exp(A * t[end]) * x0[1])
+    push!(t, t[end] + 0.01)
 end
 X = hcat(x0...)
 t

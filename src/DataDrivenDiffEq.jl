@@ -52,12 +52,12 @@ end
 # We want to export the ReturnCodes
 
 @enum DDReturnCode begin
-    Success=1
-    Failed=2
-    ReachedMaxIters=3
-    ReachedTimeLimit=4
-    AbsTolLimit=5
-    RelTolLimit=6
+    Success = 1
+    Failed = 2
+    ReachedMaxIters = 3
+    ReachedTimeLimit = 4
+    AbsTolLimit = 5
+    RelTolLimit = 6
 end
 
 export DDReturnCode

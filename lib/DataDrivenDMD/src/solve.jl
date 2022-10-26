@@ -1,7 +1,10 @@
 # This will get called within init in DataDrivenDiffEq
 
 function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_CONT_PROB,
-                         basis::AbstractBasis) where {A <: AbstractKoopmanAlgorithm}
+                                          basis::AbstractBasis) where {
+                                                                       A <:
+                                                                       AbstractKoopmanAlgorithm
+                                                                       }
     @unpack DX, X, p, t, U = prob
 
     @assert size(DX, 1)==size(X, 1) "$(A) needs equal number of observed states and differentials for continuous problems!"
@@ -10,7 +13,7 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_CONT_PROB,
     n_t = size(Θ, 1)
     n_x = size(X, 1)
     jac = let n_t = n_t, n_x = n_x, f = jacobian(basis)
-        (args...)->reshape(f(args...), n_x, n_t)
+        (args...) -> reshape(f(args...), n_x, n_t)
     end
     Ỹ = similar(Θ)
     if is_controlled(basis)
@@ -26,7 +29,10 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_CONT_PROB,
 end
 
 function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_DISCRETE_PROB,
-                         basis::AbstractBasis) where {A <: AbstractKoopmanAlgorithm}
+                                          basis::AbstractBasis) where {
+                                                                       A <:
+                                                                       AbstractKoopmanAlgorithm
+                                                                       }
     # TODO Maybe we could, but this would require X[:, i+2] -> split in three here
     @assert !is_implicit(basis) "$(A) does not support implicit arguments in the basis for discrete problems!"
 
@@ -35,11 +41,11 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_DISCRETE_PROB,
     Θ = basis(prob)
     n_b, m = size(Θ)
     Ỹ = zeros(eltype(Θ), n_b, m)
-    
+
     if is_controlled(basis)
         foreach(1:m) do i
             Ỹ[:, i] .= basis.(X[:, i + 1], p, t[i + 1],
-                  U[:, i + 1])
+                               U[:, i + 1])
         end
     else
         foreach(1:m) do i
@@ -65,9 +71,7 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
     best_res = first(results)
     new_basis = convert_to_basis(best_res, basis, problem, options, control_idx)
     # Build DataDrivenResult
-    DataDrivenSolution(
-        new_basis,  problem, alg, results, prob, best_res.retcode
-    )
+    DataDrivenSolution(new_basis, problem, alg, results, prob, best_res.retcode)
 end
 
 function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, control_idx)
@@ -76,39 +80,40 @@ function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, contr
     control_idx = map(any, eachrow(control_idx))
     # Build the Matrix
     Θ = zeros(eltype(c), size(c, 1), length(basis))
-    if any(control_idx) 
-        Θ[:, .! control_idx] .= c*Matrix(k)
-        Θ[:, control_idx] .= c*b
+    if any(control_idx)
+        Θ[:, .!control_idx] .= c * Matrix(k)
+        Θ[:, control_idx] .= c * b
     else
-        Θ .= c*Matrix(k)
+        Θ .= c * Matrix(k)
     end
     Θ .= round.(Θ, digits = digits)
     DataDrivenDiffEq.__construct_basis(Θ, basis, prob, options)
 end
 
-__compute_rss(Z, C, K, B, X, U) = begin
-    (isempty(U) || isempty(B)) && return sum(abs2, Z .- C*(K*X))
-    return sum(abs2, Z .- C*(K*X + B*U))
+function __compute_rss(Z, C, K, B, X, U)
+    begin
+        (isempty(U) || isempty(B)) && return sum(abs2, Z .- C * (K * X))
+        return sum(abs2, Z .- C * (K * X + B * U))
+    end
 end
 
 function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
-                                       control_input = nothing, kwargs...)
+                                               control_input = nothing, kwargs...)
     @unpack traindata, testdata, control_idx, options = prob
     @unpack abstol = options
     # Preprocess control idx, indicates if any control is active in a single basis atom
     control_idx = map(any, eachrow(control_idx))
-    no_controls = .! control_idx
-    
-    X̃, _ , Z̃ = testdata
-    
-    if any(control_idx) && ! isempty(X̃)
+    no_controls = .!control_idx
+
+    X̃, _, Z̃ = testdata
+
+    if any(control_idx) && !isempty(X̃)
         X̃, Ũ = X̃[no_controls, :], X̃[control_idx, :]
     else
         X̃, Ũ = X̃, DataDrivenDiffEq.__EMPTY_MATRIX
     end
 
     map(traindata) do (X, Y, Z)
-        
         if any(control_idx)
             X_, Y_, U_ = X[no_controls, :], Y[no_controls, :], X[control_idx, :]
         else
