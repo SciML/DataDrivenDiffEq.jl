@@ -1,4 +1,3 @@
-
 function __assert_linearity(eqs::AbstractVector{Equation}, x::AbstractVector)
     return __assert_linearity(map(x->Num(x.rhs), eqs), x)
 end
@@ -42,7 +41,11 @@ function _generate_parameters(sym::Symbol, n::Int, offset::Int = 0)
     Num.(map(ModelingToolkit.toparam, xs))
 end
 
-
+function _set_default_val(x::Num, val::T) where T <: Number
+    Num(
+        Symbolics.setdefaultval(Symbolics.unwrap(x), val)
+    ) 
+end
 
 function __build_eqs(coeff_mat, basis, prob)
         # Create additional variables
@@ -53,7 +56,6 @@ function __build_eqs(coeff_mat, basis, prob)
         p = _generate_parameters(:p, sp, pl) 
         p = collect(p)
 
-        ps = zeros(eltype(coeff_mat), sp)
         eqs = zeros(Num, size(coeff_mat,1))
         eqs_ = [e.rhs for e in equations(basis)]
         cnt = 1
@@ -66,7 +68,7 @@ function __build_eqs(coeff_mat, basis, prob)
                 if iszero(coeff_mat[i,j])
                     continue
                 end
-                ps[cnt] = coeff_mat[i,j]
+                p[cnt] = _set_default_val(p[cnt], coeff_mat[i,j])
                 eqs[i] += p[cnt]*eqs_[j]
                 cnt += 1
             end
@@ -113,17 +115,21 @@ function _implicit_build_eqs(basis, eqs, p, prob)
     return  eqs, Num.(p), implicits
 end
 
-
-
 function __construct_basis(X, b, prob, options)
     eqs, ps, implicits = __build_eqs(X, b, prob)
     @unpack eval_expresssion = options
 
     xs = states(b)
+    @unpack p = prob
+    p_ = parameters(b)
+
+    pss = map(eachindex(p)) do i
+        _set_default_val(Num(p_[i]), p[i])
+    end
     
     Basis(
         eqs, xs,
-        parameters = [parameters(b); ps], iv = get_iv(b),
+        parameters = [pss; ps], iv = get_iv(b),
         controls = controls(b), observed = observed(b),
         implicits = implicits,
         name = gensym(:Basis),

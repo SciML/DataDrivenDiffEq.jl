@@ -515,3 +515,41 @@ function Base.isequal(x::Basis, y::Basis)
     xrhs = [xi.rhs for xi in equations(x)]
     isequal(yrhs, xrhs)
 end
+
+"""
+$(SIGNATURES)
+
+Return the default values for the given [`Basis`](@ref).
+If no default value is stored, returns zero.
+
+## Note
+This extends `getmetadata` in a way that all parameters have values.
+"""
+function get_parameter_values(x::Basis)
+    map(parameters(x)) do p
+        if hasmetadata(p, Symbolics.VariableDefaultValue)
+            return Symbolics.getdefaultval(p)
+        else
+            return zero(Symbolics.symtype(p))
+        end
+    end
+end
+
+"""
+$(SIGNATURES)
+
+Return the default values as a vecotr of pairs for the given [`Basis`](@ref).
+If no default value is stored, returns zero.
+
+## Note
+This extends `getmetadata` in a way that all parameters have values.
+"""
+function get_parameter_map(x::Basis)
+    map(parameters(x)) do p
+        if hasmetadata(p, Symbolics.VariableDefaultValue)
+            return p => Symbolics.getdefaultval(p)
+        else
+            return p => zero(Symbolics.symtype(p))
+        end
+    end
+end

@@ -96,6 +96,7 @@ include("./basis/type.jl")
 export Basis
 export jacobian, dynamics
 export implicit_variables
+export get_parameter_values, get_parameter_map
 
 include("./utils/basis_generators.jl")
 export chebyshev_basis, monomial_basis, polynomial_basis

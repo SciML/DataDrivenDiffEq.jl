@@ -116,5 +116,14 @@ end
 
     f_(u, p, t) = [u[3]; u[2] * u[1]; p[1] * sin(u[1]) * u[2]; p[2] * t]
     b = Basis(f_, u, parameters = w, iv = t)
+    # Default values
+    @test iszero(get_parameter_values(b))
     @test f_([1; 2; 3], [2; 0], 3.0) ≈ b([1; 2; 3], [2; 0], 3.0)
+    
+    @parameters w[1:2]=[1.0;2.0]
+    w = collect(w)
+    b = Basis(f_, u, parameters = w, iv = t)
+    # Default values
+    @test get_parameter_values(b) == [1.0;2.0]
+    @test get_parameter_map(b) == [w[1] => 1.0, w[2] =>2.0]
 end
