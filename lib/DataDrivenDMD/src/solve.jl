@@ -44,7 +44,7 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_DISCRETE_PROB,
 
     if is_controlled(basis)
         foreach(1:m) do i
-            Ỹ[:, i] .= basis.(X[:, i + 1], p, t[i + 1],
+            Ỹ[:, i] .= basis(X[:, i + 1], p, t[i + 1],
                                U[:, i + 1])
         end
     else
@@ -115,6 +115,7 @@ function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
 
     map(traindata) do (X, Y, Z)
         if any(control_idx)
+            @info control_idx
             X_, Y_, U_ = X[no_controls, :], Y[no_controls, :], X[control_idx, :]
         else
             X_, Y_, U_ = X, Y, DataDrivenDiffEq.__EMPTY_MATRIX

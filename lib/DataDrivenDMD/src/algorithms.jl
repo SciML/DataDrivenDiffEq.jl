@@ -22,7 +22,7 @@ function (alg::AbstractKoopmanAlgorithm)(X::AbstractMatrix, Y::AbstractMatrix,
                                          U::AbstractMatrix, ::Nothing)
     n_x = size(X, 1)
     if !isempty(U)
-        Z = hcat(X, U)
+        Z = cat(X, U, dims = 1)
         K̃ = alg(Z, Y)
         K = K̃[:, 1:n_x]
         B = K̃[:, (n_x + 1):end]
@@ -85,7 +85,7 @@ end;
 DMDSVD() = DMDSVD(0.0)
 
 # Slower but fewer allocations
-function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where {T <: Real}
+function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where {T}
     U, S, V = truncated_svd(X, x.truncation)
     xone = one(eltype(X))
     # Computed the reduced operator
@@ -100,12 +100,14 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where {T <: Real}
     return K
 end
 
-function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray,
-                        U::AbstractArray) where {T <: Real}
+function (x::DMDSVD{T})(X::AbstractMatrix, Y::AbstractMatrix,
+                        U::AbstractMatrix, ::Nothing) where {T}
+    isempty(U) && return x(X, Y), []
     nx, m = size(X)
     nu, m = size(U)
+    Z = cat(X, U, dims = 1)
     # Input space svd
-    Ũ, S̃, Ṽ = truncated_svd([X; U], x.truncation)
+    Ũ, S̃, Ṽ = truncated_svd(Z, x.truncation)
     # Output space svd
     Û, _ = svd(Y)
 
@@ -125,7 +127,6 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray,
     φ = C * U₁'Û * ω
     K = Matrix(Eigen(λ, φ))
     K = eltype(X) <: Real ? real.(K) : K
-
     return K, B̃
 end
 
