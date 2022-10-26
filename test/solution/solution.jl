@@ -1,11 +1,12 @@
 using DataDrivenDiffEq
-using ModelingToolkit
 using LinearAlgebra
 using StatsBase
 using Random
+using DataDrivenDiffEq.CommonSolve
 
 rng = Random.default_rng()
 Random.seed!(0)
+
 
 @variables x[1:3]
 @parameters p[1:2]
@@ -19,9 +20,22 @@ t = collect(0.0:1.0:99.0)
 p0 = randn(rng, 2)
 y = b(x, p0, t)
 ŷ = y .+ 0.01 * randn(rng, size(y))
-prob = DirectDataDrivenProblem(x, y, p = p0)
 
-sol = DataDrivenSolution(b, prob)
+
+struct DummyDataDrivenAlgorithm <: DataDrivenDiffEq.AbstractDataDrivenAlgorithm end
+struct DummyDataDrivenResult{IP} <: DataDrivenDiffEq.AbstractDataDrivenResult 
+    internal::IP
+end
+
+function CommonSolve.solve!(p::DataDrivenDiffEq.InternalDataDrivenProblem{DummyDataDrivenAlgorithm}) 
+    return DummyDataDrivenResult(p)
+end
+
+prob = DirectDataDrivenProblem(x, y, p = p0)
+dummy_sol = solve(prob, b, DummyDataDrivenAlgorithm())
+internal_problem = dummy_sol.internal
+sol = DataDrivenSolution(b, prob, DataDrivenDiffEq.ZeroDataDrivenAlgorithm(), DataDrivenDiffEq.AbstractDataDrivenResult[dummy_sol], internal_problem)
+
 @test dof(sol) == 2
 @test rss(sol) == 0
 @test aic(sol) == -Inf
@@ -33,14 +47,17 @@ sol = DataDrivenSolution(b, prob)
 @test_nowarn summarystats(sol)
 
 @test get_problem(sol) == prob
-@test get_result(sol) == DataDrivenDiffEq.ErrorDataDrivenResult()
+@test get_results(sol) == [dummy_sol]
 @test get_algorithm(sol) == DataDrivenDiffEq.ZeroDataDrivenAlgorithm()
 @test isa(get_basis(sol), DataDrivenDiffEq.AbstractBasis)
 @test !is_converged(sol)
 
 ŷ = y .+ 0.01 * randn(rng, size(y))
 prob = DirectDataDrivenProblem(x, ŷ, p = p0)
-sol_2 = DataDrivenSolution(b, prob)
+dummy_sol = solve(prob, b, DummyDataDrivenAlgorithm())
+internal_problem = dummy_sol.internal
+sol_2 = DataDrivenSolution(b, prob, DataDrivenDiffEq.ZeroDataDrivenAlgorithm(), DataDrivenDiffEq.AbstractDataDrivenResult[dummy_sol], internal_problem)
+
 @test aic(sol_2) <= -1800.0
 @test bic(sol_2) <= -1700.0
 @test aicc(sol_2) <= -1800.0

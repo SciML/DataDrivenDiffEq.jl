@@ -49,6 +49,15 @@ using RecipesBase
     Continuous = 3 # Time continous problem
 end
 
+@enum DDReturnCode begin 
+    Success = 1
+    Failed = 2
+    ReachedMaxIters = 3
+    ReachedTimeLimit = 4
+    AbsTolLimit = 5
+    RelTolLimit = 6
+end
+
 const __EMPTY_MATRIX = SMatrix{0, 0, Nothing, 0}()
 const __EMPTY_VECTOR = SVector{0, Nothing}()
 
@@ -114,13 +123,14 @@ include("./problem/set.jl")
 export DataDrivenDataset
 export DirectDataset, DiscreteDataset, ContinuousDataset
 
-include("./solution.jl")
-export DataDrivenSolution
-export get_algorithm, get_result, get_basis, is_converged, get_problem
 
 include("./utils/common_options.jl")
 export DataProcessing, DataNormalization
 export DataDrivenCommonOptions
+
+include("./solution.jl")
+export DataDrivenSolution
+export get_algorithm, get_results, get_basis, is_converged, get_problem
 
 include("./utils/plot_recipes.jl")
 include("./utils/build_basis.jl")

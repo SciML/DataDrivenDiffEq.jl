@@ -25,15 +25,30 @@ Other algorithms may follow.
     """Random seed"""
     rng::Random.AbstractRNG = Random.default_rng()
 end
+#
+#function (d::DataProcessing)(X,Y)
+#    @unpack split, shuffle, batchsize, partial, rng = d
+#    
+#    split = (0. <= split <= 1.) ? split : max(0., min(split, 1.))
+#    
+#    batchsize = batchsize <= 0 ? size(X, 2) : batchsize
+#
+#    xtrain, xtest = splitobs((X, Y), at = split, shuffle = false)
+#    
+#    xtest, DataLoader(
+#        xtrain, batchsize = batchsize, partial = partial, shuffle = true, rng = rng
+#    )
+#end
 
-function (d::DataProcessing)(X,Y)
+
+function (d::DataProcessing)(data::Tuple)
     @unpack split, shuffle, batchsize, partial, rng = d
-    
+    X = first(data)
     split = (0. <= split <= 1.) ? split : max(0., min(split, 1.))
     
     batchsize = batchsize <= 0 ? size(X, 2) : batchsize
 
-    xtrain, xtest = splitobs((X, Y), at = split, shuffle = false)
+    xtrain, xtest = splitobs(data, at = split, shuffle = false)
     
     xtest, DataLoader(
         xtrain, batchsize = batchsize, partial = partial, shuffle = true, rng = rng
@@ -115,7 +130,7 @@ end
 ## INTERNAL USE ONLY
 
 # This is a way to create a datadriven problem relatively efficient and handle all algorithms
-struct InternalDataDrivenProblem{A <: AbstractDataDrivenAlgorithm, B <: AbstractBasis, TD, T <: DataLoader, F, CI, VI, O <: DataDrivenCommonOptions, P <: AbstractDataDrivenProblem}
+struct InternalDataDrivenProblem{A <: AbstractDataDrivenAlgorithm, B <: AbstractBasis, TD, T <: DataLoader, F, CI, VI, O <: DataDrivenCommonOptions, P <: AbstractDataDrivenProblem, K}
     # The Algorithm
     alg::A
     # Data and Normalization
@@ -133,26 +148,29 @@ struct InternalDataDrivenProblem{A <: AbstractDataDrivenAlgorithm, B <: Abstract
     basis::B
     # The problem
     problem::P
+    # Additional kwargs
+    kwargs::K
 end
 
 # This is a preprocess step, which commonly returns the implicit data.
-# For Koopman Generators this is not true
+# For Koopman Algorithms this is not true
 function get_fit_targets(::AbstractDataDrivenAlgorithm, prob::AbstractDataDrivenProblem, basis::AbstractBasis)
-    get_implicit_data(prob)
+    Y = get_implicit_data(prob)
+    X = basis(prob)
+    return X, Y
 end
 
 # We always want a basis
-CommonSolve.init(prob::AbstractDataDrivenProblem, alg::AbstractDataDrivenAlgorithm; options::DataDrivenCommonOptions = DataDrivenCommonOptions()) = init(prob, unit_basis(prob), alg;  options = options)
+CommonSolve.init(prob::AbstractDataDrivenProblem, alg::AbstractDataDrivenAlgorithm; options::DataDrivenCommonOptions = DataDrivenCommonOptions(), kwargs...) = init(prob, unit_basis(prob), alg;  options = options, kwargs...)
 
-function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis , alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm(); options::DataDrivenCommonOptions = DataDrivenCommonOptions())
+function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis , alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm(); options::DataDrivenCommonOptions = DataDrivenCommonOptions(), kwargs...)
     @unpack denoise, normalize, data_processing = options
 
-    Θ = basis(prob)
     # This function handles preprocessing of the variables
-    Y = get_fit_targets(alg, prob, basis)
+    data = get_fit_targets(alg, prob, basis)
 
     if denoise 
-        optimal_shrinkage!(Θ)
+        optimal_shrinkage!(first(data))
     end
 
     # Get the information about structure
@@ -169,14 +187,14 @@ function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis 
     end
 
     # We do not center, given that we can have constants in our Basis!
-    dt = fit(normalize, Θ)
+    dt = fit(normalize, first(data))
     
-    StatsBase.transform!(dt, Θ)
+    StatsBase.transform!(dt, first(data))
     
-    test, loader =  data_processing(Θ, Y)
+    test, loader =  data_processing(data)
 
     return InternalDataDrivenProblem(
-        alg, test, loader, dt, control_idx, implicit_idx, options, basis, prob
+        alg, test, loader, dt, control_idx, implicit_idx, options, basis, prob, kwargs
     )
 end
 
