@@ -15,7 +15,7 @@ Other algorithms may follow.
 """
 @with_kw struct DataProcessing
     """Train test split, indicates the (rough) percentage of training data"""
-    split::Real = 0.8
+    split::Real = 1.0
     """Shuffle the training data"""
     shuffle::Bool = false
     """Batchsizes to use, if zero no batching is performed"""

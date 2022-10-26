@@ -33,15 +33,19 @@ end
 
 function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
                             alg::AbstractDataDrivenAlgorithm,
-                            result::Vector{AbstractDataDrivenResult},
+                            result::Vector{<:AbstractDataDrivenResult},
                             internal_problem::InternalDataDrivenProblem,
                             retcode = DDReturnCode(2))
-    rss = sum(abs2, get_implicit_data(p) .- b(p))
+    
+    ps = get_parameter_values(b)
+    prob = remake_problem(p, p = ps)
+    
+    rss = sum(abs2, get_implicit_data(prob) .- b(prob))
     return DataDrivenSolution{eltype(p)}(b,
                                          retcode,
                                          alg,
                                          result,
-                                         p,
+                                         prob,
                                          rss,
                                          length(parameters(b)),
                                          internal_problem)

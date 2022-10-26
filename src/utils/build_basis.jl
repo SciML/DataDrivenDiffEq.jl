@@ -20,7 +20,7 @@ function assert_lhs(prob::ABSTRACT_CONT_PROB)
 end
 
 function assert_lhs(prob::ABSTRACT_DISCRETE_PROB)
-    return :discrete, has_timepoints(prob) ? mean(independent_variable(prob)) : 1.0
+    return :discrete, has_timepoints(prob) ? mean(diff(independent_variable(prob))) : 1.0
 end
 
 function assert_lhs(prob::AbstractDataDrivenProblem)
