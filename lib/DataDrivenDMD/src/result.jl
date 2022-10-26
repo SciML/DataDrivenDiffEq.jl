@@ -1,4 +1,4 @@
-struct KoopmanResult{K, B, C, Q, P} <: AbstractDataDrivenResult
+struct KoopmanResult{K, B, C, Q, P, T, TE} <: AbstractDataDrivenResult
     """Matrix representation of the operator / generator"""
     k::K
     """Matrix representation of the inputs mapping"""
@@ -9,6 +9,17 @@ struct KoopmanResult{K, B, C, Q, P} <: AbstractDataDrivenResult
     q::Q
     """Internal matrix used for updating"""
     p::P
+    """L2 norm error of the testing dataset"""
+    testerror::T
+    """L2 norm error of the training dataset"""
+    trainerror::TE
     """Returncode"""
-    retcode::Symbol
+    retcode::DDReturnCode
+end
+
+is_success(k::KoopmanResult) = getfield(k, :retcode) == DDReturnCode(1)
+l2error(k::KoopmanResult) = is_success(k) ? getfield(k, :testerror) : Inf
+
+function l2error(k::KoopmanResult{<:Any, <:Any, <:Any, <:Any, <:Any, Nothing})
+    is_success(k) ? getfield(k, :traineerror) : Inf
 end

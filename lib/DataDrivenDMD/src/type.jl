@@ -1,13 +1,5 @@
 """
 $(TYPEDEF)
-using ModelingToolkit: get_states
-using ModelingToolkit: get_eqs
-using ModelingToolkit: get_ctrls
-using ModelingToolkit: get_systems
-using Base: promote_eltype
-
-A special [`DataDrivenDiffEq.Basis`](@ref) used to represent the Koopman operator and its embedding.
-
 
 # Fields
 $(FIELDS)
@@ -22,78 +14,20 @@ then construction via GeneralizedGenerated.jl is utilized to allow for
 same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
 """
-struct Koopman{I, D, O, T} <: AbstractKoopman{I}
-    """The equations of the basis"""
-    eqs::Vector{Equation}
-    """Dependent (state) variables"""
-    states::Vector
-    """Control variables"""
-    ctrls::Vector
-    """Parameters"""
-    ps::Vector
-    """Observed"""
-    observed::Vector
-    """Independent variable"""
-    iv::Num
-    """Implicit variables of the basis"""
-    implicit::Vector
-    """Internal function representation of the basis"""
-    f::Function
-    """Name of the basis"""
-    name::Symbol
-    """Internal systems"""
-    systems::Vector{AbstractBasis}
+struct Koopman{T, B <: AbstractBasis, K, DISCRETE} <: AbstractKoopman
+    """The basis of observeables"""
+    basis::B
     """The operator/generator of the dynamics"""
-    K::O
+    K::K
     """Mapping back onto the observed states"""
     C::AbstractMatrix{T}
     """Internal matrix `Q` used for updating"""
     Q::AbstractMatrix{T}
     """Internal matrix `P` used for updating"""
     P::AbstractMatrix{T}
-
-    function Koopman(eqs, states, ctrls, ps, observed, iv, implicit, f, name, systems, K, C,
-                     Q, P; is_discrete::Bool = true,
-                     checks::Bool = true)
-        if checks
-            # Currently do nothing here
-            #check_variables(dvs, iv)
-            #check_parameters(ps, iv)
-            #check_equations(deqs, iv)
-            #check_equations(equations(events), iv)
-            #all_dimensionless([dvs; ps; iv]) || check_units(deqs)
-        end
-
-        imp_ = !isempty(implicit)
-        ctype = Base.promote_eltype(C, Q, P)
-        return new{imp_, is_discrete, typeof(K), ctype}(eqs, states, ctrls, ps, observed,
-                                                        iv, implicit, f, name, systems,
-                                                        K, C, Q, P)
-    end
 end
 
-function Koopman(eqs::AbstractVector, states::AbstractVector;
-                 parameters::AbstractVector = [], iv = nothing,
-                 controls::AbstractVector = [], implicits = [],
-                 observed::AbstractVector = [],
-                 eval_expression = false,
-                 K::O = diagm(ones(Float64, length(eqs))),
-                 C::AbstractMatrix = diagm(ones(Float64, length(eqs))),
-                 Q::AbstractMatrix = zeros(Float64, 0, 0),
-                 P::AbstractMatrix = zeros(Float64, 0, 0),
-                 simplify = false, linear_independent = false,
-                 is_discrete::Bool = true,
-                 name = is_discrete ? gensym(:KoopmanOperator) : gensym(:KoopmanGenerator),
-                 kwargs...) where {O <: Union{AbstractMatrix, Eigen, Factorization}}
-    args_ = DataDrivenDiffEq.__preprocess_basis(eqs, states, controls, parameters, observed,
-                                                iv,
-                                                implicits, name, AbstractBasis[], simplify,
-                                                linear_independent, eval_expression)
-
-    return Koopman(args_..., K, C, Q, P; is_discrete = is_discrete)
-end
-
-Base.eltype(k::Koopman{<:Any, <:Any, <:Any, T}) where {T} = T
+Base.eltype(k::Koopman{T}) where {T} = T
 
 ## Koopman methods
 
@@ -108,7 +42,7 @@ $(SIGNATURES)
 
 Returns `true` if the `AbstractKoopmanOperator` `k` is discrete in time.
 """
-is_discrete(k::Koopman{<:Any, D}) where {D} = D
+is_discrete(k::Koopman{<:Any, <:Any, <:Any, D}) where {D} = D
 
 """
 $(SIGNATURES)
@@ -147,31 +81,35 @@ $(SIGNATURES)
 
 Return the eigenvectors of a continuous `AbstractKoopmanOperator`.
 """
-modes(k::Koopman{<:Any, true}) = throw(AssertionError("Koopman is discrete."))
-modes(k::Koopman{<:Any, false}) = eigvecs(k)
+modes(k::Koopman{<:Any, <:Any, <:Any, true}) = throw(AssertionError("Koopman is discrete."))
+modes(k::Koopman{<:Any, <:Any, <:Any, false}) = eigvecs(k)
 
 """
 $(SIGNATURES)
 
 Return the eigenvalues of a continuous `AbstractKoopmanOperator`.
 """
-frequencies(k::Koopman{<:Any, false}) = eigvals(k)
-frequencies(k::Koopman{<:Any, true}) = throw(AssertionError("Koopman is discrete."))
+frequencies(k::Koopman{<:Any, <:Any, <:Any, false}) = eigvals(k)
+function frequencies(k::Koopman{<:Any, <:Any, <:Any, true})
+    throw(AssertionError("Koopman is discrete."))
+end
 
 """
 $(SIGNATURES)
 
 Return the approximation of the discrete Koopman operator stored in `k`.
 """
-operator(k::Koopman{<:Any, true}) = __get_K(k)
-operator(k::Koopman{<:Any, false}) = throw(AssertionError("Koopman is continouos."))
+operator(k::Koopman{<:Any, <:Any, <:Any, true}) = __get_K(k)
+function operator(k::Koopman{<:Any, <:Any, <:Any, false})
+    throw(AssertionError("Koopman is continouos."))
+end
 
 """_
 $(SIGNATURES)
 
 Return the approximation of the continuous Koopman generator stored in `k`.
 """
-generator(k::Koopman{<:Any, false}) = __get_K(k)
+generator(k::Koopman{<:Any, <:Any, <:Any}) = __get_K(k)
 generator(k::Koopman{<:Any, true}) = throw(AssertionError("Koopman is discrete."))
 
 """
