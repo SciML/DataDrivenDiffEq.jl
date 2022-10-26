@@ -520,10 +520,10 @@ end
 $(SIGNATURES)
 
 Return the default values for the given [`Basis`](@ref).
-If no default value is stored, returns zero.
+If no default value is stored, returns `zero(T)` where `T` is the `symtype` of the parameter.
 
 ## Note
-This extends `getmetadata` in a way that all parameters have values.
+This extends `getmetadata` in a way that all parameters have a numeric value.
 """
 function get_parameter_values(x::Basis)
     map(parameters(x)) do p
@@ -539,10 +539,10 @@ end
 $(SIGNATURES)
 
 Return the default values as a vecotr of pairs for the given [`Basis`](@ref).
-If no default value is stored, returns zero.
+If no default value is stored, returns `zero(T)` where `T` is the `symtype` of the parameter.
 
 ## Note
-This extends `getmetadata` in a way that all parameters have values.
+This extends `getmetadata` in a way that all parameters have a numeric value.
 """
 function get_parameter_map(x::Basis)
     map(parameters(x)) do p
