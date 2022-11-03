@@ -114,19 +114,30 @@ function _implicit_build_eqs(basis, eqs, p, prob)
 end
 
 function __construct_basis(X, b, prob, options)
-    eqs, ps, implicits = __build_eqs(X, b, prob)
-    @unpack eval_expresssion = options
-
-    xs = states(b)
+    @unpack eval_expresssion, generate_symbolic_parameters = options
     @unpack p = prob
-    p_ = parameters(b)
+    
+    if generate_symbolic_parameters
+        eqs, ps, implicits = __build_eqs(X, b, prob)
 
-    pss = map(eachindex(p)) do i
-        _set_default_val(Num(p_[i]), p[i])
+        p_ = parameters(b)
+
+        pss = map(eachindex(p)) do i
+            _set_default_val(Num(p_[i]), p[i])
+        end
+        p_new = [pss; ps]
+    else
+        eqs = X*reduce(vcat, map(x->x.rhs, equations(b)))
+        ps = parameters(b)
+        eqs, ps, implicits = is_implicit(b) ? _implicit_build_eqs(b, eqs, ps, prob) : _explicit_build_eqs(b, eqs, ps, prob)
+        
+        p_new = map(eachindex(p)) do i
+            _set_default_val(Num(ps[i]), p[i])
+        end
     end
-
-    Basis(eqs, xs,
-          parameters = [pss; ps], iv = get_iv(b),
+        
+    Basis(eqs, states(b),
+          parameters = p_new, iv = get_iv(b),
           controls = controls(b), observed = observed(b),
           implicits = implicits,
           name = gensym(:Basis),
