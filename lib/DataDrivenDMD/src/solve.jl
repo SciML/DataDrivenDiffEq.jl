@@ -133,6 +133,6 @@ function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
             testerror = nothing
             retcode = trainerror <= abstol ? DDReturnCode(1) : DDReturnCode(5)
         end
-        KoopmanResult(K, B, C, Q, P, trainerror, testerror, retcode)
+        KoopmanResult(K, B, C, Q, P, testerror, trainerror, retcode)
     end
 end
