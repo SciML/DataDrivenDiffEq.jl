@@ -531,7 +531,11 @@ function DataDrivenProblem(sol::T; use_interpolation = false, kwargs...) where T
         else
             DX = similar(X)
             if DiffEqBase.isinplace(sol.prob.f)
-                map(i->sol.prob.f(DX[:, i], X[:, i], p, t[i]), 1:size(X,2))
+                DXi = similar(X, axes(DX, 1))
+                for i in axes(X, 2)
+                    sol.prob.f(DXi, X[:, i], p, t[i])
+                    DX[:, i] .= DXi
+                end
             else
                 map(i->DX[:, i] .= sol.prob.f(X[:, i], p, t[i]), 1:size(X,2))
             end
