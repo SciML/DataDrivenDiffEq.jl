@@ -113,7 +113,6 @@ end
 Base.eltype(::AbstractDataDrivenProblem{T}) where {T} = T
 
 function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem),
-                           use_static_arrays = false,
                            kwargs...)
     dType = Base.promote_eltype(X, t, DX, Y, U, p)
     cType = !isempty(U)
@@ -128,15 +127,6 @@ function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem
         end
     end
 
-    # Convert all to StaticArrays (except maybe p)
-    if use_static_arrays
-        X = SMatrix{size(X)...}(X)
-        t = SVector{length(t)}(t)
-        p = SVector{length(p)}(p)
-        DX = SMatrix{size(DX)...}(DX)
-        Y = SMatrix{size(Y)...}(Y)
-        U = SMatrix{size(U)...}(U)
-    end
     return DataDrivenProblem{dType, cType, probType}(_promote(X, t, DX, Y, U, p)..., name)
 end
 
@@ -366,11 +356,11 @@ get_implicit_data(x::ABSTRACT_DIRECT_PROB{N, C}) where {N, C} = x.Y
 get_implicit_data(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N, C} = x.X[:, 2:end]
 get_implicit_data(x::ABSTRACT_CONT_PROB{N, C}) where {N, C} = x.DX
 
-function get_oop_args(x::AbstractDataDrivenProblem{N, C, P}) where {N <: Number, C, P}
+function get_oop_args(x::DataDrivenProblem)
     map(f -> getfield(x, f), (:X, :p, :t, :U))
 end
 
-function get_oop_args(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N <: Number, C}
+function get_oop_args(x::DataDrivenProblem{N, C, DDProbType(2)}) where {N, C}
     return (x.X[:, 1:(end - 1)],
             x.p,
             x.t[1:(end - 1)],

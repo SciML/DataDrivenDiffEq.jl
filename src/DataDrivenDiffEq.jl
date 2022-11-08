@@ -4,7 +4,6 @@ $(DocStringExtensions.README)
 module DataDrivenDiffEq
 
 using LinearAlgebra
-using StaticArrays
 
 using DiffEqBase
 using CommonSolve
@@ -63,8 +62,8 @@ end
 export DDReturnCode
 
 # Helper
-const __EMPTY_MATRIX = SMatrix{0, 0, Nothing, 0}()
-const __EMPTY_VECTOR = SVector{0, Nothing}()
+const __EMPTY_MATRIX = Matrix(undef, 0, 0)
+const __EMPTY_VECTOR = Vector(undef, 0)
 
 # Basis with an indicator for implicit use
 abstract type AbstractDataDrivenFunction{Bool, Bool} end
