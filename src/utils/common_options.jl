@@ -108,8 +108,12 @@ Denoising happens before normalization!
     """Data processing pipeline, see [`DataProcessing`](@ref)"""
     data_processing::DataProcessing = DataProcessing()
     # Postprocessing
-    """Significant digits for the parameters - used for rounding."""
-    sigdigits::Int = 16
+    """Rounding mode for the parameters"""
+    roundingmode::RoundingMode = RoundToZero
+    """Digits for the parameters - used for rounding."""
+    digits::Int = 10
+    #"""Significant digits for the parameters - used for rounding."""
+    #sigdigits::Int = 10
     """Enables the use of symbolic parameters for the result. If `false`, the numerical value is used."""
     generate_symbolic_parameters::Bool = true
     """Evaluate the expression, see [`Symbolics.build_function`](https://symbolics.juliasymbolics.org/stable/manual/build_function/)"""

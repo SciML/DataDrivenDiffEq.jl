@@ -75,18 +75,18 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
 end
 
 function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, control_idx)
-    @unpack digits = options
     @unpack c, k, b = res
     control_idx = map(any, eachrow(control_idx))
     # Build the Matrix
     Θ = zeros(eltype(c), size(c, 1), length(basis))
+    
     if any(control_idx)
         Θ[:, .!control_idx] .= c * Matrix(k)
         Θ[:, control_idx] .= c * b
     else
         Θ .= c * Matrix(k)
     end
-    Θ .= round.(Θ, digits = digits)
+    
     DataDrivenDiffEq.__construct_basis(Θ, basis, prob, options)
 end
 

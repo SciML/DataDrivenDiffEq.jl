@@ -114,11 +114,16 @@ function _implicit_build_eqs(basis, eqs, p, prob)
 end
 
 function __construct_basis(X, b, prob, options)
-    @unpack eval_expresssion, generate_symbolic_parameters, sigdigits = options
+    
+    @unpack eval_expresssion, generate_symbolic_parameters, digits, roundingmode = options
+    
     @unpack p = prob
 
-    X .= trunc.(X, sigdigits = sigdigits)
-    
+    # Postprocessing of the parameters
+    X .= round.(X, roundingmode, digits = digits)
+    inds = abs.(X) .<= eps(eltype(X))
+    X[inds] .= zero(eltype(X))
+
     if generate_symbolic_parameters
 
         eqs, ps, implicits = __build_eqs(X, b, prob)
@@ -128,7 +133,7 @@ function __construct_basis(X, b, prob, options)
         pss = map(eachindex(p)) do i
             _set_default_val(Num(p_[i]), p[i])
         end
-        
+
         p_new = [pss; ps]
     else
         # TODO : This takes a long time for larger coefficient matrices
