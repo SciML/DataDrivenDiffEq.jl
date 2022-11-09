@@ -1,6 +1,9 @@
-using Revise
-using TestEnv
-TestEnv.activate()
+#cd(joinpath(@__DIR__, ".."))
+#using Pkg
+#Pkg.activate(pwd())
+#using Revise
+#using TestEnv
+#TestEnv.activate()
 
 using DataDrivenDiffEq
 using DataDrivenDMD
@@ -30,7 +33,7 @@ rng = StableRNG(42)
             @test rss(res) <= 1e-2
             @test r2(res) ≈ 1.0
             @test dof(res) == 3
-            @test loglikelihood(res) == Inf
+            @test loglikelihood(res) >= 400.0
 
             foreach(get_results(res)) do operator_res
                 @test Matrix(get_operator(operator_res)) ≈ A
@@ -81,7 +84,7 @@ end
             @test rss(res) <= 1e-2
             @test r2(res) ≈ 1.0
             @test dof(res) == 3
-            @test loglikelihood(res) == Inf
+            @test loglikelihood(res) >= 400e3
 
             foreach(get_results(res)) do operator_res
                 @test Matrix(get_operator(operator_res)) ≈ A
@@ -108,7 +111,6 @@ end
         end
     end
 end
-
 
 @testset "Low Rank Continuous System" begin
     K̃ = -0.5*I + [0 0 -0.2; 0.1 0 -0.1; 0. -0.2 0]
@@ -138,14 +140,3 @@ end
     end
 end
 
-#X = rand([0, 1], 10, 936)
-#T = collect(LinRange(0, 4.367058580858928, 936))
-#problem = DiscreteDataDrivenProblem(X, t = T)
-#
-#options = DataDrivenCommonOptions(generate_symbolic_parameters = false)
-#res = solve(problem, DMDPINV(), options = options)
-#
-#@testset "Big System" begin
-#    # Creates a big system which would resulting in a segfault otherwise
-#    @test_nowarn res2 = solve(problem, DMDSVD())
-#end
