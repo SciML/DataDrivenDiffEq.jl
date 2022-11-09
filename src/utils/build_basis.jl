@@ -114,10 +114,13 @@ function _implicit_build_eqs(basis, eqs, p, prob)
 end
 
 function __construct_basis(X, b, prob, options)
-    @unpack eval_expresssion, generate_symbolic_parameters = options
+    @unpack eval_expresssion, generate_symbolic_parameters, sigdigits = options
     @unpack p = prob
+
+    X .= trunc.(X, sigdigits = sigdigits)
     
     if generate_symbolic_parameters
+
         eqs, ps, implicits = __build_eqs(X, b, prob)
 
         p_ = parameters(b)
@@ -125,9 +128,20 @@ function __construct_basis(X, b, prob, options)
         pss = map(eachindex(p)) do i
             _set_default_val(Num(p_[i]), p[i])
         end
+        
         p_new = [pss; ps]
     else
-        eqs = X*reduce(vcat, map(x->x.rhs, equations(b)))
+        # TODO : This takes a long time for larger coefficient matrices
+        # I think this needs to be rewritten in the basis constructor to take in arrays
+        atoms = reduce(vcat, map(x->x.rhs, equations(b)))
+        eqs = [Num(zero(eltype(X))) for _ in 1:size(X, 1)]
+        
+        @inbounds foreach(axes(X, 1)) do i 
+            foreach(axes(X, 2)) do j
+                eqs[i] += X[i,j] * atoms[j]
+            end
+        end
+
         ps = parameters(b)
         eqs, ps, implicits = is_implicit(b) ? _implicit_build_eqs(b, eqs, ps, prob) : _explicit_build_eqs(b, eqs, ps, prob)
         
