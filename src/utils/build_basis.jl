@@ -129,12 +129,15 @@ function __construct_basis(X, b, prob, options)
         eqs, ps, implicits = __build_eqs(X, b, prob)
 
         p_ = parameters(b)
+        if !isempty(p_) 
+            pss = map(eachindex(p)) do i
+                _set_default_val(Num(p_[i]), p[i])
+            end
 
-        pss = map(eachindex(p)) do i
-            _set_default_val(Num(p_[i]), p[i])
+            p_new = [pss; ps]
+        else
+            p_new = ps
         end
-
-        p_new = [pss; ps]
     else
         # TODO : This takes a long time for larger coefficient matrices
         # I think this needs to be rewritten in the basis constructor to take in arrays
