@@ -10,12 +10,15 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_CONT_PROB,
     @assert size(DX, 1)==size(X, 1) "$(A) needs equal number of observed states and differentials for continuous problems!"
 
     Θ = basis(prob)
-    n_t = size(Θ, 1)
     n_x = size(X, 1)
-    jac = let n_t = n_t, n_x = n_x, f = jacobian(basis)
-        (args...) -> reshape(f(args...), n_x, n_t)
+    n_t = length(basis)
+    
+    jac = let n_x = n_x, n_t = n_t, f = jacobian(basis)
+        (args...) -> reshape(f(args...), n_t, n_x)
     end
+    
     Ỹ = similar(Θ)
+
     if is_controlled(basis)
         foreach(axes(DX, 2)) do i
             Ỹ[:, i] .= jac(X[:, i], p, t[i], U[:, i]) * DX[:, i]
@@ -86,7 +89,7 @@ function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, contr
     else
         Θ .= c * Matrix(k)
     end
-    
+    @info Θ
     DataDrivenDiffEq.__construct_basis(Θ, basis, prob, options)
 end
 
