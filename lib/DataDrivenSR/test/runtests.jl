@@ -1,21 +1,31 @@
-using Revise
 using DataDrivenDiffEq
 using DataDrivenSR
-using SymbolicRegression
+using Test
+using StableRNGs
 
-# Generate a multivariate function for OccamNet
-X = rand(2,20)
-f(x) = [sin(x[1]^2); exp(x[2])]
-Y = hcat(map(f, eachcol(X))...)
-# Define the options
-opts = DataDrivenSR.EQSearch(eq_options = Options(unary_operators = [sin, exp], binary_operators = [+], maxdepth = 1))
+rng = StableRNG(42)
+X = rand(rng, 2,50)
 
-@variables x y
+@testset "Simple" begin 
+    alg = DataDrivenSR.EQSearch(eq_options = Options(unary_operators = [sin, exp], binary_operators = [*], maxdepth = 1, verbosity = -1, progress = false))
+    f(x) = [sin(x[1]); exp(x[2])]
+    Y = hcat(map(f, eachcol(X))...)
+    prob = DirectDataDrivenProblem(X, Y)
+    res = solve(prob, alg)
+    @test r2(res) >= 0.98
+    @test rss(res) <= 1e-5
+end
 
-b = Basis([x; y; x^2], [x;y])
-# Define the problem
-prob = ContinuousDataDrivenProblem(X, collect(1.0:1.0:20.0), Y)
-# Solve the problem
-res = solve(prob, b, opts)
+@testset "Lifted" begin
+    alg = DataDrivenSR.EQSearch(eq_options = Options(unary_operators = [sin, exp], binary_operators = [+], maxdepth = 1, verbosity = -1, progress = false))
 
-println(res.basis)
+    f(x) = [sin(x[1].^2); exp(x[2]*x[1])]
+    Y = hcat(map(f, eachcol(X))...)
+
+    @variables x y
+    basis = Basis([x; y; x^2; y^2; x*y], [x;y]) 
+    prob = DirectDataDrivenProblem(X, Y)
+    res = solve(prob, basis, alg)
+    @test r2(res) >= 0.98
+    @test rss(res) <= 1e-5
+end
