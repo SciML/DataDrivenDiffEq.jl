@@ -64,7 +64,7 @@ rng = StableRNG(42)
     for alg in [DMDPINV(); DMDSVD(); TOTALDMD()]
         res = solve(prob, Ψ, alg, options = DataDrivenCommonOptions(digits = 1))
         koopman_res = first(get_results(res))
-        @info r2(res) >= 0.95
+        @test r2(res) >= 0.95
         @test dof(res) == 4
         @test get_inputmap(koopman_res)  ≈ [0; 0.0; 1.0;;] atol=1e-1
         @test get_outputmap(koopman_res) ≈ [1.0 0 0; 0 1 1]
