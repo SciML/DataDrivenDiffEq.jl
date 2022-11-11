@@ -20,28 +20,26 @@ end
 
 function (alg::AbstractKoopmanAlgorithm)(X::AbstractMatrix, Y::AbstractMatrix,
                                          U::AbstractMatrix, ::Nothing)
-    n_x = size(X, 1)
     if !isempty(U)
+        n_x = size(X, 1)
         Z = cat(X, U, dims = 1)
-        K̃ = alg(Z, Y)
+        K̃, _ = alg(Z, Y)
         K = K̃[:, 1:n_x]
         B = K̃[:, (n_x + 1):end]
-    else
-        K = alg(X, Y)
-        B = Array{eltype(X)}(undef, 0, 0)
+        return K, B
     end
-    return K, B
+
+    return alg(X, Y)
 end
 
-function (alg::AbstractKoopmanAlgorithm)(X::AbstractMatrix, Y::AbstractMatrix,
-                                         U::AbstractMatrix, B::AbstractMatrix)
+function (alg::AbstractKoopmanAlgorithm)(X::AbstractArray, Y::AbstractArray,
+                                         U::AbstractArray, B::AbstractArray)
     if !isempty(U) && !isempty(B)
-        Z = X - B * U
-        K = alg(Z, Y)
-    else
-        K = alg(X, Y)
+        Z = Y - B * U
+        K, _ = alg(X, Z)
+        return K, B
     end
-    return K, B
+    return alg(X, Y)
 end
 
 """
@@ -59,7 +57,7 @@ via the backslash.
 struct DMDPINV <: AbstractKoopmanAlgorithm end
 
 function (::DMDPINV)(X::AbstractArray, Y::AbstractArray)
-    return Y / X
+    return Y / X, DataDrivenDiffEq.__EMPTY_MATRIX
 end
 
 """
@@ -96,8 +94,8 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where {T}
     λ, ω = eigen(Ã)
     φ = B * ω
     K = Matrix(Eigen(λ, φ))
-    eltype(X) <: Real && return real.(K)
-    return K
+    eltype(X) <: Real && return real.(K),  DataDrivenDiffEq.__EMPTY_MATRIX
+    return K,  DataDrivenDiffEq.__EMPTY_MATRIX
 end
 
 function (x::DMDSVD{T})(X::AbstractMatrix, Y::AbstractMatrix,
@@ -163,9 +161,9 @@ function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
     return x.alg(X * Q, Y * Q, U * Q)
 end
 
-function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray,
-                       B::AbstractArray)
+function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray,
+    U::AbstractArray, B::AbstractArray)
     _, _, Q = truncated_svd([X; Y], x.truncation)
     K, _ = x.alg(X * Q, (Y - B * U) * Q)
-    return (K, B)
+    return K, B
 end

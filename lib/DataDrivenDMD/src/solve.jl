@@ -82,14 +82,14 @@ function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, contr
     control_idx = map(any, eachrow(control_idx))
     # Build the Matrix
     Θ = zeros(eltype(c), size(c, 1), length(basis))
-    
+   
     if any(control_idx)
         Θ[:, .!control_idx] .= c * Matrix(k)
         Θ[:, control_idx] .= c * b
     else
         Θ .= c * Matrix(k)
     end
-    @info Θ
+   
     DataDrivenDiffEq.__construct_basis(Θ, basis, prob, options)
 end
 
@@ -118,7 +118,6 @@ function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
 
     map(traindata) do (X, Y, Z)
         if any(control_idx)
-            @info control_idx
             X_, Y_, U_ = X[no_controls, :], Y[no_controls, :], X[control_idx, :]
         else
             X_, Y_, U_ = X, Y, DataDrivenDiffEq.__EMPTY_MATRIX
