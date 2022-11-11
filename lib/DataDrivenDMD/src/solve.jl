@@ -81,7 +81,7 @@ function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, contr
     @unpack c, k, b = res
     control_idx = map(any, eachrow(control_idx))
     # Build the Matrix
-    Θ = zeros(eltype(c), size(c, 1), length(basis))
+    Θ = zeros(eltype(k), size(c, 1), length(basis))
    
     if any(control_idx)
         Θ[:, .!control_idx] .= c * Matrix(k)
@@ -89,7 +89,7 @@ function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, contr
     else
         Θ .= c * Matrix(k)
     end
-   
+
     DataDrivenDiffEq.__construct_basis(Θ, basis, prob, options)
 end
 
@@ -127,9 +127,9 @@ function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
         Q = Y_ * X'
         P = X * X'
         C = Z / Y_
-        trainerror = __compute_rss(Z, C, K, B, X_, U_)
+        trainerror = __compute_rss(Z, C, Matrix(K), B, X_, U_)
         if !isempty(X̃)
-            testerror = __compute_rss(Z̃, C, K, B, X̃, Ũ)
+            testerror = __compute_rss(Z̃, C, Matrix(K), B, X̃, Ũ)
             retcode = testerror <= abstol ? DDReturnCode(1) : DDReturnCode(5)
         else
             testerror = nothing

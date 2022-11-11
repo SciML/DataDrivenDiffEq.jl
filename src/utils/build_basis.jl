@@ -121,7 +121,7 @@ function __construct_basis(X, b, prob, options)
 
     # Postprocessing of the parameters
     X .= round.(X, roundingmode, digits = digits)
-    inds = abs.(X) .<= eps(eltype(X))
+    inds = abs.(X) .<= eps()
     X[inds] .= zero(eltype(X))
 
     if generate_symbolic_parameters

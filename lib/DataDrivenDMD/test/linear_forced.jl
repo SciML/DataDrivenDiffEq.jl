@@ -23,10 +23,13 @@ rng = StableRNG(42)
 
     for alg in [DMDPINV(); DMDSVD(); TOTALDMD(3, DMDPINV())]
         res = solve(ddprob, alg, options = DataDrivenCommonOptions(digits=1))
+        koopman_res = first(get_results(res))
         @test r2(res) >= 0.95
         @test rss(res) <= 2.0
         @test loglikelihood(res) >= 160.0
         @test get_parameter_values(res.basis) ≈ [-0.8, -0.7, 2.9]
+        @test get_inputmap(koopman_res) ≈ [0.0; 3.0;;]
+        @test Matrix(get_operator(koopman_res)) ≈ [-0.9 0.1; 0.0 -0.8]
     end
 end
 
@@ -44,7 +47,7 @@ end
         @test r2(res) ≈ 1.0
         @test dof(res) == 3
         @test rss(res) <= eps()
-        @test get_operator(koopman_result)  ≈ [1.5 0; 0 0.1]
+        @test Matrix(get_operator(koopman_result))  ≈ [1.5 0; 0 0.1]
         @test get_inputmap(koopman_result) == B
         @test get_outputmap(koopman_result) ≈ I(2)
     end
