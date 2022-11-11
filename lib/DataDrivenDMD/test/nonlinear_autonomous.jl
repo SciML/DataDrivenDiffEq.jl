@@ -1,6 +1,3 @@
-
-using TestEnv
-TestEnv.activate()
 using DataDrivenDiffEq
 using DataDrivenDMD
 using LinearAlgebra

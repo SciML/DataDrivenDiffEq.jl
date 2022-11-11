@@ -11,4 +11,5 @@ const GROUP = get(ENV, "GROUP", "All")
     @safetestset "Linear autonomous" begin include("./linear_autonomous.jl") end
     @safetestset "Linear forced" begin include("./linear_forced.jl") end
     @safetestset "Nonlinear autonomous" begin include("./nonlinear_autonomous.jl") end
+    @safetestset "Nonlinear forced" begin include("./nonlinear_forced.jl") end
 end end

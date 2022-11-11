@@ -1,10 +1,3 @@
-#cd(joinpath(@__DIR__, ".."))
-#using Pkg
-#Pkg.activate(pwd())
-#using Revise
-#using TestEnv
-#TestEnv.activate()
-
 using DataDrivenDiffEq
 using DataDrivenDMD
 using LinearAlgebra
