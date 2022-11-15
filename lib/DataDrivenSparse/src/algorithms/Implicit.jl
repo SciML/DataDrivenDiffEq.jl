@@ -13,7 +13,8 @@ ImplicitOptimizer(STLSQ())
 ImplicitOptimizer(0.1f0, ADMM)
 ```
 """
-mutable struct ImplicitOptimizer{T <: AbstractSparseRegressionAlgorithm} <: AbstractSparseRegressionAlgorithm
+mutable struct ImplicitOptimizer{T <: AbstractSparseRegressionAlgorithm} <:
+               AbstractSparseRegressionAlgorithm
     """Explicit Optimizer"""
     optimizer::T
 
@@ -22,18 +23,18 @@ mutable struct ImplicitOptimizer{T <: AbstractSparseRegressionAlgorithm} <: Abst
         return new{typeof(optimizer)}(optimizer)
     end
 
-    function ImplicitOptimizer(opt::T) where T <: AbstractSparseRegressionAlgorithm
+    function ImplicitOptimizer(opt::T) where {T <: AbstractSparseRegressionAlgorithm}
         return new{T}(opt)
     end
-
 end
 
-
-Base.summary(opt::ImplicitOptimizer) = "Implicit Optimizer using "*summary(opt.optimizer)
+Base.summary(opt::ImplicitOptimizer) = "Implicit Optimizer using " * summary(opt.optimizer)
 
 get_threshold(opt::ImplicitOptimizer) = get_threshold(opt.optimizer)
 
-function (x::ImplicitOptimizer)(X, Y; options::DataDrivenCommonOptions = DataDrivenCommonOptions(), kwargs...)
+function (x::ImplicitOptimizer)(X, Y;
+                                options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
+                                kwargs...)
     @unpack optimizer = x
     @unpack verbose = options
 
@@ -44,7 +45,7 @@ function (x::ImplicitOptimizer)(X, Y; options::DataDrivenCommonOptions = DataDri
 
     solver = SparseLinearSolver(optimizer, options = options)
 
-    results = map(1:n) do i 
+    results = map(1:n) do i
         inds .= true
         inds[i] = false
         if verbose
@@ -58,7 +59,7 @@ function (x::ImplicitOptimizer)(X, Y; options::DataDrivenCommonOptions = DataDri
 
     # Select the best result
     best_id = argmin(map(aicc, results))
-    
+
     # Build the coefficient matrix
     inds .= true
     inds[best_id] = false
@@ -66,6 +67,6 @@ function (x::ImplicitOptimizer)(X, Y; options::DataDrivenCommonOptions = DataDri
     # Create the coefficient matrix
     x_opt[1, best_id] = -one(eltype(X))
     x_opt[1:1, inds] .= coef(results[best_id])
-    
+
     return x_opt
 end

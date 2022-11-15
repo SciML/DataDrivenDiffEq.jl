@@ -108,7 +108,9 @@ get_proximal(x::AbstractSparseRegressionAlgorithm) = SoftThreshold()
 include("solver.jl")
 export SparseLinearSolver
 
-function (x::X where X <: AbstractSparseRegressionAlgorithm)(X, Y; options::DataDrivenCommonOptions = DataDrivenCommonOptions(), kwargs...)
+function (x::X where {X <: AbstractSparseRegressionAlgorithm})(X, Y;
+                                                               options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
+                                                               kwargs...)
     solver = SparseLinearSolver(x, options = options)
     results = solver(X, Y) # Keep this here for now
     # Collect the coefficients
