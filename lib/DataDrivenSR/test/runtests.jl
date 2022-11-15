@@ -14,7 +14,7 @@ X = rand(rng, 2, 50)
     Y = hcat(map(f, eachcol(X))...)
     prob = DirectDataDrivenProblem(X, Y)
     res = solve(prob, alg)
-    @test r2(res) >= 0.98
+    @test r2(res) >= 0.95
     @test rss(res) <= 1e-5
 end
 
@@ -30,6 +30,6 @@ end
     basis = Basis([x; y; x^2; y^2; x * y], [x; y])
     prob = DirectDataDrivenProblem(X, Y)
     res = solve(prob, basis, alg)
-    @test r2(res) >= 0.98
+    @test r2(res) >= 0.95
     @test rss(res) <= 1e-5
 end

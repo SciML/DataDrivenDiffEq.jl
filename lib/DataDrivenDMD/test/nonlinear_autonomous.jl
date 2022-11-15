@@ -31,7 +31,7 @@ rng = StableRNG(42)
             res = solve(prob, Ψ, alg, options = DataDrivenCommonOptions(digits = 1))
             @test get_parameter_values(res.basis) ≈ [-0.8, -0.7, 0.6]
             @test loglikelihood(res) >= 1700.0
-            @test r2(res) >= 0.98
+            @test r2(res) >= 0.95
         end
     end
 end
@@ -59,7 +59,7 @@ end
         res = solve(prob, Ψ, alg, options = DataDrivenCommonOptions(digits = 2))
         @test get_parameter_values(res.basis)≈[-0.8, 0.63, -0.7] atol=5e-2
         @test loglikelihood(res) >= 50.0
-        @test r2(res) >= 0.98
+        @test r2(res) >= 0.95
         @test rss(res) <= 1e-1
     end
 end
