@@ -15,6 +15,7 @@ jobs:
           - Core
           - DataDrivenDMD
           - DataDrivenSR
+          - DataDrivenSparse
         version:
           - '1'
           - '1.6'
