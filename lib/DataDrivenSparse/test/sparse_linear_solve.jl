@@ -64,8 +64,8 @@ end
 @testset "Implicit Optimizer" begin
     t = 0.0:0.1:10.0
     X = permutedims(
-        reduce(hcat, (sin.(0.1 .* t), cos.(0.5 .* t), sin.(2.0 .* t .^ 2),
-                            cos.(0.5 .* t .^ 2), exp.(-t)))
+        reduce(hcat, (sin.(0.5 .* t .+ 0.1), cos.(0.5 .* t), sin.(2.0 .* t .^ 2),
+                            cos.(0.5 .* t .^ 2 .- 0.1), exp.(-t)))
     )
     Y = permutedims(0.5 * X[1, :] + 0.22 * X[4, :] - 2.0 * X[3, :])
     X = vcat(X, Y)
