@@ -38,9 +38,8 @@ end
     t = randn(rng, 5)
     X = permutedims([sin.(0.1 .* t);; cos.(0.5 .* t);; sin.(2.0 .* t .^ 2);;
                      cos.(0.5 .* t .^ 2);; exp.(-t);; 1.0 .+ zero(t)])
-    A = sprand(rng, 1, size(X, 1), 0.3)
-    Ỹ = A * X
-    Y = Ỹ + 0.00 * randn(rng, size(Ỹ))
+    A = sprand(rng, 1, size(X, 1), 0.5)
+    Y = A * X
     λ = extrema(abs.(A)[abs.(A) .> 0.0])
     true_dof = sum.(eachrow(abs.(A) .> 0.0))
     for alg in [STLSQ, ADMM, SR3]
@@ -50,6 +49,7 @@ end
                                                                       maxiters = 10_000))
         res = solver(X, Y)
         res = first(res)
+        @info coef(res)
         @test rss(res) <= 1e-2
         @test aicc(res) <= -20.0
         @test sum(abs, true_dof .- dof(res)) <= 1
@@ -65,7 +65,8 @@ end
     X = vcat(X, Y)
     for alg in [STLSQ, ADMM, SR3]
         opt = ImplicitOptimizer(alg())
-        rescoeff = opt(X, Y, options = DataDrivenCommonOptions())
+        rescoeff = opt(X, Y, options = DataDrivenCommonOptions(maxiters = 2000))
+        @info rescoeff
         @test vec(rescoeff)≈[0.25; 0.0; -1.0; 0.11; 0.0; -0.5] atol=5e-2
     end
 end
