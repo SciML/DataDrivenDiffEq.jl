@@ -27,20 +27,21 @@ abstract type AbstractProximalOperator end
 
 abstract type AbstractSparseRegressionCache <: StatsBase.StatisticalModel end
 
-_set!(x::AbstractSparseRegressionCache, y::AbstractSparseRegressionCache) = begin
-    foreach(eachindex(x.X)) do i 
-        x.X[i] = y.X[i]
-        x.X_prev[i] = y.X_prev[i]
-        x.active_set[i] = y.active_set[i]
+function _set!(x::AbstractSparseRegressionCache, y::AbstractSparseRegressionCache)
+    begin
+        foreach(eachindex(x.X)) do i
+            x.X[i] = y.X[i]
+            x.X_prev[i] = y.X_prev[i]
+            x.active_set[i] = y.active_set[i]
+        end
+        return
     end
-    return
 end
 
 _zero!(x::AbstractSparseRegressionCache) = begin
     x.X .= zero(eltype(x.X))
     return
 end
-
 
 function _is_converged(x::AbstractSparseRegressionCache, abstol, reltol)::Bool
     @unpack X, X_prev, active_set = x
@@ -52,14 +53,12 @@ function _is_converged(x::AbstractSparseRegressionCache, abstol, reltol)::Bool
     return false
 end
 
-
-
 # StatsBase Overload
 StatsBase.coef(x::AbstractSparseRegressionCache) = getfield(x, :X)
 
 StatsBase.rss(x::AbstractSparseRegressionCache) = begin
     @unpack Ã, X, B̃ = x
-    sum(abs2, X*Ã .- B̃)
+    sum(abs2, X * Ã .- B̃)
 end
 
 StatsBase.dof(x::AbstractSparseRegressionCache) = begin
@@ -72,19 +71,21 @@ StatsBase.nobs(x::AbstractSparseRegressionCache) = begin
     return prod(size(B̃))
 end
 
-StatsBase.loglikelihood(x::AbstractSparseRegressionCache) = begin
-    -nobs(x)/2*log(rss(x)/nobs(x))
+function StatsBase.loglikelihood(x::AbstractSparseRegressionCache)
+    begin -nobs(x) / 2 * log(rss(x) / nobs(x)) end
 end
 
-StatsBase.nullloglikelihood(x::AbstractSparseRegressionCache) = begin
-    @unpack B̃ = x
-    -nobs(x)/2*log(mean(abs2, B̃ .- mean(vec(B̃))))
+function StatsBase.nullloglikelihood(x::AbstractSparseRegressionCache)
+    begin
+        @unpack B̃ = x
+        -nobs(x) / 2 * log(mean(abs2, B̃ .- mean(vec(B̃))))
+    end
 end
 
 StatsBase.r2(x::AbstractSparseRegressionCache) = r2(x, :CoxSnell)
 
 # Basic regression step for all sparse caches
-function step!(cache::AbstractSparseRegressionCache, λ::T) where T
+function step!(cache::AbstractSparseRegressionCache, λ::T) where {T}
     @unpack X, X_prev, active_set, proximal = cache
 
     X_prev .= X
@@ -94,7 +95,6 @@ function step!(cache::AbstractSparseRegressionCache, λ::T) where T
     proximal(X, active_set, λ)
     return
 end
-
 
 ##
 

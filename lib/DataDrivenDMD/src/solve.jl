@@ -12,11 +12,11 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_CONT_PROB,
     Θ = basis(prob)
     n_x = size(X, 1)
     n_t = length(basis)
-    
+
     jac = let n_x = n_x, n_t = n_t, f = jacobian(basis)
         (args...) -> reshape(f(args...), n_t, n_x)
     end
-    
+
     Ỹ = similar(Θ)
 
     if is_controlled(basis)
@@ -48,7 +48,7 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_DISCRETE_PROB,
     if is_controlled(basis)
         foreach(1:m) do i
             Ỹ[:, i] .= basis(X[:, i + 1], p, t[i + 1],
-                               U[:, i + 1])
+                              U[:, i + 1])
         end
     else
         foreach(1:m) do i
@@ -82,7 +82,7 @@ function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, contr
     control_idx = map(any, eachrow(control_idx))
     # Build the Matrix
     Θ = zeros(eltype(k), size(c, 1), length(basis))
-   
+
     if any(control_idx)
         Θ[:, .!control_idx] .= c * Matrix(k)
         Θ[:, control_idx] .= c * b

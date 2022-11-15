@@ -25,7 +25,6 @@ include("./result.jl")
 export KoopmanResult
 export get_operator, get_inputmap, get_outputmap, get_trainerror, get_testerror
 
-
 # Algorithms
 include("./algorithms.jl")
 export DMDPINV

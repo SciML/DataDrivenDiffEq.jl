@@ -26,32 +26,35 @@ as given in [Champion et. al., 2019](https://arxiv.org/abs/1906.10612). In the s
 hard thresholding the sparsity is interpreted as `λ = threshold^2 / 2`, otherwise `λ = threshold`.
 """
 mutable struct SR3{T, V, P <: AbstractProximalOperator} <: AbstractSparseRegressionAlgorithm
-   """Sparsity threshold"""
-   thresholds::T
-   """Relaxation parameter"""
-   nu::V
-   """Proximal operator"""
-   proximal::P
+    """Sparsity threshold"""
+    thresholds::T
+    """Relaxation parameter"""
+    nu::V
+    """Proximal operator"""
+    proximal::P
 
-   function SR3(threshold::T = 1e-1, nu::V = 1.0, R::P = HardThreshold()) where {T,V <: Number,P <: AbstractProximalOperator}
-      @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
-      @assert nu > zero(V) "Relaxation must be positive definite"
+    function SR3(threshold::T = 1e-1, nu::V = 1.0,
+                 R::P = HardThreshold()) where {T, V <: Number,
+                                                P <: AbstractProximalOperator}
+        @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
+        @assert nu>zero(V) "Relaxation must be positive definite"
 
-       λ = isa(R, HardThreshold) ? threshold.^2 /2 : threshold
-       return new{typeof(λ), V, P}(λ, nu, R)
-   end
+        λ = isa(R, HardThreshold) ? threshold .^ 2 / 2 : threshold
+        return new{typeof(λ), V, P}(λ, nu, R)
+    end
 
-   function SR3(threshold::T , R::P) where {T,P <: AbstractProximalOperator}
-      @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
-       λ = isa(R, HardThreshold) ? threshold.^2 /2 : threshold
-       ν = one(eltype(λ))
-       return new{typeof(λ), eltype(λ), P}(λ, ν, R)
-   end
+    function SR3(threshold::T, R::P) where {T, P <: AbstractProximalOperator}
+        @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
+        λ = isa(R, HardThreshold) ? threshold .^ 2 / 2 : threshold
+        ν = one(eltype(λ))
+        return new{typeof(λ), eltype(λ), P}(λ, ν, R)
+    end
 end
 
 Base.summary(::SR3) = "SR3"
 
-struct SR3Cache{C, A, P <: AbstractProximalOperator,  AT, BT, T, ATT, BTT} <: AbstractSparseRegressionCache
+struct SR3Cache{C, A, P <: AbstractProximalOperator, AT, BT, T, ATT, BTT} <:
+       AbstractSparseRegressionCache
     X::C
     X_prev::C
     active_set::A
@@ -67,46 +70,47 @@ struct SR3Cache{C, A, P <: AbstractProximalOperator,  AT, BT, T, ATT, BTT} <: Ab
     B̃::BTT
 end
 
-init_cache(alg::SR3, A::AbstractMatrix, b::AbstractVector) = init_cache(alg, A, permutedims(b))
+function init_cache(alg::SR3, A::AbstractMatrix, b::AbstractVector)
+    init_cache(alg, A, permutedims(b))
+end
 
-function init_cache(alg::SR3, A::AbstractMatrix, B::AbstractMatrix) 
+function init_cache(alg::SR3, A::AbstractMatrix, B::AbstractMatrix)
     n_x, m_x = size(A)
 
-    @assert size(B, 1) == 1 "Caches only hold single targets!"
+    @assert size(B, 1)==1 "Caches only hold single targets!"
 
     λ = minimum(get_thresholds(alg))
-    
+
     @unpack nu, proximal = alg
 
-    
     # Init matrices
-    X = cholesky(A*A' .+ I(n_x)*nu)
-    Y = B*A'
-    
+    X = cholesky(A * A' .+ I(n_x) * nu)
+    Y = B * A'
+
     coefficients = Y / X
 
     idx = BitArray(undef, size(coefficients)...)
-    
+
     active_set!(idx, proximal, coefficients, λ)
-    
-    return SR3Cache{typeof(coefficients), typeof(idx), typeof(proximal), typeof(X), typeof(Y), typeof(nu), typeof(A), typeof(B)}(
-        coefficients, copy(coefficients), idx, proximal,
-        zero(coefficients),
-        X, Y, nu, A, B
-        )
+
+    return SR3Cache{typeof(coefficients), typeof(idx), typeof(proximal), typeof(X),
+                    typeof(Y), typeof(nu), typeof(A), typeof(B)}(coefficients,
+                                                                 copy(coefficients), idx,
+                                                                 proximal,
+                                                                 zero(coefficients),
+                                                                 X, Y, nu, A, B)
 end
 
 function step!(cache::SR3Cache, λ::T) where {T <: Number}
     @unpack X, X_prev, active_set, proximal, A, B, W, nu = cache
 
     X_prev .= X
-    
+
     W .= (B .+ X * nu) / A
-    
+
     proximal(X, W, λ)
 
     active_set!(active_set, proximal, X, λ)
-    
-    return 
-end
 
+    return
+end

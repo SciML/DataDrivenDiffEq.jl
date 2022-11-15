@@ -40,7 +40,7 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
     prob = remake_problem(p, p = ps)
 
     rss = sum(abs2, get_implicit_data(prob) .- b(prob))
-    
+
     return DataDrivenSolution{eltype(p)}(b,
                                          retcode,
                                          alg,
