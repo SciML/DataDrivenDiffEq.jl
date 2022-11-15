@@ -2,7 +2,6 @@ using DataDrivenDiffEq
 using DataDrivenSparse
 using Random
 using LinearAlgebra
-using SparseArrays
 using StatsBase
 using Test
 using StableRNGs
@@ -13,21 +12,22 @@ using StableRNGs
     t = 0.0:0.1:10.0
     X = permutedims([sin.(0.1 .* t);; cos.(0.5 .* t);; sin.(2.0 .* t .^ 2);;
                      cos.(0.5 .* t .^ 2);; exp.(-t)])
-    A = sprand(rng, 1, size(X, 1), 0.4)
+    A = [0.68 0.0 0.0 0.0 -1.2]
     Ỹ = A * X
     Y = Ỹ + 0.01 * randn(rng, size(Ỹ))
-    λ = extrema(abs.(A)[abs.(A) .> 0.0])
-    true_dof = sum.(eachrow(abs.(A) .> 0.0))
+    λ = extrema(abs.(A)[abs.(A) .> 0.0]) 
+    true_dof = 2
     for alg in [STLSQ, ADMM, SR3]
-        alg_ = alg(LinRange(λ..., 20))
+        alg_ = alg(LinRange(0.5*first(λ), 1.5*last(λ), 20))
         solver = SparseLinearSolver(alg_,
                                     options = DataDrivenCommonOptions(verbose = false,
                                                                       maxiters = 10_000))
         res = solver(X, Y)
         res = first(res)
+        @info coef(res)
         @test rss(res) <= 1.2
         @test aicc(res) <= -400.0
-        @test sum(abs, true_dof .- dof(res)) <= 1
+        @test true_dof == dof(res)
         @test r2(res)≈1.0 atol=6e-2
     end
 end
@@ -35,25 +35,25 @@ end
 @testset "Skinny" begin
     rng = StableRNG(52)
     # Generate data
-    t = randn(rng, 5)
-    X = permutedims([sin.(0.1 .* t);; cos.(0.5 .* t);; sin.(2.0 .* t .^ 2);;
-                     cos.(0.5 .* t .^ 2);; exp.(-t);; 1.0 .+ zero(t)])
-    A = sprand(rng, 1, size(X, 1), 0.5)
+    t = 0.0:0.5:2.0
+    X = permutedims([sin.(0.5 .* t);; cos.(0.5 .* t);; sin.(2.0 .* t .^ 2);;
+                     cos.(0.5 .* t .^ 2);; exp.(-t);; randn(rng, length(t))])
+    A = [0.68 0.0 0.0 0.0 -1.2 0.0]
     Y = A * X
     λ = extrema(abs.(A)[abs.(A) .> 0.0])
-    true_dof = sum.(eachrow(abs.(A) .> 0.0))
+    true_dof = 2
     for alg in [STLSQ, ADMM, SR3]
-        alg_ = alg(LinRange(λ..., 50))
+        alg_ = alg(LinRange(0.1, 1.6, 15))
         solver = SparseLinearSolver(alg_,
                                     options = DataDrivenCommonOptions(verbose = false,
                                                                       maxiters = 10_000))
         res = solver(X, Y)
         res = first(res)
         @info coef(res)
-        @test rss(res) <= 1e-2
-        @test aicc(res) <= -20.0
-        @test sum(abs, true_dof .- dof(res)) <= 1
-        @test r2(res)≈1.0 atol=3e-2
+        @test rss(res) <= 1.5e-1
+        @test aicc(res) <= -5.0
+        @test true_dof == dof(res)
+        @test r2(res)≈1.0 atol=1e-1
     end
 end
 
