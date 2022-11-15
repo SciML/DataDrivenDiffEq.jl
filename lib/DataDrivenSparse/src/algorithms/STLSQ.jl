@@ -59,6 +59,17 @@ function init_cache(alg::STLSQ, A::AbstractMatrix, B::AbstractMatrix)
                                                        X, Y, A, B)
 end
 
+function step!(cache::STLSQCache, λ::T) where {T}
+    @unpack X, X_prev, active_set, proximal = cache
+
+    X_prev .= X
+
+    step!(cache)
+
+    proximal(X, active_set, λ)
+    return
+end
+
 function step!(cache::STLSQCache{true})
     @unpack X, A, B, active_set = cache
     p = vec(active_set)

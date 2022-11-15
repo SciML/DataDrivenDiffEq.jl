@@ -5,8 +5,6 @@ struct SparseRegressionResult{X <: AbstractArray, L, T, TE} <: AbstractDataDrive
     dof::Int
     "Threshold"
     lambda::L
-    "Number of iterations"
-    iterations::Int
     """L2 norm error of the testing dataset"""
     testerror::T
     """L2 norm error of the training dataset"""

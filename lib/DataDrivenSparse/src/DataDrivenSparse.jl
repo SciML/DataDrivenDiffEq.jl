@@ -84,18 +84,6 @@ end
 
 StatsBase.r2(x::AbstractSparseRegressionCache) = r2(x, :CoxSnell)
 
-# Basic regression step for all sparse caches
-function step!(cache::AbstractSparseRegressionCache, λ::T) where {T}
-    @unpack X, X_prev, active_set, proximal = cache
-
-    X_prev .= X
-
-    step!(cache)
-
-    proximal(X, active_set, λ)
-    return
-end
-
 ##
 
 include("algorithms/proximals.jl")
