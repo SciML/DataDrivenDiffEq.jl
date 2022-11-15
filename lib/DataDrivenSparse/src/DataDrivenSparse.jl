@@ -114,5 +114,7 @@ export STLSQ
 include("algorithms/ADMM.jl")
 export ADMM
 
+include("algorithms/SR3.jl")
+export SR3
 
 end # module
