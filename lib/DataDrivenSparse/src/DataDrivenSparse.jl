@@ -108,6 +108,13 @@ get_proximal(x::AbstractSparseRegressionAlgorithm) = SoftThreshold()
 include("solver.jl")
 export SparseLinearSolver
 
+function (x::X where X <: AbstractSparseRegressionAlgorithm)(X, Y; options::DataDrivenCommonOptions = DataDrivenCommonOptions(), kwargs...)
+    solver = SparseLinearSolver(x, options = options)
+    results = solver(X, Y) # Keep this here for now
+    # Collect the coefficients
+    reduce(vcat, map(coef, results))
+end
+
 include("algorithms/STLSQ.jl")
 export STLSQ
 
@@ -116,5 +123,8 @@ export ADMM
 
 include("algorithms/SR3.jl")
 export SR3
+
+include("algorithms/Implicit.jl")
+export ImplicitOptimizer
 
 end # module

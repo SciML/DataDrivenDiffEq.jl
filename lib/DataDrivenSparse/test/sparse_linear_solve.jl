@@ -56,3 +56,18 @@ end
         @test r2(res)≈1.0 atol=3e-2
     end
 end
+
+@testset "Implicit Optimizer" begin 
+    t = 0.0:0.1:10.0
+    X = permutedims([sin.(0.1 .* t);; cos.(0.5 .* t);; sin.(2.0 .* t .^ 2);;
+                     cos.(0.5 .* t .^ 2);; exp.(-t)])
+    Y = permutedims(0.5*X[1,:] + 0.22*X[4,:] - 2.0*X[3,:])
+    X = vcat(X, Y)
+    for alg in [STLSQ, ADMM, SR3]
+        opt = ImplicitOptimizer(alg())
+        rescoeff = opt(X, Y, options = DataDrivenCommonOptions()) 
+        @test vec(rescoeff) ≈ [0.25 ; 0.0 ;  -1.0 ; 0.11 ;  0.0 ; -0.5] atol=5e-2
+    end
+end
+
+
