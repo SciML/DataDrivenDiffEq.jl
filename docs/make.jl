@@ -3,6 +3,9 @@
 using Documenter, DataDrivenDiffEq, StatsBase
 using Literate
 
+cp("./docs/Manifest.toml", "./docs/src/assets/Manifest.toml", force = true)
+cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
+
 ENV["GKSwstype"] = "100"
 
 # TODO Include this after the rebase
