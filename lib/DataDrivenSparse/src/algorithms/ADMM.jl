@@ -105,8 +105,8 @@ function step!(cache::ADMMCache{true}, λ::T) where {T <: Number}
     @unpack X, X_prev, active_set, proximal, A, B, Ã, w, alpha, rho = cache
 
     q = (B  .+  rho .* (alpha .- w))
-    b = (Ã*((q*Ã) / A)' ./ rho^2)
-    X .=  q ./ rho .- b'
+    b = (((q*Ã) / A)*Ã' ./ rho^2)
+    X .=  q ./ rho .- b
     
     proximal(alpha, X .+ w, λ / rho)
     
