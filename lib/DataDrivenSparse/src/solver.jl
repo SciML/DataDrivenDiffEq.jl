@@ -24,7 +24,7 @@ function (alg::SparseLinearSolver)(X::AbstractMatrix, Y::AbstractMatrix)
             if i > 1 
                 @printf "\n"
             end
-            @printf "Starting regression on target variable %6d\n" i  
+            @printf "Starting sparse regression on target variable %6d\n" i  
         end
         alg(X, Y[i, :])
     end
@@ -46,27 +46,27 @@ function (alg::SparseLinearSolver)(X::AbstractArray, Y::AbstractVector)
     new_best = false
 
     if verbose
-        @printf "Threshold     Iter   DOF   RSS           AICC\n" 
+        @printf "Threshold     Iter   DOF   RSS           AICC          Updated result\n" 
     end
     
-    for λ in thresholds
+    for (j,λ) in enumerate(thresholds)
 
         for iter in 1:maxiters
         
-            if iter > 1
-                _is_converged(cache, abstol, reltol) && break
-            end
-
             step!(cache, λ)
 
-            if aicc(cache) <= aicc(best_cache)
+            if (aicc(cache) <= aicc(best_cache)) || (j == 1)
                 _set!(best_cache, cache)
                 new_best = true
+            else
+                new_best = false
             end
 
             if verbose
-                show((best_cache, iter, λ))    
+                @printf "%14e %6d %6d   %14e   %14e %1d\n" λ iter dof(best_cache) rss(best_cache) aicc(best_cache) new_best
             end
+
+            _is_converged(cache, abstol, reltol) && break
         end
     end
 

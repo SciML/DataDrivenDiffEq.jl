@@ -8,13 +8,19 @@ struct STLSQ{T <: Union{Number, AbstractVector}} <: AbstractSparseRegressionAlgo
     end
 end
 
-struct STLSQCache{usenormal, C <: AbstractArray, A <: BitArray, AT, BT} <: AbstractSparseRegressionCache
+
+Base.summary(::STLSQ) = "STLSQ"
+
+struct STLSQCache{usenormal, C <: AbstractArray, A <: BitArray, AT, BT, ATT, BTT} <: AbstractSparseRegressionCache
     X::C
     X_prev::C
     active_set::A
     proximal::SoftThreshold
     A::AT
     B::BT
+    # Original Data
+    Ã::ATT
+    B̃::BTT
 end
 
 init_cache(alg::STLSQ, A::AbstractMatrix, b::AbstractVector) = init_cache(alg, A, permutedims(b))
@@ -46,63 +52,21 @@ function init_cache(alg::STLSQ, A::AbstractMatrix, B::AbstractMatrix)
     
     active_set!(active_set, proximal, coefficients, λ)
 
-    return STLSQCache{usenormal, typeof(coefficients), typeof(active_set), typeof(X), typeof(Y)}(
+    return STLSQCache{usenormal, typeof(coefficients), typeof(active_set), typeof(X), typeof(Y), typeof(A), typeof(B)}(
         coefficients, prev_coefficients, 
         active_set, get_proximal(alg),
-        X, Y
+        X, Y, A, B
     )
 end
 
-function reset!(alg::STLSQ, cache::STLSQCache{_usenormal}, A::AbstractMatrix, B::AbstractVector) where {_usenormal}
-    n_x, m_x = size(A)
-
-    B = reshape(B, 1, length(B))
-
-    # Fat
-    if n_x <= m_x
-        usenormal = true
-        usenormal != _usenormal && return init_cache(alg, A, B)
-        cache.A = A*A'
-        cache.B = B*A'
-    # Skinny
-    else
-        usenormal = false
-        usenormal != _usenormal && return init_cache(alg, A, B)
-        cache.A = A
-        cache.B = B
-    end
-    
-    λ = minimum(get_thresholds(alg))
-    cache.X = /(A, B)
-    cache.X_prev = zero(cache.X)
-    
-    active_set!(
-        cache.active_set, cache.proximal, 
-        cache.X, λ
-    )
-
-    return cache
-end
-
-function step!(cache::STLSQCache, λ::T) where T
-    @unpack X, X_prev, active_set, proximal, A, B = cache
-
-    X_prev .= X
-
-    _regress!(cache)
-
-    proximal(X, active_set, λ)
-    return
-end
-
-function _regress!(cache::STLSQCache{true})
+function step!(cache::STLSQCache{true})
     @unpack X, A, B, active_set = cache
     p = vec(active_set)
     X[1:1,p] .= /(B[1:1, p], A[p, p])
     return 
 end
 
-function _regress!(cache::STLSQCache{false})
+function step!(cache::STLSQCache{false})
     @unpack X, A, B, active_set = cache
     p = vec(active_set)
     X[1:1, p] .= /(B, A[p, :])

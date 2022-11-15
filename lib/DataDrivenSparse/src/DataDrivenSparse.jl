@@ -41,11 +41,6 @@ _zero!(x::AbstractSparseRegressionCache) = begin
     return
 end
 
-function Base.show(io::IO, tup::Tuple{AbstractSparseRegressionCache, Int, Number})
-    t, iterations, λ = tup
-    @printf io "%14e %6d %6d   %14e   %14e\n" λ iterations dof(t) rss(t) aicc(t)
-    return
-end
 
 function _is_converged(x::AbstractSparseRegressionCache, abstol, reltol)::Bool
     @unpack X, X_prev, active_set = x
@@ -63,8 +58,8 @@ end
 StatsBase.coef(x::AbstractSparseRegressionCache) = getfield(x, :X)
 
 StatsBase.rss(x::AbstractSparseRegressionCache) = begin
-    @unpack A, X, B = x
-    sum(abs2, X*Matrix(A) .- Matrix(B))
+    @unpack Ã, X, B̃ = x
+    sum(abs2, X*Ã .- B̃)
 end
 
 StatsBase.dof(x::AbstractSparseRegressionCache) = begin
@@ -73,8 +68,8 @@ StatsBase.dof(x::AbstractSparseRegressionCache) = begin
 end
 
 StatsBase.nobs(x::AbstractSparseRegressionCache) = begin
-    @unpack B = x
-    return length(B)
+    @unpack B̃ = x
+    return prod(size(B̃))
 end
 
 StatsBase.loglikelihood(x::AbstractSparseRegressionCache) = begin
@@ -82,11 +77,24 @@ StatsBase.loglikelihood(x::AbstractSparseRegressionCache) = begin
 end
 
 StatsBase.nullloglikelihood(x::AbstractSparseRegressionCache) = begin
-    @unpack B = x
-    -nobs(x)/2*log(mean(abs2, Matrix(B) .- mean(Matrix(B))))
+    @unpack B̃ = x
+    -nobs(x)/2*log(mean(abs2, B̃ .- mean(vec(B̃))))
 end
 
 StatsBase.r2(x::AbstractSparseRegressionCache) = r2(x, :CoxSnell)
+
+# Basic regression step for all sparse caches
+function step!(cache::AbstractSparseRegressionCache, λ::T) where T
+    @unpack X, X_prev, active_set, proximal = cache
+
+    X_prev .= X
+
+    step!(cache)
+
+    proximal(X, active_set, λ)
+    return
+end
+
 
 ##
 
@@ -100,8 +108,11 @@ get_proximal(x::AbstractSparseRegressionAlgorithm) = SoftThreshold()
 include("solver.jl")
 export SparseLinearSolver
 
-include("algorithms/algorithms.jl")
-export STLSQ, ADMM
+include("algorithms/STLSQ.jl")
+export STLSQ
+
+include("algorithms/ADMM.jl")
+export ADMM
 
 
 end # module
