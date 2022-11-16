@@ -115,7 +115,6 @@ function is_dependent(x::SymbolicUtils.Symbolic, y::Number)
     false
 end
 
-
 function is_dependent(x::Num, y::Num)
     is_dependent(y.val, x.val)
 end
