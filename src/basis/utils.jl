@@ -107,6 +107,15 @@ function is_dependent(x::SymbolicUtils.Symbolic, y::SymbolicUtils.Symbolic)
     occursin(y, x)
 end
 
+function is_dependent(x::Number, y::SymbolicUtils.Symbolic)
+    false
+end
+
+function is_dependent(x::SymbolicUtils.Symbolic, y::Number)
+    false
+end
+
+
 function is_dependent(x::Num, y::Num)
     is_dependent(y.val, x.val)
 end
@@ -123,7 +132,16 @@ end
 is_not_dependent(x, y) = .!is_dependent(x, y)
 
 function candidate_matrix(x::Vector{Num}, y::Vector{Num})
-    return reduce(hcat, map(xi -> is_not_dependent(xi, y), x))
+    # We want a matrix 
+    indicators = ones(Bool, length(y), length(x))
+    for i in 1:length(y), j in 1:length(x)
+        is_dependent(y[i], x[j]) && continue
+        for k in 1:length(x)
+            j == k && continue
+            indicators[i, j] = is_not_dependent(y[i], x[k]) 
+        end 
+    end
+    return indicators
 end
 
 function is_unary(f::Function, t::Type = Number)
