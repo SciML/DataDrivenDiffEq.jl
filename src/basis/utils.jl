@@ -107,11 +107,11 @@ function is_dependent(x::SymbolicUtils.Symbolic, y::SymbolicUtils.Symbolic)
     occursin(y, x)
 end
 
-function is_dependent(x::Number, y::SymbolicUtils.Symbolic)
+function is_dependent(x::Any, y::SymbolicUtils.Symbolic)
     false
 end
 
-function is_dependent(x::SymbolicUtils.Symbolic, y::Number)
+function is_dependent(x::SymbolicUtils.Symbolic, y::Any)
     false
 end
 
@@ -129,27 +129,6 @@ function is_dependent(x::AbstractVector{Num}, y::AbstractVector{Num})
 end
 
 is_not_dependent(x, y) = .!is_dependent(x, y)
-
-# Check if any y is dependent on xi and not on any other xj
-function candidate_matrix(x::Vector{Num}, y::Vector{Num})
-    # We want a matrix 
-    indicators = ones(Bool, length(y), length(x))
-    idx = ones(Bool, length(x))
-    for i in 1:length(x)
-         idx .= true
-         idx[i] = false
-         for j in 1:length(y)
-            !isa(y[j], Symbolics.Symbolic) && continue
-
-            foreach(x[idx]) do xj
-                indicators[j,i] = indicators[j,i] && !occursin(
-                    Symbolics.unwrap(xj), Symbolics.unwrap(y[j])
-                )
-            end
-        end
-    end
-    return indicators
-end
 
 function is_unary(f::Function, t::Type = Number)
     f ∈ [+, -, *, /, ^] && return false
