@@ -20,7 +20,6 @@ tspan = (0.0, 5.0)
 dt = 0.05
 cart_pole_prob = ODEProblem(cart_pole, u0, tspan)
 solution = solve(cart_pole_prob, Tsit5(), saveat = dt)
-plot(solution)
 
 # Create the differential data
 X = solution[:,:]
@@ -60,7 +59,7 @@ basis= Basis(implicits, u, controls = x,  iv = t, implicits = du)
 # Simply use any optimizer you would use for sindy
 λ = [1e-4;5e-4;1e-3;2e-3;3e-3;4e-3;5e-3;6e-3;7e-3;8e-3;9e-3;1e-2;2e-2;3e-2;4e-2;5e-2]
 
-res = solve(ddprob, basis, ImplicitOptimizer(λ), options = DataDrivenCommonOptions(verbose = true))
+res = solve(ddprob, basis, ImplicitOptimizer(λ), options = DataDrivenCommonOptions(verbose = false))
 @test r2(res) >= 0.95
 @test rss(res) <= 1e-6
 @test dof(res) == 10

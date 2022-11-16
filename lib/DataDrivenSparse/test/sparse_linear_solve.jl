@@ -26,7 +26,6 @@ using StableRNGs
                                                                       maxiters = 10_000))
         res, _... = solver(X, Y)
         res = first(res)
-        @info coef(res)
         @test rss(res) <= 1.2
         @test aicc(res) <= -400.0
         @test true_dof == dof(res)
@@ -53,7 +52,6 @@ end
                                                                       maxiters = 10_000))
         res, _... = solver(X, Y)
         res = first(res)
-        @info coef(res)
         @test rss(res) <= 1.5e-1
         @test aicc(res) <= -5.0
         @test true_dof == dof(res)
@@ -72,7 +70,6 @@ end
     for alg in [STLSQ, ADMM, SR3]
         opt = ImplicitOptimizer(alg())
         rescoeff, _... = opt(X, Y, options = DataDrivenCommonOptions(maxiters = 2000))
-        @info rescoeff
         @test vec(rescoeff)≈[0.25; 0.0; -1.0; 0.11; 0.0; -0.5] atol=5e-2
     end
 end

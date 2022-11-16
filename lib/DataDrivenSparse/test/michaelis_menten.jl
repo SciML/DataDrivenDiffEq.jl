@@ -54,8 +54,6 @@ end
     opts = [ImplicitOptimizer(ADMM(1e-2:1e-4:1e-1))]
     for opt in opts
         res = solve(prob, basis, opt, options = DataDrivenCommonOptions())
-        @info res.basis
-        @info get_parameter_map(res.basis)
         @test r2(res) >= 0.9
         @test rss(res) <= 2e-1
         @test dof(res) == 3
