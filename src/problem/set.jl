@@ -136,61 +136,11 @@ end
 function get_implicit_data(x::DataDrivenDataset)
     reduce(hcat, map(get_implicit_data, x.probs))
 end
-#
-#function init_implicits(x::DataDrivenDataset{N, W, C}) where {N, W, C}
-#    first_prob = first(x.probs)
-#    n_x, m = size(x)
-#    n_u = size(first_prob.U, 1)
-#    n_y = size(get_implicit_data(first_prob), 1)
-#    return (zeros(N, n_y + n_x, m),
-#            parameters(first_prob),
-#            zeros(N, m),
-#            n_u > 0 ? zeros(N, n_u, m) : N[])
-#end
-#
-#function init_explicit(x::DataDrivenDataset{N, W, C}) where {N, W, C}
-#    first_prob = first(x.probs)
-#    n_x, m = size(x)
-#    n_u = size(first_prob.U, 1)
-#    n_y = size(get_implicit_data(first_prob), 1)
-#    return (zeros(N, n_x, m),
-#            parameters(first_prob),
-#            zeros(N, m),
-#            n_u > 0 ? zeros(N, n_u, m) : N[])
-#end
-#
-##function get_oop_args(x::DataDrivenDataset{N, W, C}) where {N, W, C}
-##    X, p, t, U = init_explicit(x)
-##    last = 1
-##    @views for (i, s) in enumerate(cumsum(x.sizes))
-##        # Only copy if U is present
-##        if !W
-#            map(copyto!, (X[:, last:s], p, t[last:s], U[:, last:s]),
-#                get_oop_args(x.probs[i]))
-#        else
-#            map(copyto!, (X[:, last:s], p, t[last:s]), get_oop_args(x.probs[i])[1:3])
-#        end
-#        last += s
-#    end
-#    return (X, p, t, U)
-#end
 
-#function get_implicit_oop_args(x::DataDrivenDataset{N, W, C}) where {N, W, C}
-#    X, p, t, U = init_implicits(x)
-#    last = 1
-#    @views for (i, s) in enumerate(cumsum(x.sizes))
-#        # Only copy if U is present
-#        if !W
-#            map(copyto!, (X[:, last:s], p, t[last:s], U[:, last:s]),
-#                get_implicit_oop_args(x.probs[i]))
-#        else
-#            map(copyto!, (X[:, last:s], p, t[last:s]),
-#                get_implicit_oop_args(x.probs[i])[1:3])
-#        end
-#        last += s
-#    end
-#    return (X, p, t, U)
-#end
+# We assume common parameters (for now)
+function ModelingToolkit.parameters(x::DataDrivenDataset, i = :)
+    parameters(first(x.probs), i)
+end
 
 function get_oop_args(x::DataDrivenDataset)
     data = map(x.probs) do p
@@ -205,16 +155,3 @@ function get_oop_args(x::DataDrivenDataset)
     end
     X, p, t, U
 end
-
-#function (b::AbstractBasis)(d::DataDrivenDataset) 
-#    reduce(hcat, map(b, d.probs))
-#end
-
-#function (b::AbstractBasis)(dx::AbstractMatrix, d::DataDrivenDataset)
-#    last = 1
-#    @views for (i, s) in enumerate(cumsum(d.sizes))
-#        b(dx[:, last:s], d.probs[i])
-#        last = s + 1
-#    end
-#    return
-#end
