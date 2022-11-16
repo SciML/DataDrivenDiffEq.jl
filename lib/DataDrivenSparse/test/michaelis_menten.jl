@@ -1,8 +1,5 @@
-using Revise
 using DataDrivenDiffEq
 using DataDrivenSparse
-using TestEnv
-TestEnv.activate()
 using OrdinaryDiffEq
 using StableRNGs
 using Test
@@ -31,9 +28,6 @@ prob = DataDrivenDataset(
     DataDrivenProblem(solution_1), DataDrivenProblem(solution_2)
 )
 
-opts = [ImplicitOptimizer(STLSQ(5e-2, 1e-7));ImplicitOptimizer(STLSQ(1e-2:1e-2:1e-1, 1e-7))]
-res = solve(prob, basis, opts[1])
-println(res.basis)
 
 @testset "Groundtruth" begin 
     prob = DataDrivenDataset(
@@ -43,7 +37,6 @@ println(res.basis)
     opts = [ImplicitOptimizer(STLSQ(5e-2, 1e-7));ImplicitOptimizer(STLSQ(1e-2:1e-2:1e-1, 1e-7))]
     for opt in opts
         res = solve(prob, basis, opt)
-        @info res.basis
         @test r2(res) >= 0.99
         @test rss(res) < 1e-3
         @test dof(res) == 4

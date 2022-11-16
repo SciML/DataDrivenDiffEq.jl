@@ -1,4 +1,3 @@
-using Revise
 using DataDrivenDiffEq
 using DataDrivenSparse
 using OrdinaryDiffEq
@@ -32,7 +31,6 @@ X_n = X .+ 1e-1*randn(rng, size(X))
     dd_prob = DataDrivenProblem(sol)
     for opt in [STLSQ(7e-2),STLSQ(1e-2:1e-2:1e-1, 0.0001), ADMM(1e-2), SR3(1e-2, SoftThreshold()), SR3(1e-1, ClippedAbsoluteDeviation()), SR3(5e-1)]
         res = solve(dd_prob, basis, opt, options = DataDrivenCommonOptions(maxiters = 10_000, digits = 1))
-        @info res.basis
         @test r2(res) ≈ 0.9 atol=5e-2
         @test rss(res) <= 500.0
         @test loglikelihood(res) <= 250.0

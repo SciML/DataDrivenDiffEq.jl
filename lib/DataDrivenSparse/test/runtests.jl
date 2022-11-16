@@ -7,3 +7,5 @@ using SafeTestsets
 @safetestset "Pendulum" begin include("./pendulum.jl") end
 
 @safetestset "Michaelis Menten" begin include("./michaelis_menten.jl") end
+
+@safetestset "Cartpole" begin include("./cartpole.jl") end
