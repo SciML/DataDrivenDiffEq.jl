@@ -27,7 +27,7 @@ abstract type AbstractProximalOperator end
 
 abstract type AbstractSparseRegressionCache <: StatsBase.StatisticalModel end
 
-function _set!(x::AbstractSparseRegressionCache, y::AbstractSparseRegressionCache)
+function _set!(x::AbstractSparseRegressionCache, y::AbstractSparseRegressionCache) where T <: Number
     begin
         foreach(eachindex(x.X)) do i
             x.X[i] = y.X[i]
@@ -101,8 +101,18 @@ function (x::X where {X <: AbstractSparseRegressionAlgorithm})(X, Y;
                                                                kwargs...)
     solver = SparseLinearSolver(x, options = options)
     results = solver(X, Y) # Keep this here for now
-    # Collect the coefficients
-    reduce(vcat, map(coef, results))
+    
+    coeff_matrix = zeros(eltype(X), size(Y, 1), size(X, 1))
+    optimal_thresholds = []
+    optimal_iterations = Int[]
+    
+    foreach(enumerate(results)) do (i, res)
+        coeff_matrix[i:i, :] .= coef(res[1])
+        push!(optimal_thresholds, res[2])
+        push!(optimal_iterations, res[3])
+    end 
+
+    return coeff_matrix, optimal_thresholds, optimal_iterations
 end
 
 include("algorithms/STLSQ.jl")
@@ -116,5 +126,8 @@ export SR3
 
 include("algorithms/Implicit.jl")
 export ImplicitOptimizer
+
+include("result.jl")
+include("commonsolve.jl")
 
 end # module

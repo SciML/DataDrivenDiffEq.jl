@@ -58,15 +58,15 @@ function (x::ImplicitOptimizer)(X, Y;
     end
 
     # Select the best result
-    best_id = argmin(map(aicc, results))
+    best_id = argmin(map(aicc, first.(results)))
 
     # Build the coefficient matrix
     inds .= true
     inds[best_id] = false
-
+    best_cache, optimal_threshold, optimal_iterations = results[best_id]
+    
     # Create the coefficient matrix
     x_opt[1, best_id] = -one(eltype(X))
-    x_opt[1:1, inds] .= coef(results[best_id])
-
-    return x_opt
+    x_opt[1:1, inds] .= coef(best_cache)
+    return x_opt, [optimal_threshold], [optimal_iterations]
 end

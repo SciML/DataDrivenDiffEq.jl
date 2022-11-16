@@ -1,10 +1,41 @@
-struct STLSQ{T <: Union{Number, AbstractVector}} <: AbstractSparseRegressionAlgorithm
+"""
+$(TYPEDEF)
+`STLQS` is taken from the [original paper on SINDY](https://www.pnas.org/content/113/15/3932) and implements a
+sequentially thresholded least squares iteration. `λ` is the threshold of the iteration.
+It is based upon [this matlab implementation](https://github.com/eurika-kaiser/SINDY-MPC/utils/sparsifyDynamics.m).
+It solves the following problem
+```math
+\\argmin_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\rho \\|x\\|_2
+```
+with the additional constraint
+
+```math
+\\lvert x_i \\rvert > \\lambda
+```
+
+# Fields
+$(FIELDS)
+
+# Example
+```julia
+opt = STLQS()
+opt = STLQS(1e-1)
+opt = STLQS(1e-1, 1.0) # Set rho to 1.0
+opt = STLQS(Float32[1e-2; 1e-1])
+```
+## Note
+This was formally `STRRidge` and has been renamed.
+"""
+struct STLSQ{T <: Union{Number, AbstractVector}, R <: Number} <: AbstractSparseRegressionAlgorithm
+    """Sparsity threshold"""
     thresholds::T
+    """Ridge regression parameter"""
+    rho::R
 
-    function STLSQ(threshold::T = 1e-1) where {T}
+    function STLSQ(threshold::T = 1e-1, rho::R = zero(eltype(T))) where {T, R <: Number}
         @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
-
-        return new{T}(threshold)
+        @assert rho >= zero(R) "Ridge regression parameter must be positive definite!"
+        return new{T, R}(threshold, rho)
     end
 end
 
@@ -30,13 +61,13 @@ end
 function init_cache(alg::STLSQ, A::AbstractMatrix, B::AbstractMatrix)
     n_x, m_x = size(A)
     @assert size(B, 1)==1 "Caches only hold single targets!"
-
+    @unpack rho = alg
     λ = minimum(get_thresholds(alg))
 
     proximal = get_proximal(alg)
 
-    if n_x <= m_x
-        X = A * A'
+    if n_x <= m_x && !iszero(rho)
+        X = A * A' + rho*I
         Y = B * A'
         usenormal = true
     else

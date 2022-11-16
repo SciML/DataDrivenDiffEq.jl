@@ -15,7 +15,7 @@ opt = ADMM(1e-1, 2.0)
 ```
 """
 mutable struct ADMM{T, R <: Number} <: AbstractSparseRegressionAlgorithm
-    """Sparsity threshold"""
+    """Sparsity threshold parameter"""
     thresholds::T
     """Augmented Lagrangian parameter"""
     rho::R
@@ -91,7 +91,7 @@ function step!(cache::ADMMCache{false}, λ::T) where {T <: Number}
     X_prev .= X
 
     X .= (B .+ rho .* (alpha .- w)) / A
-
+    
     proximal(alpha, X .+ w, λ / rho)
 
     w .+= X .- alpha

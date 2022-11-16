@@ -46,17 +46,27 @@ function (alg::SparseLinearSolver)(X::AbstractArray, Y::AbstractVector)
     _zero!(best_cache)
     new_best = false
 
+    optimal_threshold = minimum(thresholds)
+    optimal_iterations = 0
+    iteration_counter = 0
+
+
     if verbose
         @printf "Threshold     Iter   DOF   RSS           AICC          Updated result\n"
     end
 
     for (j, λ) in enumerate(thresholds)
         for iter in 1:maxiters
+            
+            iteration_counter += 1
+
             step!(cache, λ)
 
             if (aicc(cache) <= aicc(best_cache)) || (j == 1)
                 _set!(best_cache, cache)
                 new_best = true
+                optimal_iterations = iteration_counter
+                optimal_threshold = λ
             else
                 new_best = false
             end
@@ -69,5 +79,5 @@ function (alg::SparseLinearSolver)(X::AbstractArray, Y::AbstractVector)
         end
     end
 
-    return best_cache
+    return best_cache, optimal_threshold, iteration_counter
 end

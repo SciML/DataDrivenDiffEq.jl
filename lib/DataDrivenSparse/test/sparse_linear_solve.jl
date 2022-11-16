@@ -51,7 +51,7 @@ end
         solver = SparseLinearSolver(alg_,
                                     options = DataDrivenCommonOptions(verbose = false,
                                                                       maxiters = 10_000))
-        res = solver(X, Y)
+        res, _... = solver(X, Y)
         res = first(res)
         @info coef(res)
         @test rss(res) <= 1.5e-1
@@ -71,7 +71,7 @@ end
     X = vcat(X, Y)
     for alg in [STLSQ, ADMM, SR3]
         opt = ImplicitOptimizer(alg())
-        rescoeff = opt(X, Y, options = DataDrivenCommonOptions(maxiters = 2000))
+        rescoeff, _... = opt(X, Y, options = DataDrivenCommonOptions(maxiters = 2000))
         @info rescoeff
         @test vec(rescoeff)≈[0.25; 0.0; -1.0; 0.11; 0.0; -0.5] atol=5e-2
     end
