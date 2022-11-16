@@ -22,11 +22,6 @@ dt = 0.05
 prob = ODEProblem(pendulum, u0, tspan)
 sol = solve(prob, Tsit5(), saveat=dt)
 
-X = sol[:,:]
-t = sol.t
-rng = StableRNG(21)
-X_n = X .+ 1e-1*randn(rng, size(X))
-
 @testset "Groundtruth" begin 
     dd_prob = DataDrivenProblem(sol)
     for opt in [STLSQ(7e-2),STLSQ(1e-2:1e-2:1e-1, 0.0001), ADMM(1e-2), SR3(1e-2, SoftThreshold()), SR3(1e-1, ClippedAbsoluteDeviation()), SR3(5e-1)]
@@ -35,10 +30,17 @@ X_n = X .+ 1e-1*randn(rng, size(X))
         @test rss(res) <= 500.0
         @test loglikelihood(res) <= 250.0
         @test 2 <= dof(res) <= 3
+        @info res.basis # If I exclude this print, the test fail.
     end 
 end
 
 @testset "Noise" begin 
+    X = sol[:,:]
+    t = sol.t
+
+    rng = StableRNG(21)
+    X_n = X .+ 1e-1*randn(rng, size(X))
+
     dd_prob = ContinuousDataDrivenProblem(X_n, t, GaussianKernel())
     for opt in [STLSQ(0.5), STLSQ(0.5, 0.001), ADMM(1e-2), SR3(1e-2, SoftThreshold()), SR3(1e-1, ClippedAbsoluteDeviation()), SR3(5e-1)]
         res = solve(dd_prob, basis, opt, 
