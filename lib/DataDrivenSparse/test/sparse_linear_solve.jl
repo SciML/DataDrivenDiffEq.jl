@@ -24,7 +24,7 @@ using StableRNGs
         solver = SparseLinearSolver(alg_,
                                     options = DataDrivenCommonOptions(verbose = false,
                                                                       maxiters = 10_000))
-        res = solver(X, Y)
+        res, _... = solver(X, Y)
         res = first(res)
         @info coef(res)
         @test rss(res) <= 1.2
