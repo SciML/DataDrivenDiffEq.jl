@@ -142,6 +142,18 @@ function ModelingToolkit.parameters(x::DataDrivenDataset, i = :)
     parameters(first(x.probs), i)
 end
 
+
+function remake_problem(d::DataDrivenDataset{<:Any, <:Any, probType};
+    p = parameters(d),
+    kwargs...) where {probType}
+    probs = map(d.probs) do prob
+        remake_problem(prob, p = p)
+    end
+    DataDrivenDataset(
+        probs...
+    )
+end
+
 function get_oop_args(x::DataDrivenDataset)
     data = map(x.probs) do p
         get_oop_args(p)
