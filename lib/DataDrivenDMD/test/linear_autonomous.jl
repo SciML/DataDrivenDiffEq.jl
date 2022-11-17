@@ -67,7 +67,7 @@ end
     sol = solve(prob, Tsit5(), saveat = 0.001)
 
     @testset "Groundtruth" begin
-        prob = DataDrivenProblem(sol, use_interpolation = true)
+        prob = DataDrivenProblem(sol)
 
         for alg in [DMDPINV(), DMDSVD(), TOTALDMD()]
             res = solve(prob, alg)
