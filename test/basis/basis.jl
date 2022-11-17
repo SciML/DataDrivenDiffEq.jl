@@ -10,42 +10,84 @@ using ModelingToolkit
 
     g = [x[1] * p[1] + p[2] * x[2]; x[2] * u[1]; u[2] * x[3] + exp(-t)]
 
-    b = Basis(g, x, parameters = p, controls = u, iv = t)
+    @testset "Generated" begin 
+        b = Basis(g, x, parameters = p, controls = u, iv = t)
 
-    true_res(x, p, t, u) = [sum(x[1:2] .* p); x[2] .* u[1]; u[2] .* x[3] .+ exp.(-t)]
-    function true_res_(x, p, t)
-        collect(hcat([true_res(x[:, i], p, t[i], zeros(2)) for i in 1:100]...))
+        true_res(x, p, t, u) = [sum(x[1:2] .* p); x[2] .* u[1]; u[2] .* x[3] .+ exp.(-t)]
+        function true_res_(x, p, t)
+            collect(hcat([true_res(x[:, i], p, t[i], zeros(2)) for i in 1:100]...))
+        end
+
+        function true_res_(x, p, t, u)
+            collect(hcat([true_res(x[:, i], p, t[i], u[:, i]) for i in 1:100]...))
+        end
+
+        @testset "Vector evaluation" begin
+            x0 = randn(3)
+            p0 = randn(2)
+            t0 = 0.0
+            u0 = randn(2)
+
+            @test isequal(b(x0), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
+            @test isequal(b(x0, p), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
+            @test isequal(b(x0, p, t), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
+            @test isequal(b(x0, p0, t, zeros(2)),
+                          DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
+            @test isequal(b(x0, p0, t0, zeros(2)),
+                          DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
+            @test isequal(b(x0, p0, t0, u0), DataDrivenDiffEq.get_f(b)(x0, p0, t0, u0))
+        end
+
+        @testset "Array evaluation" begin
+            # Array call
+            x0 = randn(3, 100)
+            p0 = randn(2)
+            t0 = randn(100)
+            u0 = randn(2, 100)
+
+            # These first two fail, since exp(-t) != exp(getindex(t,1))
+            @test isequal(b(x0, p0, t0, u0), true_res_(x0, p0, t0, u0))
+        end
     end
 
-    function true_res_(x, p, t, u)
-        collect(hcat([true_res(x[:, i], p, t[i], u[:, i]) for i in 1:100]...))
-    end
-
-    @testset "Vector evaluation" begin
-        x0 = randn(3)
-        p0 = randn(2)
-        t0 = 0.0
-        u0 = randn(2)
-
-        @test isequal(b(x0), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
-        @test isequal(b(x0, p), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
-        @test isequal(b(x0, p, t), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
-        @test isequal(b(x0, p0, t, zeros(2)),
-                      DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
-        @test isequal(b(x0, p0, t0, zeros(2)),
-                      DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
-        @test isequal(b(x0, p0, t0, u0), DataDrivenDiffEq.get_f(b)(x0, p0, t0, u0))
-    end
-
-    @testset "Array evaluation" begin
-        # Array call
-        x0 = randn(3, 100)
-        p0 = randn(2)
-        t0 = randn(100)
-        u0 = randn(2, 100)
-
-        # These first two fail, since exp(-t) != exp(getindex(t,1))
-        @test isequal(b(x0, p0, t0, u0), true_res_(x0, p0, t0, u0))
+    @testset "Evaluated" begin 
+        b = Basis(g, x, parameters = p, controls = u, iv = t, eval_expression = false)
+        
+        true_res(x, p, t, u) = [sum(x[1:2] .* p); x[2] .* u[1]; u[2] .* x[3] .+ exp.(-t)]
+        function true_res_(x, p, t)
+            collect(hcat([true_res(x[:, i], p, t[i], zeros(2)) for i in 1:100]...))
+        end
+    
+        function true_res_(x, p, t, u)
+            collect(hcat([true_res(x[:, i], p, t[i], u[:, i]) for i in 1:100]...))
+        end
+    
+        @testset "Vector evaluation" begin
+            x0 = randn(3)
+            p0 = randn(2)
+            t0 = 0.0
+            u0 = randn(2)
+        
+            @test isequal(b(x0), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
+            @test isequal(b(x0, p), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
+            @test isequal(b(x0, p, t), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
+            @test isequal(b(x0, p0, t, zeros(2)),
+                          DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
+            @test isequal(b(x0, p0, t0, zeros(2)),
+                          DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
+            @test isequal(b(x0, p0, t0, u0), DataDrivenDiffEq.get_f(b)(x0, p0, t0, u0))
+        end
+    
+        @testset "Array evaluation" begin
+            # Array call
+            x0 = randn(3, 100)
+            p0 = randn(2)
+            t0 = randn(100)
+            u0 = randn(2, 100)
+        
+            # These first two fail, since exp(-t) != exp(getindex(t,1))
+            @test isequal(b(x0, p0, t0, u0), true_res_(x0, p0, t0, u0))
+        end
     end
 end
 
