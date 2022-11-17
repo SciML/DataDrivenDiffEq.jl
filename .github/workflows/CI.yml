@@ -39,8 +39,4 @@ jobs:
         env:
           GROUP: ${{ matrix.group }}
       - uses: julia-actions/julia-processcoverage@v1
-        with:
-          directories: src,lib/DataDrivenDMD/src,lib/DataDrivenSparse/src,lib/DataDrivenSR/src
       - uses: codecov/codecov-action@v1
-        with:
-          files: lcov.info, lib/DataDrivenDMD/lcov.info, lib/DataDrivenSparse/lcov.info, lib/DataDrivenSR/lcov.info,
