@@ -43,4 +43,4 @@ jobs:
           directories: src,lib/DataDrivenDMD/src,lib/DataDrivenSparse/src,lib/DataDrivenSR/src
       - uses: codecov/codecov-action@v1
         with:
-          file: lcov.info
+          files: lcov.info, lib/DataDrivenDMD/lcov.info, lib/DataDrivenSparse/lcov.info, lib/DataDrivenSR/lcov.info,
