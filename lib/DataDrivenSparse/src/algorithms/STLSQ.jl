@@ -13,6 +13,9 @@ with the additional constraint
 \\lvert x_i \\rvert > \\lambda
 ```
 
+If the parameter `ρ > 0`, ridge regression will be performed using the normal equations of the corresponding 
+regression problem.
+
 # Fields
 $(FIELDS)
 

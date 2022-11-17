@@ -50,13 +50,14 @@ function __sparse_regression(ps::InternalDataDrivenProblem{<:ImplicitOptimizer},
     @unpack alg, testdata, options, transform, basis, problem, implicit_idx = ps
     @assert DataDrivenDiffEq.is_implicit(basis) "The provided `Basis` does not have implicit variables!"
 
-    candidate_matrix = zeros(Bool, length(basis), length(DataDrivenDiffEq.implicit_variables(basis)))
+    candidate_matrix = zeros(Bool, size(implicit_idx))
     idx = ones(Bool, size(candidate_matrix, 2))
-    
+
     for i in axes(candidate_matrix, 1), j in axes(candidate_matrix, 2)
         idx .= true
         idx[j] = false
-        candidate_matrix[i,j] = sum(implicit_idx[i, idx]) == 0
+        # We want only equations which are either dependent on the variable or on no other
+        candidate_matrix[i,j] = implicit_idx[i, j] || sum(implicit_idx[i, idx]) == 0
     end
 
     opt_coefficients = zeros(eltype(problem), size(candidate_matrix, 2), size(candidate_matrix, 1))
@@ -64,12 +65,13 @@ function __sparse_regression(ps::InternalDataDrivenProblem{<:ImplicitOptimizer},
     opt_iterations = []
 
     foreach(enumerate(eachcol(candidate_matrix))) do (i,idx)
-        coeff, thresholds, iters = alg(X[idx, :], Y, options = options)
+        # We enforce that one of the implicit variables is necessary for sucess
+        coeff, thresholds, iters = alg(X[idx, :], Y, options = options, necessary_idx = implicit_idx[idx, i])
         opt_coefficients[i:i,idx] .= coeff
         push!(opt_thresholds, thresholds)
         push!(opt_iterations, iters)
     end
-    
+
     trainerror = sum(abs2, opt_coefficients*X)
     
     X̃, Ỹ = testdata
