@@ -42,17 +42,16 @@ function (x::ImplicitOptimizer)(X, Y;
     @unpack optimizer = x
     @unpack verbose = options
 
-
     n, _ = size(X)
 
     x_opt = zeros(eltype(X), 1, n) # All solutions
     inds = [false for _ in 1:n]
 
     solver = SparseLinearSolver(optimizer, options = options)
-    
+
     results = Vector{Any}(undef, n)
 
-    foreach(1:n) do i 
+    foreach(1:n) do i
         inds .= true
         inds[i] = false
         if verbose
@@ -65,12 +64,12 @@ function (x::ImplicitOptimizer)(X, Y;
     end
 
     # Find best results with dof >= 2
-    best_id = 0 
-    foreach(enumerate(results)) do (i,res)
+    best_id = 0
+    foreach(enumerate(results)) do (i, res)
         inds .= true
         inds[i] = false
-        if dof(first(res)) >= 2 && any(!iszero(coef(first(res))[:,necessary_idx[inds]]))
-            if best_id <= 0  
+        if dof(first(res)) >= 2 && any(!iszero(coef(first(res))[:, necessary_idx[inds]]))
+            if best_id <= 0
                 best_id = i
             elseif aicc(first(res)) < aicc(first(results[best_id]))
                 best_id = i
@@ -81,7 +80,7 @@ function (x::ImplicitOptimizer)(X, Y;
     inds .= true
     inds[best_id] = false
     best_cache, optimal_threshold, optimal_iterations = results[best_id]
-    
+
     # Create the coefficient matrix
     x_opt[1, best_id] = -one(eltype(X))
     x_opt[1:1, inds] .= coef(best_cache)

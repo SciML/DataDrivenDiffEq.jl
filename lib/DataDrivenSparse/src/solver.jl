@@ -50,14 +50,12 @@ function (alg::SparseLinearSolver)(X::AbstractArray, Y::AbstractVector)
     optimal_iterations = 0
     iteration_counter = 0
 
-
     if verbose
         @printf "Threshold     Iter   DOF   RSS           AICC          Updated result\n"
     end
 
     for (j, λ) in enumerate(thresholds)
         for iter in 1:maxiters
-            
             iteration_counter += 1
 
             step!(cache, λ)

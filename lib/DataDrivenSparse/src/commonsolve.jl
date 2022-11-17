@@ -1,4 +1,6 @@
-function CommonSolve.solve!(ps::InternalDataDrivenProblem{<:AbstractSparseRegressionAlgorithm})
+function CommonSolve.solve!(ps::InternalDataDrivenProblem{
+                                                          <:AbstractSparseRegressionAlgorithm
+                                                          })
     @unpack alg, basis, testdata, traindata, problem, options, transform = ps
 
     results = map(traindata) do (X, Y)
@@ -19,34 +21,35 @@ function CommonSolve.solve!(ps::InternalDataDrivenProblem{<:AbstractSparseRegres
     DataDrivenSolution(new_basis, problem, alg, results, ps, best_res.retcode)
 end
 
-function __sparse_regression(ps::InternalDataDrivenProblem{<:AbstractSparseRegressionAlgorithm}, X::AbstractArray, Y::AbstractArray)
+function __sparse_regression(ps::InternalDataDrivenProblem{
+                                                           <:AbstractSparseRegressionAlgorithm
+                                                           }, X::AbstractArray,
+                             Y::AbstractArray)
     @unpack alg, testdata, options, transform = ps
-    
+
     coefficients, optimal_thresholds, optimal_iterations = alg(X, Y, options = options)
-    
-    trainerror = sum(abs2, Y .- coefficients*X)
-    
+
+    trainerror = sum(abs2, Y .- coefficients * X)
+
     X̃, Ỹ = testdata
-    
+
     if !isempty(X̃)
-        testerror = sum(abs2, Ỹ .- coefficients*X̃)
+        testerror = sum(abs2, Ỹ .- coefficients * X̃)
     else
         testerror = nothing
     end
 
     retcode = DDReturnCode(1)
 
-    dof = sum(abs.(coefficients) .> 0.)
+    dof = sum(abs.(coefficients) .> 0.0)
 
-    SparseRegressionResult(
-        coefficients, dof, optimal_thresholds, 
-        optimal_iterations, testerror, trainerror, 
-        retcode
-    )
+    SparseRegressionResult(coefficients, dof, optimal_thresholds,
+                           optimal_iterations, testerror, trainerror,
+                           retcode)
 end
 
-
-function __sparse_regression(ps::InternalDataDrivenProblem{<:ImplicitOptimizer}, X::AbstractArray, Y::AbstractArray)
+function __sparse_regression(ps::InternalDataDrivenProblem{<:ImplicitOptimizer},
+                             X::AbstractArray, Y::AbstractArray)
     @unpack alg, testdata, options, transform, basis, problem, implicit_idx = ps
     @assert DataDrivenDiffEq.is_implicit(basis) "The provided `Basis` does not have implicit variables!"
 
@@ -57,38 +60,38 @@ function __sparse_regression(ps::InternalDataDrivenProblem{<:ImplicitOptimizer},
         idx .= true
         idx[j] = false
         # We want only equations which are either dependent on the variable or on no other
-        candidate_matrix[i,j] = implicit_idx[i, j] || sum(implicit_idx[i, idx]) == 0
+        candidate_matrix[i, j] = implicit_idx[i, j] || sum(implicit_idx[i, idx]) == 0
     end
 
-    opt_coefficients = zeros(eltype(problem), size(candidate_matrix, 2), size(candidate_matrix, 1))
+    opt_coefficients = zeros(eltype(problem), size(candidate_matrix, 2),
+                             size(candidate_matrix, 1))
     opt_thresholds = []
     opt_iterations = []
 
-    foreach(enumerate(eachcol(candidate_matrix))) do (i,idx)
+    foreach(enumerate(eachcol(candidate_matrix))) do (i, idx)
         # We enforce that one of the implicit variables is necessary for sucess
-        coeff, thresholds, iters = alg(X[idx, :], Y, options = options, necessary_idx = implicit_idx[idx, i])
-        opt_coefficients[i:i,idx] .= coeff
+        coeff, thresholds, iters = alg(X[idx, :], Y, options = options,
+                                       necessary_idx = implicit_idx[idx, i])
+        opt_coefficients[i:i, idx] .= coeff
         push!(opt_thresholds, thresholds)
         push!(opt_iterations, iters)
     end
 
-    trainerror = sum(abs2, opt_coefficients*X)
-    
+    trainerror = sum(abs2, opt_coefficients * X)
+
     X̃, Ỹ = testdata
-    
+
     if !isempty(X̃)
-        testerror = sum(abs2, opt_coefficients*X̃)
+        testerror = sum(abs2, opt_coefficients * X̃)
     else
         testerror = nothing
     end
 
     retcode = DDReturnCode(1)
 
-    dof = sum(abs.(opt_coefficients) .> 0.)
+    dof = sum(abs.(opt_coefficients) .> 0.0)
 
-    SparseRegressionResult(
-        opt_coefficients, dof, opt_thresholds, 
-        opt_iterations, testerror, trainerror, 
-        retcode
-    )
+    SparseRegressionResult(opt_coefficients, dof, opt_thresholds,
+                           opt_iterations, testerror, trainerror,
+                           retcode)
 end

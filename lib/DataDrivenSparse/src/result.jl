@@ -1,4 +1,5 @@
-struct SparseRegressionResult{X <: AbstractArray, L, IT, T, TE, R} <: AbstractDataDrivenResult
+struct SparseRegressionResult{X <: AbstractArray, L, IT, T, TE, R} <:
+       AbstractDataDrivenResult
     "Coefficient matrix"
     coefficients::X
     "Number of nonzeros coefficients"

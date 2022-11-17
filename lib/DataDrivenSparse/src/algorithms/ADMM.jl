@@ -91,7 +91,7 @@ function step!(cache::ADMMCache{false}, λ::T) where {T <: Number}
     X_prev .= X
 
     X .= (B .+ rho .* (alpha .- w)) / A
-    
+
     proximal(alpha, X .+ w, λ / rho)
 
     w .+= X .- alpha

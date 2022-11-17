@@ -29,7 +29,8 @@ opt = STLQS(Float32[1e-2; 1e-1])
 ## Note
 This was formally `STRRidge` and has been renamed.
 """
-struct STLSQ{T <: Union{Number, AbstractVector}, R <: Number} <: AbstractSparseRegressionAlgorithm
+struct STLSQ{T <: Union{Number, AbstractVector}, R <: Number} <:
+       AbstractSparseRegressionAlgorithm
     """Sparsity threshold"""
     thresholds::T
     """Ridge regression parameter"""
@@ -37,7 +38,7 @@ struct STLSQ{T <: Union{Number, AbstractVector}, R <: Number} <: AbstractSparseR
 
     function STLSQ(threshold::T = 1e-1, rho::R = zero(eltype(T))) where {T, R <: Number}
         @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
-        @assert rho >= zero(R) "Ridge regression parameter must be positive definite!"
+        @assert rho>=zero(R) "Ridge regression parameter must be positive definite!"
         return new{T, R}(threshold, rho)
     end
 end
@@ -70,7 +71,7 @@ function init_cache(alg::STLSQ, A::AbstractMatrix, B::AbstractMatrix)
     proximal = get_proximal(alg)
 
     if n_x <= m_x && !iszero(rho)
-        X = A * A' + rho*I
+        X = A * A' + rho * I
         Y = B * A'
         usenormal = true
     else
