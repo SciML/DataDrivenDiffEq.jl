@@ -77,4 +77,3 @@ system = get_basis(res) #hide
 #md # ```julia
 #md # @__CODE__
 #md # ```
-
