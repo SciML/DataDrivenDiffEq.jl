@@ -430,11 +430,6 @@ function Base.unique!(b::AbstractVector{Num}, simplify_eqs = false)
     return
 end
 
-"""
-$(SIGNATURES)
-
-Removes duplicate equations from the [`Basis`](@ref).
-"""
 function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
     idx = zeros(Bool, length(b))
     eqs_ = equations(b)
@@ -449,22 +444,12 @@ function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
     __update!(b, eval_expression)
 end
 
-"""
-$(SIGNATURES)
-
-Delete the entries specified by `inds` and update the [`Basis`](@ref) accordingly.
-"""
 function Base.deleteat!(b::Basis, inds; eval_expression = false)
     deleteat!(equations(b), inds)
     __update!(b, eval_expression)
     return
 end
 
-"""
-$(SIGNATURES)
-
-Append the provided elements to the [`Basis`](@ref) as an [`Symbolics.Equation`](@ref).
-"""
 function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true;
                     eval_expression = false)
     @inbounds for eq in eqs
@@ -474,44 +459,24 @@ function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true;
     return
 end
 
-"""
-$(SIGNATURES)
-
-Append the provided element to the [`Basis`](@ref) as an [`Symbolics.Equation`](@ref).
-"""
 function Base.push!(b::Basis, eq, simplify_eqs = true; eval_expression = false)
     push!(equations(b), variable(:φ, length(b) + 1) ~ eq)
     unique!(b, simplify_eqs, eval_expression = eval_expression)
     return
 end
 
-"""
-$(SIGNATURES)
-
-Append the provided [`Symbolics.Equation`](@ref) to the [`Basis`](@ref).
-"""
 function Base.push!(b::Basis, eq::Equation, simplify_eqs = true; eval_expression = false)
     push!(equations(b), eq)
     unique!(b, simplify_eqs, eval_expression = eval_expression)
     return
 end
 
-"""
-$(SIGNATURES)
-
-Merges the provided [`Basis`](@ref) and returns a new [`Basis`](@ref).
-"""
 function Base.merge(x::Basis, y::Basis; eval_expression = false)
     x_ = deepcopy(x)
     merge!(x_, y, eval_expression = eval_expression)
     return x_
 end
 
-"""
-$(SIGNATURES)
-
-Merges the provided [`Basis`](@ref) inplace.
-"""
 function Base.merge!(x::Basis, y::Basis; eval_expression = false)
     push!(x, equations(y))
     @set! x.states = unique(vcat(states(x), states(y)))
@@ -523,11 +488,7 @@ function Base.merge!(x::Basis, y::Basis; eval_expression = false)
 end
 
 ## Additional functionalities
-"""
-$(SIGNATURES)
 
-Check for equality of the provided [`Basis`](@ref).
-"""
 function Base.isequal(x::Basis, y::Basis)
     length(x) == length(y) || return false
     yrhs = [yi.rhs for yi in equations(y)]
