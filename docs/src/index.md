@@ -41,7 +41,7 @@ ddprob = DataDrivenProblem(sol)
 u = [x;y;z]
 basis = Basis(polynomial_basis(u, 5), u, iv = t)
 opt = STLSQ(exp10.(-5:0.1:-1))
-ddsol = solve(ddprob, basis, opt)
+ddsol = solve(ddprob, basis, opt, options = DataDrivenCommonOptions(digits = 1))
 println(get_basis(ddsol))
 ```
 
