@@ -8,8 +8,6 @@ Basis
 
 ```@docs
 dynamics
-is_implicit
-is_controlled
 jacobian
 isequal
 get_parameter_values

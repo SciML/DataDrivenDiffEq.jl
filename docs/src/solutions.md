@@ -3,7 +3,7 @@
 ```@docs
 DataDrivenSolution
 ```
-## Functions
+## API
 
 ```@docs
 get_problem
@@ -13,7 +13,7 @@ get_results
 is_converged
 ```
 
-Additionally, `DataDrivenDiffEq.jl` extends the following methods for a [`DataDrivenSolution`](@ref).
+Additionally, `DataDrivenDiffEq.jl` extends the following methods for a `DataDrivenSolution`.
 
 ```@docs
 StatsBase.dof

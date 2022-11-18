@@ -1,22 +1,12 @@
 # DataDrivenDiffEq.jl
 
-**DataDrivenDiffEq.jl** is a package for finding the governing equations of motion automatically from a dataset.
+**DataDrivenDiffEq.jl** is a package for finding systems of equations of automatically from a dataset.
 
-The methods in this package take in data and return the differential equation model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete and continuous differential equations.
+The methods in this package take in data and return the model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete, continuous differential equations or direct mappings.
 
 There are two main types of estimation, depending on if you need the result to be human-understandable:
 + Structural identification - returns a human readable result in symbolic form.
 + Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human readable.
-
-## Package Overview
-
-Currently, the following algorithms for structural estimation and identification are implemented. Please note that all the algorithms have been unified under a single mathematical framework, so the interface might be a little different than what you expect.
-
-+ Dynamic Mode Decomposition (DMD)
-+ Extended Dynamic Mode Decomposition
-+ Sparse Identification of Nonlinear Dynamics (SINDy)
-+ Implicit Sparse Identification of Nonlinear Dynamics
-
 
 ## Installation
 
@@ -25,6 +15,42 @@ To use [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl), inst
 ```julia
 using Pkg
 Pkg.add("DataDrivenDiffEq")
+```
+## Package Overview
+
+Several algorithms for structural estimation and identification are implemented in the following subpackages.
+
+### Koopman Based Inference
+
+Uses Dynamic Mode Decomposition (DMD) and Extended Dynamic Mode Decomposition (EDMD) on discrete and continuous differential equations to infer an approximation of the corresponding Koopman operator (discrete case) or generator (continuous case).
+
+To use this functionality, install [DataDrivenDMD](@ref) via:
+
+```julia
+using Pkg
+Pkg.add("DataDrivenDMD")
+```
+
+### Sparse Regression
+
+Uses Sparse Regression algorithms to find a suitable and sparse combination of basis functions to approximate a system of (differential) equations. 
+
+To use this functionality, install [DataDrivenSparse](@ref) via:
+
+```julia
+using Pkg
+Pkg.add("DataDrivenSparse")
+``` 
+
+### Symbolic Regression
+
+Uses SymbolicRegression.jl to find a suitable set of equations to match the data. 
+
+To use this functionality, install [DataDrivenSR](@ref) via:
+
+```julia
+using Pkg
+Pkg.add("DataDrivenSR")
 ```
 
 ## Reproducibility

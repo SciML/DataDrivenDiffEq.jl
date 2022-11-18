@@ -5,7 +5,7 @@ DataDrivenProblem
 ```
 ## Defining a Problem
 
-Problems of identification, estimation, or inference are defined by data. These data contain at least measurements of the states `X`, which would be sufficient to describe a `[DiscreteDataDrivenProblem`](@ref) with unit time steps similar to the [first example on dynamic mode decomposition](@ref linear_discrete). Of course, we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like:
+Problems of identification, estimation, or inference are defined by data. These data contain at least measurements of the states `X`, which would be sufficient to describe a `[DiscreteDataDrivenProblem`](@ref) with unit time steps similar to the first example on dynamic mode decomposition. Of course, we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like:
 
 ```julia
 problem = DiscreteDataDrivenProblem(X)

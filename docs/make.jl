@@ -1,6 +1,12 @@
 #push!(LOAD_PATH,"../src/")
 
-using Documenter, DataDrivenDiffEq, StatsBase
+using Documenter #, DataDrivenDiffEq, StatsBase
+using DataDrivenDiffEq
+using DataDrivenDMD
+using DataDrivenSparse
+using DataDrivenSR
+
+using StatsBase
 using Literate
 
 cp("./docs/Manifest.toml", "./docs/src/assets/Manifest.toml", force = true)
@@ -11,39 +17,43 @@ ENV["GKSwstype"] = "100"
 # TODO Include this after the rebase
 
 # Evaluate the example directory
-#src = joinpath(@__DIR__, "src")
-#lit = joinpath(@__DIR__, "examples")
-#
-#excludes = []
-#tutorials = []
-#
-##function create_pages(dirname = @__DIR__)
-#for (root, _, files) ∈ walkdir(lit), file ∈ files
-#  file ∈ excludes && continue
-#  fname, fext = splitext(file)
-#
-#  fext == ".jl" || continue
-#  ipath = joinpath(root, file)
-#  opath = joinpath(splitdir(replace(ipath, lit=>src))[1], "examples")
-#  script = Literate.script(ipath, opath, execute = false, comments = false)
-#  code = strip(read(script, String))
-#  mdpost(str) = replace(str, "@__CODE__" => code)
-#  Literate.markdown(ipath, opath)
-#  Literate.markdown(ipath, opath, execute = false, postprocess = mdpost)
-#  if fname == "0_getting_started"
-#    pushfirst!(tutorials,  relpath(joinpath(opath, fname*".md"), src))
-#  else
-#    push!(tutorials, relpath(joinpath(opath, fname*".md"), src))
-#  end
-#end
+src = joinpath(@__DIR__, "src")
+
+function create_tutorials(dirname, targetdir, excludes = [])
+    tutorials = []
+    # Clear the tutorial directory
+    rm(targetdir, recursive = true)
+    foreach(walkdir(dirname)) do (root, _, files)
+        for file in files
+            file ∈ excludes && continue
+            fname, fext = splitext(file)
+            fext == ".jl" || continue
+            ipath = joinpath(root, file)
+            script = Literate.script(ipath, targetdir , execute = false, comments = false)
+            @info script
+            code = strip(read(script, String))
+            mdpost(str) = replace(str, "@__CODE__" => code)
+            Literate.markdown(ipath, targetdir)
+            Literate.markdown(ipath, targetdir, execute = false, postprocess = mdpost)
+            push!(tutorials, relpath(joinpath(targetdir, fname*".md"), joinpath(@__DIR__, "src")))
+        end
+    end
+    return tutorials
+end
+
+
+koopman_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivendmd/"), joinpath(@__DIR__, "src/libs/datadrivendmd/examples"))
+
+@info koopman_tutorial
+
 
 # Must be after tutorials is created
 include("pages.jl")
 
 # Create the docs
 makedocs(sitename = "DataDrivenDiffEq.jl",
-         authors = "Julius Martensen, Christopher Rackauckas",
-         modules = [DataDrivenDiffEq],
+         authors = "Julius Martensen, Christopher Rackauckas, et al.",
+         modules = [DataDrivenDiffEq, DataDrivenDMD, DataDrivenSparse, DataDrivenSR],
          clean = true, doctest = false,
          format = Documenter.HTML(analytics = "UA-90474609-3",
                                   assets = ["assets/favicon.ico"],

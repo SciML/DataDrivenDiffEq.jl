@@ -2,9 +2,9 @@
 
 All algorithms have been combined under a single API to match the interface of other SciML packages. Thus, you can simply define a Problem, and then seamlessly switch between solvers. 
 
-+ DataDrivenDMD for Koopman based inference
-+ DataDrivenSparse for sparse regression based inference
-+ DataDrivenSymbolicRegression for interfacing SymbolicRegression.jl
++ [DataDrivenDMD](@ref) for Koopman based inference
++ [DataDrivenSparse](@ref) for sparse regression based inference
++ [DataDrivenSR](@ref) for interfacing SymbolicRegression.jl
 
 All of the above methods return a [`DataDrivenSolution`](@ref) if not enforced otherwise.
 
@@ -23,7 +23,7 @@ DataDrivenCommonOptions
     the function that generates them). If `eval_expression=false`,
     then construction via GeneralizedGenerated.jl is utilized to allow for
     same world-age evaluation. However, this can cause Julia to segfault
-    on sufficiently large basis functions. By default eval_expression=false.
+    on sufficiently large basis functions. By default `eval_expression=false`.
 
 ## Solving the Problem
 
@@ -32,6 +32,8 @@ After defining a [`problem`](@ref problem), we choose a method to [`solve`](@ref
 ```julia
 solution = solve(DataDrivenProblem, [basis], solver; kwargs...)
 ```
+
+If no [`Basis`](@ref) is supported, a unit basis is derived from the problem data containing the states and controls of the system.
 
 Or more concrete examples:
 
