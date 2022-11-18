@@ -25,7 +25,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 CommonSolve = "0.2"
-DataInterpolations = "3"
+DataInterpolations = "3.7"
 DiffEqBase = "6"
 DocStringExtensions = "0.7, 0.8, 0.9"
 ModelingToolkit = "7, 8"
