@@ -8,6 +8,7 @@ using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenDMD
 #md using Plots 
+using Test #src
 
 A = [-0.9 0.2; 0.0 -0.2]
 u0 = [10.0; -10.0]
@@ -50,8 +51,3 @@ prob = ContinuousDataDrivenProblem(X, t)
 #md # ```julia
 #md # @__CODE__
 #md # ```
-
-@test all(aic(sparse_res) .<= -100.0) #src
-@test all(l2error(sparse_res) .<= 5e-1) #src
-@test all(determination(sparse_res) .>= 0.97) #src
-@test Array(sol)≈Array(estimate) rtol=5e-2 #src

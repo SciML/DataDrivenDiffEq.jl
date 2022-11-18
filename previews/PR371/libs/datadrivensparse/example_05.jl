@@ -95,8 +95,3 @@ system = get_basis(res)
 #md # ```
 
 ## Test #src
-for r_ in [res] #src
-    @test all(l2error(r_) .< 0.01) #src
-    @test all(aic(r_) .< -500.0) #src
-    @test all(determination(r_) .>= 0.98) #src
-end #src

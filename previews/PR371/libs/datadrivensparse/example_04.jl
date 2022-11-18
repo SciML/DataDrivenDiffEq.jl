@@ -78,8 +78,3 @@ system = get_basis(res) #hide
 #md # @__CODE__
 #md # ```
 
-for r_ in [res] #src
-    @test all(rss(r_) .< 10.0) #src
-    @test all(aic(r_) .< -1e3) #src
-    @test all(r2(r_) .>= 0.85) #src
-end #src
