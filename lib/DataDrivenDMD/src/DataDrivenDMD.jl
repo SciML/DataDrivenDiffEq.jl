@@ -30,6 +30,7 @@ include("./algorithms.jl")
 export DMDPINV
 export DMDSVD
 export TOTALDMD
+export FBDMD
 
 # Solve
 include("./solve.jl")
