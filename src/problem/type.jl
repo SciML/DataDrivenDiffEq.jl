@@ -488,7 +488,7 @@ function DataDrivenProblem(sol::T; use_interpolation = false,
             DX = similar(X)
             if DiffEqBase.isinplace(sol.prob.f)
                 foreach(enumerate(eachcol(X))) do (i, xi)
-                    sol.prob.f(DX[:, i], xi, p, t[i])
+                    @views sol.prob.f(DX[:, i], xi, p, t[i])
                 end
             else
                 foreach(enumerate(eachcol(X))) do (i, xi)

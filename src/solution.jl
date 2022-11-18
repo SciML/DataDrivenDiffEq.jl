@@ -2,15 +2,10 @@
 $(TYPEDEF)
 
 The solution to a `DataDrivenProblem` derived via a certain algorithm.
-The solution is represented via an `AbstractBasis`, which makes it callable.
+The solution is represented via an `Basis`, which makes it callable.
 
 # Fields
 $(FIELDS)
-
-# Note
-
-The L₂ norm error, AIC and coefficient of determinantion get only computed, if eval_expression is set to true or
-if the solution can be interpreted as a linear regression result.
 """
 struct DataDrivenSolution{T} <: AbstractDataDrivenSolution
     "The basis representation of the solution"
@@ -82,21 +77,21 @@ end
 """
 $(SIGNATURES)
 
-Returns the degrees of freedom of the [`DataDrivenSolution`](@ref).
+Returns the degrees of freedom of the `DataDrivenSolution`.
 """
 StatsBase.dof(sol::DataDrivenSolution) = getfield(sol, :dof)
 
 """
 $(SIGNATURES)
 
-Returns the residual sum of squares of the [`DataDrivenSolution`](@ref).
+Returns the residual sum of squares of the `DataDrivenSolution`.
 """
 StatsBase.rss(sol::DataDrivenSolution) = getfield(sol, :residuals)
 
 """
 $(SIGNATURES)
 
-Returns the loglikelihood of the [`DataDrivenSolution`](@ref) assuming a normal distributed error.
+Returns the loglikelihood of the `DataDrivenSolution` assuming a normal distributed error.
 """
 function StatsBase.loglikelihood(sol::DataDrivenSolution)
     begin -nobs(sol) / 2 * log.(rss(sol) / nobs(sol)) end
@@ -105,7 +100,7 @@ end
 """
 $(SIGNATURES)
 
-Returns the number of observations of the [`DataDrivenSolution`](@ref).
+Returns the number of observations of the `DataDrivenSolution`.
 """
 function StatsBase.nobs(sol::DataDrivenSolution)
     begin prod(size(get_implicit_data(getfield(sol, :prob)))) end
@@ -114,7 +109,7 @@ end
 """
 $(SIGNATURES)
 
-Return the nullloglikelihood of the [`DataDrivenSolution`](@ref). This corresponds to a model only fitted with an 
+Return the nullloglikelihood of the `DataDrivenSolution`. This corresponds to a model only fitted with an 
 intercept and a normal distributed error.
 """
 @views function StatsBase.nullloglikelihood(sol::DataDrivenSolution)
@@ -127,7 +122,7 @@ end
 """
 $(SIGNATURES)
 
-Return the coefficient of determinantion of the [`DataDrivenSolution`](@ref). 
+Return the coefficient of determinantion of the `DataDrivenSolution`. 
 
 ## Note
 Only implements `CoxSnell` based on the [`loglikelihood`](@ref) and [`nullloglikelihood`](@ref).
@@ -137,7 +132,7 @@ StatsBase.r2(sol::DataDrivenSolution) = r2(sol, :CoxSnell)
 """
 $(SIGNATURES)
 
-Returns the `summarystats` for each row of the error for the [`DataDrivenSolution`](@ref).
+Returns the `summarystats` for each row of the error for the `DataDrivenSolution`.
 """
 @views function StatsBase.summarystats(sol::DataDrivenSolution)
     p = getfield(sol, :prob)
@@ -147,14 +142,14 @@ end
 """
 $(SIGNATURES)
 
-Returns the original [`DataDrivenProblem`](@ref).
+Returns the original `DataDrivenProblem`.
 """
 get_problem(r::DataDrivenSolution) = getfield(r, :prob)
 
 """
 $(SIGNATURES)
 
-Returns the recovered [`Basis`](@ref).
+Returns the recovered `Basis`.
 """
 get_basis(r::DataDrivenSolution) = getfield(r, :basis)
 
@@ -175,7 +170,7 @@ get_results(r::DataDrivenSolution) = getfield(r, :out)
 """
 $(SIGNATURES)
 
-Assert the result of the [`DataDrivenSolution`] and returns `true` if successful, `false` otherwise.
+Assert the result of the `DataDrivenSolution` and returns `true` if successful, `false` otherwise.
 """
 is_converged(r::DataDrivenSolution) = getfield(r, :retcode) == DDReturnCode(1)
 

@@ -169,4 +169,6 @@ function CommonSolve.solve!(ps::InternalDataDrivenProblem{EQSearch})
     DataDrivenSolution(new_basis, problem, alg, results, ps, best_res.retcode)
 end
 
+export EQSearch
+
 end # module

@@ -103,9 +103,9 @@ Denoising happens before normalization!
     # Preprocessing
     """Denoise the data using the [`optimal threshold`](https://arxiv.org/abs/1305.5870) method."""
     denoise::Bool = false
-    """Normalize the data, see [`DataNormalization`](@ref)"""
+    """Normalize the data, see `DataNormalization`"""
     normalize::DataNormalization = DataNormalization()
-    """Data processing pipeline, see [`DataProcessing`](@ref)"""
+    """Data processing pipeline, see `DataProcessing`"""
     data_processing::DataProcessing = DataProcessing()
     # Postprocessing
     """Rounding mode for the parameters"""

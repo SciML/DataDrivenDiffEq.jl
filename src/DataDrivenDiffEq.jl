@@ -26,7 +26,7 @@ using QuadGK
 using Statistics
 using StatsBase
 @reexport using StatsBase: rss, r2, aic, aicc, bic, summarystats, loglikelihood,
-                           nullloglikelihood, nobs
+                           nullloglikelihood, nobs, dof
 
 using DataInterpolations
 @reexport using DataInterpolations: ConstantInterpolation, LinearInterpolation,
