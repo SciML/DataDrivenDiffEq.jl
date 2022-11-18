@@ -44,8 +44,3 @@ res = solve(prob, DMDSVD(), digits = 1)
 #md # ```julia
 #md # @__CODE__
 #md # ```
-
-#src #@test all(aic(sparse_res) .<= -200.0) #src
-#src #@test all(l2error(sparse_res) .<= 5e-1) #src
-#src #@test all(determination(sparse_res) .>= 0.97) #src
-#src #@test Array(sol) ≈ Array(estimate) rtol = 5e-2 #src

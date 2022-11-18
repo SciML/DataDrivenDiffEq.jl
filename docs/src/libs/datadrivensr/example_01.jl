@@ -1,7 +1,6 @@
 # # [Symbolic Regression of a Linear Time Continuous Systems](@id symbolic_regression_simple)
 # 
 # !!! note 
-#
 #   Symbolic regression is using regularized evolution, simulated annealing, and gradient-free optimization to find suitable equations. 
 #   Hence, the performance might differ and depends strongly on the hyperparameters of the optimization. 
 #   This example might not recover the groundtruth, but is showing off the use within `DataDrivenDiffEq.jl`.
@@ -39,7 +38,8 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 
 eqsearch_options = SymbolicRegression.Options(binary_operators = [+, *],
                                               loss = L1DistLoss(),
-                                              verbosity = -1, progress = false, npop = 30)
+                                              verbosity = -1, progress = false, npop = 30, 
+                                              timeout_in_seconds = 60.0)
 
 alg = EQSearch(eq_options = eqsearch_options)
 
@@ -55,7 +55,6 @@ res = solve(prob, alg, options = DataDrivenCommonOptions(maxiters = 100))
 loglikelihood(res)
 
 # !!! note 
-#
 #   Currently the parameters of the result found by [`EQSearch`](@ref) are not turned into symbolic parameters.
 #   This affects some functions like `dof`, `aicc`, `bic`. 
 
@@ -68,5 +67,6 @@ system = get_basis(res)
 #md # @__CODE__
 #md # ```
 
+## Test #src
 @test rss(res) .<= 5e-1 #src
 @test r2(res) >= 0.95 #src

@@ -73,8 +73,3 @@ res = solve(prob, Ψ, DMDPINV(), digits = 2)
 #md # ```
 
 ## Test #src
-for r_ in [res, sparse_res] #src
-    @test all(l2error(r_) .< 1e-5) #src
-    @test all(aic(r_) .< -1e3) #src
-    @test all(determination(r_) .>= 0.96) #src
-end #src

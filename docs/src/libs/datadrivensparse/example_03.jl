@@ -71,6 +71,3 @@ summarystats(res)
 #md # ```
 
 ## Test #src
-@test all(rss(res) .< 0.01) #src
-@test all(aic(res) .< -600.0) #src
-@test all(r2(res) .>= 0.9) #src

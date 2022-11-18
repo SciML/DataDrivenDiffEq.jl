@@ -37,7 +37,8 @@ basis = Basis([polynomial_basis(u, 2); sin.(u)], u)
 
 eqsearch_options = SymbolicRegression.Options(binary_operators = [+, *],
                                               loss = L1DistLoss(),
-                                              verbosity = -1, progress = false, npop = 30)
+                                              verbosity = -1, progress = false, npop = 30, 
+                                              timeout_in_seconds = 60.0)
 
 alg = EQSearch(eq_options = eqsearch_options)
 
@@ -63,5 +64,6 @@ system = get_basis(res)
 #md # @__CODE__
 #md # ```
 
+## Test #src
 @test rss(res) .<= 5e-2 #src
 @test r2(res) >= 0.95 #src
