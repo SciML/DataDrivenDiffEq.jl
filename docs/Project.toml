@@ -1,8 +1,5 @@
 [deps]
-DataDrivenDMD = "3c9adf31-5280-42ff-b439-b71cc6b07807"
 DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
-DataDrivenSR = "7fed8a53-d475-4873-af3a-ba53cceea094"
-DataDrivenSparse = "5b588203-7d8b-4fab-a537-c31a7f73f46b"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
