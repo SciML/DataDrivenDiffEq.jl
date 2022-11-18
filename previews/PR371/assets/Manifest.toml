@@ -302,7 +302,7 @@ version = "0.1.0"
 deps = ["CommonSolve", "DataInterpolations", "DiffEqBase", "DocStringExtensions", "LinearAlgebra", "MLUtils", "Measurements", "ModelingToolkit", "Parameters", "ProgressMeter", "QuadGK", "Random", "RecipesBase", "Reexport", "Setfield", "Statistics", "StatsBase", "Test"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl"
 uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
-version = "0.8.6"
+version = "1.0.0"
 
 [[deps.DataDrivenSR]]
 deps = ["CommonSolve", "DataDrivenDiffEq", "DocStringExtensions", "Parameters", "Reexport", "StatsBase", "SymbolicRegression"]

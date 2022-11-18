@@ -7,7 +7,7 @@ A = [0.9 -0.2; 0.0 0.2]
 u0 = [10.0; -10.0]
 tspan = (0.0, 11.0)
 
-f(u,p,t) = A*u
+f(u, p, t) = A * u
 
 sys = DiscreteProblem(f, u0, tspan)
 sol = solve(sys, FunctionMap());

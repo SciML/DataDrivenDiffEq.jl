@@ -3,7 +3,7 @@ using ModelingToolkit
 using LinearAlgebra
 using DataDrivenSparse
 
-f(u) = u.^2 .+ 2.0u .- 1.0
+f(u) = u .^ 2 .+ 2.0u .- 1.0
 X = randn(1, 100);
 Y = reduce(hcat, map(f, eachcol(X)));
 

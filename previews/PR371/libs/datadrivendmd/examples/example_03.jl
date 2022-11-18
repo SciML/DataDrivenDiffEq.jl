@@ -8,14 +8,14 @@ B = [0.0; 1.0]
 u0 = [10.0; -10.0]
 tspan = (0.0, 10.0)
 
-f(u,p,t) = A*u .+ B .* sin(0.5*t)
+f(u, p, t) = A * u .+ B .* sin(0.5 * t)
 
 sys = ODEProblem(f, u0, tspan)
 sol = solve(sys, Tsit5(), saveat = 0.05);
 
 X = Array(sol)
 t = sol.t
-control(u,p,t) = [sin(0.5*t)]
+control(u, p, t) = [sin(0.5 * t)]
 prob = ContinuousDataDrivenProblem(X, t, U = control)
 
 res = solve(prob, DMDSVD(), digits = 1)
