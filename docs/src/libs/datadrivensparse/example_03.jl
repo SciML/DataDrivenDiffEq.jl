@@ -36,12 +36,14 @@ end...)
 # Next, we define our [`Basis`](@ref). Since we want to identify an implicit system, we have to include  
 # some candidate terms which use these as an argument and inform our constructor about the meaning of these variables.
 
+
 @parameters t
-@variables u(t)[1:1] 
+@variables u(t)[1:1]
+u = collect(u) 
 D = Differential(t)
 h = [monomial_basis(u[1:1], 4)...]
 basis = Basis([h; h .* (D(u[1]))], u, implicits = D.(u), iv = t)
-println(basis) # hide
+#md println(basis) #hide
 
 # Next, we define the [`ImplicitOptimizer`](@ref) and `solve` the problem. It wraps a standard optimizer, by default [`STLSQ`](@ref), and performs 
 # implicit sparse regression upon the selected basis.
@@ -50,13 +52,12 @@ println(basis) # hide
     
 opt = ImplicitOptimizer(1e-1:1e-1:5e-1)
 res = solve(prob, basis, opt)
-println(res) # hide
+#md println(res) #hide
 
 # As we can see, the [`DataDrivenSolution`](@ref) has good metrics. Furthermore, inspection of the underlying system shows that the original equations have been recovered correctly:
-basis(prob)
 
-system = result(res)
-println(system) # hide
+#md system = get_basis(res)
+#md println(system) #hide
 
 #md plot(
 #md     plot(prob), plot(res), layout = (1,2)

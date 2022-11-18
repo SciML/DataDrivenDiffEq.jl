@@ -43,6 +43,7 @@ end
 
 
 koopman_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivendmd/"), joinpath(@__DIR__, "src/libs/datadrivendmd/examples"))
+sparse_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivensparse/"), joinpath(@__DIR__, "src/libs/datadrivensparse/examples"))
 
 @info koopman_tutorial
 

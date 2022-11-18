@@ -8,7 +8,9 @@ pages = [
     "DataDrivenDMD" => ["Background" => "libs/datadrivendmd/koopman.md",
         "Examples" => koopman_tutorial
     ],
-    "DataDrivenSparse" => ["Background" => "libs/datadrivensparse/sparse_regression.md",],
+    "DataDrivenSparse" => ["Background" => "libs/datadrivensparse/sparse_regression.md",
+        "Examples" => sparse_tutorial
+    ],
     "DataDrivenSR" => ["Background" => "libs/datadrivensr/symbolic_regression.md",],
     "Contributing" => "contributions.md",
     "Citing" => "citations.md",
