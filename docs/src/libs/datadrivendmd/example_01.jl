@@ -14,7 +14,7 @@ A = [0.9 -0.2; 0.0 0.2]
 u0 = [10.0; -10.0]
 tspan = (0.0, 11.0)
 
-f(u,p,t) = A*u
+f(u, p, t) = A * u
 
 sys = DiscreteProblem(f, u0, tspan)
 sol = solve(sys, FunctionMap());
@@ -39,7 +39,6 @@ get_basis(res)
 # And also plot the prediction of the recovered dynamics
 
 #md plot(res)
-
 
 #md # ## [Copy-Pasteable Code](@id linear_discrete_copy_paste)
 #md #

@@ -1,7 +1,7 @@
 # # [Nonlinear Time Continuous System](@id nonlinear_continuos)
 #
 # Similarly, we can use the [Extended Dynamic Mode Decomposition](https://link.springer.com/article/10.1007/s00332-015-9258-5) via a nonlinear [`Basis`](@ref) of observables. Here, we will look at a rather [famous example](https://arxiv.org/pdf/1510.03007.pdf) with a finite dimensional solution.
-    
+
 using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
@@ -22,12 +22,12 @@ solution = solve(problem, Tsit5(), saveat = 0.1);
 #md plot(solution) 
 
 # Since we are dealing with a continuous system in time, we define the associated [`DataDrivenProblem`](@ref) accordingly using the measured states `X`, their derivatives `DX` and the time `t`.
-    
+
 prob = DataDrivenProblem(solution)
 #md plot(prob)
 
 # Additionally, we need to define the [`Basis`](@ref) for our lifting, before we `solve` the problem in the lifted space.
-    
+
 @parameters t
 @variables u(t)[1:2]
 Ψ = Basis([u; u[1]^2], u, independent_variable = t)

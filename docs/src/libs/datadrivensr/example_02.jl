@@ -11,11 +11,11 @@ using DataDrivenSR
 
 function pendulum!(du, u, p, t)
     du[1] = u[2]
-    du[2] = -9.81*sin(u[1])
+    du[2] = -9.81 * sin(u[1])
 end
 
-u0 = [0.1, π/2]
-tspan = (0., 10.0)
+u0 = [0.1, π / 2]
+tspan = (0.0, 10.0)
 sys = ODEProblem{true, SciMLBase.NoSpecialize}(pendulum!, u0, tspan)
 sol = solve(sys, Tsit5());
 
@@ -35,10 +35,9 @@ u = collect(u)
 
 basis = Basis([polynomial_basis(u, 2); sin.(u)], u)
 
-eqsearch_options = SymbolicRegression.Options(
-    binary_operators = [+, *], loss = L1DistLoss(), 
-    verbosity = -1, progress = false , npop = 30
-)
+eqsearch_options = SymbolicRegression.Options(binary_operators = [+, *],
+                                              loss = L1DistLoss(),
+                                              verbosity = -1, progress = false, npop = 30)
 
 alg = EQSearch(eq_options = eqsearch_options)
 
@@ -57,7 +56,6 @@ system = get_basis(res)
 #md println(system) # hide
 
 #md plot(res) 
-
 
 #md # ## [Copy-Pasteable Code](@id symbolic_regression_simple_copy_paste)
 #md #

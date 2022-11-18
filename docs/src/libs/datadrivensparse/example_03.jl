@@ -13,7 +13,7 @@ using DataDrivenSparse
 using Test #src
 
 function michaelis_menten(u, p, t)
-    [0.6 - 1.5u[1]/(0.3+u[1])]
+    [0.6 - 1.5u[1] / (0.3 + u[1])]
 end
 
 u0 = [0.5]
@@ -23,23 +23,19 @@ ode_problem = ODEProblem(michaelis_menten, u0, (0.0, 4.0));
 # Since we have multiple trajectories at hand, we define a [`DataDrivenDataset`](@ref), which collects multiple problems but handles them as a unit
 # for the processing.
 
-prob = DataDrivenDataset(map(1:2) do i 
-    solve(
-        remake(ode_problem, u0 = i*u0), 
-        Tsit5(), saveat = 0.1, tspan = (0.0, 4.0)
-    )
-end...)
-
+prob = DataDrivenDataset(map(1:2) do i
+                             solve(remake(ode_problem, u0 = i * u0),
+                                   Tsit5(), saveat = 0.1, tspan = (0.0, 4.0))
+                         end...)
 
 #md plot(prob)
 
 # Next, we define our [`Basis`](@ref). Since we want to identify an implicit system, we have to include  
 # some candidate terms which use these as an argument and inform our constructor about the meaning of these variables.
 
-
 @parameters t
 @variables u(t)[1:1]
-u = collect(u) 
+u = collect(u)
 D = Differential(t)
 h = [monomial_basis(u[1:1], 4)...]
 basis = Basis([h; h .* (D(u[1]))], u, implicits = D.(u), iv = t)
@@ -47,7 +43,7 @@ basis = Basis([h; h .* (D(u[1]))], u, implicits = D.(u), iv = t)
 
 # Next, we define the [`ImplicitOptimizer`](@ref) and `solve` the problem. It wraps a standard optimizer, by default [`STLSQ`](@ref), and performs 
 # implicit sparse regression upon the selected basis.
-    
+
 opt = ImplicitOptimizer(1e-1:1e-1:5e-1)
 res = solve(prob, basis, opt)
 #md println(res) #hide
@@ -78,5 +74,3 @@ summarystats(res)
 @test all(rss(res) .< 0.01) #src
 @test all(aic(res) .< -600.0) #src
 @test all(r2(res) .>= 0.9) #src
-
-

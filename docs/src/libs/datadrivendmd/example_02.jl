@@ -13,7 +13,7 @@ A = [-0.9 0.2; 0.0 -0.2]
 u0 = [10.0; -10.0]
 tspan = (0.0, 10.0)
 
-f(u,p,t) = A*u
+f(u, p, t) = A * u
 
 sys = ODEProblem(f, u0, tspan)
 sol = solve(sys, Tsit5(), saveat = 0.05);
@@ -21,8 +21,8 @@ sol = solve(sys, Tsit5(), saveat = 0.05);
 # We could use the `DESolution` to define our problem, but here we want to use the data for didactic purposes.
 # For a [`ContinuousDataDrivenProblem`](@ref DataDrivenProblem), we need either the state trajectory and the timepoints or the state trajectory and its derivate.
 
-X = Array(sol) 
-t = sol.t 
+X = Array(sol)
+t = sol.t
 prob = ContinuousDataDrivenProblem(X, t)
 
 # And plot the problems data.
@@ -54,4 +54,4 @@ prob = ContinuousDataDrivenProblem(X, t)
 @test all(aic(sparse_res) .<= -100.0) #src
 @test all(l2error(sparse_res) .<= 5e-1) #src
 @test all(determination(sparse_res) .>= 0.97) #src
-@test Array(sol) ≈ Array(estimate) rtol = 5e-2 #src
+@test Array(sol)≈Array(estimate) rtol=5e-2 #src

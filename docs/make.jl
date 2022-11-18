@@ -8,7 +8,6 @@ function dev_subpkg(subpkg)
     Pkg.develop(PackageSpec(path = subpkg_path))
 end
 
-
 dev_subpkg("DataDrivenDMD")
 dev_subpkg("DataDrivenSparse")
 dev_subpkg("DataDrivenSR")
@@ -27,42 +26,43 @@ cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
 
 ENV["GKSwstype"] = "100"
 
-
 # Evaluate the example directory
 src = joinpath(@__DIR__, "src")
 
 function create_tutorials(dirname, targetdir, excludes = [])
     tutorials = []
-    
+
     if isdir(targetdir)
         rm(targetdir, recursive = true)
     else
         mkdir(targetdir)
     end
-    
+
     foreach(walkdir(dirname)) do (root, _, files)
         for file in files
             file ∈ excludes && continue
             fname, fext = splitext(file)
             fext == ".jl" || continue
             ipath = joinpath(root, file)
-            script = Literate.script(ipath, targetdir , execute = false, comments = false)
+            script = Literate.script(ipath, targetdir, execute = false, comments = false)
             @info script
             code = strip(read(script, String))
             mdpost(str) = replace(str, "@__CODE__" => code)
             Literate.markdown(ipath, targetdir)
             Literate.markdown(ipath, targetdir, execute = false, postprocess = mdpost)
-            push!(tutorials, relpath(joinpath(targetdir, fname*".md"), joinpath(@__DIR__, "src")))
+            push!(tutorials,
+                  relpath(joinpath(targetdir, fname * ".md"), joinpath(@__DIR__, "src")))
         end
     end
     return tutorials
 end
 
-
-koopman_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivendmd/"), joinpath(@__DIR__, "src/libs/datadrivendmd/examples"))
-sparse_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivensparse/"), joinpath(@__DIR__, "src/libs/datadrivensparse/examples"))
-sr_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivensr/"), joinpath(@__DIR__, "src/libs/datadrivensr/examples"))
-
+koopman_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivendmd/"),
+                                    joinpath(@__DIR__, "src/libs/datadrivendmd/examples"))
+sparse_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivensparse/"),
+                                   joinpath(@__DIR__, "src/libs/datadrivensparse/examples"))
+sr_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivensr/"),
+                               joinpath(@__DIR__, "src/libs/datadrivensr/examples"))
 
 # Must be after tutorials is created
 include("pages.jl")

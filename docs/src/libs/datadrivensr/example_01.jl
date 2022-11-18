@@ -19,15 +19,15 @@ B = [0.0; 1.0]
 u0 = [10.0; -10.0]
 tspan = (0.0, 20.0)
 
-f(u,p,t) = A*u .+ B .* sin(0.5*t)
+f(u, p, t) = A * u .+ B .* sin(0.5 * t)
 
 sys = ODEProblem(f, u0, tspan)
 sol = solve(sys, Tsit5(), saveat = 0.01);
 
 # We will use the data provided by our problem, but add the control signal `U = sin(0.5*t)` to it. Instead of using a function, like in [another example](@ref linear_continuous_controls)
-X = Array(sol) 
-t = sol.t 
-U = permutedims(sin.(0.5*t))
+X = Array(sol)
+t = sol.t
+U = permutedims(sin.(0.5 * t))
 prob = ContinuousDataDrivenProblem(X, t, U = U)
 
 # And plot the problems data.
@@ -37,11 +37,9 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 # To solve our problem, we will use [`EQSearch`](@ref), which provides a wrapper for the [symbolic regression interface](https://astroautomata.com/SymbolicRegression.jl/v0.6/api/#Options). 
 # We will stick to simple operations, use a `L1DistLoss`, and limit the verbosity of the algorithm. 
 
-
-eqsearch_options = SymbolicRegression.Options(
-    binary_operators = [+, *], loss = L1DistLoss(), 
-    verbosity = -1, progress = false , npop = 30
-)
+eqsearch_options = SymbolicRegression.Options(binary_operators = [+, *],
+                                              loss = L1DistLoss(),
+                                              verbosity = -1, progress = false, npop = 30)
 
 alg = EQSearch(eq_options = eqsearch_options)
 
@@ -63,8 +61,6 @@ loglikelihood(res)
 
 system = get_basis(res)
 #md println(system) # hide
-
-
 
 #md # ## [Copy-Pasteable Code](@id symbolic_regression_simple_copy_paste)
 #md #
