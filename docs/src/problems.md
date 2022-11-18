@@ -70,3 +70,18 @@ DiscreteDataset
 ContinuousDataset
 DirectDataset
 ```
+
+## API
+
+These methods are defined for [`DataDrivenProblem`](@ref problem)s, but might be useful for developers.
+
+```@docs
+is_direct
+is_discrete
+is_continuous
+has_timepoints
+is_autonomous
+is_parametrized
+get_name
+is_valid
+```

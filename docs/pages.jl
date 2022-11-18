@@ -11,7 +11,9 @@ pages = [
     "DataDrivenSparse" => ["Background" => "libs/datadrivensparse/sparse_regression.md",
         "Examples" => sparse_tutorial
     ],
-    "DataDrivenSR" => ["Background" => "libs/datadrivensr/symbolic_regression.md",],
+    "DataDrivenSR" => ["Background" => "libs/datadrivensr/symbolic_regression.md",
+        "Examples" => sr_tutorial
+    ],
     "Contributing" => "contributions.md",
     "Citing" => "citations.md",
 ]

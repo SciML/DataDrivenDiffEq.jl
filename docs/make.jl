@@ -27,15 +27,19 @@ cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
 
 ENV["GKSwstype"] = "100"
 
-# TODO Include this after the rebase
 
 # Evaluate the example directory
 src = joinpath(@__DIR__, "src")
 
 function create_tutorials(dirname, targetdir, excludes = [])
     tutorials = []
-    # Clear the tutorial directory
-    rm(targetdir, recursive = true)
+    
+    if isdir(targetdir)
+        rm(targetdir, recursive = true)
+    else
+        mkdir(targetdir)
+    end
+    
     foreach(walkdir(dirname)) do (root, _, files)
         for file in files
             file ∈ excludes && continue
@@ -57,8 +61,7 @@ end
 
 koopman_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivendmd/"), joinpath(@__DIR__, "src/libs/datadrivendmd/examples"))
 sparse_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivensparse/"), joinpath(@__DIR__, "src/libs/datadrivensparse/examples"))
-
-@info koopman_tutorial
+sr_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivensr/"), joinpath(@__DIR__, "src/libs/datadrivensr/examples"))
 
 
 # Must be after tutorials is created
@@ -68,7 +71,7 @@ include("pages.jl")
 makedocs(sitename = "DataDrivenDiffEq.jl",
          authors = "Julius Martensen, Christopher Rackauckas, et al.",
          modules = [DataDrivenDiffEq, DataDrivenDMD, DataDrivenSparse, DataDrivenSR],
-         clean = true, doctest = false,
+         clean = true, doctest = true,
          format = Documenter.HTML(analytics = "UA-90474609-3",
                                   assets = ["assets/favicon.ico"],
                                   canonical = "https://docs.sciml.ai/DataDrivenDiffEq/stable/"),

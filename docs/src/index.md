@@ -1,6 +1,6 @@
 # DataDrivenDiffEq.jl
 
-**DataDrivenDiffEq.jl** is a package for finding systems of equations of automatically from a dataset.
+DataDrivenDiffEq.jl is a package for finding systems of equations of automatically from a dataset.
 
 The methods in this package take in data and return the model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete, continuous differential equations or direct mappings.
 
@@ -8,6 +8,7 @@ There are two main types of estimation, depending on if you need the result to b
 + Structural identification - returns a human readable result in symbolic form.
 + Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human readable.
 
+A **quickstart** is provided [here](@ref getting_started).
 ## Installation
 
 To use [DataDrivenDiffEq.jl](https://github.com/SciML/DataDrivenDiffEq.jl), install via:

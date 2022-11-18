@@ -1,8 +1,8 @@
 # # [Sparse Identification with noisy data](@id noisy_sindy)
 #
 # Many real world data sources are corrupted with measurment noise, which can have 
-# a big impact on the recovery of the underlying equations of motion. This example show how we can 
-# use [`collocation`](@ref collocation) and [`batching`](@ref DataSampler) to perform SINDy in the presence of 
+# a big impact on the recovery of the underlying equations of motion. This example shows how we can 
+# use a [collocation method](@ref collocation) and [batching](@ref dataprocessing) to perform SINDy in the presence of 
 # noise. 
 
 using DataDrivenDiffEq
@@ -35,7 +35,7 @@ ts = sol.t;
 #md plot!(sol, color = :black)
 
 # To estimate the system, we first create a [`DataDrivenProblem`](@ref) via feeding in the measurement data.
-# Using a [Collocation](@ref) method, it automatically provides the derivative and smoothes the trajectory. Control signals can be passed
+# Using a [collocation method](@ref collocation), it automatically provides the derivative and smoothes the trajectory. Control signals can be passed
 # in as a function `(u,p,t)->control` or an array of measurements.
 
 prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel() ,
@@ -44,8 +44,8 @@ prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel() ,
 #md plot(prob, size = (600,600))
 
 # Now we infer the system structure. First we define a [`Basis`](@ref) which collects all possible candidate terms.
-# Since we want to use SINDy, we call `solve` with an [`Optimizer`](@ref sparse_optimization), in this case [`STLSQ`](@ref) which iterates different sparsity thresholds
-# and returns a pareto optimal solution of the underlying [`sparse_regression!`](@ref). Note that we include the control signal in the basis as an additional variable `c`.
+# Since we want to use SINDy, we call `solve` with an [`sparsifying algorithm`](@ref sparse_algorithms), in this case [`STLSQ`](@ref) which iterates different sparsity thresholds
+# and returns a pareto optimal solution. Note that we include the control signal in the basis as an additional variable `c`.
 
 @variables u[1:2] c[1:1]
 @parameters w[1:2]
@@ -58,7 +58,7 @@ h = Num[sin.(w[1].*u[1]);cos.(w[2].*u[1]); polynomial_basis(u, 5); c]
 basis = Basis(h, u, parameters = w, controls = c);
 println(basis) # hide
 
-# To solve the problem, we also define a [`DataSampler`](@ref) which defines randomly shuffled minibatches of our data and selects the 
+# To solve the problem, we also define a [`DataProcessing`](@ref) which defines randomly shuffled minibatches of our data and selects the 
 # best fit.
 
 sampler = DataProcessing(split = 0.8, shuffle = true, batchsize = 30, rng = rng)
@@ -74,8 +74,10 @@ res = solve(prob, basis, opt, options = DataDrivenCommonOptions(data_processing 
 
 system = get_basis(res)
 params = get_parameter_map(system)
-println(system) #hide
-println(params) #hide
+println(system) # hide
+println(params) # hide
+
+# We can see that even if there are other terms active, the most important terms are included inside the model.
 
 # And a visual check of the result can be perfomed via plotting the result
 

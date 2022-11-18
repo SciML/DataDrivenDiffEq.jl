@@ -6,6 +6,8 @@ Basis
 
 ## API 
 
+Next to [ModelingToolkits API](https://docs.sciml.ai/ModelingToolkit/stable/basics/AbstractSystem/) for `AbstractSystems`, a [`Basis`](@ref) can be called with the following methods:
+
 ```@docs
 dynamics
 jacobian
@@ -13,6 +15,7 @@ isequal
 get_parameter_values
 get_parameter_map
 ```
+
 
 ## Generators
 
