@@ -41,8 +41,8 @@ res = solve(prob, basis, opt, options = DataDrivenCommonOptions(data_processing 
 
 system = get_basis(res)
 params = get_parameter_map(system)
-println(system) #hide
-println(params) #hide
+println(system) # hide
+println(params) # hide
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
 

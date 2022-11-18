@@ -73,9 +73,9 @@ system = get_basis(res) #hide
 
 #md get_parameter_values(system)
 
-# And the coefficient of determination
+# And the coefficient of determination of the result.
 
-#md r2(system) 
+#md r2(res) 
 
 #md # ## [Copy-Pasteable Code](@id autoregulation_copy_paste)
 #md #

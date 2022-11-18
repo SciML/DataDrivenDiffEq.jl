@@ -28,5 +28,7 @@ basis = Basis([h; h .* (D(u[1]))], u, implicits = D.(u), iv = t)
 opt = ImplicitOptimizer(1e-1:1e-1:5e-1)
 res = solve(prob, basis, opt)
 
+summarystats(res)
+
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
 
