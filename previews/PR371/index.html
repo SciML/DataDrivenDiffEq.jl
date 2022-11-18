@@ -3,14 +3,21 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'UA-90474609-3', {'page_path': location.pathname + location.search + location.hash});
-</script><script data-outdated-warner src="assets/warner.js"></script><link rel="canonical" href="https://docs.sciml.ai/DataDrivenDiffEq/stable/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script><link href="assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href><img src="assets/logo.png" alt="DataDrivenDiffEq.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href>DataDrivenDiffEq.jl</a></span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Package-Overview"><span>Package Overview</span></a></li><li><a class="tocitem" href="#Installation"><span>Installation</span></a></li><li><a class="tocitem" href="#Reproducibility"><span>Reproducibility</span></a></li></ul></li><li><a class="tocitem" href="problems/">Problems</a></li><li><span class="tocitem">Solvers</span><ul><li><a class="tocitem" href="solvers/common/">Solve</a></li></ul></li><li><a class="tocitem" href="basis/">Basis</a></li><li><a class="tocitem" href="solutions/">Solutions</a></li><li><a class="tocitem" href="utils/">Utilities</a></li><li><a class="tocitem" href="contributions/">Contributing</a></li><li><a class="tocitem" href="citations/">Citing</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/master/docs/src/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="DataDrivenDiffEq.jl"><a class="docs-heading-anchor" href="#DataDrivenDiffEq.jl">DataDrivenDiffEq.jl</a><a id="DataDrivenDiffEq.jl-1"></a><a class="docs-heading-anchor-permalink" href="#DataDrivenDiffEq.jl" title="Permalink"></a></h1><p><strong>DataDrivenDiffEq.jl</strong> is a package for finding the governing equations of motion automatically from a dataset.</p><p>The methods in this package take in data and return the differential equation model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete and continuous differential equations.</p><p>There are two main types of estimation, depending on if you need the result to be human-understandable:</p><ul><li>Structural identification - returns a human readable result in symbolic form.</li><li>Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human readable.</li></ul><h2 id="Package-Overview"><a class="docs-heading-anchor" href="#Package-Overview">Package Overview</a><a id="Package-Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Package-Overview" title="Permalink"></a></h2><p>Currently, the following algorithms for structural estimation and identification are implemented. Please note that all the algorithms have been unified under a single mathematical framework, so the interface might be a little different than what you expect.</p><ul><li>Dynamic Mode Decomposition (DMD)</li><li>Extended Dynamic Mode Decomposition</li><li>Sparse Identification of Nonlinear Dynamics (SINDy)</li><li>Implicit Sparse Identification of Nonlinear Dynamics</li></ul><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><p>To use <a href="https://github.com/SciML/DataDrivenDiffEq.jl">DataDrivenDiffEq.jl</a>, install via:</p><pre><code class="language-julia hljs">using Pkg
-Pkg.add(&quot;DataDrivenDiffEq&quot;)</code></pre><h2 id="Reproducibility"><a class="docs-heading-anchor" href="#Reproducibility">Reproducibility</a><a id="Reproducibility-1"></a><a class="docs-heading-anchor-permalink" href="#Reproducibility" title="Permalink"></a></h2><details><summary>The documentation of this SciML package was built using these direct dependencies,</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/docs/Project.toml`
+</script><script data-outdated-warner src="assets/warner.js"></script><link rel="canonical" href="https://docs.sciml.ai/DataDrivenDiffEq/stable/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script><link href="assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href><img src="assets/logo.png" alt="DataDrivenDiffEq.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href>DataDrivenDiffEq.jl</a></span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Installation"><span>Installation</span></a></li><li><a class="tocitem" href="#Package-Overview"><span>Package Overview</span></a></li><li><a class="tocitem" href="#Reproducibility"><span>Reproducibility</span></a></li></ul></li><li><a class="tocitem" href="problems/">Problems</a></li><li><span class="tocitem">Solvers</span><ul><li><a class="tocitem" href="solvers/common/">Unified API</a></li></ul></li><li><a class="tocitem" href="basis/">Basis</a></li><li><a class="tocitem" href="solutions/">Solutions</a></li><li><a class="tocitem" href="utils/">Utilities</a></li><li><span class="tocitem">DataDrivenDMD</span><ul><li><a class="tocitem" href="libs/datadrivendmd/koopman/">Background</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Examples</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="libs/datadrivendmd/examples/example_01/">Linear Time Discrete System</a></li><li><a class="tocitem" href="libs/datadrivendmd/examples/example_02/">Linear Time Continuous System</a></li><li><a class="tocitem" href="libs/datadrivendmd/examples/example_03/">Linear Time Continuous System with Controls</a></li><li><a class="tocitem" href="libs/datadrivendmd/examples/example_04/">Nonlinear Time Continuous System</a></li></ul></li></ul></li><li><span class="tocitem">DataDrivenSparse</span><ul><li><a class="tocitem" href="libs/datadrivensparse/sparse_regression/">Background</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Examples</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="libs/datadrivensparse/examples/example_01/">Getting Started</a></li><li><a class="tocitem" href="libs/datadrivensparse/examples/example_02/">Sparse Identification with noisy data</a></li><li><a class="tocitem" href="libs/datadrivensparse/examples/example_03/">Implicit Nonlinear Dynamics : Michaelis Menten</a></li><li><a class="tocitem" href="libs/datadrivensparse/examples/example_04/">Implicit Nonlinear Dynamics : Autoregulation</a></li><li><a class="tocitem" href="libs/datadrivensparse/examples/example_05/">Implicit Nonlinear Dynamics : Cartpole</a></li></ul></li></ul></li><li><span class="tocitem">DataDrivenSR</span><ul><li><a class="tocitem" href="libs/datadrivensr/symbolic_regression/">Background</a></li></ul></li><li><a class="tocitem" href="contributions/">Contributing</a></li><li><a class="tocitem" href="citations/">Citing</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/master/docs/src/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="DataDrivenDiffEq.jl"><a class="docs-heading-anchor" href="#DataDrivenDiffEq.jl">DataDrivenDiffEq.jl</a><a id="DataDrivenDiffEq.jl-1"></a><a class="docs-heading-anchor-permalink" href="#DataDrivenDiffEq.jl" title="Permalink"></a></h1><p><strong>DataDrivenDiffEq.jl</strong> is a package for finding systems of equations of automatically from a dataset.</p><p>The methods in this package take in data and return the model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete, continuous differential equations or direct mappings.</p><p>There are two main types of estimation, depending on if you need the result to be human-understandable:</p><ul><li>Structural identification - returns a human readable result in symbolic form.</li><li>Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human readable.</li></ul><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><p>To use <a href="https://github.com/SciML/DataDrivenDiffEq.jl">DataDrivenDiffEq.jl</a>, install via:</p><pre><code class="language-julia hljs">using Pkg
+Pkg.add(&quot;DataDrivenDiffEq&quot;)</code></pre><h2 id="Package-Overview"><a class="docs-heading-anchor" href="#Package-Overview">Package Overview</a><a id="Package-Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Package-Overview" title="Permalink"></a></h2><p>Several algorithms for structural estimation and identification are implemented in the following subpackages.</p><h3 id="Koopman-Based-Inference"><a class="docs-heading-anchor" href="#Koopman-Based-Inference">Koopman Based Inference</a><a id="Koopman-Based-Inference-1"></a><a class="docs-heading-anchor-permalink" href="#Koopman-Based-Inference" title="Permalink"></a></h3><p>Uses Dynamic Mode Decomposition (DMD) and Extended Dynamic Mode Decomposition (EDMD) on discrete and continuous differential equations to infer an approximation of the corresponding Koopman operator (discrete case) or generator (continuous case).</p><p>To use this functionality, install <a href="libs/datadrivendmd/koopman/#DataDrivenDMD">DataDrivenDMD</a> via:</p><pre><code class="language-julia hljs">using Pkg
+Pkg.add(&quot;DataDrivenDMD&quot;)</code></pre><h3 id="Sparse-Regression"><a class="docs-heading-anchor" href="#Sparse-Regression">Sparse Regression</a><a id="Sparse-Regression-1"></a><a class="docs-heading-anchor-permalink" href="#Sparse-Regression" title="Permalink"></a></h3><p>Uses Sparse Regression algorithms to find a suitable and sparse combination of basis functions to approximate a system of (differential) equations. </p><p>To use this functionality, install <a href="libs/datadrivensparse/sparse_regression/#DataDrivenSparse">DataDrivenSparse</a> via:</p><pre><code class="language-julia hljs">using Pkg
+Pkg.add(&quot;DataDrivenSparse&quot;)</code></pre><h3 id="Symbolic-Regression"><a class="docs-heading-anchor" href="#Symbolic-Regression">Symbolic Regression</a><a id="Symbolic-Regression-1"></a><a class="docs-heading-anchor-permalink" href="#Symbolic-Regression" title="Permalink"></a></h3><p>Uses SymbolicRegression.jl to find a suitable set of equations to match the data. </p><p>To use this functionality, install <a href="libs/datadrivensr/symbolic_regression/#DataDrivenSR">DataDrivenSR</a> via:</p><pre><code class="language-julia hljs">using Pkg
+Pkg.add(&quot;DataDrivenSR&quot;)</code></pre><h2 id="Reproducibility"><a class="docs-heading-anchor" href="#Reproducibility">Reproducibility</a><a id="Reproducibility-1"></a><a class="docs-heading-anchor-permalink" href="#Reproducibility" title="Permalink"></a></h2><details><summary>The documentation of this SciML package was built using these direct dependencies,</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/docs/Project.toml`
+  [3c9adf31] DataDrivenDMD v0.1.0 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD`
   [2445eb08] DataDrivenDiffEq v0.8.6 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl`
+  [7fed8a53] DataDrivenSR v0.1.0 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSR`
+  [5b588203] DataDrivenSparse v0.1.0 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSparse`
   [e30172f5] Documenter v0.27.23
   [98b081ad] Literate v2.14.0
   [961ee093] ModelingToolkit v8.33.1
   [1dea7af3] OrdinaryDiffEq v6.31.2
   [91a5bcdd] Plots v1.36.2
+  [860ef19b] StableRNGs v1.0.0
   [2913bbd2] StatsBase v0.33.21
   [37e2e46d] LinearAlgebra</code></pre></details><details><summary>and using this machine and Julia version.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Julia Version 1.8.3
 Commit 0434deb161e (2022-11-14 20:14 UTC)
@@ -23,6 +30,7 @@ Platform Info:
   Threads: 1 on 2 virtual cores</code></pre></details><details><summary>A more complete overview of all dependencies and their versions is also provided.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/docs/Manifest.toml`
   [a4c015fc] ANSIColoredPrinters v0.0.1
   [c3fe647b] AbstractAlgebra v0.27.6
+  [621f4979] AbstractFFTs v1.2.1
   [1520ce14] AbstractTrees v0.4.3
   [7d9f7c33] Accessors v0.1.22
   [79e6a3ab] Adapt v3.4.0
@@ -40,9 +48,11 @@ Platform Info:
   [e2ed5e7c] Bijections v0.1.4
   [d1d4a3ce] BitFlags v0.1.6
   [62783981] BitTwiddlingConvenienceFunctions v0.1.5
+  [fa961155] CEnum v0.4.2
   [2a0fbf3d] CPUSummary v0.1.30
   [00ebfdb7] CSTParser v3.3.6
   [49dc2e85] Calculus v0.5.1
+  [082447d4] ChainRules v1.45.0
   [d360d2e6] ChainRulesCore v1.15.6
   [9e997f8a] ChangesOfVariables v0.1.4
   [fb6a15b2] CloseOpenIntervals v0.1.10
@@ -55,7 +65,7 @@ Platform Info:
   [a80b9123] CommonMark v0.8.7
   [38540f10] CommonSolve v0.2.3
   [bbf7d656] CommonSubexpressions v0.3.0
-  [34da2185] Compat v4.3.0
+  [34da2185] Compat v4.4.0
   [b152e2b5] CompositeTypes v0.1.3
   [a33af91c] CompositionsBase v0.1.1
   [187b0558] ConstructionBase v1.4.1
@@ -64,7 +74,10 @@ Platform Info:
   [adafc99b] CpuId v0.3.1
   [a8cc5b0e] Crayons v4.1.1
   [9a962f9c] DataAPI v1.13.0
+  [3c9adf31] DataDrivenDMD v0.1.0 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD`
   [2445eb08] DataDrivenDiffEq v0.8.6 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl`
+  [7fed8a53] DataDrivenSR v0.1.0 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSR`
+  [5b588203] DataDrivenSparse v0.1.0 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSparse`
   [82cc6244] DataInterpolations v3.10.1
   [864edb3b] DataStructures v0.18.13
   [e2d170a0] DataValueInterfaces v1.0.0
@@ -80,6 +93,7 @@ Platform Info:
   [e30172f5] Documenter v0.27.23
   [5b8099bc] DomainSets v0.5.14
   [fa6b7ba4] DualNumbers v0.6.8
+  [a40a106e] DynamicExpressions v0.4.1
   [7c1d4256] DynamicPolynomials v0.4.5
   [4e289a0a] EnumX v1.0.3
   [d4d017d3] ExponentialUtilities v1.22.0
@@ -98,6 +112,7 @@ Platform Info:
   [f6369f11] ForwardDiff v0.10.33
   [069b7b12] FunctionWrappers v1.1.3
   [77dc65aa] FunctionWrappersWrappers v0.1.1
+  [0c68f7d7] GPUArrays v8.5.0
   [46192b85] GPUArraysCore v0.1.2
 ⌅ [28b8d3ca] GR v0.69.5
   [c145ed77] GenericSchur v0.5.3
@@ -110,6 +125,7 @@ Platform Info:
   [3e5b6fbb] HostCPUFeatures v0.1.13
   [34004b35] HypergeometricFunctions v0.3.11
   [b5f81e59] IOCapture v0.2.2
+  [7869d1d1] IRTools v0.4.7
   [615f187c] IfElse v0.1.1
   [d25df0c9] Inflate v0.1.3
   [83e8ac13] IniFile v0.5.1
@@ -123,12 +139,14 @@ Platform Info:
   [1019f520] JLFzf v0.1.5
   [692b3bcd] JLLWrappers v1.4.1
   [682c06a0] JSON v0.21.3
+  [0f8b85d8] JSON3 v1.12.0
   [98e50ef6] JuliaFormatter v1.0.15
   [b14d175d] JuliaVariables v0.2.4
   [ccbc3e58] JumpProcesses v9.2.2
   [ef3ab10e] KLU v0.4.0
   [ba0b0d4f] Krylov v0.8.4
   [0b1a1467] KrylovKit v0.6.0
+  [929cbde3] LLVM v4.14.0
   [b964fa9f] LaTeXStrings v1.3.0
   [2ee39098] LabelledArrays v1.12.5
   [984bce1d] LambertW v0.4.5
@@ -142,6 +160,7 @@ Platform Info:
   [2ab3a3ac] LogExpFunctions v0.3.18
   [e6f89c97] LoggingExtras v1.0.0
   [bdcacae8] LoopVectorization v0.12.139
+  [30fc2ffe] LossFunctions v0.8.0
   [d8e11817] MLStyle v0.4.16
   [f1d291b0] MLUtils v0.3.1
   [1914dd2f] MacroTools v0.5.10
@@ -183,10 +202,12 @@ Platform Info:
   [21216c6a] Preferences v1.3.0
   [8162dcfd] PrettyPrint v0.2.0
   [27ebfcd6] Primes v0.5.3
+  [49802e3a] ProgressBars v1.4.1
   [92933f4c] ProgressMeter v1.7.2
   [1fd47b50] QuadGK v2.6.0
   [fb686558] RandomExtensions v0.4.3
   [e6cf234a] RandomNumbers v1.5.3
+  [c1ae055f] RealDot v0.1.0
   [3cdcf5f2] RecipesBase v1.3.1
   [01d81517] RecipesPipeline v0.6.11
   [731186ca] RecursiveArrayTools v2.32.1
@@ -213,6 +234,7 @@ Platform Info:
   [47a9eef4] SparseDiffTools v1.29.0
   [276daf66] SpecialFunctions v2.1.7
   [171d559e] SplittablesBase v0.1.15
+  [860ef19b] StableRNGs v1.0.0
 ⌅ [aedffcd0] Static v0.7.8
   [90137ffa] StaticArrays v1.5.10
   [1e83bf80] StaticArraysCore v1.4.0
@@ -220,6 +242,9 @@ Platform Info:
   [2913bbd2] StatsBase v0.33.21
   [4c63d2b9] StatsFuns v1.0.1
   [7792a7ef] StrideArraysCore v0.3.16
+  [09ab397b] StructArrays v0.6.13
+  [856f2bd8] StructTypes v1.10.0
+  [8254be44] SymbolicRegression v0.14.3
   [d1185830] SymbolicUtils v0.19.11
   [0c5d862f] Symbolics v4.13.0
   [3783bdb8] TableTraits v1.0.1
@@ -239,10 +264,11 @@ Platform Info:
   [3a884ed6] UnPack v1.0.2
   [d9a01c3f] Underscores v3.0.0
   [1cfade01] UnicodeFun v0.4.1
-  [1986cc42] Unitful v1.12.0
+  [1986cc42] Unitful v1.12.1
   [41fe7b60] Unzip v0.2.0
   [3d5dd08c] VectorizationBase v0.21.55
   [19fa3120] VertexSafeGraphs v0.2.0
+  [e88e6eb3] Zygote v0.6.49
   [700de1a5] ZygoteRules v0.2.2
   [6e34b625] Bzip2_jll v1.0.8+0
   [83423d85] Cairo_jll v1.16.1+1
@@ -260,6 +286,7 @@ Platform Info:
   [aacddb02] JpegTurbo_jll v2.1.2+0
   [c1c5ebd0] LAME_jll v3.100.1+0
   [88015f11] LERC_jll v3.0.0+1
+  [dad2f222] LLVMExtra_jll v0.0.16+0
   [dd4b983a] LZO_jll v2.10.1+0
 ⌅ [e9f186c6] Libffi_jll v3.2.2+1
   [d4300ac3] Libgcrypt_jll v1.8.7+0
@@ -321,6 +348,7 @@ Platform Info:
   [7b1f6079] FileWatching
   [9fa8497b] Future
   [b77e0a4c] InteractiveUtils
+  [4af54fe1] LazyArtifacts
   [b27032c2] LibCURL v0.6.3
   [76f85450] LibGit2
   [8f399da3] Libdl
@@ -360,4 +388,4 @@ Platform Info:
   [3f19e933] p7zip_jll v17.4.0+0
 Info Packages marked with ⌃ and ⌅ have new versions available, but those with ⌅ are restricted by compatibility constraints from upgrading. To see why use `status --outdated -m`</code></pre></details>You can also download the 
 <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v0.8.6/assets/Manifest.toml">manifest</a> file and the
-<a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v0.8.6/assets/Project.toml">project</a> file.</article><nav class="docs-footer"><a class="docs-footer-nextpage" href="problems/">Problems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Friday 18 November 2022 07:47">Friday 18 November 2022</span>. Using Julia version 1.8.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v0.8.6/assets/Project.toml">project</a> file.</article><nav class="docs-footer"><a class="docs-footer-nextpage" href="problems/">Problems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Friday 18 November 2022 17:12">Friday 18 November 2022</span>. Using Julia version 1.8.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
