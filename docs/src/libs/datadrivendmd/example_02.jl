@@ -8,6 +8,7 @@ using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenDMD
 #md using Plots 
+using Test #src
 
 A = [-0.9 0.2; 0.0 -0.2]
 u0 = [10.0; -10.0]

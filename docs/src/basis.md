@@ -11,7 +11,6 @@ Next to [ModelingToolkits API](https://docs.sciml.ai/ModelingToolkit/stable/basi
 ```@docs
 dynamics
 jacobian
-isequal
 get_parameter_values
 get_parameter_map
 ```
