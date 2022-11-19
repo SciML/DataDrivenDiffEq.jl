@@ -2,7 +2,7 @@
 
 julia_version = "1.8.3"
 manifest_format = "2.0"
-project_hash = "3e9fde271aa8a6473cdbac3d79da2fe2c0a6b5de"
+project_hash = "f7b3da48516fe6207988bd56a27fee2687b6fdd2"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -293,25 +293,25 @@ uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
 version = "1.13.0"
 
 [[deps.DataDrivenDMD]]
-deps = ["CommonSolve", "DataDrivenDiffEq", "DocStringExtensions", "LinearAlgebra", "Parameters", "StatsBase"]
+deps = ["DataDrivenDiffEq", "LinearAlgebra"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD"
 uuid = "3c9adf31-5280-42ff-b439-b71cc6b07807"
 version = "0.1.0"
 
 [[deps.DataDrivenDiffEq]]
-deps = ["CommonSolve", "DataInterpolations", "DiffEqBase", "DocStringExtensions", "LinearAlgebra", "MLUtils", "Measurements", "ModelingToolkit", "Parameters", "ProgressMeter", "QuadGK", "Random", "RecipesBase", "Reexport", "Setfield", "Statistics", "StatsBase", "Test"]
+deps = ["CommonSolve", "DataInterpolations", "DiffEqBase", "DocStringExtensions", "LinearAlgebra", "MLUtils", "ModelingToolkit", "Parameters", "ProgressMeter", "QuadGK", "Random", "RecipesBase", "Reexport", "Setfield", "Statistics", "StatsBase", "Test"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl"
 uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
 version = "1.0.0"
 
 [[deps.DataDrivenSR]]
-deps = ["CommonSolve", "DataDrivenDiffEq", "DocStringExtensions", "Parameters", "Reexport", "StatsBase", "SymbolicRegression"]
+deps = ["DataDrivenDiffEq", "Reexport", "SymbolicRegression"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSR"
 uuid = "7fed8a53-d475-4873-af3a-ba53cceea094"
 version = "0.1.0"
 
 [[deps.DataDrivenSparse]]
-deps = ["CommonSolve", "DataDrivenDiffEq", "DocStringExtensions", "LinearAlgebra", "Parameters", "Printf", "Reexport", "Setfield", "StatsBase"]
+deps = ["CommonSolve", "DataDrivenDiffEq", "LinearAlgebra", "Printf", "Reexport"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSparse"
 uuid = "5b588203-7d8b-4fab-a537-c31a7f73f46b"
 version = "0.1.0"
@@ -1038,12 +1038,6 @@ version = "1.1.7"
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
 version = "2.28.0+0"
-
-[[deps.Measurements]]
-deps = ["Calculus", "LinearAlgebra", "Printf", "RecipesBase", "Requires"]
-git-tree-sha1 = "12950d646ce04fb2e89ba5bd890205882c3592d7"
-uuid = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
-version = "2.8.0"
 
 [[deps.Measures]]
 git-tree-sha1 = "c13304c81eec1ed3af7fc20e75fb6b26092a1102"
