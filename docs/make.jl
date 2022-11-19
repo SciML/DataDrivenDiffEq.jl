@@ -1,17 +1,5 @@
 #push!(LOAD_PATH,"../src/")
 
-# Add the sublibs
-using Pkg
-
-function dev_subpkg(subpkg)
-    subpkg_path = abspath(joinpath(dirname(@__FILE__), "..", "lib", subpkg))
-    Pkg.develop(PackageSpec(path = subpkg_path))
-end
-
-dev_subpkg("DataDrivenDMD")
-dev_subpkg("DataDrivenSparse")
-dev_subpkg("DataDrivenSR")
-
 using Documenter
 using DataDrivenDiffEq
 using DataDrivenDMD
