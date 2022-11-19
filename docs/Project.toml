@@ -10,4 +10,5 @@ StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
+DataDrivenDiffEq = "0.8"
 Documenter = "0.27"
