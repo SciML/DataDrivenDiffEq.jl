@@ -6,7 +6,7 @@ on each row.
 """
 struct Softmax <: AbstractSimplex  end
     
-(::Softmax)(x::AbstractArray, κ = one(eltype(x))) = softmax(x , dims = 2)
+(::Softmax)(x::AbstractArray, κ = one(eltype(x))) = softmax(x ./ κ, dims = 2)
 
 """
 $(TYPEDEF)
@@ -29,7 +29,7 @@ end
         y[:, i] .= exp.(x[:,i])
     end
     y ./= sum(y, dims = 2)
-    softmax((x .+ z) , dims = 2)
+    softmax((x .+ z) ./ κ, dims = 2)
 end
 
 
