@@ -13,6 +13,9 @@ jobs:
       matrix:
         group:
           - Core
+          - DataDrivenDMD
+          - DataDrivenSR
+          - DataDrivenSparse
         version:
           - '1'
           - '1.6'
@@ -33,7 +36,12 @@ jobs:
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        env:
+          GROUP: ${{ matrix.group }}
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v1
         with:
-          file: lcov.info
+          directories: src,lib/DataDrivenDMD/src,lib/DataDrivenSparse/src,lib/DataDrivenSR/src
+      - uses: codecov/codecov-action@v3
+        with:
+          files: lcov.info
+          flags: ${{ matrix.group }}

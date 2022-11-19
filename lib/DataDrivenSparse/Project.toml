@@ -1,0 +1,26 @@
+name = "DataDrivenSparse"
+uuid = "5b588203-7d8b-4fab-a537-c31a7f73f46b"
+authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
+DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+
+[extras]
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test", "StableRNGs", "Random", "SafeTestsets", "StatsBase", "OrdinaryDiffEq"]

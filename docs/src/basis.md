@@ -4,6 +4,18 @@
 Basis
 ```
 
+## API 
+
+Next to [ModelingToolkits API](https://docs.sciml.ai/ModelingToolkit/stable/basics/AbstractSystem/) for `AbstractSystems`, a [`Basis`](@ref) can be called with the following methods:
+
+```@docs
+dynamics
+jacobian
+get_parameter_values
+get_parameter_map
+```
+
+
 ## Generators
 
 ```@docs
@@ -13,27 +25,4 @@ sin_basis
 cos_basis
 fourier_basis
 chebyshev_basis
-```
-# [Koopman](@id koopman)
-
-Since the results provided by [`DMD-like`](@ref koopman_algorithms) have special information, they have a separate subtype.
-
-```@docs
-Koopman
-```
-
-## Functions
-```@docs
-is_discrete
-is_continuous
-DataDrivenDiffEq.eigen
-DataDrivenDiffEq.eigvals
-DataDrivenDiffEq.eigvecs
-modes
-frequencies
-operator
-generator
-updatable
-is_stable
-update!
 ```

@@ -1,16 +1,19 @@
 pages = [
-        "Home" => "index.md",
-        "Tutorials" => tutorials,
-        "Problems" => "problems.md",
-        "Solvers" => Any[
-          "solvers/common.md",
-          "solvers/koopman.md",
-          "solvers/optimization.md",
-          "solvers/symbolic_regression.md"
-          ],
-        "Basis" => "basis.md",
-        "Solutions" => "solutions.md",
-        "Utilities" => "utils.md",
-        "Contributing" => "contributions.md",
-        "Citing" => "citations.md"
-        ]
+    "Home" => "index.md",
+    "Problems" => "problems.md",
+    "Solvers" => ["Unified API" => "solvers/common.md"],
+    "Basis" => "basis.md",
+    "Solutions" => "solutions.md",
+    "Utilities" => "utils.md",
+    "DataDrivenDMD" => ["Background" => "libs/datadrivendmd/koopman.md",
+        "Examples" => koopman_tutorial,
+    ],
+    "DataDrivenSparse" => ["Background" => "libs/datadrivensparse/sparse_regression.md",
+        "Examples" => sparse_tutorial,
+    ],
+    "DataDrivenSR" => ["Background" => "libs/datadrivensr/symbolic_regression.md",
+        "Examples" => sr_tutorial,
+    ],
+    "Contributing" => "contributions.md",
+    "Citing" => "citations.md",
+]

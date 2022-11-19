@@ -2,128 +2,63 @@
 $(TYPEDEF)
 
 The solution to a `DataDrivenProblem` derived via a certain algorithm.
-The solution is represented via an `AbstractBasis`, which makes it callable.
+The solution is represented via an `Basis`, which makes it callable.
 
 # Fields
 $(FIELDS)
-
-# Note
-
-The L₂ norm error, AIC and coefficient of determinantion get only computed, if eval_expression is set to true or
-if the solution can be interpreted as a linear regression result.
 """
-struct DataDrivenSolution{L, A, O} <: AbstractDataDrivenSolution
+struct DataDrivenSolution{T} <: AbstractDataDrivenSolution
     "The basis representation of the solution"
     basis::AbstractBasis
-    "Parameters of the solution"
-    parameters::AbstractVecOrMat
     "Returncode"
-    retcode::Symbol
+    retcode::DDReturnCode
     "Algorithm"
-    alg::A
+    alg::AbstractDataDrivenAlgorithm
     "Original output of the solution algorithm"
-    out::O
+    out::Vector{<:AbstractDataDrivenResult}
     "Problem"
     prob::AbstractDataDrivenProblem
-    "L₂ norm error"
-    l2_error::AbstractVector
-    "AIC"
-    aic::AbstractVector
-    "Coefficient of determinantion"
-    rsquared::AbstractVector
-
-    function DataDrivenSolution(linearity::Bool,b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg::A, out::O, prob::AbstractDataDrivenProblem; kwargs...) where {A,O}
-        return new{linearity, A,O}(
-            b, p, retcode, alg, out, prob
-        )
-    end
-
-    function DataDrivenSolution(linearity::Bool,b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg::A, out::O, prob::AbstractDataDrivenProblem, l2::AbstractVector; kwargs...) where {A,O}
-        return new{linearity, A,O}(
-            b, p, retcode, alg, out, prob, l2
-        )
-    end
-
-    function DataDrivenSolution(linearity::Bool,b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg, out, prob::AbstractDataDrivenProblem, l2::AbstractVector, aic::AbstractVector; kwargs...)
-        return new{linearity, typeof(alg), typeof(out)}(
-            b, p, retcode, alg, out, prob, l2, aic
-        )
-    end
-
-    function DataDrivenSolution(linearity::Bool, b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg, out, prob::AbstractDataDrivenProblem, l2::AbstractVector, aic::AbstractVector, rsquared::AbstractVector; kwargs...)
-        return new{linearity, typeof(alg), typeof(out)}(
-            b, p, retcode, alg, out, prob, l2, aic, rsquared
-        )
-    end
-
-        
+    "Residual sum of squares"
+    residuals::T
+    "Degrees of freedom"
+    dof::Int
+    """Internal problem"""
+    internal_problem::InternalDataDrivenProblem
 end
 
-function DataDrivenSolution(b::AbstractBasis, p::AbstractVector, retcode::Symbol, alg::A, out::O, prob::AbstractDataDrivenProblem, linearity::Bool; 
-    eval_expression = false, kwargs...) where {A,O}
-        
-    if !eval_expression
-        # Compute the errors
-        x, _, t, u = get_oop_args(prob)
-        y = get_target(prob)
-        e = similar(y)
-        e .= Inf
+function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
+                            alg::AbstractDataDrivenAlgorithm,
+                            result::Vector{<:AbstractDataDrivenResult},
+                            internal_problem::InternalDataDrivenProblem,
+                            retcode = DDReturnCode(2))
+    ps = get_parameter_values(b)
+    prob = remake_problem(p, p = ps)
 
-        if is_implicit(b)
-            for i in 1:length(b)
-                e[i,:] .= b([x; y], p, t, u)[i,:]
-            end
-        else
-            for i in 1:length(b)
-                e[i,:] .= y[i,:] .- b(x, p, t, u)[i,:]
-            end
-        end
+    rss = sum(abs2, get_implicit_data(prob) .- b(prob))
 
-        # RSS
-        l2 = sum(abs2, e, dims = 2)[:,1]
-        # This is the AIC for a lsq
-        aic = size(e, 2) .* log.(l2) .+ 2*length(p) #2*(-size(e, 2) .* log.(l2 / size(e, 2)) .+ length(p))
-        
-        rsquared = 1 .- l2 ./ sum(abs2, y .- mean(y, dims =2)[:,1], dims = 2)[:,1]
-            
-            #return l2, aic, rsquared
-        return DataDrivenSolution(
-            linearity, b, p, retcode, alg, out, prob, l2, aic, rsquared
-        )
-    end
-
-    return DataDrivenSolution(
-        linearity, b, p, retcode, alg, out, prob
-    )
+    return DataDrivenSolution{eltype(p)}(b,
+                                         retcode,
+                                         alg,
+                                         result,
+                                         prob,
+                                         rss,
+                                         length(parameters(b)),
+                                         internal_problem)
 end
 
-
-
-## Make it callable
 (r::DataDrivenSolution)(args...) = r.basis(args...)
 
+Base.show(io::IO, ::DataDrivenSolution{T}) where {T} = show(io, "DataDrivenSolution{$T}")
 
-function Base.show(io::IO, ::DataDrivenSolution{linearity}) where linearity
-    if linearity
-        print(io, "Linear Solution")
-    else
-        print(io, "Nonlinear Solution")
-    end
-end
-
-function Base.print(io::IO, r::DataDrivenSolution{linearity, a, o}) where {linearity, a, o}
+function Base.print(io::IO, r::DataDrivenSolution)
     show(io, r)
-    print(io, " with $(length(r.basis)) equations and $(length(r.parameters)) parameters.\n")
+    print(io, " with $(length(r.basis)) equations and $(r.dof) parameters.\n")
     print(io, "Returncode: $(r.retcode)\n")
-    isdefined(r, :l2_error) && print(io, "L₂ Norm error : $(r.l2_error)\n")
-    isdefined(r, :aic) && print(io,"AIC : $(r.aic)\n")
-    isdefined(r, :rsquared) && print(io, "R² : $(r.rsquared)\n")
+    print(io, "Residual sum of squares: $(r.residuals)")
     return
 end
 
-
 function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
-
     fullview != Val{true} && return print(io, r)
 
     print(io, r)
@@ -132,57 +67,76 @@ function Base.print(io::IO, r::DataDrivenSolution, fullview::DataType)
         x = parameter_map(r)
         println(io, "Parameters:")
         for v in x
-            println(io, "   $(v[1]) : $(v[2])")
+            println(io, "  $(v[1]) : $(v[2])")
         end
     end
 
     return
 end
 
-
-
-
-
-##
 """
 $(SIGNATURES)
 
-Returns the `Basis` of the result.
+Returns the degrees of freedom of the `DataDrivenSolution`.
 """
-result(r::DataDrivenSolution) = r.basis
+StatsBase.dof(sol::DataDrivenSolution) = getfield(sol, :dof)
 
 """
 $(SIGNATURES)
 
-Returns the AIC of the result.
+Returns the residual sum of squares of the `DataDrivenSolution`.
 """
-aic(r::DataDrivenSolution) = begin
-    isdefined(r, :aic) && return r.aic
-    return NaN
+StatsBase.rss(sol::DataDrivenSolution) = getfield(sol, :residuals)
+
+"""
+$(SIGNATURES)
+
+Returns the loglikelihood of the `DataDrivenSolution` assuming a normal distributed error.
+"""
+function StatsBase.loglikelihood(sol::DataDrivenSolution)
+    begin -nobs(sol) / 2 * log.(rss(sol) / nobs(sol)) end
 end
 
 """
 $(SIGNATURES)
 
-Returns the L₂ norm error of the result.
+Returns the number of observations of the `DataDrivenSolution`.
 """
-l2error(r::DataDrivenSolution) = begin
-    isdefined(r, :l2_error) && return r.l2_error
-    return NaN
+function StatsBase.nobs(sol::DataDrivenSolution)
+    begin prod(size(get_implicit_data(getfield(sol, :prob)))) end
 end
 
 """
 $(SIGNATURES)
 
-Returns the coefficient of determinantion of the result, if the result has been
-derived via a linear regression, e.g. sparse regression or koopman.
+Return the nullloglikelihood of the `DataDrivenSolution`. This corresponds to a model only fitted with an 
+intercept and a normal distributed error.
 """
-determination(r::DataDrivenSolution{l, o, a}) where {l,o, a} = begin
-    if l
-        return r.rsquared
-    else
-        return NaN
+@views function StatsBase.nullloglikelihood(sol::DataDrivenSolution)
+    begin
+        Y = get_implicit_data(getfield(sol, :prob))
+        -nobs(sol) / 2 * log(sum(abs2, Y .- mean(Y, dims = 2)) / nobs(sol))
     end
+end
+
+"""
+$(SIGNATURES)
+
+Return the coefficient of determinantion of the `DataDrivenSolution`. 
+
+## Note
+Only implements `CoxSnell` based on the [`loglikelihood`](@ref) and [`nullloglikelihood`](@ref).
+"""
+StatsBase.r2(sol::DataDrivenSolution) = r2(sol, :CoxSnell)
+
+"""
+$(SIGNATURES)
+
+Returns the `summarystats` for each row of the error for the `DataDrivenSolution`.
+"""
+@views function StatsBase.summarystats(sol::DataDrivenSolution)
+    p = getfield(sol, :prob)
+    map(summarystats, eachrow(get_implicit_data(p) .- sol(p)))
 end
 
 """
@@ -195,216 +149,29 @@ get_problem(r::DataDrivenSolution) = getfield(r, :prob)
 """
 $(SIGNATURES)
 
-Returns the estimated parameters in form of an `Vector`.
+Returns the recovered `Basis`.
 """
-ModelingToolkit.parameters(r::DataDrivenSolution) = r.parameters
-
-"""
-$(SIGNATURES)
-
-Generate a mapping of the parameter values and symbolic representation useable
-to `solve` and `ODESystem`.
-"""
-function parameter_map(r::DataDrivenSolution)
-    return [
-        ps_ => p_ for (ps_, p_) in zip(parameters(r.basis), r.parameters)
-    ]
-end
-
+get_basis(r::DataDrivenSolution) = getfield(r, :basis)
 
 """
 $(SIGNATURES)
 
 Returns the algorithm used to derive the solution.
 """
-algorithm(r::DataDrivenSolution) = r.alg
+get_algorithm(r::DataDrivenSolution) = getfield(r, :alg)
 
 """
 $(SIGNATURES)
 
 Returns the original output of the algorithm.
 """
-output(r::DataDrivenSolution) = r.out
+get_results(r::DataDrivenSolution) = getfield(r, :out)
 
 """
 $(SIGNATURES)
 
-Returns all applicable metrics of the solution.
+Assert the result of the `DataDrivenSolution` and returns `true` if successful, `false` otherwise.
 """
-function metrics(r::DataDrivenSolution)
-    fnames_ = (:l2_error, :aic, :rsquared)
-    names_ = (:L₂, :AIC, :R²)
-    m = Dict() 
-    for i in 1:length(fnames_)
-        if isdefined(r, fnames_[i]) 
-            push!(m, names_[i] => getfield(r, fnames_[i]))
-        end
-    end
-    m
-end
-## Helper for the solution
+is_converged(r::DataDrivenSolution) = getfield(r, :retcode) == DDReturnCode(1)
 
-# Check linearity
-
-function assert_linearity(eqs::AbstractVector{Equation}, x::AbstractVector)
-    return assert_linearity(map(x->Num(x.rhs), eqs), x)
-end
-
-# Returns true iff x is not in the arguments of the jacobian of eqs
-function assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector)
-    j = Symbolics.jacobian(eqs, x)
-    # Check if any of the variables is in the jacobian
-    v = unique(reduce(vcat, map(get_variables, j)))
-    for xi in x, vi in v
-        isequal(xi, vi) && return false
-    end
-    return true
-end
-
-function construct_basis(X, b, implicits = Num[]; dt = one(eltype(X)), lhs::Symbol = :continuous, is_implicit = false, eval_expression = false)
-
-    # Create additional variables
-    sp = sum(.! iszero.(X))
-    sps = norm.(eachcol(X), 0)
-    inds = sps .> zero(eltype(X))
-    pl = length(parameters(b))
-    
-    p = [Symbolics.variable(:p, i) for i in (pl+1):(pl+sp)]
-    p = collect(p)
-    ps = zeros(eltype(X), sp)
-    eqs = zeros(Num, size(X,2))
-    eqs_ = [e.rhs for e in equations(b)]
-    cnt = 1
-    for j in 1:size(X, 2)
-        if sps[j] == zero(eltype(X))
-            continue
-        end
-        for i in 1:size(X, 1)
-            if iszero(X[i,j])
-                continue
-            end
-            ps[cnt] = X[i,j]
-            eqs[j] += p[cnt]*eqs_[i]
-            cnt += 1
-        end
-    end
-
-    # Build the lhs
-    xs = states(b)
-    if isempty(implicits) || !is_implicit
-        if length(eqs) == length(states(b))
-            if lhs == :continuous
-                d = Differential(get_iv(b))
-                eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
-            elseif lhs == :discrete
-                d = Difference(get_iv(b), dt = dt)
-                eqs = [d(xs[i]) ~ eq for (i,eq) in enumerate(eqs)]
-            end
-        end
-    else
-        if !isempty(implicits)
-            eqs = eqs .~ 0
-            if assert_linearity(eqs, implicits)
-                try
-                    # Try to solve the eq for the implicits
-                    eqs = ModelingToolkit.solve_for(eqs, implicits)
-                    eqs = implicits .~ eqs
-                    implicits = []
-                catch 
-                    @warn "Failed to solve recovered equations for implicit variables. Returning implicit equations."
-                end
-            end
-        end
-    end
-
-    Basis(
-        eqs, xs,
-        parameters = [parameters(b); p], iv = get_iv(b),
-        controls = controls(b), observed = observed(b),
-        implicits = implicits,
-        name = gensym(:Basis),
-        eval_expression = eval_expression
-    ), ps
-end
-
-function assert_lhs(prob::AbstracContProb)
-    return :continuous, 0.0
-end
-
-function assert_lhs(prob::AbstractDiscreteProb)
-    return :discrete, mean(independent_variable(prob))
-end
-
-function assert_lhs(prob::AbstractDataDrivenProblem)
-    return :direct, 0.0
-end
-
-function assert_lhs(prob::DataDrivenDataset)
-    return assert_lhs(first(prob.probs))
-end
-
-
-function DataDrivenSolution(prob, s, b::B, opt::O, implicits = Num[]; 
-    eval_expression = false, digits::Int = 10, by = :min, kwargs...) where {B <: AbstractBasis, O <: AbstractOptimizer}
-    Ξ, _... = select_by(by, s) 
-    # Build a basis and returns a solution
-    if all(iszero.(Ξ))
-        @warn "Sparse regression failed! All coefficients are zero."
-        return DataDrivenSolution(
-        b, [], :failed, opt, Ξ, prob)
-    end
- 
-    # Assert continuity
-    lhs, dt = assert_lhs(prob)
-
-    sol , ps = construct_basis(round.(Ξ, digits = digits), b, implicits, 
-        lhs = lhs, dt = dt,
-        is_implicit = isa(opt, AbstractSubspaceOptimizer) ,eval_expression = eval_expression
-        )
-
-    
-    ps = isempty(parameters(b)) ? ps : vcat(prob.p, ps)
-
-    
-    return DataDrivenSolution(
-        sol, ps, :solved, opt, s, prob, true, eval_expression = eval_expression
-    )
-end
-
-
-function DataDrivenSolution(prob, k, b::BS, alg::KA; 
-    digits::Int = 10, by = :min, eval_expression = false, operator_only = false, kwargs...) where {BS <: AbstractBasis, KA <: AbstractKoopmanAlgorithm}
-    k_, _... = select_by(by, k) 
-    @unpack inds = k
-    K, B, C, P, Q = k_
-    operator_only && return (K = K, B = B, C = C, P = P, Q = Q)
-    # Build parameterized equations, inds indicate the location of basis elements containing an input
-    Ξ = zeros(eltype(C), size(C,2), length(b))
-
-
-    Ξ[:, inds] .= real.(Matrix(K))
-    if !isempty(B)
-        Ξ[:, .! inds] .= B
-    end
-
-    # Assert continuity
-    lhs, dt = assert_lhs(prob)
-    
-    bs, ps = construct_basis(round.(C*Ξ, digits = digits)', b, 
-        lhs = lhs, dt = dt,
-        eval_expression = eval_expression)
-
-
-    res_ = Koopman(equations(bs), states(bs),
-        parameters = parameters(bs),
-        controls = controls(bs), iv = get_iv(bs),
-        K = K, C = C, Q = Q, P = P, lift = get_f(b),
-        is_discrete = is_discrete(prob),
-        eval_expression = eval_expression)
-
-    ps = isempty(parameters(b)) ? ps : vcat(prob.p, ps)
-
-    return DataDrivenSolution(
-        res_, ps, :solved, alg, k, prob, true, eval_expression = eval_expression
-    )
-end
+## Conversions to DE / ODESystem / DAE or OptimizationSystem here

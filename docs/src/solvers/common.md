@@ -2,14 +2,9 @@
 
 All algorithms have been combined under a single API to match the interface of other SciML packages. Thus, you can simply define a Problem, and then seamlessly switch between solvers. 
 
-The table below provides an overview, which class of algorithms support which class of problems.
-
-|  | Direct     | Discrete | Continuous | Basis | Requires |
-|:---------- | ---------- |:------------:|:------------:|:------------:|:------------:|
-| [Koopman](@ref koopman_algorithms)    |     -      | +             |  +        | Optional | 
-| [Sparse Regression](@ref sparse_optimization)    | +  | + | + | Necessary | 
-| [EQSearch](@ref eqsearch_api)    | +  | + | + | No | [SymbolicRegression.jl](https://docs.sciml.ai/SymbolicRegression/stable/)
-| [OccamNet](@ref occamnet_api)    | +  | + | + | No | [Flux.jl](https://docs.sciml.ai/Flux.jl/stable/)
++ [DataDrivenDMD](@ref) for Koopman based inference
++ [DataDrivenSparse](@ref) for sparse regression based inference
++ [DataDrivenSR](@ref) for interfacing SymbolicRegression.jl
 
 All of the above methods return a [`DataDrivenSolution`](@ref) if not enforced otherwise.
 
@@ -28,35 +23,28 @@ DataDrivenCommonOptions
     the function that generates them). If `eval_expression=false`,
     then construction via GeneralizedGenerated.jl is utilized to allow for
     same world-age evaluation. However, this can cause Julia to segfault
-    on sufficiently large basis functions. By default eval_expression=false.
+    on sufficiently large basis functions. By default `eval_expression=false`.
 
 ## Solving the Problem
 
-After defining a [`problem`](@ref problem), we choose a method to [`solve`](@ref solve) it. Depending on the input arguments and the type of problem, the function will return a result derived the algorithm of choice. Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. A [`Basis`](@ref) can be used for lifting the measurements.
+After defining a [`problem`](@ref problem), we choose a method to [`solve`](@ref solve) it. Depending on the input arguments and the type of problem, the function will return a result derived the algorithm of choice. Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. An optional [`Basis`](@ref) can be used for lifting the measurements.
 
 ```julia
-# Use a Koopman based inference
-res = solve(problem, DMDSVD(), kwargs...)
+solution = solve(DataDrivenProblem, [basis], solver; kwargs...)
+```
+
+If no [`Basis`](@ref) is supported, a unit basis is derived from the problem data containing the states and controls of the system.
+
+Or more concrete examples:
+
+```julia
+# Use a Koopman based inference without a basis
+res = solve(problem, DMDSVD(); options = DataDrivenCommonOptions(), kwargs...)
 # Use a sparse identification
-res = solve(problem, basis, STLQS(), kwargs...)
+res = solve(problem, basis, STLQS(); options = DataDrivenCommonOptions(),  kwargs...)
 ```
+As we can see above, the use of a [`Basis`](@ref) is optional to invoke the estimation process. Internally, a linear [`Basis`](@ref) will be generated based on the [`DataDrivenProblem`](@ref problem) containing the states and control inputs.
 
-The [`DataDrivenSolution`](@ref) `res` contains a `result` which is the inferred system and a [`Basis`](@ref), `metrics` which is a `NamedTuple` containing different metrics of the inferred system. These can be accessed via:
-
-```julia
-# The inferred system
-system = result(res)
-# The metrics
-m = metrics(res)
-```
-
-Since the inferred system is a parametrized equation, the corresponding parameters can be accessed and returned via
-
-```julia
-# Vector
-ps = parameters(res)
-# Parameter map
-ps = parameter_map(res)
-```
+The [`DataDrivenSolution`](@ref) `res` contains a `result` which is the inferred system and a [`Basis`](@ref).
 
 
