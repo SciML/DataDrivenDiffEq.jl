@@ -67,13 +67,11 @@ function update_state(p::DecisionNode, ps, st)
 end
 
 function (l::DecisionNode)(x::AbstractArray, ps, st::NamedTuple)
-    st = update_state(l, ps, st)
     y = _apply_layer(l, x, ps, st)
     return y, st
 end
 
 function (l::DecisionNode{true})(x::AbstractArray, ps, st::NamedTuple)
-    st = update_state(l, ps, st)
     y = _apply_layer(l, x, ps, st)
     return vcat(y, x), st
 end

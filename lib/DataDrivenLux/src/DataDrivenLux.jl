@@ -38,7 +38,7 @@ export Softmax, GumbelSoftmax
 # Nodes and Layers
 include("node.jl")
 export DecisionNode
-
+export update_state
 include("layer.jl")
 
 # Algorithms
