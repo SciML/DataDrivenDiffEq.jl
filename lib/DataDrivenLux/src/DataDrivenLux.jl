@@ -40,6 +40,7 @@ include("node.jl")
 export DecisionNode
 export update_state
 include("layer.jl")
+export DecisionLayer
 
 # Algorithms
 

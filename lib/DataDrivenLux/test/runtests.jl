@@ -103,3 +103,50 @@ using Distributions
         @test logpdf(d, ps, st_X) ≈ -log.(5.0^3)
     end
 end
+
+@testset "DecisionLayer" begin
+    @testset "No Skip" begin 
+rng = Random.default_rng()
+d = DecisionLayer(3, (1,1), (sin, exp), simplex = Softmax())
+ps, st = Lux.setup(rng, d)
+st_x = update_state(d, ps, st)
+st_X = update_state(d, ps, st)
+x = randn(rng, 3)
+X = randn(rng, 3, 10)
+y, _ = d(x, ps, st_x)
+Y, _ = d(X, ps, st_X)
+id_x = reduce(vcat, map(x->x.input_id, values(st_x)))
+id_X = reduce(vcat, map(x->x.input_id, values(st_X)))
+@test y == map(zip((sin, exp), x[id_x])) do (fi, xi)
+    fi(xi)
+end
+@test Y == reduce(vcat, map(zip((sin, exp), eachrow(X[id_X, :]))) do (fi, xi)
+    permutedims(fi.(xi))
+end)
+@test sum(x->sum(x.loglikelihood), values(st_x)) == logpdf(d, ps, st_x)
+@test prod(x->prod(exp, x.loglikelihood), values(st_x)) == pdf(d, ps, st_x)
+end
+@testset "Skip" begin 
+
+rng = Random.default_rng()
+d = DecisionLayer(3, (1,1), (sin, exp), skip = true, simplex = Softmax())
+ps, st = Lux.setup(rng, d)
+st_x = update_state(d, ps, st)
+st_X = update_state(d, ps, st)
+x = randn(rng, 3)
+X = randn(rng, 3, 10)
+y, _ = d(x, ps, st_x)
+Y, _ = d(X, ps, st_X)
+id_x = reduce(vcat, map(x->x.input_id, values(st_x)))
+id_X = reduce(vcat, map(x->x.input_id, values(st_X)))
+@test y == vcat(map(zip((sin, exp), x[id_x])) do (fi, xi)
+    fi(xi)
+end, x)
+@test Y == vcat(reduce(vcat, map(zip((sin, exp), eachrow(X[id_X, :]))) do (fi, xi)
+    permutedims(fi.(xi))
+end), X)
+@test sum(x->sum(x.loglikelihood), values(st_x)) == logpdf(d, ps, st_x)
+@test prod(x->prod(exp, x.loglikelihood), values(st_x)) == pdf(d, ps, st_x)
+end
+end
+

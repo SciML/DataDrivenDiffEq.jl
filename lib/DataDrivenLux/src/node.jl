@@ -67,22 +67,22 @@ function update_state(p::DecisionNode, ps, st)
 end
 
 function (l::DecisionNode)(x::AbstractArray, ps, st::NamedTuple)
-    y = _apply_layer(l, x, ps, st)
+    y = _apply_node(l, x, ps, st)
     return y, st
 end
 
 function (l::DecisionNode{true})(x::AbstractArray, ps, st::NamedTuple)
-    y = _apply_layer(l, x, ps, st)
+    y = _apply_node(l, x, ps, st)
     return vcat(y, x), st
 end
 
-function _apply_layer(l::DecisionNode, x::AbstractMatrix, ps, st)::AbstractMatrix
+function _apply_node(l::DecisionNode, x::AbstractMatrix, ps, st)::AbstractMatrix
     reduce(hcat, map(eachcol(x)) do xi
-               _apply_layer(l, xi, ps, st)
+        _apply_node(l, xi, ps, st)
            end)
 end
 
-function _apply_layer(l::DecisionNode, x::AbstractVector, ps, st)::Number
+function _apply_node(l::DecisionNode, x::AbstractVector, ps, st)::Number
     @unpack input_id = st
     l.f(x[input_id]...)
 end
