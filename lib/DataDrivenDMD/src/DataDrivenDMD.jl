@@ -1,6 +1,5 @@
 module DataDrivenDMD
 
-using CommonSolve: solve!
 using DataDrivenDiffEq
 # Load specific (abstract) types
 using DataDrivenDiffEq: AbstractBasis
@@ -13,6 +12,7 @@ using DataDrivenDiffEq: is_implicit, is_controlled
 
 using DataDrivenDiffEq.DocStringExtensions
 using DataDrivenDiffEq.CommonSolve
+using DataDrivenDiffEq.CommonSolve: solve!
 using DataDrivenDiffEq.StatsBase
 using DataDrivenDiffEq.Parameters
 
