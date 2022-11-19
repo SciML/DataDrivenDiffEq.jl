@@ -311,7 +311,7 @@ uuid = "7fed8a53-d475-4873-af3a-ba53cceea094"
 version = "0.1.0"
 
 [[deps.DataDrivenSparse]]
-deps = ["CommonSolve", "DataDrivenDiffEq", "LinearAlgebra", "Printf", "Reexport"]
+deps = ["DataDrivenDiffEq", "LinearAlgebra", "Printf", "Reexport"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSparse"
 uuid = "5b588203-7d8b-4fab-a537-c31a7f73f46b"
 version = "0.1.0"
