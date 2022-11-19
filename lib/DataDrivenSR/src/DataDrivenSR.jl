@@ -19,7 +19,6 @@ using DataDrivenDiffEq.Parameters
 using Reexport
 
 @reexport using SymbolicRegression
-
 """
 $(TYPEDEF)
 Options for using SymbolicRegression.jl within the `solve` function.
