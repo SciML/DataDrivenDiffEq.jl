@@ -12,7 +12,6 @@ using DataDrivenDiffEq: DDReturnCode, ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB
 using DataDrivenDiffEq: InternalDataDrivenProblem
 using DataDrivenDiffEq: is_implicit, is_controlled
 
-
 using DataDrivenDiffEq.DocStringExtensions
 using DataDrivenDiffEq.CommonSolve
 using DataDrivenDiffEq.StatsBase
