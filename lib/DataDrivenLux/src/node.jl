@@ -12,7 +12,7 @@ $(FIELDS)
 struct DecisionNode{skip, W, S, F} <: Lux.AbstractExplicitLayer
     "Input dimensions of the signal"
     in_dims::Int
-    "Function"
+    "Function which should map from in_dims ↦ R"
     f::F
     "Arity of the function"
     arity::Int
@@ -35,10 +35,14 @@ function Lux.initialparameters(rng::AbstractRNG, l::DecisionNode)
 end
 
 Lux.initialstates(rng::AbstractRNG, p::DecisionNode) = begin 
+    rng_ = copy(rng)
+    # Call once
+    rand(rng, 1)
+
     (loglikelihood = Float32[],
     input_id = Int[],
     temperature = 1f0, 
-    rng = rng)
+    rng = rng_)
 end
 
 function update_state(p::DecisionNode, ps, st)
@@ -83,3 +87,19 @@ function _apply_layer(l::DecisionNode, x::AbstractVector, ps, st)::Number
     @unpack input_id = st
     l.f(x[input_id]...)
 end
+
+Distributions.logpdf(::DecisionNode, ps, st)::Number = begin
+    @unpack loglikelihood = st
+    sum(loglikelihood)
+end
+
+Distributions.pdf(::DecisionNode, ps, st)::Number = begin
+    @unpack loglikelihood = st
+    prod(exp, loglikelihood)
+end
+
+function set_temperature(::DecisionNode, temperature, ps, st) 
+    merge(st, (; temperature = temperature))
+end
+
+get_temperature(::DecisionNode, ps, st) = st.temperature
