@@ -1,7 +1,5 @@
 module DataDrivenSparse
 
-using Base: gettypeinfos
-using CommonSolve: solve!
 using DataDrivenDiffEq
 # Load specific (abstract) types
 using DataDrivenDiffEq: AbstractBasis
