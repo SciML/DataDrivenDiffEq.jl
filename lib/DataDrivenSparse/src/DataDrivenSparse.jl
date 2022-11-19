@@ -12,13 +12,14 @@ using DataDrivenDiffEq: DDReturnCode, ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB
 using DataDrivenDiffEq: InternalDataDrivenProblem
 using DataDrivenDiffEq: is_implicit, is_controlled
 
-using DocStringExtensions
+
+using DataDrivenDiffEq.DocStringExtensions
+using DataDrivenDiffEq.CommonSolve
+using DataDrivenDiffEq.StatsBase
+using DataDrivenDiffEq.Parameters
+using DataDrivenDiffEq.Setfield
 
 using Reexport
-using CommonSolve
-using StatsBase
-using Parameters
-using Setfield
 using LinearAlgebra
 using Printf
 
