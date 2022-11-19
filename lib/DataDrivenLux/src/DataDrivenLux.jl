@@ -23,7 +23,7 @@ using Lux
 using TransformVariables
 using NNlib
 using Distributions
-using Zygote 
+using Zygote
 using Random
 
 abstract type AbstractSimplex end
@@ -37,9 +37,10 @@ export Softmax, GumbelSoftmax
 
 # Nodes and Layers
 include("node.jl")
+export DecisionNode
+
 include("layer.jl")
 
 # Algorithms
-
 
 end # module DataDrivenLux
