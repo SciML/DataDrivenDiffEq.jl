@@ -32,6 +32,22 @@ using Distributions
         @test y == sin(x[st_x.input_id])
         @test Y == permutedims(map(xi -> sin(xi[st_X.input_id]), eachcol(X)))
     end
+
+    @testset "Skip" begin
+        rng = Random.default_rng()
+        x = randn(rng, 2)
+        X = randn(rng, 2, 10)
+        d = DecisionNode(2, 1, sin, simplex = Softmax(), skip = true)
+        ps, st = Lux.setup(rng, d)
+        st_x = update_state(d, ps, st)
+        st_X = update_state(d, ps, st)
+        y, st_x = d(x, ps, st_x)
+        Y, st_X = d(X, ps, st_X)
+        @test y == vcat(sin(x[st_x.input_id]), x)
+        @test Y == vcat(permutedims(map(xi -> sin(xi[st_X.input_id]), eachcol(X))), X)
+    end
+    
+
     @testset "Binary" begin
         rng = Random.default_rng()
         x = randn(rng, 2)
