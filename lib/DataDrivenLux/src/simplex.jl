@@ -29,7 +29,7 @@ end
         y[:, i] .= exp.(x[:,i])
     end
     y ./= sum(y, dims = 2)
-    softmax((x .+ z) ./ κ, dims = 2)
+    softmax((y .+ z) ./ κ, dims = 2)
 end
 
 
