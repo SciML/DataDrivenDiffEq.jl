@@ -4,7 +4,6 @@ authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 version = "0.1.0"
 
 [deps]
-CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
 DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
