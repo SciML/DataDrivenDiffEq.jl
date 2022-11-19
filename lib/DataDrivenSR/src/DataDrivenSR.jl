@@ -1,6 +1,5 @@
 module DataDrivenSR
 
-using CommonSolve: solve!
 using DataDrivenDiffEq
 # Load specific (abstract) types
 using DataDrivenDiffEq: AbstractBasis
@@ -11,15 +10,15 @@ using DataDrivenDiffEq: DDReturnCode, ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB
 using DataDrivenDiffEq: InternalDataDrivenProblem
 using DataDrivenDiffEq: is_implicit, is_controlled
 
-using DocStringExtensions
+using DataDrivenDiffEq.DocStringExtensions
+using DataDrivenDiffEq.CommonSolve
+using DataDrivenDiffEq.CommonSolve: solve!
+using DataDrivenDiffEq.StatsBase
+using DataDrivenDiffEq.Parameters
 
 using Reexport
-using CommonSolve
-using StatsBase
-using Parameters
 
 @reexport using SymbolicRegression
-
 """
 $(TYPEDEF)
 Options for using SymbolicRegression.jl within the `solve` function.

@@ -11,3 +11,10 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 Documenter = "0.27"
+DataDrivenDiffEq = "1"
+ModelingToolkit = "8"
+OrdinaryDiffEq = "6"
+StatsBase = "0.33"
+Literate = "2.14"
+StableRNGs = "1"
+Plots = "1"
