@@ -23,7 +23,7 @@ using Lux
 using TransformVariables
 using NNlib
 using Distributions
-using Zygote
+using ChainRulesCore
 using Random
 
 abstract type AbstractSimplex end
@@ -39,6 +39,7 @@ export Softmax, GumbelSoftmax
 include("node.jl")
 export DecisionNode
 export update_state
+
 include("layer.jl")
 export DecisionLayer
 

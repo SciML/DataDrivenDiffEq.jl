@@ -24,7 +24,7 @@ end
 
 function (::GumbelSoftmax)(x::AbstractArray, κ = one(eltype(x)))
     begin
-        z = Zygote.@ignore -log.(-log.(rand(size(x)...)))
+        z = ChainRulesCore.@ignore_derivatives -log.(-log.(rand(size(x)...)))
         y = similar(x)
         foreach(axes(x, 2)) do i
             y[:, i] .= exp.(x[:, i])

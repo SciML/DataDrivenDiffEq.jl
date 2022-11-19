@@ -78,13 +78,19 @@ end
 
 function _apply_node(l::DecisionNode, x::AbstractMatrix, ps, st)::AbstractMatrix
     reduce(hcat, map(eachcol(x)) do xi
-        _apply_node(l, xi, ps, st)
+               _apply_node(l, xi, ps, st)
            end)
 end
 
 function _apply_node(l::DecisionNode, x::AbstractVector, ps, st)::Number
     @unpack input_id = st
     l.f(x[input_id]...)
+end
+
+function _apply_node(l::DecisionNode{<:Any, <:Any, <:Any, Nothing}, x::AbstractVector, ps,
+                     st)::Number
+    @unpack input_id = st
+    x[input_id]
 end
 
 Distributions.logpdf(::DecisionNode, ps, st)::Number = begin
