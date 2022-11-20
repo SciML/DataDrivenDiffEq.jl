@@ -27,8 +27,8 @@ using ChainRulesCore
 using ComponentArrays
 using Random
 
+abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
 abstract type AbstractSimplex end
-
 abstract type AbstractErrorModel end
 abstract type AbstractErrorDistribution end
 abstract type AbstractConfigurationCache <: StatsBase.StatisticalModel end
@@ -37,10 +37,6 @@ abstract type AbstractConfigurationCache <: StatsBase.StatisticalModel end
 include("error_model.jl")
 export AdditiveError, MultiplicativeError
 export ObservedError
-
-include("utilities.jl")
-
-
 
 # Simplex
 include("simplex.jl")

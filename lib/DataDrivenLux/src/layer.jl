@@ -34,7 +34,6 @@ function (r::DecisionLayer{true})(x, ps, st)
     vcat(y, x), st
 end
 
-
 Base.keys(m::DecisionLayer) = Base.keys(getfield(m, :layers))
 
 Base.getindex(c::DecisionLayer, i::Int) = c.layers[i]
@@ -146,8 +145,6 @@ end
 Distributions.logpdf(r::LayeredDAG, ps, st) = __logpdf(r.layers, ps, st)
 Distributions.pdf(r::LayeredDAG, ps, st) = __pdf(r.layers, ps, st)
 
-
-
 # Given that this is basically a chain, we hijack Lux
 function (c::LayeredDAG)(x, ps, st)
     return Lux.applychain(c.layers, x, ps, st)
@@ -167,7 +164,7 @@ function __get_input(st::NamedTuple{(:loglikelihood, :input_id, :temperature, :r
     st.input_id
 end
 
-@generated function __get_input(st::NamedTuple{fields, <: Tuple}) where fields
+@generated function __get_input(st::NamedTuple{fields, <:Tuple}) where {fields}
     N = length(fields)
     outputs = [gensym() for i in 1:N]
     calls = [:($(outputs[i]) = __get_input(st.$(fields[i]))) for i in reverse(1:N)]
@@ -203,7 +200,7 @@ end
 function StatsBase.dof(d::LayeredDAG, ps, st::NamedTuple{fields})::Int where {fields}
     paths = get_path(d, ps, st)
     dof = 0
-    @inbounds foreach(1:length(d)) do i 
+    @inbounds foreach(1:length(d)) do i
         dof += length(union(map(Base.Fix2(getindex, i), paths)))
     end
     dof
