@@ -4,6 +4,7 @@ using Random
 using Lux
 using Test
 using Distributions
+using DataDrivenDiffEq.StatsBase
 
 @testset "Decision Node" begin
     @testset "Unary" begin
@@ -23,7 +24,7 @@ using Distributions
         @test logpdf(d, ps, st_x) == log.(0.5f0)
         @test logpdf(d, ps, st_X) == log.(0.5f0)
 
-        d = DecisionNode(2, 1, sin, simplex = GumbelSoftmax(rng))
+        d = DecisionNode(2, 1, sin, simplex = GumbelSoftmax())
         ps, st = Lux.setup(rng, d)
         st_x = update_state(d, ps, st)
         st_X = update_state(d, ps, st)
@@ -179,7 +180,6 @@ end
         st_x = update_state(chain, ps, st)
         y, st_xx = chain(x, ps, st_x)
         @test st_xx == st_x
-        @test x ∈ eachrow(y) && sin.(x) ∈ eachrow(y)
         @test logpdf(chain, ps, st_x) == log(0.25f0)
         @test pdf(chain, ps, st_x) == 0.25f0
 
@@ -189,3 +189,4 @@ end
         @test size(Y) == (2, 10)
     end
 end
+

@@ -34,6 +34,15 @@ function (r::DecisionLayer{true})(x, ps, st)
     vcat(y, x), st
 end
 
+
+Base.keys(m::DecisionLayer) = Base.keys(getfield(m, :layers))
+
+Base.getindex(c::DecisionLayer, i::Int) = c.layers[i]
+
+Base.length(c::DecisionLayer) = length(c.layers)
+Base.lastindex(c::DecisionLayer) = lastindex(c.layers)
+Base.firstindex(c::DecisionLayer) = firstindex(c.layers)
+
 @generated function _apply_layer(layers::NamedTuple{fields}, x, ps,
                                  st::NamedTuple{fields}) where {fields}
     N = length(fields)
@@ -137,7 +146,65 @@ end
 Distributions.logpdf(r::LayeredDAG, ps, st) = __logpdf(r.layers, ps, st)
 Distributions.pdf(r::LayeredDAG, ps, st) = __pdf(r.layers, ps, st)
 
+
+
 # Given that this is basically a chain, we hijack Lux
-function (c::LayeredDAG)(x, ps, st::NamedTuple)
+function (c::LayeredDAG)(x, ps, st)
     return Lux.applychain(c.layers, x, ps, st)
+end
+
+Base.keys(m::LayeredDAG) = Base.keys(getfield(m, :layers))
+
+Base.getindex(c::LayeredDAG, i::Int) = c.layers[i]
+Base.getindex(c::LayeredDAG, i::Int, j::Int) = getindex(c.layers[i], j)
+
+Base.length(c::LayeredDAG) = length(c.layers)
+Base.lastindex(c::LayeredDAG) = lastindex(c.layers)
+Base.firstindex(c::LayeredDAG) = firstindex(c.layers)
+
+## Collect the traversal information
+function __get_input(st::NamedTuple{(:loglikelihood, :input_id, :temperature, :rng)})
+    st.input_id
+end
+
+@generated function __get_input(st::NamedTuple{fields, <: Tuple}) where fields
+    N = length(fields)
+    outputs = [gensym() for i in 1:N]
+    calls = [:($(outputs[i]) = __get_input(st.$(fields[i]))) for i in reverse(1:N)]
+    push!(calls, :($(Tuple(reverse(outputs))...),))
+    return Expr(:block, calls...)
+end
+
+function __get_path(path::NTuple{N, Tuple}, id::Union{Int, Nothing} = nothing) where {N, M}
+    next_ = first(path)
+    tails_ = Base.tail(path)
+    if isnothing(id)
+        return map(next_) do id
+            (id, __get_path(tails_, id)...)
+        end
+    elseif !isempty(tails_)
+        next_id = getindex(next_, id)
+        next_ids = __get_path(tails_, next_id)
+        return (next_id, next_ids...)
+    else
+        return (getindex(next_, id))
+    end
+end
+
+function __get_path(path::NTuple{M, Int}, id::Int) where {M}
+    (getindex(path, id))
+end
+
+function get_path(d::LayeredDAG, ps, st)
+    __get_path(__get_input(st), nothing)
+end
+
+# TODO Make me faster
+function StatsBase.dof(d::LayeredDAG, ps, st::NamedTuple{fields})::Int where {fields}
+    paths = get_path(d, ps, st)
+    dof = 0
+    @inbounds foreach(1:length(d)) do i 
+        dof += length(union(map(Base.Fix2(getindex, i), paths)))
+    end
+    dof
 end

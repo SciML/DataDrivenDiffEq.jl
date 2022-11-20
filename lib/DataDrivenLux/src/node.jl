@@ -24,7 +24,7 @@ end
 
 function DecisionNode(in_dims::Int, arity::Int, f::F = identity;
                       init_weight = Lux.zeros32, skip = false,
-                      simplex = GumbelSoftmax(),
+                      simplex = Softmax(),
                       kwargs...) where {F}
     return DecisionNode{skip, typeof(init_weight), typeof(simplex), F}(in_dims, f, arity,
                                                                        init_weight, simplex)
@@ -51,7 +51,8 @@ function update_state(p::DecisionNode, ps, st)
     @unpack temperature, rng = st
     @unpack weight = ps
 
-    priors = p.simplex(weight, temperature)
+    # Transform to the unit simplex
+    priors = p.simplex(rng, weight, temperature)
 
     input_id = map(axes(priors, 1)) do i
         dist = Categorical(priors[i, :])
