@@ -59,8 +59,8 @@ export LayeredDAG
 include("configuration.jl")
 
 export ConfigurationCache
-export optimize_configuration!, evaluate!
-export get_data_loglikelihood, get_configuration_dof, get_configuration_loglikelihood, 
+export optimize_configuration!, evaluate_configuration!
+export get_data_loglikelihood, get_configuration_dof, get_configuration_loglikelihood
 export get_scales
 
 end # module DataDrivenLux
