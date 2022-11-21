@@ -19,7 +19,7 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <: Abst
     p = progress ? ProgressMeter.Progress(maxiters, dt=1.0) : nothing
 
     foreach(1:maxiters) do iter
-        update_cache!(cache)
+        cache = update_cache!(cache)
         if progress
             ProgressMeter.update!(p, iter)
         end

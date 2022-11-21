@@ -1,5 +1,6 @@
 abstract type AbstractAlgorithmCache end
 
+using Base: dataids
 struct SearchCache{ALG, N, M, P, B <: AbstractBasis} <: AbstractAlgorithmCache
     alg::ALG
     candidates::AbstractVector
@@ -56,7 +57,7 @@ function SearchCache(x::X where X <: AbstractDAGSRAlgorithm, basis::Basis, X::Ab
 
 function update_cache!(cache::SearchCache{<:AbstractDAGSRAlgorithm})
     @unpack candidates, p, model, alg, keeps, sorting, ages, iterations = cache
-    @unpack keep, loss, procs, optimizer, optim_options = alg
+    @unpack keep, loss, distributed, optimizer, optim_options = alg
     @unpack basis, dataset = cache
 
     sortperm!(sorting, candidates, by = loss)
@@ -81,17 +82,73 @@ function update_cache!(cache::SearchCache{<:AbstractDAGSRAlgorithm})
     p = update(p, model, alg, candidates, keeps, dataset, basis)
 
     # Update all 
-    if isnothing(procs)
+    if distributed
+        successes = pmap(1:length(keeps)) do i 
+            if keeps[i]
+                return true
+            end
+            try
+                candidates[i] = resample!(candidates[i], model, p, dataset, basis, optimizer, optim_options)
+                return true
+            catch e
+                @info "Failed to update $i on $(Distributed.myid())"
+                return false
+            end
+        end
+    else
         @inbounds for (i, keepidx) in enumerate(keeps)
             if !keepidx
                 candidates[i] = resample!(candidates[i], model, p, dataset, basis, optimizer,
                                           optim_options)
             end
         end
-    else
-        f_update(c) = resample!(c, model, p, dataset, basis, optimizer, optim_options)
-        candidates[.!keeps] .= pmap(f_update, procs, candidates[.!keeps])
-    end
+    end 
+        
 
     return
 end
+
+#function distributed_resample!(cache::SearchCache)
+#
+#    cache_channel = RemoteChannel(() -> Channel{SearchCache}(1), 1)
+#    put!(cache_channel, deepcopy(cache))
+#
+#    done_channel = RemoteChannel(() -> Channel{Bool}(1), 1)
+#    put!(done_channel, false)
+#    
+#    @unpack keeps = cache
+#
+#    pmap(1:length(keeps)) do i
+#        @info Distributed.myid()
+#        isdone = take!(done_channel)
+#        put!(done_channel, isdone)
+#        isdone && return
+#
+#        local_cache = take!(cache_channel)
+#
+#        @unpack keeps, candidates, dataset, basis, optimizer, optim_options, model, p = local_cache
+#
+#        put!(cache_channel, local_cache)
+#        if !keeps[i]
+#            candidates[i] = resample!(candidates[i], model, p, dataset, basis, optimizer, optim_options)
+#        end
+#        
+#        local_cache.canddates[i] = candidates[i]
+#
+#        put!(cache_channel, local_cache)
+#        candidates[i]
+#    end 
+#
+#    # What we get out of the channel is an updated copy of our original hyperoptimizer.
+#    # So now, back on the manager process, we take it out one last time and update
+#    # the original hyperoptimizer.
+#    updated_cache = take!(cache_channel)
+#    close(cache_channel)
+#
+#            
+#    # Do this last in case remaining runs are slow at starting so they can take the channel and stop
+#    # properly without erroring (happens if accessing channel after closing)
+#    close(done_channel)
+#
+#    updated_cache
+#end

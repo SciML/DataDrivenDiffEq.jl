@@ -1,4 +1,4 @@
-@with_kw struct RandomSearch{F, A, L, P, O} <: AbstractDAGSRAlgorithm
+@with_kw struct RandomSearch{F, A, L, O} <: AbstractDAGSRAlgorithm
     "The number of candidates to track"
     populationsize::Int = 100
     "The functions to include in the search"
@@ -13,8 +13,8 @@
     loss::L = aicc
     "The number of candidates to keep in each iteration"
     keep::Union{Real, Int} = 0.1
-    "Processes to use"
-    procs::P = nothing
+    "Use distributed optimization and resampling"
+    distributed::Bool = false
     "Random seed"
     rng::Random.AbstractRNG = Random.default_rng()
     "Optim optimiser"
