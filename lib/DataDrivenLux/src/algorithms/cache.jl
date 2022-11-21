@@ -105,7 +105,7 @@ function update_cache!(cache::SearchCache{<:AbstractDAGSRAlgorithm})
     end 
         
 
-    return
+    return cache
 end
 
 #function distributed_resample!(cache::SearchCache)
