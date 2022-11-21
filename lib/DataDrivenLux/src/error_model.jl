@@ -6,7 +6,7 @@ An error following `ŷ ~ y + ϵ`.
 """
 struct AdditiveError <: AbstractErrorModel end
 
-function (x::AdditiveError)(d::D, y::T, ỹ::T, scale::S = one(T)) where {D, T <: Number, S}
+function (x::AdditiveError)(d::D, y::T, ỹ::R, scale::S = one(T)) where {D, T <: Number, S, R}
     begin logpdf(d(y, scale), ỹ) end
 end
 
@@ -17,8 +17,8 @@ An error following `ŷ ~ y * (1+ϵ)`.
 """
 struct MultiplicativeError <: AbstractErrorModel end
 
-function (x::MultiplicativeError)(d::D, y::T, ỹ::T,
-                                  scale::S = one(T)) where {D, T <: Number, S}
+function (x::MultiplicativeError)(d::D, y::T, ỹ::R,
+                                  scale::S = one(T)) where {D, T <: Number, S, R}
     logpdf(D(y, abs(y) * scale), ỹ)
 end
 
@@ -39,12 +39,12 @@ function ObservedError(n::Int)
 end
 
 function Distributions.logpdf(o::ObservedError{U, V}, y::AbstractMatrix{T},
-                              ỹ::AbstractMatrix{T},
+                              ỹ::AbstractMatrix{R},
                               scales::AbstractVector{S} = ones(eltype(y), size(y, 1))) where {
                                                                                               U,
                                                                                               V,
                                                                                               T,
-                                                                                              S
+                                                                                              S, R
                                                                                               }
     @unpack distributions, error_models = o
 
@@ -56,8 +56,8 @@ function Distributions.logpdf(o::ObservedError{U, V}, y::AbstractMatrix{T},
 end
 
 function Distributions.logpdf(o::ObservedError{U, V}, y::AbstractMatrix{T},
-                              ỹ::AbstractMatrix{T},
-                              scales::AbstractMatrix{S}) where {U, V, T, S}
+                              ỹ::AbstractMatrix{R},
+                              scales::AbstractMatrix{S}) where {U, V, T, S, R}
     @unpack distributions, error_models = o
 
     lpdf = zero(S)

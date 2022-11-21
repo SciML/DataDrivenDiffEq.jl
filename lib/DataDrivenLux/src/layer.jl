@@ -175,56 +175,39 @@ end
     return Expr(:block, calls...)
 end
 
-# This is on chain level
-function __get_unique_nodes(x::NTuple{N, Tuple},
-                            idx::Union{Int, Vector{Int}, Nothing} = nothing) where {N}
-    if isnothing(idx)
-        idxs = unique(first(x))
+function __get_unique_nodes(x::NTuple{N, Tuple}, id::Union{Nothing, Int, Vector{Int}} = nothing) where N
+    if isnothing(id)
+        ret_ = reduce(vcat, first(x))
+        isa(ret_, Vector{Int}) || (ret_ = [ret_])
+        next_ = ret_
     else
-        idxs = unique(first(x)[idx])
-    end
-    N <= 1 && return idxs
-    foreach(idxs) do id
-        # We proceed to the next layer
-        foreach(__get_unique_nodes(Base.tail(x), id)) do id_
-            push!(idxs, id_)
+        # Filter for nodes inside the current and the next layers
+        current = [i for i in id if i <= length(first(x))]
+        if !isempty(current) 
+            ret_ = reduce(vcat, first(x)[i] for i in current)
+            isa(ret_, Vector{Int}) || (ret_ = [ret_])
+            next_ = vcat(ret_, [i for i in id if i > length(first(x))] .- length(first(x)))
+        else
+            # Just skip connections
+            next_ = id .- length(first(x))
+            ret_ = Int[]
         end
     end
-    idxs
-end
+    unique!(ret_)
+    unique!(next_)
+    (isempty(Base.tail(x)) || isempty(next_)) && return ret_
+    subids = __get_unique_nodes(Base.tail(x), next_)
+    isa(subids, Vector{Int}) && return ret_, subids
+    ret_, subids...
+end 
 
-function __get_unique_nodes(x::Tuple{Union{Int, Vector{Int}}},
-                            idx::Union{Int, Vector{Int}, Nothing} = nothing) where {N}
-    if isnothing(idx)
-        idxs = unique(x)
-    else
-        idxs = unique(x[idx])
-    end
-    idxs
-end
 
-function __get_unique_nodes(x::Tuple{},
-                            idx::Union{Int, Vector{Int}, Nothing} = nothing) where {N}
-    unique(x)
-end
+get_unique_nodes(d::LayeredDAG, ps, st::NamedTuple) = begin
+    __get_unique_nodes(reverse(__get_input(st)))
+end 
 
-function _get_unique_nodes(x::NTuple{N, Tuple}) where {N}
-    (unique(first(x)), _get_unique_nodes(Base.tail(x))...)
-end
-
-function _get_unique_nodes(x::NTuple{M, X}) where {M, X <: Union{Int, Vector{Int}}}
-    return (unique(x))
-end
-
-function _get_unique_nodes(x::Tuple{})
-    return x
-end
-
-function get_unique_nodes(::LayeredDAG, ps, st)
-    _get_unique_nodes(__get_input(st))
-end
 
 # TODO Make me faster
 function StatsBase.dof(d::LayeredDAG, ps, st::NamedTuple{fields})::Int where {fields}
-    sum(length, get_unique_nodes(d, ps, st))
+    sum(length, get_unique_nodes(d, ps, st), init = 0)
 end
