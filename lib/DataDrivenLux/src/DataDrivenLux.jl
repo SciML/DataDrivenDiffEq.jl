@@ -23,9 +23,11 @@ using Lux
 using TransformVariables
 using NNlib
 using Distributions
+using DistributionsAD
 using ChainRulesCore
 using ComponentArrays
 using Random
+using Distributed
 
 abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
 abstract type AbstractSimplex end
@@ -58,5 +60,12 @@ export ConfigurationCache
 export optimize_configuration!, evaluate_configuration!
 export get_data_loglikelihood, get_configuration_dof, get_configuration_loglikelihood
 export get_scales
+
+include("algorithms/cache.jl")
+export SearchCache
+export update!
+
+include("algorithms/randomsearch.jl")
+export RandomSearch
 
 end # module DataDrivenLux

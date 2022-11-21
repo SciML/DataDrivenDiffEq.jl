@@ -115,19 +115,22 @@ end
 function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, arities::Tuple,
                     fs::Tuple; skip = false, kwargs...)
     n_inputs = in_dimension
-
+    valid_idxs = zeros(Bool, length(fs))
     layers = map(1:(n_layers + 1)) do i
+        # Filter the functions by their input dimension
+        valid_idxs .= arities .<= n_inputs
         if i <= n_layers
-            layer = DecisionLayer(n_inputs, arities, fs; skip = skip, kwargs...)
+            layer = DecisionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs];
+                                  skip = skip, kwargs...)
         else
             layer = DecisionLayer(n_inputs, Tuple(1 for i in 1:out_dimension),
                                   Tuple(nothing for i in 1:out_dimension); skip = false,
                                   kwargs...)
         end
         if skip
-            n_inputs = n_inputs + length(fs)
+            n_inputs = n_inputs + sum(valid_idxs)
         else
-            n_inputs = length(arities)
+            n_inputs = sum(valid_idxs)
         end
         layer
     end
@@ -168,40 +171,60 @@ end
     N = length(fields)
     outputs = [gensym() for i in 1:N]
     calls = [:($(outputs[i]) = __get_input(st.$(fields[i]))) for i in reverse(1:N)]
-    push!(calls, :($(Tuple(reverse(outputs))...),))
+    push!(calls, :($(Tuple(outputs)...),))
     return Expr(:block, calls...)
 end
 
-function __get_path(path::NTuple{N, Tuple}, id::Union{Int, Nothing} = nothing) where {N, M}
-    next_ = first(path)
-    tails_ = Base.tail(path)
-    if isnothing(id)
-        return map(next_) do id
-            (id, __get_path(tails_, id)...)
-        end
-    elseif !isempty(tails_)
-        next_id = getindex(next_, id)
-        next_ids = __get_path(tails_, next_id)
-        return (next_id, next_ids...)
+# This is on chain level
+function __get_unique_nodes(x::NTuple{N, Tuple},
+                            idx::Union{Int, Vector{Int}, Nothing} = nothing) where {N}
+    if isnothing(idx)
+        idxs = unique(first(x))
     else
-        return (getindex(next_, id))
+        idxs = unique(first(x)[idx])
     end
+    N <= 1 && return idxs
+    foreach(idxs) do id
+        # We proceed to the next layer
+        foreach(__get_unique_nodes(Base.tail(x), id)) do id_
+            push!(idxs, id_)
+        end
+    end
+    idxs
 end
 
-function __get_path(path::NTuple{M, Int}, id::Int) where {M}
-    (getindex(path, id))
+function __get_unique_nodes(x::Tuple{Union{Int, Vector{Int}}},
+                            idx::Union{Int, Vector{Int}, Nothing} = nothing) where {N}
+    if isnothing(idx)
+        idxs = unique(x)
+    else
+        idxs = unique(x[idx])
+    end
+    idxs
 end
 
-function get_path(d::LayeredDAG, ps, st)
-    __get_path(__get_input(st), nothing)
+function __get_unique_nodes(x::Tuple{},
+                            idx::Union{Int, Vector{Int}, Nothing} = nothing) where {N}
+    unique(x)
+end
+
+function _get_unique_nodes(x::NTuple{N, Tuple}) where {N}
+    (unique(first(x)), _get_unique_nodes(Base.tail(x))...)
+end
+
+function _get_unique_nodes(x::NTuple{M, X}) where {M, X <: Union{Int, Vector{Int}}}
+    return (unique(x))
+end
+
+function _get_unique_nodes(x::Tuple{})
+    return x
+end
+
+function get_unique_nodes(::LayeredDAG, ps, st)
+    _get_unique_nodes(__get_input(st))
 end
 
 # TODO Make me faster
 function StatsBase.dof(d::LayeredDAG, ps, st::NamedTuple{fields})::Int where {fields}
-    paths = get_path(d, ps, st)
-    dof = 0
-    @inbounds foreach(1:length(d)) do i
-        dof += length(union(map(Base.Fix2(getindex, i), paths)))
-    end
-    dof
+    sum(length, get_unique_nodes(d, ps, st))
 end

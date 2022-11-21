@@ -64,9 +64,14 @@ function ConfigurationCache(x::LayeredDAG, ps, st, X::AbstractArray, Y::Abstract
                               nothing)
 end
 
+function Base.print(io::IO, c::ConfigurationCache)
+    print(io, loglikelihood(c), "   ", dof(c), "    ", rss(c), "    ", aicc(c))
+end
+
 get_data_loglikelihood(c::ConfigurationCache) = getfield(c, :dataloglikelihood)
 get_configuration_loglikelihood(c::ConfigurationCache) = getfield(c, :loglikelihood)
 get_configuration_dof(c::ConfigurationCache) = getfield(c, :graph_dof)
+
 function get_scales(c::ConfigurationCache)
     transform(getfield(c, :transform_scales), getfield(c, :scales))
 end
@@ -78,18 +83,22 @@ StatsBase.rss(c::ConfigurationCache) = getfield(c, :rss)
 StatsBase.nobs(c::ConfigurationCache) = getfield(c, :nobs)
 StatsBase.r2(c::ConfigurationCache) = r2(c, :CoxSnell)
 
-function _generate_loss(c::ConfigurationCache{<:Any, <:Any, <:Any, <:Any, <:Any, Nothing},
-                        chain::LayeredDAG, ps, X, Y)
+@views function configuration_loss(p::AbstractVector{U},
+                                   c::ConfigurationCache{<:Any, <:Any, <:Any, <:Any, <:Any,
+                                                         Nothing},
+                                   chain::LayeredDAG, X::AbstractMatrix{T},
+                                   Y::AbstractMatrix{T},
+                                   ps::Union{NamedTuple, AbstractVector}) where {U,
+                                                                                 T <:
+                                                                                 Number}
     @unpack transform_scales, st, errormodel = c
-    loss = let tf = transform_scales, errormodel_ = errormodel, st_ = st, X = X, Y = Y,
-        ps = ps
+    @unpack scales = p
 
-        (p) -> begin
-            σ = transform(tf, p.scales)
-            Ŷ, _ = chain(X, ps, st_)
-            -logpdf(errormodel_, Y, Ŷ, σ)
-        end
-    end
+    Ŷ, _ = chain(X, ps, st)
+
+    -logpdf(errormodel, Y,
+            Ŷ,
+            transform(transform_scales, scales))
 end
 
 # Create the initial parameters for optimization
@@ -98,17 +107,22 @@ function _init_ps(c::ConfigurationCache{<:Any, <:Any, <:Any, <:Any, <:Any, Nothi
     ComponentVector((; scales = scales))
 end
 
-function optimize_configuration!(c::ConfigurationCache, d::LayeredDAG, ps, X::AbstractArray,
-                                 Y::AbstractArray, optimizer = Optim.BFGS(),
-                                 options = Optim.Options())
-    loss = _generate_loss(c, d, ps, X, Y)
+function optimize_configuration!(c::ConfigurationCache, d::LayeredDAG, ps,
+                                 X::AbstractArray{T},
+                                 Y::AbstractArray{T}, optimizer = Optim.BFGS(),
+                                 options = Optim.Options()) where {T}
+    loss(p) = configuration_loss(p, c, d, X, Y, ps)
+
     p_init = _init_ps(c)
-    res = Optim.optimize(loss, p_init, optimizer, options)
+
+    res = Optim.optimize(loss, p_init, optimizer, options, autodiff = :forward)
+
     if Optim.converged(res)
         c = update_configuration!(c, res)
         c = evaluate_configuration!(c, d, ps, X, Y)
         return c
     end
+
     return c
 end
 
@@ -130,4 +144,13 @@ function evaluate_configuration!(c::ConfigurationCache, d::LayeredDAG, ps, X::Ab
     end
     c = @set! c.nullloglikelihood = logpdf(errormodel, Y, Ŷ, get_scales(c))
     return c
+end
+
+function resample!(c::ConfigurationCache, d::LayeredDAG, ps, X::AbstractArray,
+                   Y::AbstractArray, optimizer = Optim.BFGS(),
+                   options = Optim.Options())
+    # Sample new state
+    c = @set! c.st = update_state(d, ps, c.st)
+    # Update the parameters
+    return optimize_configuration!(c, d, ps, X, Y, optimizer, options)
 end

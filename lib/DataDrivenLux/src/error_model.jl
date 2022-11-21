@@ -6,14 +6,9 @@ An error following `ŷ ~ y + ϵ`.
 """
 struct AdditiveError <: AbstractErrorModel end
 
-function (x::AdditiveError)(y::T, ỹ::T) where {T <: AbstractArray}
-    @assert size(y)==size(ỹ) "Data and prediction have to be of equal size!"
-    map(enumerate(y)) do (i, yi)
-        ỹ[i] - yi
-    end
+function (x::AdditiveError)(d::D, y::T, ỹ::T, scale::S = one(T)) where {D, T <: Number, S}
+    begin logpdf(d(y, scale), ỹ) end
 end
-
-(x::AdditiveError)(y::T, ỹ::T) where {T <: Number} = ỹ - y
 
 """
 $(TYPEDEF)
@@ -22,15 +17,10 @@ An error following `ŷ ~ y * (1+ϵ)`.
 """
 struct MultiplicativeError <: AbstractErrorModel end
 
-function (x::MultiplicativeError)(y::T, ỹ::T) where {T <: AbstractArray}
-    @assert size(y)==size(ỹ) "Data and prediction have to be of equal size!"
-    xone = one(eltype(y))
-    map(enumerate(y)) do (i, yi)
-        xone - ỹ[i] / (yi .+ eps())
-    end
+function (x::MultiplicativeError)(d::D, y::T, ỹ::T,
+                                  scale::S = one(T)) where {D, T <: Number, S}
+    logpdf(D(y, abs(y) * scale), ỹ)
 end
-
-(x::MultiplicativeError)(y::T, ỹ::T) where {T <: Number} = ỹ / (y + eps())
 
 """
 $(TYPEDEF)
@@ -43,35 +33,36 @@ struct ObservedError{D, E} <: AbstractErrorModel
 end
 
 function ObservedError(n::Int)
-    distributions = Tuple(Normal() for _ in 1:n)
+    distributions = Tuple(Normal for _ in 1:n)
     errors = Tuple(AdditiveError() for _ in 1:n)
     return ObservedError(distributions, errors)
 end
 
-function Distributions.logpdf(o::ObservedError{U, V}, y::AbstractMatrix, ỹ::AbstractMatrix,
-                              scales::AbstractVector = ones(eltype(y), size(y, 1))) where {
-                                                                                           U,
-                                                                                           V
-                                                                                           }
+function Distributions.logpdf(o::ObservedError{U, V}, y::AbstractMatrix{T},
+                              ỹ::AbstractMatrix{T},
+                              scales::AbstractVector{S} = ones(eltype(y), size(y, 1))) where {
+                                                                                              U,
+                                                                                              V,
+                                                                                              T,
+                                                                                              S
+                                                                                              }
     @unpack distributions, error_models = o
 
-    lpdf = zero(eltype(y))
-    for i in axes(y, 1), j in axes(y, 2)
-        lpdf += Distributions.logpdf(typeof(distributions[i])(zero(scales[i]), scales[i]),
-                                     error_models[i](y[i, j], ỹ[i, j]))
+    lpdf = zero(S)
+    @inbounds for i in axes(y, 1), j in axes(y, 2)
+        lpdf += error_models[i](distributions[i], y[i, j], ỹ[i, j], scales[i])
     end
     lpdf
 end
 
-function Distributions.logpdf(o::ObservedError{U, V}, y::AbstractMatrix, ỹ::AbstractMatrix,
-                              scales::AbstractMatrix) where {U, V}
+function Distributions.logpdf(o::ObservedError{U, V}, y::AbstractMatrix{T},
+                              ỹ::AbstractMatrix{T},
+                              scales::AbstractMatrix{S}) where {U, V, T, S}
     @unpack distributions, error_models = o
 
-    lpdf = zero(eltype(y))
-    for i in axes(y, 1), j in axes(y, 2)
-        lpdf += Distributions.logpdf(typeof(distributions[i])(zero(scales[i, j]),
-                                                              scales[i, j]),
-                                     error_models[i](y[i, j], ỹ[i, j]))
+    lpdf = zero(S)
+    @inbounds for i in axes(y, 1), j in axes(y, 2)
+        lpdf += error_models[i](distributions[i], y[i, j], ỹ[i, j], scales[i, j])
     end
     lpdf
 end
