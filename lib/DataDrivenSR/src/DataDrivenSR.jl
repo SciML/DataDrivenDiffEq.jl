@@ -71,7 +71,10 @@ function (x::EQSearch)(ps::InternalDataDrivenProblem{EQSearch}, X, Y)
                                              numprocs = numprocs,
                                              procs = procs, parallelism = parallelism,
                                              runtests = runtests)
-
+    
+    # We always want something which is a vector or tuple
+    hofs = collect(hofs)
+    
     # Evaluate over the full training data
     paretos = map(enumerate(hofs)) do (i, hof)
         SymbolicRegression.calculate_pareto_frontier(X, Y[i, :], hof, eq_options)
