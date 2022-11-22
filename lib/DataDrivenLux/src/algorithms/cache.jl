@@ -28,7 +28,9 @@ function SearchCache(x::X where X <: AbstractDAGSRAlgorithm, basis::Basis, X::Ab
         U::AbstractMatrix = Array{eltype(X)}(undef, 0, 0), t::AbstractVector = Array{eltype(X)}(undef, 0); kwargs...)
 
         @unpack n_layers, functions, arities, skip, rng, populationsize = x
-        @unpack optimizer, optim_options, loss = x
+        @unpack optimizer, optim_options, loss, observed= x
+
+        observed = isa(observed, ObservedModel) ? observed : ObservedModel(size(Y,1))
 
         # Derive the model
         dataset = Dataset(X, Y, U, t)
@@ -36,14 +38,11 @@ function SearchCache(x::X where X <: AbstractDAGSRAlgorithm, basis::Basis, X::Ab
         model = LayeredDAG(length(basis), size(Y, 1), n_layers, arities, functions, skip = skip)
         ps, st = Lux.setup(rng, model)
         
-        pdists = get_parameter_distributions(basis)
-        ptransform = get_parameter_transformation(basis)
+        pdists = ParameterDistributions(basis)
         
         # Derive the candidates     
         candidates = map(1:populationsize) do i
-            c = ConfigurationCache(model, ps, st, basis, dataset;
-                pdist = pdists, transform_parameters = ptransform,
-                kwargs...)
+            c = ConfigurationCache(model, ps, st, basis, dataset, observed, pdists)
             c = optimize_configuration!(c, model, ps, dataset, basis, optimizer, optim_options)
         end
     
@@ -107,48 +106,3 @@ function update_cache!(cache::SearchCache{<:AbstractDAGSRAlgorithm})
 
     return cache
 end
-
-#function distributed_resample!(cache::SearchCache)
-#
-#    cache_channel = RemoteChannel(() -> Channel{SearchCache}(1), 1)
-#    put!(cache_channel, deepcopy(cache))
-#
-#    done_channel = RemoteChannel(() -> Channel{Bool}(1), 1)
-#    put!(done_channel, false)
-#    
-#    @unpack keeps = cache
-#
-#    pmap(1:length(keeps)) do i
-#        @info Distributed.myid()
-#        isdone = take!(done_channel)
-#        put!(done_channel, isdone)
-#        isdone && return
-#
-#        local_cache = take!(cache_channel)
-#
-#        @unpack keeps, candidates, dataset, basis, optimizer, optim_options, model, p = local_cache
-#
-#        put!(cache_channel, local_cache)
-#        if !keeps[i]
-#            candidates[i] = resample!(candidates[i], model, p, dataset, basis, optimizer, optim_options)
-#        end
-#        
-#        local_cache.canddates[i] = candidates[i]
-#
-#        put!(cache_channel, local_cache)
-#        candidates[i]
-#    end 
-#
-#    # What we get out of the channel is an updated copy of our original hyperoptimizer.
-#    # So now, back on the manager process, we take it out one last time and update
-#    # the original hyperoptimizer.
-#    updated_cache = take!(cache_channel)
-#    close(cache_channel)
-#
-#            
-#    # Do this last in case remaining runs are slow at starting so they can take the channel and stop
-#    # properly without erroring (happens if accessing channel after closing)
-#    close(done_channel)
-#
-#    updated_cache
-#end

@@ -39,57 +39,11 @@ abstract type AbstractErrorModel end
 abstract type AbstractErrorDistribution end
 abstract type AbstractConfigurationCache <: StatsBase.StatisticalModel end
 
-## Utilities
-
-"""
-$(SIGNATURES)
-
-Return the bounds of the `parameters` of a `Basis` as an `Interval`. 
-If no bounds are given, returns ± ∞.
-"""
-function get_parameter_bounds(x::DataDrivenDiffEq.Basis)
-    map(ModelingToolkit.parameters(x)) do p
-        lower, upper = getbounds(p)
-        Interval(lower, upper)
-    end
-end
-
-"""
-$(SIGNATURES)
-
-Return the transformation of the `parameters` of a `Basis` as an `as`. 
-If no bounds are given, returns ± ∞.
-"""
-function get_parameter_transformation(x::DataDrivenDiffEq.Basis)
-    map(ModelingToolkit.parameters(x)) do p
-        lower, upper = getbounds(p)
-        as(SymbolicUtils.symtype(p), lower, upper)
-    end
-end
-
-
-"""
-$(SIGNATURES)
-
-Return the distribution of the `parameters` of a `Basis`. 
-If no distributions are given, returns Uniform(bounds(basis)).
-"""
-function get_parameter_distributions(x::DataDrivenDiffEq.Basis)
-    map(ModelingToolkit.parameters(x)) do p
-        if hasdist(p)
-            return getdist(p)
-        else
-            lower, upper = getbounds(p)
-            return Uniform(lower, upper)
-        end
-    end
-end
-
 
 ## 
-include("error_model.jl")
+include("custom_priors.jl")
 export AdditiveError, MultiplicativeError
-export ObservedError
+export ObservedModel
 
 # Simplex
 include("simplex.jl")

@@ -23,26 +23,26 @@ function Dataset(X::AbstractMatrix, Y::AbstractMatrix, U::AbstractMatrix = Array
     return Dataset{T}(X, Y, U, t, x_intervals, y_intervals, u_intervals, t_intervals)
 end
 
-function (b::Basis{false, false})(d::Dataset{T}, p::P) where {T, P <: AbstractVector}
+function (b::Basis{false, false})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack x, t = d
     f(x, p, t)
 end
 
-function (b::Basis{false, true})(d::Dataset{T}, p::P) where {T, P <: AbstractVector}
+function (b::Basis{false, true})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack x, t, u = d
     f(x, p, t, u)
 end
 
 
-function (b::Basis{true, false})(d::Dataset{T}, p::P) where {T, P <: AbstractVector}
+function (b::Basis{true, false})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack y, x, t = d
     f(y, x, p, t)
 end
 
-function (b::Basis{true, true})(d::Dataset{T}, p::P) where {T, P <: AbstractVector}
+function (b::Basis{true, true})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack y, x, t, u = d
     f(y, x, p, t, u)
@@ -50,26 +50,26 @@ end
 
 ##
 
-function interval_eval(b::Basis{false, false},d::Dataset{T}, p::P) where {T, P <: AbstractVector}
+function interval_eval(b::Basis{false, false},d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack x_intervals, t_interval = d
     f(x_intervals, p, t_interval)
 end
 
-function interval_eval(b::Basis{false, true},d::Dataset{T}, p::P) where {T, P <: AbstractVector}
+function interval_eval(b::Basis{false, true},d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack x_intervals, t_interval, u_intervals = d
     f(x_intervals, p, t_interval, u_intervals)
 end
 
 
-function interval_eval(b::Basis{true, false},d::Dataset{T}, p::P) where {T, P <: AbstractVector}
+function interval_eval(b::Basis{true, false},d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack y_intervals, x_intervals, t_interval = d
     f(y_intervals, x_intervals, p, t_interval)
 end
 
-function interval_eval(b::Basis{true, true},d::Dataset{T}, p::P) where {T, P <: AbstractVector}
+function interval_eval(b::Basis{true, true},d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack y_intervals, x_intervals, t_interval, u_intervals = d
     f(y_intervals, x_intervals, p, t_interval, u_intervals)
