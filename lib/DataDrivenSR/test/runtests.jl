@@ -18,6 +18,18 @@ X = rand(rng, 2, 50)
     @test rss(res) <= 1e-5
 end
 
+@testset "Univariate" begin
+    alg = DataDrivenSR.EQSearch(eq_options = Options(unary_operators = [sin, exp],
+                                                     binary_operators = [*], maxdepth = 1,
+                                                     verbosity = -1, progress = false))
+
+    Y = sin.(X[1:1,:])
+    prob = DirectDataDrivenProblem(X, Y)
+    res = solve(prob, alg)
+    @test r2(res) >= 0.95
+    @test rss(res) <= 1e-5
+end
+
 @testset "Lifted" begin
     alg = DataDrivenSR.EQSearch(eq_options = Options(unary_operators = [sin, exp],
                                                      binary_operators = [+], maxdepth = 1,
