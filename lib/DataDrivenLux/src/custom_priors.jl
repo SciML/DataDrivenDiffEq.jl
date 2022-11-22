@@ -114,7 +114,7 @@ Base.show(io::IO, p::ParameterDistribution) = summary(io, p)
 get_init(p::ParameterDistribution) = p.init
 transform_parameter(p::ParameterDistribution, pval::T) where T <: Number = transform(p.transformation, pval)
 get_interval(p::ParameterDistribution) = p.interval
-Distributions.logpdf(p::ParameterDistribution, pval::T) where T <: Number = logpdf(p.distribution, transform_parameter(p, pval))
+Distributions.logpdf(p::ParameterDistribution, pval::T) where T <: Number = transform_logdensity(p.transformation, Base.Fix1(logpdf, p.distribution), pval)#logpdf(p.distribution, transform_parameter(p, pval))
 
 
 # Parameters 

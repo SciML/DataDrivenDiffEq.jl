@@ -28,7 +28,8 @@ using Distributions
 using DistributionsAD
 using ChainRulesCore
 using ComponentArrays
-using IntervalArithmetic
+# We only need a certain subset of IntervalArithmetic
+using IntervalArithmetic: Interval, isempty, isfinite
 using Random
 using Distributed
 using ProgressMeter

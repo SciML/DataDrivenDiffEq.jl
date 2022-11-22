@@ -26,13 +26,17 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <: Abst
     end
 
     # Create the optimal basis
-    rhs = map(x->Num(x.rhs), equations(basis))
     best_cache = first(cache.candidates)
-    eqs, _ = cache.model(rhs, cache.p, best_cache.st)
     p_best = get_parameters(best_cache)
     p_new = map(enumerate(ModelingToolkit.parameters(basis))) do (i, ps)
         DataDrivenDiffEq._set_default_val(Num(ps), p_best[i])
     end
+    subs = Dict(a => b for (a, b) in zip(ModelingToolkit.parameters(basis), p_new))
+
+    rhs = map(x->Num(x.rhs), equations(basis))
+    rhs = collect(map(Base.Fix2(ModelingToolkit.substitute, subs), rhs))
+    eqs, _ = cache.model(rhs, cache.p, best_cache.st)
+    
 
     new_basis = Basis(eqs, states(basis),
         parameters = p_new, iv = get_iv(basis),
@@ -42,6 +46,7 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <: Abst
         eval_expression = eval_expresssion
     )
     new_problem = DataDrivenDiffEq.remake_problem(problem, p = p_best)
+    
     return DataDrivenSolution{typeof(rss(best_cache))}(
         new_basis, DDReturnCode(1), alg, AbstractDataDrivenResult[], new_problem, 
         rss(best_cache), length(p_new), prob

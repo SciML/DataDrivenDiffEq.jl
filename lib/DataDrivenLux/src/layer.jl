@@ -117,8 +117,9 @@ function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, aritie
     n_inputs = in_dimension
     valid_idxs = zeros(Bool, length(fs))
     layers = map(1:(n_layers + 1)) do i
+        valid_idxs .= true
         # Filter the functions by their input dimension
-        valid_idxs .= arities .<= n_inputs
+        valid_idxs .= (arities .<= n_inputs)
         if i <= n_layers
             layer = DecisionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs];
                                   skip = skip, kwargs...)
