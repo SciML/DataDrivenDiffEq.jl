@@ -73,7 +73,7 @@ function (x::EQSearch)(ps::InternalDataDrivenProblem{EQSearch}, X, Y)
                                              runtests = runtests)
     
     # We always want something which is a vector or tuple
-    hofs = collect(hofs)
+    hofs = !isa(hofs, AbstractVector) ? [hofs] : hofs
     
     # Evaluate over the full training data
     paretos = map(enumerate(hofs)) do (i, hof)
