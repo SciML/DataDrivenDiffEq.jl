@@ -34,12 +34,15 @@ using Random
 using Distributed
 using ProgressMeter
 
+abstract type AbstractAlgorithmCache end
 abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
 abstract type AbstractSimplex end
 abstract type AbstractErrorModel end
 abstract type AbstractErrorDistribution end
 abstract type AbstractConfigurationCache <: StatsBase.StatisticalModel end
 
+##
+include("utils.jl")
 
 ## 
 include("custom_priors.jl")
@@ -47,34 +50,28 @@ export AdditiveError, MultiplicativeError
 export ObservedModel
 
 # Simplex
-include("simplex.jl")
+include("./lux/simplex.jl")
 export Softmax, GumbelSoftmax
 
 # Nodes and Layers
-include("node.jl")
+include("./lux/path_state.jl")
+export PathState
+include("./lux/node.jl")
 export DecisionNode
-export update_state
-
-include("layer.jl")
+export update_state, get_inputs, get_loglikelihood
+include("./lux/layer.jl")
 export DecisionLayer
-export get_path
+include("./lux/graph.jl")
 export LayeredDAG
-
 
 include("algorithms/dataset.jl")
 
+include("caches/candidate.jl")
+export Candidate
+export get_loglikelihood
 
-include("configuration.jl")
-
-export ConfigurationCache
-export optimize_configuration!, evaluate_configuration!
-export get_data_loglikelihood, get_configuration_dof, get_configuration_loglikelihood
-export get_scales
-
-
-include("algorithms/cache.jl")
+include("caches/cache.jl")
 export SearchCache
-export update!
 
 include("algorithms/randomsearch.jl")
 export RandomSearch

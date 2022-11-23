@@ -16,12 +16,15 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <: Abst
     Y = DataDrivenDiffEq.get_implicit_data(problem)
 
     cache = SearchCache(alg, basis, X, Y, U, t)
+    # We optimize the cache initially
+    cache = optimize_cache(cache, cache.p)
+    
     p = progress ? ProgressMeter.Progress(maxiters, dt=1.0) : nothing
 
     foreach(1:maxiters) do iter
         cache = update_cache!(cache)
         if progress
-            ProgressMeter.update!(p, iter)
+            ProgressMeter.update!(p, iter, showvalues = [(:Algorithm, cache)])
         end
     end
 

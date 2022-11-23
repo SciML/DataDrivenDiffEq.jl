@@ -22,6 +22,8 @@ $(FIELDS)
     loss::L = aicc
     "The number of candidates to keep in each iteration"
     keep::Union{Real, Int} = 0.1
+    "Use protected operators"
+    use_protected::Bool = true
     "Use distributed optimization and resampling"
     distributed::Bool = false
     "Use threaded optimization and resampling - not implemented right now."
@@ -36,11 +38,12 @@ $(FIELDS)
     observed::Union{ObservedModel, Nothing} = nothing
 end
 
-Base.summary(io::IO, ::RandomSearch) = print(io, "RandomSearch")
+Base.print(io::IO, ::RandomSearch) = print(io, "RandomSearch")
+Base.summary(io::IO, x::RandomSearch) = print(io, x)
 
-# We just return the parameters here
-function update(ps::NamedTuple, model, alg::RandomSearch, candidates::AbstractVector,
-                keeps::AbstractVector, dataset::Dataset, basis::Basis)
-    return ps
+function update_parameters(alg::RandomSearch, p, args...)
+    return p
 end
+
+
 

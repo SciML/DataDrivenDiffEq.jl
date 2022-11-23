@@ -82,3 +82,4 @@ function assert_intervals(model::LayeredDAG, ps, st::NamedTuple, b::Basis, d::Da
     y, _ = model(y, ps, st)
     all((isfinite.(y) .& (.! isempty.(y))))
 end
+
