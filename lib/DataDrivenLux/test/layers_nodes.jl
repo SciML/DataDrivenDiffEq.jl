@@ -17,12 +17,8 @@ using DataDrivenDiffEq.StatsBase
         st_X = update_state(d, ps, st)
         y, st_x = d(x, ps, st_x)
         Y, st_X = d(X, ps, st_X)
-        @test y == sin(x[st_x.input_id])
-        @test Y == permutedims(map(xi -> sin(xi[st_X.input_id]), eachcol(X)))
-        @test pdf(d, ps, st_x) == 0.5f0
-        @test pdf(d, ps, st_X) == 0.5f0
-        @test logpdf(d, ps, st_x) == log.(0.5f0)
-        @test logpdf(d, ps, st_X) == log.(0.5f0)
+        @test y == sin(x[st_x.input_id]...)
+        @test Y == permutedims(map(xi -> sin(xi[st_X.input_id]...), eachcol(X)))
 
         d = DecisionNode(2, 1, sin, simplex = GumbelSoftmax())
         ps, st = Lux.setup(rng, d)
@@ -30,8 +26,8 @@ using DataDrivenDiffEq.StatsBase
         st_X = update_state(d, ps, st)
         y, st_x = d(x, ps, st_x)
         Y, st_X = d(X, ps, st_X)
-        @test y == sin(x[st_x.input_id])
-        @test Y == permutedims(map(xi -> sin(xi[st_X.input_id]), eachcol(X)))
+        @test y == sin(x[st_x.input_id]...)
+        @test Y == permutedims(map(xi -> sin(xi[st_X.input_id]...), eachcol(X)))
     end
 
     @testset "Skip" begin
@@ -44,8 +40,8 @@ using DataDrivenDiffEq.StatsBase
         st_X = update_state(d, ps, st)
         y, st_x = d(x, ps, st_x)
         Y, st_X = d(X, ps, st_X)
-        @test y == vcat(sin(x[st_x.input_id]), x)
-        @test Y == vcat(permutedims(map(xi -> sin(xi[st_X.input_id]), eachcol(X))), X)
+        @test y == vcat(sin(x[st_x.input_id]...), x)
+        @test Y == vcat(permutedims(map(xi -> sin(xi[st_X.input_id]...), eachcol(X))), X)
     end
 
     @testset "Binary" begin
@@ -60,10 +56,6 @@ using DataDrivenDiffEq.StatsBase
         Y, st_X = d(X, ps, st_X)
         @test y == *(x[st_x.input_id]...)
         @test Y == permutedims(map(xi -> *(xi[st_X.input_id]...), eachcol(X)))
-        @test pdf(d, ps, st_x) == 0.25f0
-        @test pdf(d, ps, st_X) == 0.25f0
-        @test logpdf(d, ps, st_x) == log.(0.25f0)
-        @test logpdf(d, ps, st_X) == log.(0.25f0)
     end
 
     @testset "Ternary" begin
@@ -78,10 +70,6 @@ using DataDrivenDiffEq.StatsBase
         Y, st_X = d(X, ps, st_X)
         @test y == *(x[st_x.input_id]...)
         @test Y == permutedims(map(xi -> *(xi[st_X.input_id]...), eachcol(X)))
-        @test pdf(d, ps, st_x) ≈ (1 / 5)^3
-        @test pdf(d, ps, st_X) ≈ (1 / 5)^3
-        @test logpdf(d, ps, st_x) ≈ -log.(5.0^3)
-        @test logpdf(d, ps, st_X) ≈ -log.(5.0^3)
     end
 
     @testset "General Function" begin
@@ -97,10 +85,6 @@ using DataDrivenDiffEq.StatsBase
         Y, st_X = d(X, ps, st_X)
         @test y == f(x[st_x.input_id]...)
         @test Y == permutedims(map(xi -> f(xi[st_X.input_id]...), eachcol(X)))
-        @test pdf(d, ps, st_x) ≈ (1 / 5)^3
-        @test pdf(d, ps, st_X) ≈ (1 / 5)^3
-        @test logpdf(d, ps, st_x) ≈ -log.(5.0^3)
-        @test logpdf(d, ps, st_X) ≈ -log.(5.0^3)
     end
 end
 
@@ -123,8 +107,6 @@ end
         @test Y == reduce(vcat, map(zip((sin, exp), eachrow(X[id_X, :]))) do (fi, xi)
                               permutedims(fi.(xi))
                           end)
-        @test sum(x -> sum(x.loglikelihood), values(st_x)) == logpdf(d, ps, st_x)
-        @test prod(x -> prod(exp, x.loglikelihood), values(st_x)) == pdf(d, ps, st_x)
     end
     @testset "Skip" begin
         rng = Random.default_rng()
@@ -144,8 +126,6 @@ end
         @test Y == vcat(reduce(vcat, map(zip((sin, exp), eachrow(X[id_X, :]))) do (fi, xi)
                               permutedims(fi.(xi))
                           end), X)
-        @test sum(x -> sum(x.loglikelihood), values(st_x)) == logpdf(d, ps, st_x)
-        @test prod(x -> prod(exp, x.loglikelihood), values(st_x)) == pdf(d, ps, st_x)
     end
 end
 
@@ -159,16 +139,12 @@ end
         y, st_xx = chain(x, ps, st_x)
         @test st_xx == st_x
         @test y == sin.(x)
-        @test logpdf(chain, ps, st) == 0.0f0
-        @test pdf(chain, ps, st) == 1.0f0
 
         X = randn(rng, 1, 10)
         st_X = update_state(chain, ps, st)
         Y, st_XX = chain(X, ps, st_X)
         @test st_XX == st_X
         @test Y == sin.(X)
-        @test logpdf(chain, ps, st) == 0.0f0
-        @test pdf(chain, ps, st) == 1.0f0
     end
 
     @testset "Skip" begin
@@ -180,9 +156,6 @@ end
         st_x = update_state(chain, ps, st)
         y, st_xx = chain(x, ps, st_x)
         @test st_xx == st_x
-        @test logpdf(chain, ps, st_x) == log(0.25f0)
-        @test pdf(chain, ps, st_x) == 0.25f0
-
         X = randn(rng, 1, 10)
         st_X = update_state(chain, ps, st)
         Y, st_XX = chain(X, ps, st_X)

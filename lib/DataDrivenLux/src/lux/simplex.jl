@@ -24,11 +24,11 @@ $(FIELDS)
 struct GumbelSoftmax <: AbstractSimplex end
 
 function (::GumbelSoftmax)(rng::Random.AbstractRNG, x::AbstractArray, κ = one(eltype(x)))
-        -log.(-log.(rand(rng, size(x)...)))
-        y = similar(x)
-        foreach(axes(x, 2)) do i
-            y[:, i] .= exp.(x[:, i])
-        end
-        y ./= sum(y, dims = 2)
-        softmax((y .+ z) ./ κ, dims = 2)
+    z = -log.(-log.(rand(rng, size(x)...)))
+    y = similar(x)
+    foreach(axes(x, 2)) do i
+        y[:, i] .= exp.(x[:, i])
+    end
+    y ./= sum(y, dims = 2)
+    softmax((y .+ z) ./ κ, dims = 2)
 end
