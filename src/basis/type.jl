@@ -124,7 +124,7 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
 
     eqs = reduce(vcat, map(Symbolics.Equation, lhs, rhs); init = Equation[])
     eqs = isa(eqs, AbstractVector) ? collect(eqs) : [collect(eqs)]
-    return collect(eqs), states, ctrls, ps, observed, iv, implicit, f, name, systems
+    return collect(eqs), states, controls, parameters, observed, iv, implicits, f, name, systems
 end
 
 ## Constructors
