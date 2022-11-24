@@ -23,7 +23,7 @@ end
                                                      binary_operators = [*], maxdepth = 1,
                                                      verbosity = -1, progress = false))
 
-    Y = sin.(X[1:1,:])
+    Y = sin.(X[1:1, :])
     prob = DirectDataDrivenProblem(X, Y)
     res = solve(prob, alg)
     @test r2(res) >= 0.95
