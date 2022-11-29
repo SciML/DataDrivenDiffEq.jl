@@ -97,12 +97,12 @@ struct ParameterDistribution{P <: Distribution{Univariate}, T, I <: Interval, D 
     init::D
 end
 
-function ParameterDistribution(d::Distribution{Univariate}, init = mean(d))
-    lower, upper = extrema(d)
+function ParameterDistribution(d::Distribution{Univariate}, init = mean(d), type::Type{T} = Float64) where T
+    lower, upper = convert.(T, extrema(d))
     lower_t = isinf(lower) ? -TransformVariables.∞ : lower
     upper_t = isinf(upper) ? TransformVariables.∞ : upper
     transform = as(Real, lower_t, upper_t)
-    init = inverse(transform, init)
+    init = convert.(T,inverse(transform, init))
     return ParameterDistribution(
         d, Interval(lower, upper), transform, init
     )
@@ -119,12 +119,12 @@ Distributions.logpdf(p::ParameterDistribution, pval::T) where T <: Number = tran
 
 # Parameters 
 
-struct ParameterDistributions{N}
+struct ParameterDistributions{T, N}
     distributions::NTuple{N, ParameterDistribution}
 end
 
-function ParameterDistributions(b::Basis) 
-    isempty(ModelingToolkit.parameters(b)) && return ParameterDistributions{0}(NTuple{0, ParameterDistribution}())
+function ParameterDistributions(b::Basis, eltype::Type{T} = Float64) where T 
+    isempty(ModelingToolkit.parameters(b)) && return ParameterDistributions{T, 0}(NTuple{0, ParameterDistribution}())
     distributions = map(ModelingToolkit.parameters(b)) do p
         lower, upper = getbounds(p)
         dist = hasdist(p) ? getdist(p) : Uniform(lower, upper)
@@ -139,20 +139,22 @@ function ParameterDistributions(b::Basis)
         else 
             init = mean(dist)
         end
-        ParameterDistribution(dist, init)
+        ParameterDistribution(dist, init, T)
     end
 
-    return ParameterDistributions{length(distributions)}(tuple(distributions...))
+    return ParameterDistributions{T, length(distributions)}(tuple(distributions...))
 end
 
 Base.summary(io::IO, p::ParameterDistributions) = map(Base.Fix1(println, io), p.distributions)
 Base.show(io::IO, p::ParameterDistributions) = summary(io, p)
 
-get_init(p::ParameterDistributions{0}) = []
 get_init(p::ParameterDistributions) = collect(map(get_init, p.distributions))
-transform_parameter(p::ParameterDistributions{0}, pval::P) where P = eltype(P)[]
 transform_parameter(p::ParameterDistributions, pval::P) where P = collect(map(transform_parameter, p.distributions, pval))
-get_interval(p::ParameterDistributions{0}) = Interval[]
 get_interval(p::ParameterDistributions) = collect(map(get_interval, p.distributions))
-Distributions.logpdf(p::ParameterDistributions{0}, pval::T) where T = zero(eltype(T))
 Distributions.logpdf(p::ParameterDistributions, pval::T) where T = sum(map(logpdf, p.distributions, pval))
+
+
+get_init(p::ParameterDistributions{T, 0}) where T= T[]
+transform_parameter(p::ParameterDistributions{T, 0}, pval) where T = T[]
+get_interval(p::ParameterDistributions{T, 0}) where T = Interval{T}[]
+Distributions.logpdf(p::ParameterDistributions{T, 0}, pval) where T = zero(T)

@@ -15,21 +15,22 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <: Abst
     X, _, t, U = DataDrivenDiffEq.get_oop_args(problem)
     Y = DataDrivenDiffEq.get_implicit_data(problem)
 
-    cache = SearchCache(alg, basis, X, Y, U, t)
-    # We optimize the cache initially
-    cache = optimize_cache(cache, cache.p)
+    cache = init_cache(alg, basis, X, Y, U, t)
     
     p = progress ? ProgressMeter.Progress(maxiters, dt=1.0) : nothing
 
-    foreach(1:maxiters) do iter
-        cache = update_cache!(cache)
+    for iter in 1:maxiters
+        update_cache!(cache)
         if progress
-            ProgressMeter.update!(p, iter, showvalues = [(:Algorithm, cache)])
+            ProgressMeter.update!(p, iter, showvalues = [(:Algorithm, cache), (:Caches, cache.candidates[cache.keeps])])
         end
     end
 
+
     # Create the optimal basis
-    best_cache = first(cache.candidates)
+    min_loss, min_id = findmin(alg.loss, cache.candidates)
+    best_cache = cache.candidates[min_id]
+
     p_best = get_parameters(best_cache)
     p_new = map(enumerate(ModelingToolkit.parameters(basis))) do (i, ps)
         DataDrivenDiffEq._set_default_val(Num(ps), p_best[i])
@@ -38,8 +39,8 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <: Abst
 
     rhs = map(x->Num(x.rhs), equations(basis))
     rhs = collect(map(Base.Fix2(ModelingToolkit.substitute, subs), rhs))
-    eqs, _ = cache.model(rhs, cache.p, best_cache.st)
-    
+    eqs, _ = best_cache.model(rhs, cache.p, best_cache.st)
+    @info eqs
 
     new_basis = Basis(eqs, states(basis),
         parameters = p_new, iv = get_iv(basis),
@@ -48,10 +49,12 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <: Abst
         name = gensym(:Basis),
         eval_expression = eval_expresssion
     )
+
     new_problem = DataDrivenDiffEq.remake_problem(problem, p = p_best)
     
-    return DataDrivenSolution{typeof(rss(best_cache))}(
+    rss = sum(abs2, new_basis(new_problem) .- DataDrivenDiffEq.get_implicit_data(new_problem))
+    return DataDrivenSolution{typeof(rss)}(
         new_basis, DDReturnCode(1), alg, AbstractDataDrivenResult[], new_problem, 
-        rss(best_cache), length(p_new), prob
+        rss, length(p_new), prob
     )
 end

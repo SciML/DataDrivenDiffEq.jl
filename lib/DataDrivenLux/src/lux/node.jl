@@ -38,9 +38,9 @@ end
 
 function Lux.initialstates(rng::AbstractRNG, p::DecisionNode)
     begin
-        rng_ = copy(rng)
+        rand(rng)
+        rng_ = Lux.replicate(rng)
         # Call once
-        rand(rng, 1)
 
         (loglikelihood = zeros(Float32, p.arity),
          input_id = zeros(Int, p.arity),
@@ -96,7 +96,9 @@ end
 
 function _apply_node(l::DecisionNode, x::AbstractMatrix, ps, st)::AbstractMatrix
     @unpack input_id = st
-    map(l.f, (x[id:id, :] for id in input_id)...)
+    reduce(hcat, map(eachcol(x)) do xi
+        _apply_node(l, xi, ps, st)
+    end)
 end
 
 function _apply_node(l::DecisionNode, x::AbstractVector, ps, st)

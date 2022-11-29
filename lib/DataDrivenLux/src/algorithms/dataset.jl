@@ -9,6 +9,8 @@ struct Dataset{T}
     t_interval::Interval{T}
 end
 
+Base.eltype(::Dataset{T}) where T = T
+
 function Dataset(X::AbstractMatrix, Y::AbstractMatrix, U::AbstractMatrix = Array{eltype(X)}(undef, 0, 0), t::AbstractVector = Array{eltype(X)}(undef, 0))
     T = Base.promote_eltype(X, Y, U, t)
     X = convert.(T, X)
