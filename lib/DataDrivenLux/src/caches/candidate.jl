@@ -51,8 +51,10 @@ function Candidate(model, ps, st_, basis, dataset;
     @unpack y, x = dataset
 
     T = eltype(dataset)
+
     # Create the initial state and path
-    incoming_path = [PathState{ptype}(zero(ptype), (), ((0,i),)) for i in 1:length(basis)]
+    dataset_intervals = interval_eval(basis, dataset, get_interval(parameterdist))
+    incoming_path = [PathState{ptype}(dataset_intervals[i], (), ((0,i),)) for i in 1:length(basis)]
     outgoing_path, st = model(incoming_path, ps, st_)
     st = deepcopy(st)
 

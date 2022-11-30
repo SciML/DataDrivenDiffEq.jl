@@ -83,14 +83,14 @@ end
 # Special dispatch on the path state
 function (l::DecisionNode{false})(x::AbstractArray{<:AbstractPathState}, ps, st::NamedTuple)
     new_st = update_state(l, ps, st)
-    @unpack input_id, loglikelihood = new_st
-    update_path(l.f, sum(loglikelihood), get_id(l), x[input_id]...), new_st
+    @unpack input_id = new_st
+    update_path(l.f, get_id(l), x[input_id]...), new_st
 end
 
 function (l::DecisionNode{true})(x::AbstractArray{<:AbstractPathState}, ps, st::NamedTuple)
     new_st = update_state(l, ps, st)
-    @unpack input_id, loglikelihood = new_st
-    vcat(update_path(l.f, sum(loglikelihood), get_id(l), x[input_id]...), x), new_st
+    @unpack input_id = new_st
+    vcat(update_path(l.f, get_id(l), x[input_id]...), x), new_st
 end
 
 
