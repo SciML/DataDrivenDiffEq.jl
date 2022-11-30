@@ -25,6 +25,12 @@ function Dataset(X::AbstractMatrix, Y::AbstractMatrix, U::AbstractMatrix = Array
     return Dataset{T}(X, Y, U, t, x_intervals, y_intervals, u_intervals, t_intervals)
 end
 
+function Dataset(prob::DataDrivenDiffEq.DataDrivenProblem)
+    X, _, t, U = DataDrivenDiffEq.get_oop_args(prob)
+    Y = DataDrivenDiffEq.get_implicit_data(prob)
+    Dataset(X, Y, U, t)
+end
+
 function (b::Basis{false, false})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack x, t = d

@@ -54,6 +54,7 @@ function Candidate(model, ps, st_, basis, dataset;
     # Create the initial state and path
     incoming_path = [PathState{ptype}(zero(ptype), (), ((0,i),)) for i in 1:length(basis)]
     outgoing_path, st = model(incoming_path, ps, st_)
+    st = deepcopy(st)
 
     parameters = T.(get_init(parameterdist))
     scales = T.(get_init(observed))
@@ -128,21 +129,22 @@ end
 function optimize_candidate!(c::Candidate, ps, dataset::Dataset{T}, optimizer, options::Optim.Options) where T    
     
     path, st = sample!(c, ps)
-
     p_init = initial_values(c)
+    assert_intervals(c.model, ps, st, c.basis, dataset, get_interval(c.parameterdist)) || return
 
     loss(p) = lossfunction(c, ps, st, p, dataset)
 
-    res = Optim.optimize(loss, p_init, optimizer, options)
+    res = @suppress Optim.optimize(loss, p_init, optimizer, options)
 
     if Optim.converged(res)
         c.outgoing_path .= path
         c.st = st
         c.parameters .= res.minimizer.parameters
         c.scales .= res.minimizer.scales
+        update_values!(c, ps, dataset)
         return 
     end
-
+    update_values!(c, ps, dataset)
     return 
 end
 

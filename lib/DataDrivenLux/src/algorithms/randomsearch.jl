@@ -15,7 +15,7 @@ $(FIELDS)
     "The arities of the functions"
     arities::A = (1, 1, 1, 1, 2, 2, 2, 2)
     "The number of layers"
-    n_layers::Int = 2
+    n_layers::Int = 1
     "Include skip layers"
     skip::Bool = true
     "Evaluation function to sort the samples"

@@ -33,6 +33,7 @@ using IntervalArithmetic: Interval, isempty, isfinite
 using Random
 using Distributed
 using ProgressMeter
+using Suppressor
 
 abstract type AbstractAlgorithmCache end
 abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
