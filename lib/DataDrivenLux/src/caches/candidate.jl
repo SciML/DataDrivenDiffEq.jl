@@ -106,6 +106,7 @@ StatsBase.nobs(c::Candidate) = getfield(c, :nobs)
 StatsBase.r2(c::Candidate) = r2(c, :CoxSnell)
 
 get_parameters(c::Candidate) = transform_parameter(c.parameterdist, c.parameters)
+get_scales(c::Candidate) = transform_scales(c.observed, c.scales)
 
 @views function lossfunction(c::Candidate, p, st, ps::ComponentVector, dataset::Dataset{T}) where T
     @unpack observed, parameterdist = c
