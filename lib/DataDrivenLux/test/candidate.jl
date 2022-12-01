@@ -17,10 +17,10 @@ dummy_data = DataDrivenLux.Dataset(X, Y)
 dummy_dag = DataDrivenLux.LayeredDAG(2, 1, 1, (1,), (sin,), simplex = Softmax(),
                                      skip = true)
 
-ps, st = Lux.setup(rng, dummy_dag)
+ps, _ = Lux.setup(rng, dummy_dag)
 
 # Sample a single candidate
-candidate = DataDrivenLux.Candidate(dummy_dag, ps, st, dummy_basis, dummy_data)
+candidate = DataDrivenLux.Candidate(dummy_dag, ps, rng, dummy_basis, dummy_data)
 
 # Checkout function interface
 ŷ = candidate(dummy_data, ps, candidate.st, candidate.parameters)
