@@ -22,7 +22,7 @@ function DecisionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = fals
     output_dimension = length(arities)
     output_dimension += skip ? in_dimension : 0
 
-    names = replace(x -> isnothing(x) ? gensym("identity") : Symbol(x), fs)
+    names = map(gensym ∘ string, fs)
     nodes = NamedTuple{names}(nodes)
     return DecisionLayer{skip, typeof(nodes), output_dimension}(nodes)
 end
