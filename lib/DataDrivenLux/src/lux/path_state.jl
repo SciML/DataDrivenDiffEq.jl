@@ -22,7 +22,7 @@ get_nodes(state::PathState) = state.path_ids
 @inline tuplejoin(x, y) = (x..., y...)
 @inline tuplejoin(x, y, z...) = tuplejoin(tuplejoin(x, y), z...)
 
-function update_path(f::Function, id::Tuple{Int,Int}, state::PathState{T}) where T
+function update_path(f::F where F <: Function, id::Tuple{Int,Int}, state::PathState{T}) where T
     PathState{T}(
         f(get_interval(state)),
         (f, get_operators(state)...), 
@@ -38,9 +38,9 @@ function update_path(::Nothing, id::Tuple{Int,Int}, state::PathState{T}) where T
     )
 end
 
-function update_path(f::Function, id::Tuple{Int,Int}, states::PathState{T}...) where T
+function update_path(f::F where F <: Function, id::Tuple{Int,Int}, states::PathState{T}...) where T
     PathState{T}(
-        reduce(f, get_interval.(states)),
+        f(get_interval.(states)...),
         (f, tuplejoin(map(get_operators, states)...)...),
         (id, tuplejoin(map(get_nodes, states)...)...)
     )

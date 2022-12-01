@@ -21,7 +21,7 @@ alg = RandomSearch(populationsize = 10, functions = (sin,),
 cache = DataDrivenLux.init_cache(alg, dummy_basis, dummy_problem)
 rss_wrong = sum(abs2, Y .- X)
 
-@test length(unique(map(rss, cache.candidates))) == 2
+@test 2 <= length(unique(map(rss, cache.candidates))) <= 3
 @test all(x-> (rss(x) == rss_wrong) || (rss(x) == 0.0), cache.candidates)
 @test !any(cache.keeps)
 @test all(iszero,cache.ages)
@@ -35,7 +35,7 @@ DataDrivenLux.update_cache!(cache)
 @test (0.0, 1) == findmin(rss, cache.candidates)
 
 # Update another 10 times
-@test_nowarn foreach(1:10) do i 
+foreach(1:10) do i 
     DataDrivenLux.update_cache!(cache)
 end
 

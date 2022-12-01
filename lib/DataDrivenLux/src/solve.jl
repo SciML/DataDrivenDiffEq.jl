@@ -17,11 +17,11 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <: Abst
     for iter in 1:maxiters
         update_cache!(cache)
         if progress
+            if StatsBase.rss(first(cache.candidates)) <= abstol 
+                ProgressMeter.finish!(p)
+                break
+            end
             ProgressMeter.update!(p, iter, showvalues = [(:Algorithm, cache),])
-        end
-        if StatsBase.rss(first(cache.candidates)) <= abstol 
-            ProgressMeter.finish!(p)
-            break
         end
     end
 

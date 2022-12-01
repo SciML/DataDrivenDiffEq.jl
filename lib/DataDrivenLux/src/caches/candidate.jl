@@ -55,7 +55,8 @@ function Candidate(model, ps, st_, basis, dataset;
     # Create the initial state and path
     dataset_intervals = interval_eval(basis, dataset, get_interval(parameterdist))
     incoming_path = [PathState{ptype}(dataset_intervals[i], (), ((0,i),)) for i in 1:length(basis)]
-    outgoing_path, st = model(incoming_path, ps, st_)
+    outgoing_path, st = sample(model, incoming_path, ps, st_) #model(incoming_path, ps, st_)
+    
     st = deepcopy(st)
 
     parameters = T.(get_init(parameterdist))
@@ -130,7 +131,7 @@ end
 
 function optimize_candidate!(c::Candidate, ps, dataset::Dataset{T}, optimizer, options::Optim.Options) where T    
     
-    path, st = sample!(c, ps)
+    path, st = sample(c, ps)
     p_init = initial_values(c)
     assert_intervals(c.model, ps, st, c.basis, dataset, get_interval(c.parameterdist)) || return
 
@@ -150,10 +151,28 @@ function optimize_candidate!(c::Candidate, ps, dataset::Dataset{T}, optimizer, o
     return 
 end
 
-function sample!(c::Candidate, ps)
-    @unpack incoming_path, st = c
-    outgoing, new_st = c.model(incoming_path, ps, st)
+function check_intervals(paths::AbstractArray{<:AbstractPathState})::Bool
+    @inbounds for path in paths
+        check_intervals(path) || return false
+    end
+    return true
 end
+
+check_intervals(path::AbstractPathState)::Bool = isfinite(path.path_interval)
+
+function sample(c::Candidate, ps, i = 0, max_sample = 10)
+    @unpack incoming_path, st = c
+    return sample(c.model, incoming_path, ps, st, i, max_sample)
+end
+
+function sample(model, incoming, ps, st, i= 0, max_sample = 10)
+    outgoing, new_st = model(incoming, ps, st)
+    if check_intervals(outgoing) || (i >= max_sample)
+        return outgoing, new_st
+    end
+    return sample(model, incoming, ps, st, i+1, max_sample)
+end
+
 
 get_nodes(c::Candidate) = ChainRulesCore.@ignore_derivatives get_nodes(c.outgoing_path)
 

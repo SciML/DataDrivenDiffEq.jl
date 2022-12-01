@@ -130,14 +130,14 @@ function ParameterDistributions(b::Basis, eltype::Type{T} = Float64) where T
         dist = hasdist(p) ? getdist(p) : Uniform(lower, upper)
         
         # Check if we need to adjust the bounds
-        if !(extrema(dist) == (lower, upper))
+        if !Distributions.isbounded(dist)
             dist = truncated(dist, lower, upper)
         end
 
         if hasmetadata(p, Symbolics.VariableDefaultValue)
             init = Symbolics.getdefaultval(p)
         else 
-            init = mean(dist)
+            init = Distributions.mean(dist)
         end
         ParameterDistribution(dist, init, T)
     end
