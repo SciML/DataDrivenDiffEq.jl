@@ -32,14 +32,14 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
 
     model = LayeredDAG(length(basis), size(dataset.y, 1), n_layers, arities, functions,
                        skip = skip; kwargs...)
-    ps, st = Lux.setup(rng, model)
+    ps = Lux.initialparameters(rng, model)
     ps = ComponentVector(ps)
 
     pdists = ParameterDistributions(basis, TData)
 
     # Derive the candidates     
     candidates = map(1:populationsize) do i
-        candidate = Candidate(model, ps, st, basis, dataset, observed = observed,
+        candidate = Candidate(model, ps, rng, basis, dataset, observed = observed,
                               parameterdist = pdists)
         optimize_candidate!(candidate, ps, dataset, optimizer, optim_options)
         update_values!(candidate, ps, dataset)
@@ -113,7 +113,6 @@ function optimize_cache!(cache::SearchCache, p = cache.p)
                     return true
                 catch e
                     @info "Failed to update candidate $i"
-                    rethrow(e)
                     return false
                 end
             end

@@ -42,7 +42,7 @@ Base.print(io::IO, c::Candidate) = print(io, "Candidate $(rss(c))")
 Base.show(io::IO, c::Candidate) = print(io, c)
 Base.summary(io::IO, c::Candidate) = print(io, c)
 
-function Candidate(model, ps, st_, basis, dataset;
+function Candidate(model, ps, rng, basis, dataset;
                    observed = ObservedModel(size(dataset.y, 1)),
                    parameterdist = ParameterDistributions(basis),
                    ptype = Float32)
@@ -54,9 +54,8 @@ function Candidate(model, ps, st_, basis, dataset;
     dataset_intervals = interval_eval(basis, dataset, get_interval(parameterdist))
     incoming_path = [PathState{ptype}(dataset_intervals[i], (), ((0, i),))
                      for i in 1:length(basis)]
-    outgoing_path, st = sample(model, incoming_path, ps, st_) #model(incoming_path, ps, st_)
-
-    st = deepcopy(st)
+    st = Lux.initialstates(rng, model)
+    outgoing_path, st = sample(model, incoming_path, ps, st) 
 
     parameters = T.(get_init(parameterdist))
     scales = T.(get_init(observed))
