@@ -6,11 +6,9 @@ on each row.
 """
 struct Softmax <: AbstractSimplex end
 
-(::Softmax)(rng, x::AbstractArray, κ = one(eltype(x))) = begin 
-    q = softmax(x ./ κ, dims = 2)
+function (::Softmax)(rng, x::AbstractArray, κ = one(eltype(x)))
+    begin q = softmax(x ./ κ, dims = 2) end
 end
-
-
 
 """
 $(TYPEDEF)

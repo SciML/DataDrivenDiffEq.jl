@@ -12,10 +12,10 @@ rng = Random.seed!(1234)
 X = randn(rng, 2, 10)
 Y = randn(rng, 1, 10)
 @variables x[1:2]
-dummy_basis = Basis(x,x)
+dummy_basis = Basis(x, x)
 dummy_data = DataDrivenLux.Dataset(X, Y)
 dummy_dag = DataDrivenLux.LayeredDAG(2, 1, 1, (1,), (sin,), simplex = Softmax(),
-                                 skip = true)
+                                     skip = true)
 
 ps, st = Lux.setup(rng, dummy_dag)
 
@@ -24,7 +24,7 @@ candidate = DataDrivenLux.Candidate(dummy_dag, ps, st, dummy_basis, dummy_data)
 
 # Checkout function interface
 ŷ = candidate(dummy_data, ps, candidate.st, candidate.parameters)
-@test size(ŷ) == (1,10)
+@test size(ŷ) == (1, 10)
 @test sum(abs2, ŷ .- Y) == rss(candidate)
 
 # Assert the state
@@ -37,7 +37,8 @@ bic_ = bic(candidate)
 
 # Resample
 
-@test_nowarn DataDrivenLux.optimize_candidate!(candidate, ps, dummy_data, LBFGS(), Optim.Options())
+@test_nowarn DataDrivenLux.optimize_candidate!(candidate, ps, dummy_data, LBFGS(),
+                                               Optim.Options())
 @test_nowarn DataDrivenLux.update_values!(candidate, ps, dummy_data)
 @test rss(candidate) != rss_
 @test 2 <= dof(candidate) <= 3
@@ -45,7 +46,7 @@ bic_ = bic(candidate)
 @test bic(candidate) != bic_
 
 ŷ = candidate(dummy_data, ps, candidate.st, candidate.parameters)
-@test size(ŷ) == (1,10)
+@test size(ŷ) == (1, 10)
 @test sum(abs2, ŷ .- Y) == rss(candidate)
 @test size(DataDrivenLux.get_scales(candidate)) == (1,)
 @test size(DataDrivenLux.get_parameters(candidate)) == (0,)

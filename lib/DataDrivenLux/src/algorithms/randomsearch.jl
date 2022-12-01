@@ -44,6 +44,3 @@ Base.summary(io::IO, x::RandomSearch) = print(io, x)
 function update_parameters(alg::RandomSearch, p, args...)
     return p
 end
-
-
-

@@ -26,11 +26,13 @@ function DecisionNode(in_dims::Int, arity::Int, f::F = identity;
                       init_weight = Lux.zeros32, skip = false,
                       simplex = Softmax(), id = 0,
                       kwargs...) where {F}
-    return DecisionNode{skip, typeof(init_weight), typeof(simplex), F, id}(in_dims, f, arity,
-                                                                       init_weight, simplex)
+    return DecisionNode{skip, typeof(init_weight), typeof(simplex), F, id}(in_dims, f,
+                                                                           arity,
+                                                                           init_weight,
+                                                                           simplex)
 end
 
-get_id(::DecisionNode{<:Any, <:Any, <:Any, <:Any, ID}) where ID = ID
+get_id(::DecisionNode{<:Any, <:Any, <:Any, <:Any, ID}) where {ID} = ID
 
 function Lux.initialparameters(rng::AbstractRNG, l::DecisionNode)
     return (; weight = l.init_weight(rng, l.arity, l.in_dims))
@@ -56,7 +58,7 @@ function update_state(p::DecisionNode, ps, st)
     # Transform to the unit simplex
     priors = p.simplex(rng, weight, temperature)
 
-    foreach(1:p.arity) do i 
+    foreach(1:(p.arity)) do i
         dist = Categorical(priors[i, :])
         input_id[i] = rand(rng, dist)
         loglikelihood[i] = logpdf(dist, input_id[i])
@@ -66,8 +68,7 @@ function update_state(p::DecisionNode, ps, st)
      loglikelihood = loglikelihood,
      input_id = input_id,
      temperature = temperature,
-     rng = rng
-     )
+     rng = rng)
 end
 
 function (l::DecisionNode{false})(x::AbstractArray{<:Number}, ps, st::NamedTuple)
@@ -93,12 +94,11 @@ function (l::DecisionNode{true})(x::AbstractArray{<:AbstractPathState}, ps, st::
     vcat(update_path(l.f, get_id(l), x[input_id]...), x), new_st
 end
 
-
 function _apply_node(l::DecisionNode, x::AbstractMatrix, ps, st)::AbstractMatrix
     @unpack input_id = st
     reduce(hcat, map(eachcol(x)) do xi
-        _apply_node(l, xi, ps, st)
-    end)
+               _apply_node(l, xi, ps, st)
+           end)
 end
 
 function _apply_node(l::DecisionNode, x::AbstractVector, ps, st)
@@ -113,7 +113,7 @@ function _apply_node(l::DecisionNode{<:Any, <:Any, <:Any, Nothing}, x::AbstractV
 end
 
 function _apply_node(l::DecisionNode{<:Any, <:Any, <:Any, Nothing}, x::AbstractMatrix, ps,
-    st)::AbstractMatrix
+                     st)::AbstractMatrix
     @unpack input_id = st
     x[input_id, :]
 end
@@ -125,8 +125,8 @@ end
 get_temperature(::DecisionNode, ps, st) = st.temperature
 
 function get_loglikelihood(d::DecisionNode, ps, st)
-    logll = logsoftmax(ps.weight ./ st.temperature , dims = 2)
+    logll = logsoftmax(ps.weight ./ st.temperature, dims = 2)
     return sum(logll[st.input_id])
-end 
+end
 
 get_inputs(::DecisionNode, ps, st) = st.input_id

@@ -13,12 +13,12 @@ struct DecisionLayer{skip, T, output_dimension} <:
 end
 
 function DecisionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = false,
-                        id_offset = 1,
+                       id_offset = 1,
                        kwargs...)
     nodes = map(eachindex(arities)) do i
-        DecisionNode(in_dimension, arities[i], fs[i]; id = (id_offset,1), kwargs...)
+        DecisionNode(in_dimension, arities[i], fs[i]; id = (id_offset, 1), kwargs...)
     end
-    
+
     output_dimension = length(arities)
     output_dimension += skip ? in_dimension : 0
 
@@ -57,53 +57,52 @@ function get_inputs(r::DecisionLayer, ps, st)
 end
 
 @generated function _get_layer_loglikelihood(layers::NamedTuple{fields}, ps,
-    st::NamedTuple{fields}) where {fields}
+                                             st::NamedTuple{fields}) where {fields}
     N = length(fields)
     st_symbols = [gensym() for _ in 1:N]
     calls = [:($(st_symbols[i]) = get_loglikelihood(layers.$(fields[i]),
-                     ps.$(fields[i]),
-                     st.$(fields[i])))
-    for i in 1:N]
+                                                    ps.$(fields[i]),
+                                                    st.$(fields[i])))
+             for i in 1:N]
     push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
-return Expr(:block, calls...)
+    return Expr(:block, calls...)
 end
 
 @generated function _apply_layer(layers::NamedTuple{fields}, x::X, ps,
-    st::NamedTuple{fields}) where {fields, X}
-N = length(fields)
-y_symbols = vcat([gensym() for _ in 1:N])
-st_symbols = [gensym() for _ in 1:N]
-calls = [:(($(y_symbols[i]), $(st_symbols[i])) = Lux.apply(layers.$(fields[i]),
-                                  x,
-                                  ps.$(fields[i]),
-                                  st.$(fields[i])))
-for i in 1:N]
-push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
-push!(calls, :(return vcat($(y_symbols...)), st))
-return Expr(:block, calls...)
+                                 st::NamedTuple{fields}) where {fields, X}
+    N = length(fields)
+    y_symbols = vcat([gensym() for _ in 1:N])
+    st_symbols = [gensym() for _ in 1:N]
+    calls = [:(($(y_symbols[i]), $(st_symbols[i])) = Lux.apply(layers.$(fields[i]),
+                                                               x,
+                                                               ps.$(fields[i]),
+                                                               st.$(fields[i])))
+             for i in 1:N]
+    push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
+    push!(calls, :(return vcat($(y_symbols...)), st))
+    return Expr(:block, calls...)
 end
 
 @generated function _update_layer_state(layers::NamedTuple{fields}, ps,
-     st::NamedTuple{fields}) where {fields}
-N = length(fields)
-st_symbols = [gensym() for _ in 1:N]
-calls = [:($(st_symbols[i]) = update_state(layers.$(fields[i]),
-                  ps.$(fields[i]),
-                  st.$(fields[i])))
-for i in 1:N]
-push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
-return Expr(:block, calls...)
+                                        st::NamedTuple{fields}) where {fields}
+    N = length(fields)
+    st_symbols = [gensym() for _ in 1:N]
+    calls = [:($(st_symbols[i]) = update_state(layers.$(fields[i]),
+                                               ps.$(fields[i]),
+                                               st.$(fields[i])))
+             for i in 1:N]
+    push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
+    return Expr(:block, calls...)
 end
 
-
 @generated function _get_layer_inputs(layers::NamedTuple{fields}, ps,
-    st::NamedTuple{fields}) where {fields}
+                                      st::NamedTuple{fields}) where {fields}
     N = length(fields)
     st_symbols = [gensym() for _ in 1:N]
     calls = [:($(st_symbols[i]) = get_inputs(layers.$(fields[i]),
-                     ps.$(fields[i]),
-                     st.$(fields[i])))
-    for i in 1:N]
+                                             ps.$(fields[i]),
+                                             st.$(fields[i])))
+             for i in 1:N]
     push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
-return Expr(:block, calls...)
+    return Expr(:block, calls...)
 end

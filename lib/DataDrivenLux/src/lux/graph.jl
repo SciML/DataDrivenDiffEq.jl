@@ -12,7 +12,7 @@ struct LayeredDAG{T} <: Lux.AbstractExplicitContainerLayer{(:layers,)}
 end
 
 function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, arities::Tuple,
-                    fs::Tuple; skip = false, eltype::Type{T} = Float32, kwargs...) where T
+                    fs::Tuple; skip = false, eltype::Type{T} = Float32, kwargs...) where {T}
     n_inputs = in_dimension
     id_offset = in_dimension
     valid_idxs = zeros(Bool, length(fs))
@@ -20,7 +20,7 @@ function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, aritie
         valid_idxs .= true
         # Filter the functions by their input dimension
         valid_idxs .= (arities .<= n_inputs)
-        
+
         if i <= n_layers
             layer = DecisionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs];
                                   skip = skip, id_offset = i, kwargs...)
@@ -43,7 +43,6 @@ function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, aritie
     layers = NamedTuple(zip(names, layers))
     return LayeredDAG{typeof(layers)}(layers)
 end
-
 
 # Given that this is basically a chain, we hijack Lux
 function (c::LayeredDAG)(x, ps, st)
@@ -69,8 +68,8 @@ end
 
 function get_loglikelihood(c::LayeredDAG, ps, st, node_ids::Vector{Tuple{Int, Int}})
     lls = get_loglikelihood(c, ps, st)
-    sum(map(node_ids) do (i,j)
-        i > 0 && return lls[i][j]
-        0
-    end)
+    sum(map(node_ids) do (i, j)
+            i > 0 && return lls[i][j]
+            0
+        end)
 end

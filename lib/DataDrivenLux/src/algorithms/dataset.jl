@@ -9,15 +9,17 @@ struct Dataset{T}
     t_interval::Interval{T}
 end
 
-Base.eltype(::Dataset{T}) where T = T
+Base.eltype(::Dataset{T}) where {T} = T
 
-function Dataset(X::AbstractMatrix, Y::AbstractMatrix, U::AbstractMatrix = Array{eltype(X)}(undef, 0, 0), t::AbstractVector = Array{eltype(X)}(undef, 0))
+function Dataset(X::AbstractMatrix, Y::AbstractMatrix,
+                 U::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
+                 t::AbstractVector = Array{eltype(X)}(undef, 0))
     T = Base.promote_eltype(X, Y, U, t)
     X = convert.(T, X)
     Y = convert.(T, Y)
     U = convert.(T, U)
     t = convert.(T, t)
-    t = isempty(t) ? convert.(T, LinRange(0, size(Y,2)-1, size(Y,2))) : convert.(T, t)
+    t = isempty(t) ? convert.(T, LinRange(0, size(Y, 2) - 1, size(Y, 2))) : convert.(T, t)
     x_intervals = Interval.(map(extrema, eachrow(X)))
     y_intervals = Interval.(map(extrema, eachrow(Y)))
     u_intervals = Interval.(map(extrema, eachrow(U)))
@@ -43,7 +45,6 @@ function (b::Basis{false, true})(d::Dataset{T}, p::P) where {T, P}
     f(x, p, t, u)
 end
 
-
 function (b::Basis{true, false})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack y, x, t = d
@@ -58,36 +59,34 @@ end
 
 ##
 
-function interval_eval(b::Basis{false, false},d::Dataset{T}, p::P) where {T, P}
+function interval_eval(b::Basis{false, false}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack x_intervals, t_interval = d
     f(x_intervals, p, t_interval)
 end
 
-function interval_eval(b::Basis{false, true},d::Dataset{T}, p::P) where {T, P}
+function interval_eval(b::Basis{false, true}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack x_intervals, t_interval, u_intervals = d
     f(x_intervals, p, t_interval, u_intervals)
 end
 
-
-function interval_eval(b::Basis{true, false},d::Dataset{T}, p::P) where {T, P}
+function interval_eval(b::Basis{true, false}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack y_intervals, x_intervals, t_interval = d
     f(y_intervals, x_intervals, p, t_interval)
 end
 
-function interval_eval(b::Basis{true, true},d::Dataset{T}, p::P) where {T, P}
+function interval_eval(b::Basis{true, true}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     @unpack y_intervals, x_intervals, t_interval, u_intervals = d
     f(y_intervals, x_intervals, p, t_interval, u_intervals)
 end
 
-
 # Check if the combination produces Infs or empty domains
-function assert_intervals(model::LayeredDAG, ps, st::NamedTuple, b::Basis, d::Dataset{T}, p::Union{Nothing,AbstractVector}) where {T}
+function assert_intervals(model::LayeredDAG, ps, st::NamedTuple, b::Basis, d::Dataset{T},
+                          p::Union{Nothing, AbstractVector}) where {T}
     y = interval_eval(b, d, isnothing(p) ? [] : p)
     y, _ = model(y, ps, st)
-    all((isfinite.(y) .& (.! isempty.(y))))
+    all((isfinite.(y) .& (.!isempty.(y))))
 end
-

@@ -18,7 +18,6 @@ using DataDrivenDiffEq.StatsBase
 using DataDrivenDiffEq.Parameters
 using DataDrivenDiffEq.Setfield
 
-
 using Reexport
 @reexport using Optim
 using Lux
