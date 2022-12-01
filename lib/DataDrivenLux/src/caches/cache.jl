@@ -10,7 +10,8 @@ end
 
 function Base.show(io::IO, cache::SearchCache)
     print(io, cache.alg)
-    print(io, map(cache.alg.loss, cache.candidates[cache.keeps]))
+    losses = map(cache.alg.loss, cache.candidates[cache.keeps])
+    print(io, DataDrivenDiffEq.StatsBase.summarystats(losses))
     return
 end
 
