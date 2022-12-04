@@ -8,7 +8,7 @@ using Test
 
 rng = Random.seed!(1234)
 # Dummy stuff
-X = randn(rng, 1, 10)
+X = randn(rng, 1, 40)
 Y = sin.(X[1:1, :])
 Y .+= 0.01 * randn(size(Y))
 dummy_problem = DirectDataDrivenProblem(X, Y)
@@ -26,7 +26,7 @@ dummy_dataset = DataDrivenLux.Dataset(dummy_problem)
 
 @test isempty(dummy_dataset.u_intervals)
 
-for (data, interval) in zip((X, Y, 1:10),
+for (data, interval) in zip((X, Y, 1:size(X,2)),
                             (dummy_dataset.x_intervals[1],
                              dummy_dataset.y_intervals[1],
                              dummy_dataset.t_interval))
@@ -34,13 +34,15 @@ for (data, interval) in zip((X, Y, 1:10),
 end
 
 # We have 1 Choices in the first layer, 2 in the last 
-alg = RandomSearch(populationsize = 30, functions = (sin,),
+alg = RandomSearch(populationsize = 500, functions = (sin,),
                    arities = (1,), rng = rng, n_layers = 1,
                    loss = rss, keep = 2)
 
 res = solve(dummy_problem, alg,
             options = DataDrivenCommonOptions(maxiters = 50, progress = false,
-                                              abstol = 0.1))
-rss(res) <= 1e-2
-aicc(res) <= -100.0
-r2(res) >= 0.95
+                                              abstol = 0.0))
+@test rss(res) <= 1e-2
+@test aicc(res) <= -100.0
+@test r2(res) >= 0.95
+results = get_results(res)
+@test length(results) == 500
