@@ -3,15 +3,13 @@ struct SearchCache{ALG} <: AbstractAlgorithmCache
     candidates::AbstractVector{Candidate}
     ages::AbstractVector{Int}
     keeps::AbstractVector{Bool}
-    iterations::Int
+    sorting::AbstractVector{Int}
     p::AbstractVector
     dataset::Dataset
 end
 
 function Base.show(io::IO, cache::SearchCache)
-    print(io, cache.alg)
-    losses = map(cache.alg.loss, cache.candidates[cache.keeps])
-    print(io, DataDrivenDiffEq.StatsBase.summarystats(losses))
+    print(io, "SearchCache : $(cache.alg)")
     return
 end
 
@@ -25,7 +23,7 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
     dataset = Dataset(problem)
     TData = eltype(dataset)
 
-    observed = isa(observed, ObservedModel) ? observed : ObservedModel(size(dataset.y, 1))
+    observed = isa(observed, ObservedModel) ? observed : ObservedModel(dataset.y, fixed = true)
 
     if use_protected
         functions = map(convert_to_safe, functions)
@@ -49,19 +47,21 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
 
     keeps = zeros(Bool, populationsize)
     ages = zeros(Int, populationsize)
+    sorting = zeros(Int, populationsize)
 
-    return SearchCache{typeof(x)}(x, candidates, ages, keeps, 0, ps, dataset)
+    return SearchCache{typeof(x)}(x, candidates, ages, keeps, sorting, ps, dataset)
 end
 
 function update_cache!(cache::SearchCache)
-    @unpack keep, loss, distributed, optimizer, optim_options = cache.alg
+    @unpack keep, loss, optimizer, optim_options = cache.alg
 
-    sort!(cache.candidates, by = loss)
 
     cache.keeps .= false
 
-    if keep .>= 1
-        cache.keeps[1:keep] .= true
+    if isa(keep, Int)
+        sortperm!(cache.sorting, cache.candidates, alg = PartialQuickSort(keep), by = loss)
+        permute!(cache.candidates, cache.sorting)
+        cache.keeps[1:keep] .= true 
     else
         losses = map(loss, cache.candidates)
         # TODO Maybe weight by age or loss here
@@ -69,13 +69,10 @@ function update_cache!(cache::SearchCache)
         cache.keeps .= (losses .<= loss_quantile)
     end
     # Update the parameters based on the current results
-    # Here
-
     cache.p .= update_parameters(cache.alg, cache.p, cache.candidates[cache.keeps])
 
     optimize_cache!(cache, cache.p)
 
-    sort!(cache.candidates, by = loss)
     return
 end
 
@@ -107,15 +104,10 @@ function optimize_cache!(cache::SearchCache, p = cache.p)
                 cache.ages[i] += 1
                 return true
             else
-                try
-                    optimize_candidate!(candidate, p, cache.dataset, optimizer,
-                                        optim_options)
-                    cache.ages[i] = 0
-                    return true
-                catch e
-                    @info "Failed to update candidate $i"
-                    return false
-                end
+                optimize_candidate!(candidate, p, cache.dataset, optimizer,
+                                    optim_options)
+                cache.ages[i] = 0
+                return true
             end
         end
     end

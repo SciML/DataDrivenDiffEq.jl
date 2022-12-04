@@ -1,33 +1,31 @@
-_safe_div(x, y::T) where {T} = begin
-    (iszero(y) && iszero(x)) && return one(T) # one(T)
-    iszero(y) && return zero(T)
-    /(x, y)
+function _safe_div(x::X, y::Y) where {X,Y} 
+    (iszero(x) && iszero(y)) && return one(X)
+    iszero(y) && return zero(Y)
+    \(x, y) 
 end
 
-_safe_sqrt(x::T) where {T} = real(sqrt(Complex(x)))
-_safe_sqrt(x::Num) = sqrt(x)
 
-_safe_log(x::T) where {T <: Number} = real(log(Complex(x)))
-_safe_log(x::Num) = log(x)
-
-_safe_pow(x::T, y) where {T} = begin
-    iszero(x) && return zero(T)
-    ^(x, y)
+function _safe_pow(x::X, y::Y) where {X,Y}
+    iszero(x) ? x : ^(x, y)
 end
 
-"""
-$(SIGNATURES)
+# We wrap a bunch of functions to complex, given that this way a NAN is returned
+for f in (:sin, :cos, :log, :exp,  :sqrt)
+    sname = gensym(string(f))
+    @eval begin
+        ($sname)(x) = real($(f)(Complex(x)))
+        ($sname)(x::Num) = $(f)(x)
+        convert_to_safe(::typeof($f)) = $sname
+    end
+end
 
-Convert a given function to its protected counterpart.
+#_safe_sin(x::X) where X = isinf(x) ? NaN : sin(x)
+#_safe_cos(x::X) where X = isinf(x) ? NaN : cos(x)
+#_safe_log(x::X) where X = x <= zero(X) ? real(log(Complex(x))) : log(x)
+#_safe_sqrt(x::X) where X = x <= zero(X) ? NaN : sqrt(x)
+#_safe_pow(x::X, y::Y) where {X,Y} = iszero(x) ? NaN : ^(x, y)
 
-Currently, the following functions are proteced:
-+ `/` 
-+ `sqrt`
-+ `log`
-+ `^`
-"""
+
 convert_to_safe(x) = x
 convert_to_safe(::typeof(/)) = _safe_div
-convert_to_safe(::typeof(log)) = _safe_log
-convert_to_safe(::typeof(sqrt)) = _safe_sqrt
 convert_to_safe(::typeof(^)) = _safe_pow

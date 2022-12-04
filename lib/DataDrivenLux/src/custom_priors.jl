@@ -58,10 +58,16 @@ get_dist(d::ObservedDistribution{<:Any, D}) where {D} = D
 
 Base.show(io::IO, d::ObservedDistribution) = summary(io, d)
 
-function Distributions.logpdf(d::ObservedDistribution, x::X, x̂::Y,
+function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Y,
                               scale::S = get_scale(d)) where {X, Y, S <: Number}
     sum(map(xs -> d.errormodel(get_dist(d), xs..., scale), zip(x, x̂)))
 end
+
+function Distributions.logpdf(d::ObservedDistribution{true}, x::X, x̂::Y,
+    scale::S = get_scale(d)) where {X, Y, S <: Number}
+sum(map(xs -> d.errormodel(get_dist(d), xs..., get_scale(d)), zip(x, x̂)))
+end
+
 
 function transform_scales(d::ObservedDistribution, scale::T) where {T <: Number}
     transform(d.scale_transformation, scale)
@@ -72,14 +78,19 @@ $(TYPEDEF)
 
 The error distribution of a models output.
 """
-struct ObservedModel{M}
+struct ObservedModel{fixed, M}
     observed_distributions::NTuple{M, ObservedDistribution}
 end
 
-function ObservedModel(n::Int)
-    dists = tuple(collect(ObservedDistribution(Normal, AdditiveError()) for i in 1:n)...)
-    return ObservedModel{n}(dists)
+function ObservedModel(Y::AbstractMatrix; fixed = false)
+    σ = var(Y, dims = 2)[:,1]
+    dists = map(axes(Y,1)) do i 
+        ObservedDistribution(Normal, AdditiveError(), fixed = fixed, scale = σ[i])
+    end
+    return ObservedModel{fixed, size(Y, 1)}(tuple(dists...))
 end
+
+needs_optimization(o::ObservedModel{fixed}) where fixed = !fixed
 
 function Base.summary(io::IO, o::ObservedModel{M}) where {M}
     print(io, "Observed Model with $M variables.")
@@ -126,9 +137,10 @@ function transform_parameter(p::ParameterDistribution, pval::T) where {T <: Numb
     transform(p.transformation, pval)
 end
 get_interval(p::ParameterDistribution) = p.interval
+
 function Distributions.logpdf(p::ParameterDistribution, pval::T) where {T <: Number}
     transform_logdensity(p.transformation, Base.Fix1(logpdf, p.distribution), pval)
-end#logpdf(p.distribution, transform_parameter(p, pval))
+end
 
 # Parameters 
 
@@ -158,6 +170,8 @@ function ParameterDistributions(b::Basis, eltype::Type{T} = Float64) where {T}
 
     return ParameterDistributions{T, length(distributions)}(tuple(distributions...))
 end
+
+needs_optimization(::ParameterDistributions{<:Any, L}) where L = L > 0
 
 function Base.summary(io::IO, p::ParameterDistributions)
     map(Base.Fix1(println, io), p.distributions)

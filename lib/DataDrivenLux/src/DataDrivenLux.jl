@@ -32,7 +32,7 @@ using IntervalArithmetic
 using Random
 using Distributed
 using ProgressMeter
-using Suppressor
+using Logging
 
 abstract type AbstractAlgorithmCache end
 abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end

@@ -82,11 +82,3 @@ function interval_eval(b::Basis{true, true}, d::Dataset{T}, p::P) where {T, P}
     @unpack y_intervals, x_intervals, t_interval, u_intervals = d
     f(y_intervals, x_intervals, p, t_interval, u_intervals)
 end
-
-# Check if the combination produces Infs or empty domains
-function assert_intervals(model::LayeredDAG, ps, st::NamedTuple, b::Basis, d::Dataset{T},
-                          p::Union{Nothing, AbstractVector}) where {T}
-    y = interval_eval(b, d, isnothing(p) ? [] : p)
-    y, _ = model(y, ps, st)
-    all((isfinite.(y) .& (.!isempty.(y))))
-end

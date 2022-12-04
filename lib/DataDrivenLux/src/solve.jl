@@ -14,17 +14,27 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
 
     cache = init_cache(alg, basis, problem)
 
-    p = progress ? ProgressMeter.Progress(maxiters, dt = 0.1) : nothing
+    p = ProgressMeter.Progress(maxiters, dt = 0.1, enabled = progress)
+
+    _showvalues(iter) = begin
+        losses = map(alg.loss, cache.candidates)
+        [
+            (:Iterations, iter),
+            (:Minimum, first(losses)),
+            (:Maximum, last(losses)),
+            (:Mode, mode(losses)),
+            (:Mean, mean(losses))
+        ]
+    end
 
     for iter in 1:maxiters
         update_cache!(cache)
-        if progress
-            if StatsBase.rss(first(cache.candidates)) <= abstol
-                ProgressMeter.finish!(p)
-                break
-            end
-            ProgressMeter.update!(p, iter, showvalues = [(:Algorithm, cache)])
+        
+        if StatsBase.rss(first(cache.candidates)) <= abstol
+            ProgressMeter.finish!(p)
+            break
         end
+        ProgressMeter.update!(p, iter, showvalues = _showvalues(iter))
     end
 
     # Create the optimal basis

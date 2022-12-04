@@ -1,5 +1,7 @@
 """
 $(TYPEDEF)
+using Base: NullLogger
+using Base: with_logger
 
 A container holding all the information for the current candidate solution
 to the symbolic regression problem.
@@ -120,8 +122,7 @@ get_scales(c::Candidate) = transform_scales(c.observed, c.scales)
     @unpack y = dataset
 
     ll = logpdf(observed, y,
-                c(dataset, p, st,
-                  transform_parameter(parameterdist, parameters)),
+                c(dataset, p, st,transform_parameter(parameterdist, parameters)),
                 transform_scales(observed, scales))
     ll += logpdf(parameterdist, parameters)
     -ll
@@ -136,22 +137,28 @@ function optimize_candidate!(c::Candidate, ps, dataset::Dataset{T}, optimizer,
                              options::Optim.Options) where {T}
     path, st = sample(c, ps)
     p_init = initial_values(c)
-    assert_intervals(c.model, ps, st, c.basis, dataset, get_interval(c.parameterdist)) ||
-        return
 
-    loss(p) = lossfunction(c, ps, st, p, dataset)
+    if all(IntervalArithmetic.iscommon, map(get_interval, c.outgoing_path))
+        if any(needs_optimization,(c.observed, c.parameterdist))
+            loss(p) = lossfunction(c, ps, st, p, dataset)
+            # We do not want any warnings here
+            res = with_logger(NullLogger()) do 
+                Optim.optimize(loss, p_init, optimizer, options)
+            end
 
-    res = @suppress Optim.optimize(loss, p_init, optimizer, options)
-
-    if Optim.converged(res)
-        c.outgoing_path .= path
-        c.st = st
-        c.parameters .= res.minimizer.parameters
-        c.scales .= res.minimizer.scales
-        update_values!(c, ps, dataset)
-        return
+            if Optim.converged(res)
+                c.outgoing_path .= path
+                c.st = st
+                c.parameters .= res.minimizer.parameters
+                c.scales .= res.minimizer.scales
+                update_values!(c, ps, dataset)
+                return
+            end
+        else
+            update_values!(c, ps, dataset)
+        end
     end
-    update_values!(c, ps, dataset)
+
     return
 end
 
@@ -162,7 +169,7 @@ function check_intervals(paths::AbstractArray{<:AbstractPathState})::Bool
     return true
 end
 
-check_intervals(path::AbstractPathState)::Bool = isfinite(path.path_interval)
+check_intervals(path::AbstractPathState)::Bool = IntervalArithmetic.iscommon(path.path_interval)
 
 function sample(c::Candidate, ps, i = 0, max_sample = 10)
     @unpack incoming_path, st = c

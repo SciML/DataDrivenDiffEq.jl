@@ -68,8 +68,8 @@ end
     return Expr(:block, calls...)
 end
 
-@generated function _apply_layer(layers::NamedTuple{fields}, x::X, ps,
-                                 st::NamedTuple{fields}) where {fields, X}
+@generated function _apply_layer(layers::NamedTuple{fields}, x, ps,
+                                 st::NamedTuple{fields}) where {fields}
     N = length(fields)
     y_symbols = vcat([gensym() for _ in 1:N])
     st_symbols = [gensym() for _ in 1:N]
