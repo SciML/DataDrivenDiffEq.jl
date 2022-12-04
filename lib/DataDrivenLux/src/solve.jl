@@ -18,12 +18,16 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
 
     _showvalues(iter) = begin
         losses = map(alg.loss, cache.candidates)
+        min_, max_ = extrema(losses)
+        quantiles = quantile(losses, [0.1, 0.25, 0.5, 0.75, 0.99])
         [
             (:Iterations, iter),
-            (:Minimum, first(losses)),
-            (:Maximum, last(losses)),
+            (:Minimum, min_),
+            (:Maximum, max_),
+            (:Quantiles, quantiles),
             (:Mode, mode(losses)),
-            (:Mean, mean(losses))
+            (:Mean, mean(losses)),
+
         ]
     end
 

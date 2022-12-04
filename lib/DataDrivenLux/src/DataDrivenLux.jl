@@ -41,6 +41,12 @@ abstract type AbstractErrorModel end
 abstract type AbstractErrorDistribution end
 abstract type AbstractConfigurationCache <: StatsBase.StatisticalModel end
 
+@enum __PROCESSUSE begin
+    SERIAL = 1
+    THREADED = 2
+    PARALLEL = 3
+end
+
 ##
 include("utils.jl")
 

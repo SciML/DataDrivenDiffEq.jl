@@ -34,7 +34,7 @@ $(FIELDS)
     optimizer::O = LBFGS()
     "Optim options"
     optim_options::Optim.Options = Optim.Options()
-    "Observed model - if `nothing`is used, a normal distributed additive error is assumed."
+    "Observed model - if `nothing`is used, a normal distributed additive error with fixed variance is assumed."
     observed::Union{ObservedModel, Nothing} = nothing
 end
 
