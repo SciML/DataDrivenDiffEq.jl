@@ -21,19 +21,22 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
 
     p = ProgressMeter.Progress(maxiters, dt = 0.1, enabled = progress)
 
-    _showvalues(iter) = begin
-        losses = map(alg.loss, cache.candidates)
+    _showvalues = let cache = cache
+        (iter) -> begin 
+        losses = map(alg.loss, cache.candidates[cache.keeps])
         min_, max_ = extrema(losses)
         quantiles = quantile(losses, [0.1, 0.25, 0.5, 0.75, 0.99])
         [
             (:Iterations, iter),
+            (:RSS, map(StatsBase.rss,cache.candidates[cache.keeps])),
             (:Minimum, min_),
             (:Maximum, max_),
             (:Quantiles, quantiles),
             (:Mode, mode(losses)),
             (:Mean, mean(losses)),
-
+            (:Probabilities, map(x->exp(x(cache.p)), cache.candidates[cache.keeps]))
         ]
+        end
     end
 
     for iter in 1:maxiters
@@ -47,7 +50,8 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
     end
 
     # Create the optimal basis
-    best_cache = first(sort!(cache.candidates, by = alg.loss))
+    sort!(cache.candidates, by = alg.loss)
+    best_cache = first(cache.candidates)
 
     p_best = get_parameters(best_cache)
 

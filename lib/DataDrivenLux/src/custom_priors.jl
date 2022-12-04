@@ -83,12 +83,13 @@ struct ObservedModel{fixed, M}
 end
 
 function ObservedModel(Y::AbstractMatrix; fixed = false)
-    σ = var(Y, dims = 2)[:,1]
+    σ = ones(eltype(Y), size(Y,1))
     dists = map(axes(Y,1)) do i 
         ObservedDistribution(Normal, AdditiveError(), fixed = fixed, scale = σ[i])
     end
     return ObservedModel{fixed, size(Y, 1)}(tuple(dists...))
 end
+
 
 needs_optimization(o::ObservedModel{fixed}) where fixed = !fixed
 

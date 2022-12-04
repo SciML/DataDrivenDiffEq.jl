@@ -45,7 +45,7 @@ Base.show(io::IO, c::Candidate) = print(io, c)
 Base.summary(io::IO, c::Candidate) = print(io, c)
 
 function Candidate(model, ps, rng, basis, dataset;
-                   observed = ObservedModel(size(dataset.y, 1)),
+                   observed = ObservedModel(dataset.y),
                    parameterdist = ParameterDistributions(basis),
                    ptype = Float32)
     @unpack y, x = dataset

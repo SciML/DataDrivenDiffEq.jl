@@ -1,13 +1,19 @@
+# Rewards
+
+
+
 """
 $(TYPEDEF)
 
-Performs a random search over the space of possible solutions to the 
+Uses the REINFORCE algorithm to search over the space of possible solutions to the 
 symbolic regression problem.
 
 # Fields
 $(FIELDS)
 """
-@with_kw struct RandomSearch{F, A, L, O} <: AbstractDAGSRAlgorithm
+@with_kw struct Reinforce{F, A, L, O, R} <: AbstractDAGSRAlgorithm
+    "Reward function which should return a single reward for a given candidate."
+    reward::R = (x)-> map(r2, x)
     "The number of candidates to track"
     populationsize::Int = 100
     "The functions to include in the search"
@@ -36,14 +42,33 @@ $(FIELDS)
     optim_options::Optim.Options = Optim.Options()
     "Observed model - if `nothing`is used, a normal distributed additive error with fixed variance is assumed."
     observed::Union{ObservedModel, Nothing} = nothing
-    "Field for possible optimiser - no use for Randomsearch"
-    optimiser::Nothing = nothing
+    "AD Backendend"
+    ad_backend::AD.AbstractBackend = AD.ForwardDiffBackend()
+    "Optimiser"
+    optimiser::Optimisers.AbstractRule = ADAM()
 end
 
-Base.print(io::IO, ::RandomSearch) = print(io, "RandomSearch")
-Base.summary(io::IO, x::RandomSearch) = print(io, x)
+Base.print(io::IO, ::Reinforce) = print(io, "Reinforce")
+Base.summary(io::IO, x::Reinforce) = print(io, x)
 
-# Randomsearch does not do anything
-function update_parameters!(::SearchCache)
+function reinforce_loss(candidates, p, alg)
+    @unpack loss = alg
+    rewards = map(loss, candidates)
+    min_reward = minimum(rewards)
+    -sum(map(enumerate(candidates)) do (i,candidate)
+        exp(-min_reward - rewards[i]) *  candidate(p)
+    end)
+end
+
+function update_parameters!(cache::SearchCache{<:Reinforce})
+    @unpack alg, optimiser_state, candidates, keeps, p = cache
+    @unpack ad_backend = alg
+
+    ∇p, _... = AD.gradient(ad_backend, (p)->reinforce_loss(candidates[keeps], p, alg), p)
+
+    opt_state, p_ = Optimisers.update!(optimiser_state, p[:], ∇p[:])
+    cache.p .= p_
+    # We do not want to specialize
+    keeps .= false
     return
 end

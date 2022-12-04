@@ -33,8 +33,10 @@ using Random
 using Distributed
 using ProgressMeter
 using Logging
+using AbstractDifferentiation, ForwardDiff
+using Optimisers
 
-abstract type AbstractAlgorithmCache end
+abstract type AbstractAlgorithmCache <: AbstractDataDrivenResult end
 abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
 abstract type AbstractSimplex end
 abstract type AbstractErrorModel end
@@ -81,6 +83,9 @@ export SearchCache
 
 include("algorithms/randomsearch.jl")
 export RandomSearch
+
+include("algorithms/reinforce.jl")
+export Reinforce
 
 include("solve.jl")
 

@@ -1,5 +1,4 @@
 function _safe_div(x::X, y::Y) where {X,Y} 
-    (iszero(x) && iszero(y)) && return one(X)
     iszero(y) && return zero(Y)
     \(x, y) 
 end

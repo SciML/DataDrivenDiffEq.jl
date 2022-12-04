@@ -27,7 +27,7 @@ function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, aritie
         else
             layer = DecisionLayer(n_inputs, Tuple(1 for i in 1:out_dimension),
                                   Tuple(nothing for i in 1:out_dimension); skip = false,
-                                  id_offset = id_offset,
+                                  id_offset = n_layers+1,
                                   kwargs...)
         end
 
