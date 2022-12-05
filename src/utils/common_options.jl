@@ -62,10 +62,16 @@ function StatsBase.fit(::DataNormalization{Nothing}, data)
     StatsBase.fit(ZScoreTransform, data, dims = 2, scale = false, center = false)
 end
 function StatsBase.fit(::DataNormalization{UnitRangeTransform}, data)
-    StatsBase.fit(UnitRangeTransform, data, dims = 2)
+    tf = StatsBase.fit(UnitRangeTransform, data, dims = 2)
+    # Adapt for constants here
+    tf.scale .= [isinf(s) ? one(eltype(s)) : s for s in tf.scale]
+    tf
 end
 function StatsBase.fit(::DataNormalization{ZScoreTransform}, data) where {T}
-    StatsBase.fit(ZScoreTransform, data, dims = 2, center = false)
+    tf = StatsBase.fit(ZScoreTransform, data, dims = 2, center = false)
+    # Adapt for constants here
+    tf.scale .= [iszero(s) ? one(eltype(s)) : s for s in tf.scale]
+    tf
 end
 
 """
