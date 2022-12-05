@@ -107,11 +107,11 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
     lhs = Num.(lhs)
 
     # Scalarize all variables
-    states, controls, parameters, implicits, observed = value.(scalarize(states)),
-                                                        value.(scalarize(ctrls)),
-                                                        value.(scalarize(ps)),
-                                                        value.(scalarize(implicit)),
-                                                        value.(scalarize(observed))
+    states, controls, parameters, implicits, observed = value.(collect(states)),
+                                                        value.(collect(ctrls)),
+                                                        value.(collect(ps)),
+                                                        value.(collect(implicit)),
+                                                        value.(collect(observed))
     # Filter out zeros
     rhs = [eq for eq in rhs if ~isequal(Num(eq), zero(Num))]
 
@@ -124,7 +124,7 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
 
     eqs = reduce(vcat, map(Symbolics.Equation, lhs, rhs); init = Equation[])
     eqs = isa(eqs, AbstractVector) ? collect(eqs) : [collect(eqs)]
-    return collect(eqs), states, controls, parameters, observed, iv, implicits, f, name,
+    return eqs, states, controls, parameters, observed, iv, implicits, f, name,
            systems
 end
 
