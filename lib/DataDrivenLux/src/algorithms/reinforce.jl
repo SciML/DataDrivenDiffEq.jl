@@ -1,7 +1,40 @@
-# Rewards
+abstract type AbstractRewardScale{risk} end
 
+"""
+$(TYPEDEF)
 
+Scales the losses in such a way that the minimum loss is equal to one.
+"""
+struct RelativeReward{risk} <: AbstractRewardScale{risk} end
 
+RelativeReward(risk_seeking = true) = RelativeReward{risk_seeking}()
+
+function (::RelativeReward)(losses::Vector{T}) where T <: Number
+    exp.(minimum(losses) .- losses) 
+end
+
+function (::RelativeReward{true})(losses::Vector{T}) where T <: Number
+    r = exp.(minimum(losses) .- losses) 
+    r .- minimum(r)
+end
+
+"""
+$(TYPEDEF)
+
+Scales the losses in such a way that the minimum loss is the most influencial reward.
+"""
+struct AbsoluteReward{risk} <: AbstractRewardScale{risk} end
+
+AbsoluteReward(risk_seeking = true) = AbsoluteReward{risk_seeking}()
+
+function (::AbsoluteReward)(losses::Vector{T}) where T <: Number
+    exp.(-losses) 
+end
+
+function (::AbsoluteReward{true})(losses::Vector{T}) where T <: Number
+    r = exp.(-losses) 
+    r .- minimum(r)
+end
 """
 $(TYPEDEF)
 
@@ -12,8 +45,8 @@ symbolic regression problem.
 $(FIELDS)
 """
 @with_kw struct Reinforce{F, A, L, O, R} <: AbstractDAGSRAlgorithm
-    "Reward function which should return a single reward for a given candidate."
-    reward::R = (x)-> map(r2, x)
+    "Reward function which should convert the loss to a reward."
+    reward::R = RelativeReward(true)
     "The number of candidates to track"
     populationsize::Int = 100
     "The functions to include in the search"
@@ -52,11 +85,11 @@ Base.print(io::IO, ::Reinforce) = print(io, "Reinforce")
 Base.summary(io::IO, x::Reinforce) = print(io, x)
 
 function reinforce_loss(candidates, p, alg)
-    @unpack loss = alg
-    rewards = map(loss, candidates)
-    min_reward = minimum(rewards)
+    @unpack loss, reward = alg
+    losses = map(loss, candidates)
+    rewards = reward(losses)
     -sum(map(enumerate(candidates)) do (i,candidate)
-        exp(min_reward - rewards[i]) *  candidate(p)
+        rewards[i] *  candidate(p)
     end)
 end
 

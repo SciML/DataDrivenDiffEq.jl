@@ -43,7 +43,7 @@ function ObservedDistribution(distribution::Type{T}, errormodel::AbstractErrorMo
                                                   T <:
                                                   Distributions.Distribution{Univariate,
                                                                              <:Any}}
-    latent_scale = inverse(transform, scale)
+    latent_scale = TransformVariables.inverse(transform, scale)
     return ObservedDistribution{fixed, T, typeof(errormodel), typeof(latent_scale),
                                 typeof(transform)}(errormodel, latent_scale, transform)
 end
@@ -60,7 +60,7 @@ Base.show(io::IO, d::ObservedDistribution) = summary(io, d)
 
 function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Y,
                               scale::S = get_scale(d)) where {X, Y, S <: Number}
-    sum(map(xs -> d.errormodel(get_dist(d), xs..., scale), zip(x, x̂)))
+    sum(map(xs -> d.errormodel(get_dist(d), xs..., scale), zip(x, x̂))) 
 end
 
 function Distributions.logpdf(d::ObservedDistribution{true}, x::X, x̂::Y,
@@ -124,7 +124,7 @@ function ParameterDistribution(d::Distribution{Univariate}, init = mean(d),
     lower_t = isinf(lower) ? -TransformVariables.∞ : lower
     upper_t = isinf(upper) ? TransformVariables.∞ : upper
     transform = as(Real, lower_t, upper_t)
-    init = convert.(T, inverse(transform, init))
+    init = convert.(T, TransformVariables.inverse(transform, init))
     return ParameterDistribution(d, Interval(lower, upper), transform, init)
 end
 

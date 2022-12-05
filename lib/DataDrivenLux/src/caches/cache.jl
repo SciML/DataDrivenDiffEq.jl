@@ -24,17 +24,25 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
     # Derive the model
     dataset = Dataset(problem)
     TData = eltype(dataset)
+    
+
 
     rng_ = Lux.replicate(rng)
 
     observed = isa(observed, ObservedModel) ? observed : ObservedModel(dataset.y, fixed = true)
 
+    # Get the parameter mapping
+    parameter_mask = map(equations(basis)) do eq
+        all(ModelingToolkit.isparameter, ModelingToolkit.get_variables(eq.rhs))
+    end
+
     if use_protected
         functions = map(convert_to_safe, functions)
     end
 
-    model = LayeredDAG(length(basis), size(dataset.y, 1), n_layers, arities, functions,
-                       skip = skip; kwargs...)
+
+    model = LayeredDAG(length(basis), size(dataset.y, 1), n_layers, arities, functions;
+                       skip = skip, parameter_mask = parameter_mask, kwargs...)
     ps = Lux.initialparameters(rng_, model)
     ps = ComponentVector(ps)
 

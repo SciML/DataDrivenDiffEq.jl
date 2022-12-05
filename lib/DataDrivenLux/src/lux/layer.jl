@@ -12,11 +12,24 @@ struct DecisionLayer{skip, T, output_dimension} <:
     nodes::T
 end
 
+mask_inverse(f::F, in_f) where F <: Function =  [InverseFunctions.inverse(f) != f_ for f_ in in_f]
+mask_inverse(::typeof(+), in_f) = ones(Bool, length(in_f))
+mask_inverse(::typeof(-), in_f) = ones(Bool, length(in_f))
+mask_inverse(::Nothing, in_f) = ones(Bool, length(in_f))
+
+function mask_parameters(arity, parameter_mask)
+    arity <= 1 && return .! parameter_mask
+    return ones(Bool, length(parameter_mask))
+end
+
 function DecisionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = false,
-                       id_offset = 1,
+                       id_offset = 1, input_functions = (), parameter_mask = zeros(Bool, in_dimension),
                        kwargs...)
+
     nodes = map(eachindex(arities)) do i
-        DecisionNode(in_dimension, arities[i], fs[i]; id = (id_offset, 1), kwargs...)
+        # We check if we have an inverse here
+        local_input_mask = vcat(mask_inverse(fs[i], input_functions), mask_parameters(arities[i], parameter_mask))
+        DecisionNode(in_dimension, arities[i], fs[i]; id = (id_offset, 1), input_mask = local_input_mask, kwargs...)
     end
 
     output_dimension = length(arities)

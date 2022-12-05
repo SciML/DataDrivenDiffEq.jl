@@ -12,29 +12,33 @@ struct LayeredDAG{T} <: Lux.AbstractExplicitContainerLayer{(:layers,)}
 end
 
 function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, arities::Tuple,
-                    fs::Tuple; skip = false, eltype::Type{T} = Float32, kwargs...) where {T}
+                    fs::Tuple; skip = false, eltype::Type{T} = Float32, parameter_mask = zeros(Bool, in_dimension), kwargs...) where {T}
     n_inputs = in_dimension
-    id_offset = in_dimension
+    
+    input_functions = Any[]
+
     valid_idxs = zeros(Bool, length(fs))
     layers = map(1:(n_layers + 1)) do i
         valid_idxs .= true
         # Filter the functions by their input dimension
         valid_idxs .= (arities .<= n_inputs)
-
         if i <= n_layers
             layer = DecisionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs];
-                                  skip = skip, id_offset = i, kwargs...)
+            skip = skip, id_offset = i, input_functions = input_functions, parameter_mask = parameter_mask, kwargs...)
+            push!(input_functions, fs[valid_idxs]...)
         else
             layer = DecisionLayer(n_inputs, Tuple(1 for i in 1:out_dimension),
                                   Tuple(nothing for i in 1:out_dimension); skip = false,
                                   id_offset = n_layers+1,
                                   kwargs...)
+            push!(input_functions, fs[valid_idxs]...)
         end
 
         if skip
             n_inputs = n_inputs + sum(valid_idxs)
         else
             n_inputs = sum(valid_idxs)
+            empty!(input_functions)
         end
         layer
     end

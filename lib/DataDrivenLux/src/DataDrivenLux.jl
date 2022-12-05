@@ -21,10 +21,14 @@ using DataDrivenDiffEq.Setfield
 using Reexport
 @reexport using Optim
 using Lux
+
+using InverseFunctions
 using TransformVariables
 using NNlib
 using Distributions
 using DistributionsAD
+
+
 using ChainRulesCore
 using ComponentArrays
 # We only need a certain subset of IntervalArithmetic

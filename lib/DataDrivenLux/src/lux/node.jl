@@ -1,5 +1,6 @@
 
 """
+using Base: input_color
 $(TYPEDEF)
 
 A layer representing a decision node with a single function 
@@ -20,22 +21,26 @@ struct DecisionNode{skip, W, S, F, ID} <: Lux.AbstractExplicitLayer
     init_weight::W
     "Mapping to the unit simplex"
     simplex::S
+    "Masking of the input values"
+    input_mask::AbstractArray{Bool}
 end
 
 function DecisionNode(in_dims::Int, arity::Int, f::F = identity;
                       init_weight = Lux.zeros32, skip = false,
                       simplex = Softmax(), id = 0,
+                      input_mask = ones(Bool, in_dims),
                       kwargs...) where {F}
     return DecisionNode{skip, typeof(init_weight), typeof(simplex), F, id}(in_dims, f,
                                                                            arity,
                                                                            init_weight,
-                                                                           simplex)
+                                                                           simplex, input_mask)
 end
 
 get_id(::DecisionNode{<:Any, <:Any, <:Any, <:Any, ID}) where {ID} = ID
 
 function Lux.initialparameters(rng::AbstractRNG, l::DecisionNode)
-    return (; weight = l.init_weight(rng, l.arity, l.in_dims))
+
+    return (; weight = l.init_weight(rng, l.arity, sum(l.input_mask)))
 end
 
 function Lux.initialstates(rng::AbstractRNG, p::DecisionNode)
@@ -84,13 +89,13 @@ end
 function (l::DecisionNode{false})(x::AbstractArray{<:AbstractPathState}, ps, st::NamedTuple)
     new_st = update_state(l, ps, st)
     @unpack input_id = new_st
-    update_path(l.f, get_id(l), x[input_id]...), new_st
+    update_path(l.f, get_id(l), x[l.input_mask][input_id]...), new_st
 end
 
 function (l::DecisionNode{true})(x::AbstractArray{<:AbstractPathState}, ps, st::NamedTuple)
     new_st = update_state(l, ps, st)
     @unpack input_id = new_st
-    vcat(update_path(l.f, get_id(l), x[input_id]...), x), new_st
+    vcat(update_path(l.f, get_id(l), x[l.input_mask][input_id]...), x), new_st
 end
 
 function _apply_node(l::DecisionNode, x::AbstractMatrix, ps, st)::AbstractMatrix
@@ -102,19 +107,19 @@ end
 
 function _apply_node(l::DecisionNode, x::AbstractVector, ps, st)
     @unpack input_id = st
-    map(l.f, x[input_id]...)
+    map(l.f, x[l.input_mask][input_id]...)
 end
 
 function _apply_node(l::DecisionNode{<:Any, <:Any, <:Any, Nothing}, x::AbstractVector, ps,
                      st)
     @unpack input_id = st
-    x[input_id]
+    x[l.input_mask][input_id]
 end
 
 function _apply_node(l::DecisionNode{<:Any, <:Any, <:Any, Nothing}, x::AbstractMatrix, ps,
                      st)::AbstractMatrix
     @unpack input_id = st
-    x[input_id, :]
+    x[l.input_mask,:][input_id, :]
 end
 
 function set_temperature(::DecisionNode, temperature, ps, st)

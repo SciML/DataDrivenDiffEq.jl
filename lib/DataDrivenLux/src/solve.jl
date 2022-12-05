@@ -23,18 +23,17 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
 
     _showvalues = let cache = cache
         (iter) -> begin 
+        shows = min(5, sum(cache.keeps))
         losses = map(alg.loss, cache.candidates[cache.keeps])
         min_, max_ = extrema(losses)
-        quantiles = quantile(losses, [0.1, 0.25, 0.5, 0.75, 0.99])
         [
             (:Iterations, iter),
-            (:RSS, map(StatsBase.rss,cache.candidates[cache.keeps])),
+            (:RSS, map(StatsBase.rss,cache.candidates[cache.keeps][1:shows])),
             (:Minimum, min_),
             (:Maximum, max_),
-            (:Quantiles, quantiles),
             (:Mode, mode(losses)),
             (:Mean, mean(losses)),
-            (:Probabilities, map(x->exp(x(cache.p)), cache.candidates[cache.keeps]))
+            (:Probabilities, map(x->exp(x(cache.p)), cache.candidates[cache.keeps][1:shows]))
         ]
         end
     end
@@ -77,13 +76,8 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
     rss = sum(abs2,
               new_basis(new_problem) .- DataDrivenDiffEq.get_implicit_data(new_problem))
 
-    # Collect all results
-    results = map(enumerate(cache.candidates)) do (i, candidate) 
-        DataDrivenLuxResult(candidate,cache.keeps[i] ? DDReturnCode(1) : DDReturnCode(2))
-    end
-
     return DataDrivenSolution{typeof(rss)}(new_basis, DDReturnCode(1), alg,
-                                           results, new_problem,
+                                           [cache], new_problem,
                                            rss, length(p_new), prob)
 end
 
