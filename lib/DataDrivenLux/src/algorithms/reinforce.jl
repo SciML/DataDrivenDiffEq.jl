@@ -56,7 +56,7 @@ function reinforce_loss(candidates, p, alg)
     rewards = map(loss, candidates)
     min_reward = minimum(rewards)
     -sum(map(enumerate(candidates)) do (i,candidate)
-        exp(-min_reward - rewards[i]) *  candidate(p)
+        exp(min_reward - rewards[i]) *  candidate(p)
     end)
 end
 
@@ -65,10 +65,7 @@ function update_parameters!(cache::SearchCache{<:Reinforce})
     @unpack ad_backend = alg
 
     ∇p, _... = AD.gradient(ad_backend, (p)->reinforce_loss(candidates[keeps], p, alg), p)
-
     opt_state, p_ = Optimisers.update!(optimiser_state, p[:], ∇p[:])
     cache.p .= p_
-    # We do not want to specialize
-    keeps .= false
     return
 end

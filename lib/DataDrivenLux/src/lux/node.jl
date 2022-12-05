@@ -43,7 +43,6 @@ function Lux.initialstates(rng::AbstractRNG, p::DecisionNode)
         rand(rng)
         rng_ = Lux.replicate(rng)
         # Call once
-
         (loglikelihood = zeros(Float32, p.arity),
          input_id = zeros(Int, p.arity),
          temperature = 1.0f0,
@@ -126,7 +125,9 @@ get_temperature(::DecisionNode, ps, st) = st.temperature
 
 function get_loglikelihood(d::DecisionNode, ps, st)
     logll = logsoftmax(ps.weight ./ st.temperature, dims = 2)
-    return sum(logll[st.input_id])
+    ll = sum(map(axes(logll, 1)) do i 
+        logll[i, st.input_id[i]]
+    end)
 end
 
 get_inputs(::DecisionNode, ps, st) = st.input_id
