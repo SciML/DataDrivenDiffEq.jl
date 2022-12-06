@@ -53,18 +53,18 @@ Pkg.add(&quot;DataDrivenSR&quot;)</code></pre><h2 id="Reproducibility"><a class=
   [e30172f5] Documenter v0.27.23
   [98b081ad] Literate v2.14.0
   [961ee093] ModelingToolkit v8.36.0
-  [1dea7af3] OrdinaryDiffEq v6.34.1
-  [91a5bcdd] Plots v1.36.6
+  [1dea7af3] OrdinaryDiffEq v6.35.0
+  [91a5bcdd] Plots v1.37.0
   [860ef19b] StableRNGs v1.0.0
   [2913bbd2] StatsBase v0.33.21
   [37e2e46d] LinearAlgebra</code></pre></details><details><summary>and using this machine and Julia version.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Julia Version 1.8.3
 Commit 0434deb161e (2022-11-14 20:14 UTC)
 Platform Info:
   OS: Linux (x86_64-linux-gnu)
-  CPU: 2 × Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+  CPU: 2 × Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
   WORD_SIZE: 64
   LIBM: libopenlibm
-  LLVM: libLLVM-13.0.1 (ORCJIT, icelake-server)
+  LLVM: libLLVM-13.0.1 (ORCJIT, skylake-avx512)
   Threads: 1 on 2 virtual cores</code></pre></details><details><summary>A more complete overview of all dependencies and their versions is also provided.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/docs/Manifest.toml`
   [a4c015fc] ANSIColoredPrinters v0.0.1
   [c3fe647b] AbstractAlgebra v0.27.7
@@ -121,7 +121,7 @@ Platform Info:
   [e2d170a0] DataValueInterfaces v1.0.0
   [244e2a9f] DefineSingletons v0.1.2
   [b429d917] DensityInterface v0.4.0
-  [2b5f629d] DiffEqBase v6.108.0
+  [2b5f629d] DiffEqBase v6.110.0
   [459566f4] DiffEqCallbacks v2.24.3
   [163ba53b] DiffResults v1.1.0
   [b552c78f] DiffRules v1.12.2
@@ -129,11 +129,11 @@ Platform Info:
   [31c24e10] Distributions v0.25.79
   [ffbed154] DocStringExtensions v0.9.2
   [e30172f5] Documenter v0.27.23
-  [5b8099bc] DomainSets v0.5.14
+⌅ [5b8099bc] DomainSets v0.5.14
   [fa6b7ba4] DualNumbers v0.6.8
   [a40a106e] DynamicExpressions v0.4.2
   [7c1d4256] DynamicPolynomials v0.4.5
-  [4e289a0a] EnumX v1.0.3
+  [4e289a0a] EnumX v1.0.4
   [d4d017d3] ExponentialUtilities v1.22.0
   [e2ba6199] ExprTools v0.1.8
   [c87230d0] FFMPEG v0.4.1
@@ -141,13 +141,13 @@ Platform Info:
   [b9860ae5] FLoopsBase v0.1.1
   [7034ab61] FastBroadcast v0.2.3
   [9aa1b823] FastClosures v0.3.2
-  [29a986be] FastLapackInterface v1.2.7
+  [29a986be] FastLapackInterface v1.2.8
   [1a297f60] FillArrays v0.13.5
   [6a86dc24] FiniteDiff v2.17.0
   [53c48c17] FixedPointNumbers v0.8.4
   [9c68100b] FoldsThreads v0.1.1
   [59287772] Formatting v0.4.2
-  [f6369f11] ForwardDiff v0.10.33
+  [f6369f11] ForwardDiff v0.10.32
   [069b7b12] FunctionWrappers v1.1.3
   [77dc65aa] FunctionWrappersWrappers v0.1.1
   [0c68f7d7] GPUArrays v8.5.0
@@ -184,7 +184,7 @@ Platform Info:
   [ef3ab10e] KLU v0.4.0
   [ba0b0d4f] Krylov v0.9.0
   [0b1a1467] KrylovKit v0.6.0
-  [929cbde3] LLVM v4.14.0
+  [929cbde3] LLVM v4.14.1
   [b964fa9f] LaTeXStrings v1.3.0
   [2ee39098] LabelledArrays v1.12.5
   [984bce1d] LambertW v0.4.5
@@ -222,19 +222,19 @@ Platform Info:
   [4d8831e6] OpenSSL v1.3.2
   [429524aa] Optim v1.7.4
   [bac558e1] OrderedCollections v1.4.1
-  [1dea7af3] OrdinaryDiffEq v6.34.1
+  [1dea7af3] OrdinaryDiffEq v6.35.0
   [90014a1f] PDMats v0.11.16
   [d96e819e] Parameters v0.12.3
   [69de0a69] Parsers v2.5.1
   [b98c9c47] Pipe v1.3.0
   [ccf2f8ad] PlotThemes v3.1.0
-  [995b91a9] PlotUtils v1.3.1
-  [91a5bcdd] Plots v1.36.6
+  [995b91a9] PlotUtils v1.3.2
+  [91a5bcdd] Plots v1.37.0
   [e409e4f3] PoissonRandom v0.4.3
   [f517fe37] Polyester v0.6.18
   [1d0040c9] PolyesterWeave v0.1.11
   [85a6dd25] PositiveFactorizations v0.2.4
-  [d236fae5] PreallocationTools v0.4.4
+  [d236fae5] PreallocationTools v0.4.5
   [21216c6a] Preferences v1.3.0
   [8162dcfd] PrettyPrint v0.2.0
   [27ebfcd6] Primes v0.5.3
@@ -264,20 +264,20 @@ Platform Info:
   [605ecd9f] ShowCases v0.1.0
   [992d4aef] Showoff v1.0.3
   [777ac1f9] SimpleBufferStream v1.1.0
-  [727e6d20] SimpleNonlinearSolve v0.1.2
+  [727e6d20] SimpleNonlinearSolve v0.1.3
   [699a6c99] SimpleTraits v0.9.4
   [66db9d55] SnoopPrecompile v1.0.1
   [a2af1166] SortingAlgorithms v1.1.0
-  [47a9eef4] SparseDiffTools v1.29.0
+  [47a9eef4] SparseDiffTools v1.30.0
   [276daf66] SpecialFunctions v2.1.7
   [171d559e] SplittablesBase v0.1.15
   [860ef19b] StableRNGs v1.0.0
-  [aedffcd0] Static v0.8.2
+  [aedffcd0] Static v0.8.3
   [90137ffa] StaticArrays v1.5.11
   [1e83bf80] StaticArraysCore v1.4.0
   [82ae8749] StatsAPI v1.5.0
   [2913bbd2] StatsBase v0.33.21
-  [4c63d2b9] StatsFuns v1.1.0
+  [4c63d2b9] StatsFuns v1.1.1
 ⌅ [7792a7ef] StrideArraysCore v0.3.17
   [09ab397b] StructArrays v0.6.13
   [856f2bd8] StructTypes v1.10.0
@@ -292,7 +292,7 @@ Platform Info:
   [ac1d9e8a] ThreadsX v0.1.11
   [a759f4b9] TimerOutputs v0.5.22
   [0796e94c] Tokenize v0.5.24
-  [3bb67fe8] TranscodingStreams v0.9.9
+  [3bb67fe8] TranscodingStreams v0.9.10
   [28d57a85] Transducers v0.4.75
   [a2a6695c] TreeViews v0.3.0
   [d5829a12] TriangularSolve v0.1.15
@@ -425,4 +425,4 @@ Platform Info:
   [3f19e933] p7zip_jll v17.4.0+0
 Info Packages marked with ⌅ have new versions available but compatibility constraints restrict them from upgrading. To see why use `status --outdated -m`</code></pre></details>You can also download the 
 <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.0.0/assets/Manifest.toml">manifest</a> file and the
-<a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.0.0/assets/Project.toml">project</a> file.</article><nav class="docs-footer"><a class="docs-footer-nextpage" href="problems/">Problems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Thursday 1 December 2022 06:34">Thursday 1 December 2022</span>. Using Julia version 1.8.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.0.0/assets/Project.toml">project</a> file.</article><nav class="docs-footer"><a class="docs-footer-nextpage" href="problems/">Problems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Tuesday 6 December 2022 00:58">Tuesday 6 December 2022</span>. Using Julia version 1.8.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
