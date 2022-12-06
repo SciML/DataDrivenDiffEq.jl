@@ -126,9 +126,13 @@ include("./problem/set.jl")
 export DataDrivenDataset
 export DirectDataset, DiscreteDataset, ContinuousDataset
 
-include("./utils/common_options.jl")
+include("./utils/data_processing.jl")
 export DataProcessing, DataNormalization
+
+include("./utils/common_options.jl")
 export DataDrivenCommonOptions
+
+include("./commonsolve.jl")
 
 include("./solution.jl")
 export DataDrivenSolution
