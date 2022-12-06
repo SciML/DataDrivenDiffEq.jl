@@ -1,6 +1,6 @@
 """
 $(TYPEDEF)
-`STLQS` is taken from the [original paper on SINDY](https://www.pnas.org/content/113/15/3932) and implements a
+`STLSQ` is taken from the [original paper on SINDY](https://www.pnas.org/content/113/15/3932) and implements a
 sequentially thresholded least squares iteration. `λ` is the threshold of the iteration.
 It is based upon [this matlab implementation](https://github.com/eurika-kaiser/SINDY-MPC/utils/sparsifyDynamics.m).
 It solves the following problem
@@ -21,10 +21,10 @@ $(FIELDS)
 
 # Example
 ```julia
-opt = STLQS()
-opt = STLQS(1e-1)
-opt = STLQS(1e-1, 1.0) # Set rho to 1.0
-opt = STLQS(Float32[1e-2; 1e-1])
+opt = STLSQ()
+opt = STLSQ(1e-1)
+opt = STLSQ(1e-1, 1.0) # Set rho to 1.0
+opt = STLSQ(Float32[1e-2; 1e-1])
 ```
 ## Note
 This was formally `STRRidge` and has been renamed.

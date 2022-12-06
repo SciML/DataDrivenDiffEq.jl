@@ -41,7 +41,7 @@ Or more concrete examples:
 # Use a Koopman based inference without a basis
 res = solve(problem, DMDSVD(); options = DataDrivenCommonOptions(), kwargs...)
 # Use a sparse identification
-res = solve(problem, basis, STLQS(); options = DataDrivenCommonOptions(),  kwargs...)
+res = solve(problem, basis, STLSQ(); options = DataDrivenCommonOptions(),  kwargs...)
 ```
 As we can see above, the use of a [`Basis`](@ref) is optional to invoke the estimation process. Internally, a linear [`Basis`](@ref) will be generated based on the [`DataDrivenProblem`](@ref problem) containing the states and control inputs.
 
