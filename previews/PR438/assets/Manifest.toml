@@ -296,7 +296,7 @@ version = "1.13.0"
 deps = ["DataDrivenDiffEq", "LinearAlgebra"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD"
 uuid = "3c9adf31-5280-42ff-b439-b71cc6b07807"
-version = "0.1.0"
+version = "0.1.1"
 
 [[deps.DataDrivenDiffEq]]
 deps = ["CommonSolve", "DataInterpolations", "DiffEqBase", "DocStringExtensions", "LinearAlgebra", "MLUtils", "ModelingToolkit", "Parameters", "ProgressMeter", "QuadGK", "Random", "RecipesBase", "Reexport", "Setfield", "Statistics", "StatsBase", "Test"]
@@ -308,7 +308,7 @@ version = "1.0.1"
 deps = ["DataDrivenDiffEq", "Reexport", "SymbolicRegression"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSR"
 uuid = "7fed8a53-d475-4873-af3a-ba53cceea094"
-version = "0.1.1"
+version = "0.1.2"
 
 [[deps.DataDrivenSparse]]
 deps = ["DataDrivenDiffEq", "LinearAlgebra", "Printf", "Reexport"]
