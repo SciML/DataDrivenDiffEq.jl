@@ -1,7 +1,7 @@
 name = "DataDrivenDMD"
 uuid = "3c9adf31-5280-42ff-b439-b71cc6b07807"
 authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
