@@ -64,14 +64,14 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
                                                                        AbstractKoopmanAlgorithm
                                                                        }
     @unpack alg, basis, testdata, traindata, control_idx, options, problem, kwargs = prob
-
+    @unpack selector = options
     # Check for 
     results = alg(prob; kwargs...)
 
-    # Get the best result based on test error, if applicable else use testerror
-    sort!(results, by = l2error)
+    # Get the best result based on selector
+    idx = argmin(map(selector, results))
+    best_res = results[idx]
     # Convert to basis
-    best_res = first(results)
     new_basis = convert_to_basis(best_res, basis, problem, options, control_idx)
     # Build DataDrivenResult
     DataDrivenSolution(new_basis, problem, alg, results, prob, best_res.retcode)
@@ -91,13 +91,6 @@ function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, contr
     end
 
     DataDrivenDiffEq.__construct_basis(Θ, basis, prob, options)
-end
-
-function __compute_rss(Z, C, K, B, X, U)
-    begin
-        (isempty(U) || isempty(B)) && return sum(abs2, Z .- C * (K * X))
-        return sum(abs2, Z .- C * (K * X + B * U))
-    end
 end
 
 function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
@@ -127,14 +120,6 @@ function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
         Q = Y_ * X'
         P = X * X'
         C = Z / Y_
-        trainerror = __compute_rss(Z, C, Matrix(K), B, X_, U_)
-        if !isempty(X̃)
-            testerror = __compute_rss(Z̃, C, Matrix(K), B, X̃, Ũ)
-            retcode = testerror <= abstol ? DDReturnCode(1) : DDReturnCode(5)
-        else
-            testerror = nothing
-            retcode = trainerror <= abstol ? DDReturnCode(1) : DDReturnCode(5)
-        end
-        KoopmanResult(K, B, C, Q, P, testerror, trainerror, retcode)
+        KoopmanResult(K, B, C, Q, P, X_, Z, U_)
     end
 end

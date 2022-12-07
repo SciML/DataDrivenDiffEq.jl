@@ -5,6 +5,7 @@ struct SparseLinearSolver{A <: AbstractSparseRegressionAlgorithm, T <: Number}
     maxiters::Int
     verbose::Bool
     progress::Bool
+    selector::Function
 end
 
 function SparseLinearSolver(x::A;
@@ -14,7 +15,7 @@ function SparseLinearSolver(x::A;
                                                                         }
     return SparseLinearSolver(x,
                               options.abstol, options.reltol, options.maxiters,
-                              options.verbose, options.progress)
+                              options.verbose, options.progress, options.selector)
 end
 
 init_cache(alg::SparseLinearSolver, X, Y) = init_cache(alg.algorithm, X, Y)
@@ -60,7 +61,7 @@ function (alg::SparseLinearSolver)(X::AbstractArray, Y::AbstractVector)
 
             step!(cache, λ)
 
-            if (aicc(cache) <= aicc(best_cache)) || (j == 1)
+            if (alg.selector(cache) <= alg.selector(best_cache)) || (j == 1)
                 _set!(best_cache, cache)
                 new_best = true
                 optimal_iterations = iteration_counter

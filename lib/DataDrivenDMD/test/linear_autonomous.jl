@@ -31,8 +31,7 @@ rng = StableRNG(42)
                 @test Matrix(get_operator(operator_res)) ≈ A
                 @test isempty(get_inputmap(operator_res))
                 @test get_outputmap(operator_res) ≈ I(2)
-                @test get_trainerror(operator_res) <= 1e-10
-                @test isnothing(get_testerror(operator_res))
+                @test rss(operator_res) <= 1e-10
             end
         end
     end
@@ -52,8 +51,7 @@ rng = StableRNG(42)
                 @test Matrix(get_operator(operator_res))≈A atol=1e-2
                 @test isempty(get_inputmap(operator_res))
                 @test get_outputmap(operator_res) ≈ I(2)
-                @test get_trainerror(operator_res) <= 1e-2
-                @test isnothing(get_testerror(operator_res))
+                @test rss(operator_res) <= 1e-2
             end
         end
     end
@@ -80,8 +78,7 @@ end
                 @test Matrix(get_operator(operator_res)) ≈ A
                 @test isempty(get_inputmap(operator_res))
                 @test get_outputmap(operator_res) ≈ I(2)
-                @test get_trainerror(operator_res) <= 1e-10
-                @test isnothing(get_testerror(operator_res))
+                @test rss(operator_res) <= 1e-10
             end
         end
     end

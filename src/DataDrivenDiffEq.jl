@@ -75,7 +75,7 @@ abstract type CollocationKernel end
 
 # Algortihms
 abstract type AbstractDataDrivenAlgorithm end
-abstract type AbstractDataDrivenResult end
+abstract type AbstractDataDrivenResult <: StatsBase.StatisticalModel end
 
 # Problem and solution
 abstract type AbstractDataDrivenProblem{Number, Bool, DDProbType} end
