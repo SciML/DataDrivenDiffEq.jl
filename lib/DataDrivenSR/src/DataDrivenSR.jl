@@ -75,7 +75,7 @@ function SRResult(prob, hof, paretos)
     rss = sum(abs2, y .- bs(problem))
     dof = length(ps)
     nobs = prod(size(y))
-    ll = iszero(rss) ? convert(Inf, eltype(rss)) : -nobs / 2 * log(rss / nobs)
+    ll = iszero(rss) ? convert(eltype(rss), Inf) : -nobs / 2 * log(rss / nobs)
     ll0 = -nobs/2 * log.(sum(abs2, y .- mean(y, dims = 2)[:,1]) / nobs)
     return SRResult(
         bs, hof, paretos, 
@@ -145,8 +145,8 @@ function convert_to_basis(paretofrontier, prob)
     subs = Dict([SymbolicUtils.Sym{LiteralReal}(Symbol("x$(i)")) => x
                  for (i, x) in enumerate(atoms)]...)
 
-    eqs =map(Base.Fix2(substitute, subs), eqs_)
-    eqs, ps = collect_numerical_parameters(eqs)
+    eqs, ps = collect_numerical_parameters(eqs_)
+    eqs =map(Base.Fix2(substitute, subs), eqs)
 
     # Get the lhs
     causality, dt = DataDrivenDiffEq.assert_lhs(problem)
