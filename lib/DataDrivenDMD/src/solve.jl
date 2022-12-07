@@ -121,6 +121,6 @@ function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
         Q = Y_ * X'
         P = X * X'
         C = Z / Y_
-        KoopmanResult(K, B, C, Q, P, X_, Y_, U_)
+        KoopmanResult(K, B, C, Q, P, X_, Z, U_)
     end
 end

@@ -56,7 +56,7 @@ Common choices for `selector` are `rss`, `bic`, `aic`, `aicc`, and `r2`. Given t
 ```julia
 options = DataDrivenCommonOptions(
     selector = (x)->rss(x) / nobs(x)
-)
+    )
 ```
 
 Which results in the mean squared error of the system.
