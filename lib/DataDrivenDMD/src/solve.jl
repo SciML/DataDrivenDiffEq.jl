@@ -69,7 +69,8 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
     results = alg(prob; kwargs...)
 
     # Get the best result based on selector
-    best_res = minimum(selector, results)
+    idx = argmin(map(selector, results))
+    best_res = results[idx]
     # Convert to basis
     new_basis = convert_to_basis(best_res, basis, problem, options, control_idx)
     # Build DataDrivenResult
