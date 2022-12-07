@@ -76,12 +76,10 @@ function SRResult(prob, hof, paretos)
     dof = length(ps)
     nobs = prod(size(y))
     ll = iszero(rss) ? convert(eltype(rss), Inf) : -nobs / 2 * log(rss / nobs)
-    ll0 = -nobs/2 * log.(sum(abs2, y .- mean(y, dims = 2)[:,1]) / nobs)
-    return SRResult(
-        bs, hof, paretos, 
-        rss, ll, ll0, dof, nobs,
-        DDReturnCode(1)
-    )
+    ll0 = -nobs / 2 * log.(sum(abs2, y .- mean(y, dims = 2)[:, 1]) / nobs)
+    return SRResult(bs, hof, paretos,
+                    rss, ll, ll0, dof, nobs,
+                    DDReturnCode(1))
 end
 
 is_success(k::SRResult) = getfield(k, :retcode) == DDReturnCode(1)
@@ -110,22 +108,22 @@ function collect_numerical_parameters(eq, options = DataDrivenCommonOptions())
 end
 
 function _collect_numerical_parameters!(ps::AbstractVector, eq, options)
-    if Symbolics.istree(eq) 
+    if Symbolics.istree(eq)
         args_ = map(Symbolics.arguments(eq)) do (eqi)
             _collect_numerical_parameters!(ps, eqi, options)
         end
         return Symbolics.operation(eq)(args_...)
-    elseif isa(eq, Number) 
+    elseif isa(eq, Number)
         pval = round(eq, options.roundingmode, digits = options.digits)
         # We do not collect zeros or ones
         iszero(pval) && return zero(eltype(pval))
-        (abs(pval) ≈ 1) & return sign(pval)*one(eltype(pval))
-        p_ = Symbolics.variable(:p, length(ps)+1)
+        (abs(pval) ≈ 1) & return sign(pval) * one(eltype(pval))
+        p_ = Symbolics.variable(:p, length(ps) + 1)
         p_ = Symbolics.setdefaultval(p_, pval)
         p_ = ModelingToolkit.toparam(p_)
         push!(ps, p_)
         return p_
-    else 
+    else
         return eq
     end
 end
@@ -136,8 +134,8 @@ function convert_to_basis(paretofrontier, prob)
     @unpack maxiters, eval_expresssion, generate_symbolic_parameters, digits, roundingmode = options
 
     eqs_ = map(paretofrontier) do dom
-                node_to_symbolic(dom[end].tree, eq_options)
-            end
+        node_to_symbolic(dom[end].tree, eq_options)
+    end
 
     # Substitute with the basis elements
     atoms = map(xi -> xi.rhs, equations(basis))
@@ -146,7 +144,7 @@ function convert_to_basis(paretofrontier, prob)
                  for (i, x) in enumerate(atoms)]...)
 
     eqs, ps = collect_numerical_parameters(eqs_)
-    eqs =map(Base.Fix2(substitute, subs), eqs)
+    eqs = map(Base.Fix2(substitute, subs), eqs)
 
     # Get the lhs
     causality, dt = DataDrivenDiffEq.assert_lhs(problem)
@@ -180,7 +178,6 @@ function convert_to_basis(paretofrontier, prob)
           eval_expression = eval_expresssion)
 end
 
-
 # apply the algorithm on each dataset
 function (x::EQSearch)(ps::InternalDataDrivenProblem{EQSearch}, X, Y)
     @unpack problem, testdata, options = ps
@@ -210,13 +207,13 @@ function CommonSolve.solve!(ps::InternalDataDrivenProblem{EQSearch})
     @unpack alg, basis, testdata, traindata, kwargs = ps
     @unpack weights, numprocs, procs, addprocs_function, parallelism, runtests, eq_options = alg
     @unpack traindata, testdata, basis, options = ps
-    @unpack maxiters, eval_expresssion, generate_symbolic_parameters, digits, roundingmode , selector = options
+    @unpack maxiters, eval_expresssion, generate_symbolic_parameters, digits, roundingmode, selector = options
     @unpack problem = ps
 
     results = map(traindata) do (X, Y)
         alg(ps, X, Y)
     end
-    
+
     idx = argmin(map(selector, results))
     best_res = results[idx]
 

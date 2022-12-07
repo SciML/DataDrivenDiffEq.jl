@@ -93,7 +93,6 @@ function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, contr
     DataDrivenDiffEq.__construct_basis(Θ, basis, prob, options)
 end
 
-
 function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
                                                control_input = nothing, kwargs...)
     @unpack traindata, testdata, control_idx, options = prob
