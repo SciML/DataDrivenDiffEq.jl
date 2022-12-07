@@ -308,13 +308,13 @@ version = "1.0.1"
 deps = ["DataDrivenDiffEq", "Reexport", "SymbolicRegression"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSR"
 uuid = "7fed8a53-d475-4873-af3a-ba53cceea094"
-version = "0.1.1"
+version = "0.1.2"
 
 [[deps.DataDrivenSparse]]
 deps = ["DataDrivenDiffEq", "LinearAlgebra", "Printf", "Reexport"]
 path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSparse"
 uuid = "5b588203-7d8b-4fab-a537-c31a7f73f46b"
-version = "0.1.0"
+version = "0.1.1"
 
 [[deps.DataInterpolations]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Optim", "RecipesBase", "RecursiveArrayTools", "Reexport", "RegularizationTools", "Symbolics"]
