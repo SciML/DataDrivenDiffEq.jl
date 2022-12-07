@@ -36,7 +36,7 @@ end
 end
 
 @inline function (s::SoftThreshold)(y::AbstractArray, x::AbstractArray,
-                                    λ::T) where 
+                                    λ::T) where {T <: Real} 
     @assert size(y) == size(x)
     for i in eachindex(x)
         y[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
