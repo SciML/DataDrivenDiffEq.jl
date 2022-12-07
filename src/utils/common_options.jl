@@ -43,8 +43,8 @@ Denoising happens before normalization!
     roundingmode::RoundingMode = RoundToZero
     """Digits for the parameters - used for rounding."""
     digits::Int = 10
-    #"""Significant digits for the parameters - used for rounding."""
-    #sigdigits::Int = 10
+    """Model selection criteria - used for model selection within each algorithm"""
+    selector::Function = bic
     """Enables the use of symbolic parameters for the result. If `false`, the numerical value is used."""
     generate_symbolic_parameters::Bool = true
     """Evaluate the expression, see [`Symbolics.build_function`](https://symbolics.juliasymbolics.org/stable/manual/build_function/)"""
