@@ -47,4 +47,16 @@ As we can see above, the use of a [`Basis`](@ref) is optional to invoke the esti
 
 The [`DataDrivenSolution`](@ref) `res` contains a `result` which is the inferred system and a [`Basis`](@ref).
 
+## Model Selection
 
+Most estimation and model inference algorithms require hyperparameters ,e.g., the sparsity controlling penalty, train-test splits. To account for this, the keyword `selector` can be passed to the [`DataDrivenCommonOptions`](@ref). This allows the user to control the selection criteria and returns the **minimum** selector. 
+
+Common choices for `selector` are `rss`, `bic`, `aic`, `aicc`, and `r2`. Given that each subresult of the algorithm extends the `StatsBase` api, we can also use different schemes like:
+
+```julia
+options = DataDrivenCommonOptions(
+    selector = (x)->rss(x) / nobs(x)
+)
+```
+
+Which results in the mean squared error of the system.
