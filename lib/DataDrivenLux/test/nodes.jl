@@ -1,4 +1,3 @@
-using Revise
 using DataDrivenDiffEq
 using DataDrivenLux
 using IntervalArithmetic

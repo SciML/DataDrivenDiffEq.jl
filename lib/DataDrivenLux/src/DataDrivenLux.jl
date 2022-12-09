@@ -31,7 +31,7 @@ using DistributionsAD
 
 using ChainRulesCore
 using ComponentArrays
-# We only need a certain subset of IntervalArithmetic
+
 using IntervalArithmetic
 using Random
 using Distributed
@@ -57,9 +57,9 @@ end
 include("utils.jl")
 
 ## 
-#include("custom_priors.jl")
-#export AdditiveError, MultiplicativeError
-#export ObservedModel
+include("custom_priors.jl")
+export AdditiveError, MultiplicativeError
+export ObservedModel
 
 # Simplex
 include("./lux/simplex.jl")

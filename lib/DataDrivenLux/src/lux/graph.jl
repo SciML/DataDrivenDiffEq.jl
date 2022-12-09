@@ -54,7 +54,6 @@ function (c::LayeredDAG)(x, ps, st)
 end
 
 Base.keys(m::LayeredDAG) = Base.keys(getfield(m, :layers))
-‚
 Base.getindex(c::LayeredDAG, i::Int) = c.layers[i]
 Base.getindex(c::LayeredDAG, i::Int, j::Int) = getindex(c.layers[i], j)
 
