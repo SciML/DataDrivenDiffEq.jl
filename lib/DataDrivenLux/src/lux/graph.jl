@@ -23,12 +23,12 @@ function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, aritie
         # Filter the functions by their input dimension
         valid_idxs .= (arities .<= n_inputs)
         if i <= n_layers
-            layer = DecisionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs];
+            layer = FunctionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs];
             skip = skip, id_offset = i, input_functions = input_functions, parameter_mask = parameter_mask, kwargs...)
             push!(input_functions, fs[valid_idxs]...)
         else
-            layer = DecisionLayer(n_inputs, Tuple(1 for i in 1:out_dimension),
-                                  Tuple(nothing for i in 1:out_dimension); skip = false,
+            layer = FunctionLayer(n_inputs, Tuple(1 for i in 1:out_dimension),
+                                  Tuple(identity for i in 1:out_dimension); skip = false,
                                   id_offset = n_layers+1,
                                   kwargs...)
             push!(input_functions, fs[valid_idxs]...)
@@ -54,7 +54,7 @@ function (c::LayeredDAG)(x, ps, st)
 end
 
 Base.keys(m::LayeredDAG) = Base.keys(getfield(m, :layers))
-
+‚
 Base.getindex(c::LayeredDAG, i::Int) = c.layers[i]
 Base.getindex(c::LayeredDAG, i::Int, j::Int) = getindex(c.layers[i], j)
 
@@ -62,18 +62,17 @@ Base.length(c::LayeredDAG) = length(c.layers)
 Base.lastindex(c::LayeredDAG) = lastindex(c.layers)
 Base.firstindex(c::LayeredDAG) = firstindex(c.layers)
 
-function update_state(c::LayeredDAG, ps, st)
-    _update_layer_state(c.layers, ps, st)
-end
-
 function get_loglikelihood(c::LayeredDAG, ps, st)
     _get_layer_loglikelihood(c.layers, ps, st)
 end
 
-function get_loglikelihood(c::LayeredDAG, ps, st, node_ids::Vector{Tuple{Int, Int}})
+function get_loglikelihood(c::LayeredDAG, ps, st, paths::Vector{<:AbstractPathState})
     lls = get_loglikelihood(c, ps, st)
-    sum(map(node_ids) do (i, j)
+    map(paths) do path
+        nodes = get_nodes(path)
+        sum(map(nodes) do (i,j)
             i > 0 && return lls[i][j]
-            0
+            return 0f0
         end)
+    end
 end

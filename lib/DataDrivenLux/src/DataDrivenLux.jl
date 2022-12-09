@@ -57,9 +57,9 @@ end
 include("utils.jl")
 
 ## 
-include("custom_priors.jl")
-export AdditiveError, MultiplicativeError
-export ObservedModel
+#include("custom_priors.jl")
+#export AdditiveError, MultiplicativeError
+#export ObservedModel
 
 # Simplex
 include("./lux/simplex.jl")
@@ -69,28 +69,27 @@ export Softmax, GumbelSoftmax
 include("./lux/path_state.jl")
 export PathState
 include("./lux/node.jl")
-export DecisionNode
-export update_state, get_inputs, get_loglikelihood
+export FunctionNode
 include("./lux/layer.jl")
-export DecisionLayer
+export FunctionLayer
 include("./lux/graph.jl")
 export LayeredDAG
+#
+#include("algorithms/dataset.jl")
+#
+#include("caches/candidate.jl")
+#export Candidate
+#export get_loglikelihood
+#
+#include("caches/cache.jl")
+#export SearchCache
+#
+#include("algorithms/randomsearch.jl")
+#export RandomSearch
 
-include("algorithms/dataset.jl")
-
-include("caches/candidate.jl")
-export Candidate
-export get_loglikelihood
-
-include("caches/cache.jl")
-export SearchCache
-
-include("algorithms/randomsearch.jl")
-export RandomSearch
-
-include("algorithms/reinforce.jl")
-export Reinforce
-
-include("solve.jl")
+#include("algorithms/reinforce.jl")
+#export Reinforce
+#
+#include("solve.jl")
 
 end # module DataDrivenLux

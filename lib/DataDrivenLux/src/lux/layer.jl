@@ -7,7 +7,7 @@ It accumulates all outputs of the nodes.
 # Fields
 $(FIELDS)
 """
-struct DecisionLayer{skip, T, output_dimension} <:
+struct FunctionLayer{skip, T, output_dimension} <:
        Lux.AbstractExplicitContainerLayer{(:nodes,)}
     nodes::T
 end
@@ -22,14 +22,14 @@ function mask_parameters(arity, parameter_mask)
     return ones(Bool, length(parameter_mask))
 end
 
-function DecisionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = false,
+function FunctionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = false,
                        id_offset = 1, input_functions = (), parameter_mask = zeros(Bool, in_dimension),
                        kwargs...)
 
     nodes = map(eachindex(arities)) do i
         # We check if we have an inverse here
         local_input_mask = vcat(mask_inverse(fs[i], input_functions), mask_parameters(arities[i], parameter_mask))
-        DecisionNode(in_dimension, arities[i], fs[i]; id = (id_offset, 1), input_mask = local_input_mask, kwargs...)
+        FunctionNode(fs[i],arities[i], in_dimension ,(id_offset, i), input_mask = local_input_mask, kwargs...)
     end
 
     output_dimension = length(arities)
@@ -37,36 +37,29 @@ function DecisionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = fals
 
     names = map(gensym ∘ string, fs)
     nodes = NamedTuple{names}(nodes)
-    return DecisionLayer{skip, typeof(nodes), output_dimension}(nodes)
+    return FunctionLayer{skip, typeof(nodes), output_dimension}(nodes)
 end
 
-function (r::DecisionLayer)(x, ps, st)
+function (r::FunctionLayer)(x, ps, st)
     _apply_layer(r.nodes, x, ps, st)
 end
 
-function (r::DecisionLayer{true})(x, ps, st)
+function (r::FunctionLayer{true})(x, ps, st)
     y, st = _apply_layer(r.nodes, x, ps, st)
     vcat(y, x), st
 end
 
-Base.keys(m::DecisionLayer) = Base.keys(getfield(m, :nodes))
+Base.keys(m::FunctionLayer) = Base.keys(getfield(m, :nodes))
 
-Base.getindex(c::DecisionLayer, i::Int) = c.nodes[i]
+Base.getindex(c::FunctionLayer, i::Int) = c.nodes[i]
 
-Base.length(c::DecisionLayer) = length(c.nodes)
-Base.lastindex(c::DecisionLayer) = lastindex(c.nodes)
-Base.firstindex(c::DecisionLayer) = firstindex(c.nodes)
+Base.length(c::FunctionLayer) = length(c.nodes)
+Base.lastindex(c::FunctionLayer) = lastindex(c.nodes)
+Base.firstindex(c::FunctionLayer) = firstindex(c.nodes)
 
-function update_state(r::DecisionLayer, ps, st)
-    _update_layer_state(r.nodes, ps, st)
-end
 
-function get_loglikelihood(r::DecisionLayer, ps, st)
+function get_loglikelihood(r::FunctionLayer, ps, st)
     _get_layer_loglikelihood(r.nodes, ps, st)
-end
-
-function get_inputs(r::DecisionLayer, ps, st)
-    _get_layer_inputs(r.nodes, ps, st)
 end
 
 @generated function _get_layer_loglikelihood(layers::NamedTuple{fields}, ps,
@@ -93,29 +86,5 @@ end
              for i in 1:N]
     push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
     push!(calls, :(return vcat($(y_symbols...)), st))
-    return Expr(:block, calls...)
-end
-
-@generated function _update_layer_state(layers::NamedTuple{fields}, ps,
-                                        st::NamedTuple{fields}) where {fields}
-    N = length(fields)
-    st_symbols = [gensym() for _ in 1:N]
-    calls = [:($(st_symbols[i]) = update_state(layers.$(fields[i]),
-                                               ps.$(fields[i]),
-                                               st.$(fields[i])))
-             for i in 1:N]
-    push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
-    return Expr(:block, calls...)
-end
-
-@generated function _get_layer_inputs(layers::NamedTuple{fields}, ps,
-                                      st::NamedTuple{fields}) where {fields}
-    N = length(fields)
-    st_symbols = [gensym() for _ in 1:N]
-    calls = [:($(st_symbols[i]) = get_inputs(layers.$(fields[i]),
-                                             ps.$(fields[i]),
-                                             st.$(fields[i])))
-             for i in 1:N]
-    push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
     return Expr(:block, calls...)
 end
