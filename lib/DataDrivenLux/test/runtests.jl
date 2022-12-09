@@ -8,8 +8,9 @@ using Test
 const GROUP = get(ENV, "GROUP", "All")
 
 @time begin if GROUP == "All" || GROUP == "DataDrivenLux"
-    @safetestset "Nodes and Layers" begin include("./layers_nodes.jl") end
-    @safetestset "Candidates" begin include("./candidate.jl") end
-    @safetestset "Cache" begin include("./cache.jl") end
-    @safetestset "RandomSearch" begin include("./randomsearch_solve.jl") end
+    @safetestset "Lux" begin 
+        @safetestset "Nodes" begin include("./nodes.jl") end
+        @safetestset "Layers" begin include("./layers.jl") end
+        @safetestset "Graphs" begin include("./graphs.jl") end
+    end
 end end
