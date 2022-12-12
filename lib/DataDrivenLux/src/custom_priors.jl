@@ -58,16 +58,21 @@ get_dist(d::ObservedDistribution{<:Any, D}) where {D} = D
 
 Base.show(io::IO, d::ObservedDistribution) = summary(io, d)
 
-function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Y,
-                              scale::S = get_scale(d)) where {X, Y, S <: Number}
-    sum(map(xs -> d.errormodel(get_dist(d), xs..., scale), zip(x, x̂))) 
+function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Y, scale) where {X, Y, S <: Number}
+    sum(map(xs -> d.errormodel(get_dist(d), xs..., transform(d.scale_transformation,scale)), zip(x, x̂))) 
 end
 
-function Distributions.logpdf(d::ObservedDistribution{true}, x::X, x̂::Y,
-    scale::S = get_scale(d)) where {X, Y, S <: Number}
-sum(map(xs -> d.errormodel(get_dist(d), xs..., get_scale(d)), zip(x, x̂)))
+function Distributions.logpdf(d::ObservedDistribution{true}, x::X, x̂::Y, scale::S) where {X, Y, S <: Number}
+sum(map(xs -> d.errormodel(get_dist(d), xs..., transform(d.scale_transformation,d.latent_scale)), zip(x, x̂)))
 end
 
+function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Number, scale::S) where {X, S <: Number}
+sum(map(xs -> d.errormodel(get_dist(d), xs, x̂, transform(d.scale_transformation,scale)), x)) 
+end
+
+function Distributions.logpdf(d::ObservedDistribution{true}, x::X, x̂::Number, scale::S ) where {X, S <: Number}
+sum(map(xs -> d.errormodel(get_dist(d), xs, x̂, transform(d.scale_transformation,d.latent_scale)), x))
+end
 
 function transform_scales(d::ObservedDistribution, scale::T) where {T <: Number}
     transform(d.scale_transformation, scale)
@@ -100,8 +105,15 @@ end
 Base.show(io::IO, o::ObservedModel) = summary(io, o)
 
 function Distributions.logpdf(o::ObservedModel{M}, x::AbstractMatrix, x̂::AbstractMatrix,
-                              scales::AbstractVector = ones(eltype(x̂), 3)) where {M}
+                              scales::AbstractVector = ones(eltype(x̂), size(x, 1))) where {M}
     sum(map(logpdf, o.observed_distributions, eachrow(x), eachrow(x̂), scales))
+end
+
+function Distributions.logpdf(o::ObservedModel{M}, x::AbstractMatrix, x̂::AbstractVector,
+    scales::AbstractVector = ones(eltype(x̂), size(x,1))) where {M}
+    sum(map(axes(x, 1)) do i 
+        logpdf(o.observed_distributions[i], x[i,:], x̂[i], scales[i])
+    end)
 end
 
 get_init(o::ObservedModel) = collect(map(get_init, o.observed_distributions))

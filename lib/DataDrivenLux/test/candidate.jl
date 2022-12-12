@@ -1,53 +1,53 @@
+using Revise
+using DataDrivenDiffEq
 using DataDrivenLux
+using IntervalArithmetic
+using Distributions
 using Random
 using Lux
 using Test
-using Distributions
-using DataDrivenDiffEq
 
-rng = Random.seed!(1234)
+@testset "Candidate without choice" begin 
+    fs = (x->x^2,)
+    arities = (1,)
+    dag = LayeredDAG(1, 1, 1, arities, fs, skip = true)
+    rng = Random.seed!(25)
+    X = permutedims(collect(0:0.1:10.0))
+    Y = X .* X .+ 0.1*randn(rng, size(X))
+    @variables x
+    basis = Basis([x], [x])
 
-# We first define a dummies
+    dataset = Dataset(X, Y)
+    rng = Random.seed!(422)
+    candidate = DataDrivenLux.Candidate(rng, dag, basis, dataset)
+    @test nobs(candidate) == 101
+    @test rss(candidate) <= 1.3
+    @test r2(candidate) ≈ 1.0
 
-X = randn(rng, 2, 10)
-Y = randn(rng, 1, 10)
-@variables x[1:2]
-dummy_basis = Basis(x, x)
-dummy_data = DataDrivenLux.Dataset(X, Y)
-dummy_dag = DataDrivenLux.LayeredDAG(2, 1, 1, (1,), (sin,), simplex = Softmax(),
-                                     skip = true)
+    @test DataDrivenLux.get_scales(candidate) ≈ ones(Float64, 1)
+    @test isempty(DataDrivenLux.get_parameters(candidate))
+    @test_nowarn DataDrivenLux.optimize_candidate!(candidate, dataset; options = Optim.Options())
+end
 
-ps, _ = Lux.setup(rng, dummy_dag)
+@testset "Candidate with parametes" begin
+    fs = (exp,)
+    arities = (1,)
+    dag = LayeredDAG(1, 1, 1, arities, fs, skip = true)
+    rng = Random.seed!(25)
+    X = permutedims(collect(0:0.1:3.0))
+    Y = sin.(2.0*X) 
+    @variables x
+    @parameters p [bounds = (1.0, 2.5), dist=Normal(1.75,1.0)]
+    basis = Basis([sin(p*x)], [x], parameters = [p])
 
-# Sample a single candidate
-candidate = DataDrivenLux.Candidate(dummy_dag, ps, rng, dummy_basis, dummy_data)
-
-# Checkout function interface
-ŷ = candidate(dummy_data, ps, candidate.st, candidate.parameters)
-@test size(ŷ) == (1, 10)
-@test sum(abs2, ŷ .- Y) == rss(candidate)
-
-# Assert the state
-@test length(candidate.outgoing_path) == 1
-@test 2 <= length(DataDrivenLux.get_nodes(candidate)) <= 3
-rss_ = rss(candidate)
-dof_ = dof(candidate)
-aic_ = aic(candidate)
-bic_ = bic(candidate)
-
-# Resample
-
-@test_nowarn DataDrivenLux.optimize_candidate!(candidate, ps, dummy_data, LBFGS(),
-                                               Optim.Options())
-@test_nowarn DataDrivenLux.update_values!(candidate, ps, dummy_data)
-@test rss(candidate) != rss_
-@test 2 <= dof(candidate) <= 3
-@test aic(candidate) != aic_
-@test bic(candidate) != bic_
-
-ŷ = candidate(dummy_data, ps, candidate.st, candidate.parameters)
-@test size(ŷ) == (1, 10)
-@test sum(abs2, ŷ .- Y) == rss(candidate)
-@test size(DataDrivenLux.get_scales(candidate)) == (1,)
-@test size(DataDrivenLux.get_parameters(candidate)) == (0,)
-@test_nowarn DataDrivenLux.get_loglikelihood(candidate, ps)
+    dataset = Dataset(X, Y)
+    rng = Random.seed!(1)
+    candidate = DataDrivenLux.Candidate(rng, dag, basis, dataset)
+    candidate.outgoing_path
+    DataDrivenLux.optimize_candidate!(candidate, dataset)
+    DataDrivenLux.get_parameters(candidate)
+    @test DataDrivenLux.get_scales(candidate) ≈ [1e-5]
+    @test rss(candidate) <= 1e-10
+    @test r2(candidate) ≈ 1.0
+    @test DataDrivenLux.get_parameters(candidate) ≈ [2.0] atol=1e-2
+end

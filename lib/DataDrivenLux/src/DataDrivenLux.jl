@@ -74,13 +74,13 @@ include("./lux/layer.jl")
 export FunctionLayer
 include("./lux/graph.jl")
 export LayeredDAG
-#
-#include("algorithms/dataset.jl")
-#
-#include("caches/candidate.jl")
-#export Candidate
-#export get_loglikelihood
-#
+
+include("caches/dataset.jl")
+export Dataset
+
+include("caches/candidate.jl")
+export Candidate
+
 #include("caches/cache.jl")
 #export SearchCache
 #

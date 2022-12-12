@@ -44,6 +44,9 @@ end
 
 # Compute the degrees of freedom
 get_dof(states::Vector{T}) where {T <: AbstractPathState} = length(get_nodes(states))
+
 function get_nodes(states::Vector{T}) where {T <: AbstractPathState}
     unique(reduce(vcat, map(collect ∘ get_nodes, states)))
 end
+
+check_intervals(p::AbstractPathState) = IntervalArithmetic.iscommon(get_interval(p))
