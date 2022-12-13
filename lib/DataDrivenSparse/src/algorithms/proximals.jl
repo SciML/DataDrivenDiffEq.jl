@@ -1,4 +1,5 @@
-@inline function (s::AbstractProximalOperator)(x::AbstractArray{<:Number}, y::AbstractArray{<:Bool},
+@inline function (s::AbstractProximalOperator)(x::AbstractArray{<:Number},
+                                               y::AbstractArray{<:Bool},
                                                λ::T) where {T <: Real}
     @assert size(y) == size(x)
     active_set!(y, s, x, λ)
@@ -36,7 +37,7 @@ end
 end
 
 @inline function (s::SoftThreshold)(y::AbstractArray{N}, x::AbstractArray{N},
-                                    λ::T) where {N <: Number, T <: Real} 
+                                    λ::T) where {N <: Number, T <: Real}
     @assert size(y) == size(x)
     for i in eachindex(x)
         y[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
