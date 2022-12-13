@@ -1,4 +1,4 @@
-@inline function (s::AbstractProximalOperator)(x::AbstractArray, y::BitArray,
+@inline function (s::AbstractProximalOperator)(x::AbstractArray{<:Number}, y::AbstractArray{<:Bool},
                                                λ::T) where {T <: Real}
     @assert size(y) == size(x)
     active_set!(y, s, x, λ)
@@ -35,8 +35,8 @@ end
     return
 end
 
-@inline function (s::SoftThreshold)(y::AbstractArray, x::AbstractArray,
-                                    λ::T) where {T <: Real} 
+@inline function (s::SoftThreshold)(y::AbstractArray{N}, x::AbstractArray{N},
+                                    λ::T) where {N <: Number, T <: Real} 
     @assert size(y) == size(x)
     for i in eachindex(x)
         y[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
@@ -71,8 +71,8 @@ end
     return
 end
 
-@inline function (s::HardThreshold)(y::AbstractArray, x::AbstractArray,
-                                    λ::T) where {T <: Real}
+@inline function (s::HardThreshold)(y::AbstractArray{N}, x::AbstractArray{N},
+                                    λ::T) where {N <: Number, T <: Real}
     @assert all(size(y) .== size(x))
     for i in eachindex(x)
         y[i] = abs(x[i]) > sqrt(2 * λ) ? x[i] : zero(eltype(x))
@@ -129,8 +129,8 @@ function (s::ClippedAbsoluteDeviation)(x::AbstractArray, λ::T) where {T <: Real
     return
 end
 
-function (s::ClippedAbsoluteDeviation)(y::AbstractArray, x::AbstractArray,
-                                       λ::T) where {T <: Real}
+function (s::ClippedAbsoluteDeviation)(y::AbstractArray{N}, x::AbstractArray{N},
+                                       λ::T) where {N <: Number, T <: Real}
     @assert all(size(y) .== size(x))
     ρ = isnan(s.ρ) ? convert(eltype(x), 5) * λ : convert(eltype(x), s.ρ)
     for i in eachindex(x)
