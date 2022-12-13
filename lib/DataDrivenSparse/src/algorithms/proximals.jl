@@ -1,4 +1,5 @@
-@inline function (s::AbstractProximalOperator)(x::AbstractArray{T}, y::BitArray,
+@inline function (s::AbstractProximalOperator)(x::AbstractArray{<:Number},
+                                               y::AbstractArray{<:Bool},
                                                λ::T) where {T <: Real}
     @assert size(y) == size(x)
     active_set!(y, s, x, λ)
@@ -28,15 +29,15 @@ struct SoftThreshold <: AbstractProximalOperator end;
     return
 end
 
-@inline function (s::SoftThreshold)(x::AbstractArray{T}, λ::T) where {T <: Real}
+@inline function (s::SoftThreshold)(x::AbstractArray, λ::T) where {T <: Real}
     for i in eachindex(x)
         x[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
     end
     return
 end
 
-@inline function (s::SoftThreshold)(y::AbstractArray{T}, x::AbstractArray{T},
-                                    λ::T) where {T <: Real}
+@inline function (s::SoftThreshold)(y::AbstractArray{N}, x::AbstractArray{N},
+                                    λ::T) where {N <: Number, T <: Real}
     @assert size(y) == size(x)
     for i in eachindex(x)
         y[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
@@ -55,7 +56,7 @@ See [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
 struct HardThreshold <: AbstractProximalOperator end;
 
-@inline function active_set!(idx::BitArray, ::HardThreshold, x::AbstractArray{T},
+@inline function active_set!(idx::BitArray, ::HardThreshold, x::AbstractArray,
                              λ::T) where {T}
     @assert size(idx) == size(x)
     @inbounds foreach(eachindex(x)) do i
@@ -64,15 +65,15 @@ struct HardThreshold <: AbstractProximalOperator end;
     return
 end
 
-@inline function (s::HardThreshold)(x::AbstractArray{T}, λ::T) where {T <: Real}
+@inline function (s::HardThreshold)(x::AbstractArray, λ::T) where {T <: Real}
     for i in eachindex(x)
         x[i] = abs(x[i]) > sqrt(2 * λ) ? x[i] : zero(eltype(x))
     end
     return
 end
 
-@inline function (s::HardThreshold)(y::AbstractArray, x::AbstractArray,
-                                    λ::T) where {T <: Real}
+@inline function (s::HardThreshold)(y::AbstractArray{N}, x::AbstractArray{N},
+                                    λ::T) where {N <: Number, T <: Real}
     @assert all(size(y) .== size(x))
     for i in eachindex(x)
         y[i] = abs(x[i]) > sqrt(2 * λ) ? x[i] : zero(eltype(x))
@@ -110,7 +111,7 @@ end
 ClippedAbsoluteDeviation() = ClippedAbsoluteDeviation(NaN)
 
 @inline function active_set!(idx::BitArray, h::ClippedAbsoluteDeviation,
-                             x::AbstractArray{T}, λ::T) where {T}
+                             x::AbstractArray, λ::T) where {T}
     @assert size(idx) == size(x)
     @unpack ρ = h
     ρ = isnan(ρ) ? convert(T, 5) * λ : convert(T, ρ)
@@ -129,8 +130,8 @@ function (s::ClippedAbsoluteDeviation)(x::AbstractArray, λ::T) where {T <: Real
     return
 end
 
-function (s::ClippedAbsoluteDeviation)(y::AbstractArray{T}, x::AbstractArray{T},
-                                       λ::T) where {T <: Real}
+function (s::ClippedAbsoluteDeviation)(y::AbstractArray{N}, x::AbstractArray{N},
+                                       λ::T) where {N <: Number, T <: Real}
     @assert all(size(y) .== size(x))
     ρ = isnan(s.ρ) ? convert(eltype(x), 5) * λ : convert(eltype(x), s.ρ)
     for i in eachindex(x)
