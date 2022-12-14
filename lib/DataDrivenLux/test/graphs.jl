@@ -31,7 +31,6 @@ end
     rng = Random.seed!(33)
     ps, st = Lux.setup(rng, dag)
     out_state, new_st = dag(states, ps, st)
-    out_state
     y, _ = dag(x, ps, new_st)
     Y, _ = dag(X, ps, new_st)
     @test y ==[sin.(x[1]) .+ x[1]; x[1]]

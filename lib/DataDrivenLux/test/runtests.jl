@@ -13,4 +13,9 @@ const GROUP = get(ENV, "GROUP", "All")
         @safetestset "Layers" begin include("./layers.jl") end
         @safetestset "Graphs" begin include("./graphs.jl") end
     end
+
+    @safetestset "Caches" begin
+        @safetestset "Candidate" begin include("./candidate.jl") end
+        @safetestset "Cache" begin include("./cache.jl") end
+    end
 end end

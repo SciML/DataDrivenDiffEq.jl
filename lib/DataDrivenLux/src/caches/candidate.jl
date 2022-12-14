@@ -92,8 +92,7 @@ function Candidate(rng, model, basis, dataset;
 
     # Create the initial state and path
     dataset_intervals = interval_eval(basis, dataset, get_interval(parameterdist))
-    @info dataset_intervals
-    @info summary(model)
+
     incoming_path = [PathState{ptype}(dataset_intervals[i], (), ((0, i),))
                      for i in 1:length(basis)]
 
