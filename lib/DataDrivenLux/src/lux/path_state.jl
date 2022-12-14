@@ -9,7 +9,7 @@ struct PathState{T} <: AbstractPathState
     path_ids::Tuple
 end
 
-function PathState(interval::Interval{T}, id::Tuple{Int, Int} = (1,1)) where {T}
+function PathState(interval::Interval{T}, id::Tuple{Int, Int} = (1, 1)) where {T}
     return PathState{T}(interval, (), (id,))
 end
 

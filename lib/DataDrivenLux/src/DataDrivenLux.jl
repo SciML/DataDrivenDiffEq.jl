@@ -28,7 +28,6 @@ using NNlib
 using Distributions
 using DistributionsAD
 
-
 using ChainRulesCore
 using ComponentArrays
 

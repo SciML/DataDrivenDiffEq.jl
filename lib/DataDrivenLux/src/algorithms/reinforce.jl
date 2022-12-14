@@ -9,12 +9,12 @@ struct RelativeReward{risk} <: AbstractRewardScale{risk} end
 
 RelativeReward(risk_seeking = true) = RelativeReward{risk_seeking}()
 
-function (::RelativeReward)(losses::Vector{T}) where T <: Number
-    exp.(minimum(losses) .- losses) 
+function (::RelativeReward)(losses::Vector{T}) where {T <: Number}
+    exp.(minimum(losses) .- losses)
 end
 
-function (::RelativeReward{true})(losses::Vector{T}) where T <: Number
-    r = exp.(minimum(losses) .- losses) 
+function (::RelativeReward{true})(losses::Vector{T}) where {T <: Number}
+    r = exp.(minimum(losses) .- losses)
     r .- minimum(r)
 end
 
@@ -27,12 +27,12 @@ struct AbsoluteReward{risk} <: AbstractRewardScale{risk} end
 
 AbsoluteReward(risk_seeking = true) = AbsoluteReward{risk_seeking}()
 
-function (::AbsoluteReward)(losses::Vector{T}) where T <: Number
-    exp.(-losses) 
+function (::AbsoluteReward)(losses::Vector{T}) where {T <: Number}
+    exp.(-losses)
 end
 
-function (::AbsoluteReward{true})(losses::Vector{T}) where T <: Number
-    r = exp.(-losses) 
+function (::AbsoluteReward{true})(losses::Vector{T}) where {T <: Number}
+    r = exp.(-losses)
     r .- minimum(r)
 end
 """
@@ -89,16 +89,16 @@ function reinforce_loss(candidates, p, alg)
     losses = map(loss, candidates)
     rewards = reward(losses)
     # ∇U(θ) = E[∇log(p)*R(t)]
-    mean(map(enumerate(candidates)) do (i,candidate)
-        rewards[i] *  -candidate(p)
-    end)
+    mean(map(enumerate(candidates)) do (i, candidate)
+             rewards[i] * -candidate(p)
+         end)
 end
 
 function update_parameters!(cache::SearchCache{<:Reinforce})
     @unpack alg, optimiser_state, candidates, keeps, p = cache
     @unpack ad_backend = alg
 
-    ∇p, _... = AD.gradient(ad_backend, (p)->reinforce_loss(candidates[keeps], p, alg), p)
+    ∇p, _... = AD.gradient(ad_backend, (p) -> reinforce_loss(candidates[keeps], p, alg), p)
     opt_state, p_ = Optimisers.update!(optimiser_state, p[:], ∇p[:])
     cache.p .= p_
     return

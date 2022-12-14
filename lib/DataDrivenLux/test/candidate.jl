@@ -7,13 +7,13 @@ using Lux
 using Test
 using StableRNGs
 
-@testset "Candidate without choice" begin 
-    fs = (x->x^2,)
+@testset "Candidate without choice" begin
+    fs = (x -> x^2,)
     arities = (1,)
     dag = LayeredDAG(1, 1, 1, arities, fs, skip = true)
     rng = Random.seed!(25)
     X = permutedims(collect(0:0.1:10.0))
-    Y = X .* X .+ 0.1*randn(rng, size(X))
+    Y = X .* X .+ 0.1 * randn(rng, size(X))
     @variables x
     basis = Basis([x], [x])
 
@@ -26,7 +26,8 @@ using StableRNGs
 
     @test DataDrivenLux.get_scales(candidate) ≈ ones(Float64, 1)
     @test isempty(DataDrivenLux.get_parameters(candidate))
-    @test_nowarn DataDrivenLux.optimize_candidate!(candidate, dataset; options = Optim.Options())
+    @test_nowarn DataDrivenLux.optimize_candidate!(candidate, dataset;
+                                                   options = Optim.Options())
 end
 
 @testset "Candidate with parametes" begin
@@ -34,10 +35,10 @@ end
     arities = (1,)
     dag = LayeredDAG(1, 1, 1, arities, fs, skip = true)
     X = permutedims(collect(0:0.1:3.0))
-    Y = sin.(2.0*X) 
+    Y = sin.(2.0 * X)
     @variables x
-    @parameters p [bounds = (1.0, 2.5), dist=Normal(1.75,1.0)]
-    basis = Basis([sin(p*x)], [x], parameters = [p])
+    @parameters p [bounds = (1.0, 2.5), dist = Normal(1.75, 1.0)]
+    basis = Basis([sin(p * x)], [x], parameters = [p])
 
     dataset = Dataset(X, Y)
     rng = StableRNG(2)
@@ -48,5 +49,5 @@ end
     @test DataDrivenLux.get_scales(candidate) ≈ [1e-5]
     @test rss(candidate) <= 1e-10
     @test r2(candidate) ≈ 1.0
-    @test DataDrivenLux.get_parameters(candidate) ≈ [2.0] atol=1e-2
+    @test DataDrivenLux.get_parameters(candidate)≈[2.0] atol=1e-2
 end

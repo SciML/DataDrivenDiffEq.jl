@@ -13,12 +13,13 @@ struct FunctionLayer{skip, T, output_dimension} <:
 end
 
 function FunctionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = false,
-                       id_offset = 1,  input_functions = Any[identity for i in 1:in_dimension],
+                       id_offset = 1,
+                       input_functions = Any[identity for i in 1:in_dimension],
                        kwargs...)
-
     nodes = map(eachindex(arities)) do i
         # We check if we have an inverse here
-        FunctionNode(fs[i],arities[i], in_dimension ,(id_offset, i), input_functions = input_functions, kwargs...)
+        FunctionNode(fs[i], arities[i], in_dimension, (id_offset, i),
+                     input_functions = input_functions, kwargs...)
     end
 
     output_dimension = length(arities)
@@ -45,7 +46,6 @@ Base.getindex(c::FunctionLayer, i::Int) = c.nodes[i]
 Base.length(c::FunctionLayer) = length(c.nodes)
 Base.lastindex(c::FunctionLayer) = lastindex(c.nodes)
 Base.firstindex(c::FunctionLayer) = firstindex(c.nodes)
-
 
 function get_loglikelihood(r::FunctionLayer, ps, st)
     _get_layer_loglikelihood(r.nodes, ps, st)

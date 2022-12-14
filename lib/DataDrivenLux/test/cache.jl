@@ -6,7 +6,7 @@ using Distributions
 using DataDrivenDiffEq
 using StableRNGs
 
-rng =StableRNG(1234)
+rng = StableRNG(1234)
 # Dummy stuff
 X = randn(rng, 1, 10)
 Y = sin.(X[1:1, :])
@@ -47,4 +47,4 @@ end
 @test (0.0, 1) == findmin(rss, cache.candidates)
 @test_nowarn basis = DataDrivenLux.convert_to_basis(cache.candidates[1])
 basis = DataDrivenLux.convert_to_basis(cache.candidates[1])
-@test all(isequal.(map(x->x.rhs, equations(basis)),[sin(x[1])]))
+@test all(isequal.(map(x -> x.rhs, equations(basis)), [sin(x[1])]))

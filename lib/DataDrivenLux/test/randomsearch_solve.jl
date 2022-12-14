@@ -27,7 +27,7 @@ dummy_dataset = DataDrivenLux.Dataset(dummy_problem)
 
 @test isempty(dummy_dataset.u_intervals)
 
-for (data, interval) in zip((X, Y, 1:size(X,2)),
+for (data, interval) in zip((X, Y, 1:size(X, 2)),
                             (dummy_dataset.x_intervals[1],
                              dummy_dataset.y_intervals[1],
                              dummy_dataset.t_interval))
@@ -35,8 +35,8 @@ for (data, interval) in zip((X, Y, 1:size(X,2)),
 end
 
 # We have 1 Choices in the first layer, 2 in the last 
-alg = RandomSearch(populationsize = 10, functions = (sin,exp,*),
-                   arities = (1,1,2), rng = rng, n_layers = 2,
+alg = RandomSearch(populationsize = 10, functions = (sin, exp, *),
+                   arities = (1, 1, 2), rng = rng, n_layers = 2,
                    loss = rss, keep = 2)
 
 res = solve(dummy_problem, alg,

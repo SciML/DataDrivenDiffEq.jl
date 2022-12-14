@@ -1,22 +1,19 @@
-using InverseFunctions: square 
+using InverseFunctions: square
 
-function _safe_div(x::X, y::Y) where {X,Y} 
+function _safe_div(x::X, y::Y) where {X, Y}
     iszero(y) && return zero(Y)
-    \(x, y) 
+    \(x, y)
 end
 
 InverseFunctions.inverse(::typeof(_safe_div)) = _safe_div
 
-function _safe_pow(x::X, y::Y) where {X,Y}
+function _safe_pow(x::X, y::Y) where {X, Y}
     iszero(x) ? x : ^(x, y)
 end
 
-
 InverseFunctions.inverse(::typeof(_safe_pow)) = InverseFunctions.inverse(^)
 
-safe_functions = Dict(
-    f => gensym(string(f)) for f in (sin, cos, log, exp, sqrt, square)
-)
+safe_functions = Dict(f => gensym(string(f)) for f in (sin, cos, log, exp, sqrt, square))
 
 inverse_safe = Dict()
 
@@ -30,7 +27,7 @@ for (f, safe_f) in safe_functions
     end
 end
 
-for (f,sname) in safe_functions
+for (f, sname) in safe_functions
     @eval begin
         ($sname)(x) = real($(f)(Complex(x)))
         ($sname)(x::Num) = $(f)(x)
