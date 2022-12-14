@@ -7,7 +7,7 @@ on each row.
 struct Softmax <: AbstractSimplex end
 
 function (::Softmax)(rng::Random.AbstractRNG, x::AbstractVector, κ = one(eltype(x)))
-    softmax(x ./ κ)
+    logsoftmax(x ./ κ)
 end
 
 """
@@ -28,5 +28,5 @@ function (::GumbelSoftmax)(rng::Random.AbstractRNG, x::AbstractVector, κ = one(
         y[:, i] .= exp.(x[:, i])
     end
     y ./= sum(y, dims = 2)
-    softmax((y .+ z) ./ κ)
+    logsoftmax((y .+ z) ./ κ)
 end

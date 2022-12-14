@@ -12,24 +12,13 @@ struct FunctionLayer{skip, T, output_dimension} <:
     nodes::T
 end
 
-mask_inverse(f::F, in_f) where F <: Function =  [InverseFunctions.inverse(f) != f_ for f_ in in_f]
-mask_inverse(::typeof(+), in_f) = ones(Bool, length(in_f))
-mask_inverse(::typeof(-), in_f) = ones(Bool, length(in_f))
-mask_inverse(::Nothing, in_f) = ones(Bool, length(in_f))
-
-function mask_parameters(arity, parameter_mask)
-    arity <= 1 && return .! parameter_mask
-    return ones(Bool, length(parameter_mask))
-end
-
 function FunctionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = false,
-                       id_offset = 1, input_functions = (), parameter_mask = zeros(Bool, in_dimension),
+                       id_offset = 1,  input_functions = Any[identity for i in 1:in_dimension],
                        kwargs...)
 
     nodes = map(eachindex(arities)) do i
         # We check if we have an inverse here
-        local_input_mask = vcat(mask_inverse(fs[i], input_functions), mask_parameters(arities[i], parameter_mask))
-        FunctionNode(fs[i],arities[i], in_dimension ,(id_offset, i), input_mask = local_input_mask, kwargs...)
+        FunctionNode(fs[i],arities[i], in_dimension ,(id_offset, i), input_functions = input_functions, kwargs...)
     end
 
     output_dimension = length(arities)
@@ -84,7 +73,7 @@ end
                                                                ps.$(fields[i]),
                                                                st.$(fields[i])))
              for i in 1:N]
-    push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
+    push!(calls, :(st = NamedTuple{$fields}(($(Tuple(st_symbols)...),))))
     push!(calls, :(return vcat($(y_symbols...)), st))
     return Expr(:block, calls...)
 end

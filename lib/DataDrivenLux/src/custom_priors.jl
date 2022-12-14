@@ -98,7 +98,7 @@ end
 
 needs_optimization(o::ObservedModel{fixed}) where fixed = !fixed
 
-function Base.summary(io::IO, o::ObservedModel{M}) where {M}
+function Base.summary(io::IO, o::ObservedModel{<:Any, M}) where {M}
     print(io, "Observed Model with $M variables.")
 end
 

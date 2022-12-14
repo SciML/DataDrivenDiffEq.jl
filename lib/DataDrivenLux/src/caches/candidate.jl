@@ -98,7 +98,8 @@ function Candidate(rng, model, basis, dataset;
 
     ps, st = Lux.setup(rng, model)
     outgoing_path, st = sample(model, incoming_path, ps, st) 
-
+    ps = ComponentVector(ps)
+    
     parameters = T.(get_init(parameterdist))
     scales = T.(get_init(observed))
 

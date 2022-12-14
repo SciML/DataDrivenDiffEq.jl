@@ -23,11 +23,22 @@ struct FunctionNode{skip, ID, F, W, S} <: Lux.AbstractExplicitLayer
     "Weight initialization"
     init_weight::W
 end
+ 
+mask_inverse(f::F, arity::Int, in_f::AbstractVector) where F <: Function = map(xi->mask_inverse(f, arity, xi), in_f)
+mask_inverse(f::F, arity::Int, val::Bool) where F <: Function = arity == 1 ? val : true
+mask_inverse(f::F, arity::Int,  g::G) where {F <: Function, G <: Function} = InverseFunctions.inverse(f) != g
+mask_inverse(::typeof(+), arity::Int, in_f::AbstractVector) = ones(Bool, length(in_f))
+mask_inverse(::typeof(-), arity::Int, in_f::AbstractVector) = ones(Bool, length(in_f))
+mask_inverse(::typeof(identity), arity::Int, in_f::AbstractVector) = ones(Bool, length(in_f))
+
 
 function FunctionNode(f::F, arity::Int, input_dimension::Int, id::Union{Int, NTuple{M, Int} where M}; 
         init_weight = Lux.zeros32, skip = false, simplex = Softmax(), 
-        input_mask = ones(Bool, input_dimension)
+        input_functions = [identity for i in 1:input_dimension], kwargs...
     ) where {F}
+    input_mask = mask_inverse(f, arity, input_functions)
+    @info input_mask
+    @info input_functions
     @assert sum(input_mask) >= 1 "Input masks should enable at least one choice."
     @assert length(input_mask) == input_dimension "Input dimension should be sized equally to input_mask"
 
@@ -39,8 +50,7 @@ end
 get_id(::FunctionNode{<:Any, id}) where id = id
 
 function Lux.initialparameters(rng::AbstractRNG, l::FunctionNode)
-    weights = tuple(collect(l.init_weight(rng, sum(l.input_mask)) for i in 1:l.arity)...)
-    return (; weights = weights)    
+    return (; weights = l.init_weight(rng, sum(l.input_mask), l.arity))
 end
 
 function Lux.initialstates(rng::AbstractRNG, p::FunctionNode)
@@ -49,9 +59,9 @@ function Lux.initialstates(rng::AbstractRNG, p::FunctionNode)
         rng_ = Lux.replicate(rng)
         # Call once
         (;
+         priors = p.init_weight(rng, sum(p.input_mask), p.arity),
          active_inputs = zeros(Int, p.arity),
          temperature = 1.0f0,
-         priors = tuple(collect(p.init_weight(rng_, sum(p.input_mask)) for i in 1:p.arity)...),
          rng = rng_)
     end
 end
@@ -61,15 +71,15 @@ function update_state(p::FunctionNode, ps, st)
     @unpack temperature, rng, active_inputs, priors = st
     @unpack weights = ps
 
-    foreach(1:(p.arity)) do i
-        priors[i] .= p.simplex(rng, weights[i], temperature)
-        active_inputs[i] = findfirst(rand(rng) .< cumsum(priors[i]))
+    foreach(enumerate(eachcol(weights))) do (i,weight)
+        priors[:,i] = exp.(p.simplex(rng, weight, temperature))
+        active_inputs[i] = findfirst(rand(rng) .<= cumsum(priors[:,i]))
     end
 
     (;
+    priors = priors,
      active_inputs = active_inputs,
      temperature = temperature,
-     priors = priors,
      rng = rng)
 end
 
@@ -106,7 +116,8 @@ end
 get_temperature(::FunctionNode, ps, st) = st.temperature
 
 function get_loglikelihood(d::FunctionNode, ps, st)
-    sum(map(enumerate(ps.weights)) do (i, weight)
+    @unpack weights = ps
+    sum(map(enumerate(eachcol(weights))) do (i, weight)
         logsoftmax(weight ./ st.temperature)[st.active_inputs[i]]
     end)
 end

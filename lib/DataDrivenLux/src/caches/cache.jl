@@ -16,25 +16,26 @@ end
 
 function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
                     problem::DataDrivenProblem; kwargs...)
-    @unpack n_layers, functions, arities, skip, rng, populationsize, loss = x
-    @unpack optimizer, optim_options, loss, observed, distributed, threaded = x
-    @unpack use_protected = x
-    @unpack optimiser, keep = x
 
+    @unpack rng, keep, observed, populationsize, functions, arities, skip, use_protected, optimizer, optim_options, optimiser, n_layers, loss= x
     # Derive the model
     dataset = Dataset(problem)
     TData = eltype(dataset)
     
-
-
     rng_ = Lux.replicate(rng)
 
     observed = isa(observed, ObservedModel) ? observed : ObservedModel(dataset.y, fixed = true)
 
+    parameters = ParameterDistributions(basis, TData)
+
+    intervals = interval_eval(basis, dataset, get_interval(parameters))
+
     # Get the parameter mapping
-    parameter_mask = map(equations(basis)) do eq
-        all(ModelingToolkit.isparameter, ModelingToolkit.get_variables(eq.rhs))
+    variable_mask = map(enumerate(equations(basis))) do (i,eq)
+        any(ModelingToolkit.isvariable, ModelingToolkit.get_variables(eq.rhs)) && IntervalArithmetic.iscommon(intervals[i])  
     end
+
+    variable_mask = Any[variable_mask...]
 
     if use_protected
         functions = map(convert_to_safe, functions)
@@ -42,18 +43,15 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
 
 
     model = LayeredDAG(length(basis), size(dataset.y, 1), n_layers, arities, functions;
-                       skip = skip, parameter_mask = parameter_mask, kwargs...)
-    ps = Lux.initialparameters(rng_, model)
-    ps = ComponentVector(ps)
+                       skip = skip, input_functions = variable_mask)
 
-    pdists = ParameterDistributions(basis, TData)
+    ps = ComponentVector(Lux.initialparameters(rng_, model))
+
 
     # Derive the candidates     
     candidates = map(1:populationsize) do i
-        candidate = Candidate(model, ps, rng_, basis, dataset, observed = observed,
-                              parameterdist = pdists)
-        optimize_candidate!(candidate, ps, dataset, optimizer, optim_options)
-        update_values!(candidate, ps, dataset)
+        candidate = Candidate(rng_, model, basis, dataset; observed = observed, parameterdist = parameters, ptype = TData)
+        optimize_candidate!(candidate, dataset; optimizer = optimizer, options = optim_options)
         candidate
     end
 
@@ -74,9 +72,9 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
     end
 
     # Distributed always goes first here
-    if distributed
+    if x.distributed
         ptype = __PROCESSUSE(3)
-    elseif threaded
+    elseif x.threaded
         ptype = __PROCESSUSE(2)
     else
         ptype = __PROCESSUSE(1)
@@ -125,8 +123,7 @@ function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(1)}, p = cache.p
             cache.ages[i] += 1
             return true
         else
-            optimize_candidate!(candidate, p, cache.dataset, optimizer,
-                                optim_options)
+            optimize_candidate!(candidate, cache.dataset, p; optimizer = optimizer, options = optim_options)
             cache.ages[i] = 0
             return true
         end
@@ -137,14 +134,12 @@ end
 # Threaded
 function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(2)}, p = cache.p)
     @unpack optimizer, optim_options = cache.alg
-
     # Update all 
     Threads.@threads for i in 1:length(cache.keeps)
         if cache.keeps[i]
             cache.ages[i] += 1
         else
-            optimize_candidate!(cache.candidates[i], p, cache.dataset, optimizer,
-                                optim_options)
+            optimize_candidate!(candidate, cache.dataset, p; optimizer = optimizer, options = optim_options)
             cache.ages[i] = 0
         end
     end
@@ -161,11 +156,14 @@ function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(3)}, p = cache.p
             cache.ages[i] += 1
             return true
         else
-            optimize_candidate!(cache.candidates[i], p, cache.dataset, optimizer,
-                                optim_options)
+            optimize_candidate!(candidate, cache.dataset, p; optimizer = optimizer, options = optim_options)
             cache.ages[i] = 0
             return true
         end
     end
     return
+end
+
+function convert_to_basis(cache::SearchCache)
+    
 end

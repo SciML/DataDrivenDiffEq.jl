@@ -11,61 +11,54 @@ struct LayeredDAG{T} <: Lux.AbstractExplicitContainerLayer{(:layers,)}
     layers::T
 end
 
+function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, fs::Vector{Pair{Function, Int}}; kwargs...) 
+    LayeredDAG(in_dimension, out_dimension, n_layers, tuple(last.(fs)...), tuple(first.(fs)...); kwargs...)
+end
+
 function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, arities::Tuple,
-                    fs::Tuple; skip = false, eltype::Type{T} = Float32, parameter_mask = zeros(Bool, in_dimension), kwargs...) where {T}
+                    fs::Tuple; skip = false, eltype::Type{T} = Float32, input_functions = Any[identity for i in 1:in_dimension], kwargs...) where {T}
     n_inputs = in_dimension
     
-    input_functions = Any[]
+    input_functions = copy(input_functions)
 
     valid_idxs = zeros(Bool, length(fs))
-    layers = map(1:(n_layers + 1)) do i
-        valid_idxs .= true
-        # Filter the functions by their input dimension
-        valid_idxs .= (arities .<= n_inputs)
-        if i <= n_layers
-            layer = FunctionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs];
-            skip = skip, id_offset = i, input_functions = input_functions, parameter_mask = parameter_mask, kwargs...)
-            push!(input_functions, fs[valid_idxs]...)
-        else
-            layer = FunctionLayer(n_inputs, Tuple(1 for i in 1:out_dimension),
-                                  Tuple(identity for i in 1:out_dimension); skip = false,
-                                  id_offset = n_layers+1,
-                                  kwargs...)
-            push!(input_functions, fs[valid_idxs]...)
-        end
+    layers = FunctionLayer[]
 
+    foreach(1:n_layers) do i
+        valid_idxs .= true
+
+        valid_idxs .= (arities .<= n_inputs)
+
+        layer = FunctionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs];
+            skip = skip, id_offset = i, input_functions = input_functions, kwargs...)
+            
         if skip
             n_inputs = n_inputs + sum(valid_idxs)
         else
             n_inputs = sum(valid_idxs)
             empty!(input_functions)
         end
-        layer
+
+        pushfirst!(input_functions, fs[valid_idxs]...)
+
+        push!(layers, layer)
     end
     # The last layer is a decision node which uses an identity
-    names = [Symbol("layer_$i") for i in 1:(n_layers + 1)]
-    layers = NamedTuple(zip(names, layers))
-    return LayeredDAG{typeof(layers)}(layers)
+    push!(layers, 
+        FunctionLayer(n_inputs, Tuple(1 for i in 1:out_dimension), Tuple(identity for i in 1:out_dimension), 
+        skip = false, input_functions = input_functions, id_offset = n_layers+1)
+    )
+    
+    return Lux.Chain(layers...)
 end
 
-# Given that this is basically a chain, we hijack Lux
-function (c::LayeredDAG)(x, ps, st)
-    return Lux.applychain(c.layers, x, ps, st)
-end
 
-Base.keys(m::LayeredDAG) = Base.keys(getfield(m, :layers))
-Base.getindex(c::LayeredDAG, i::Int) = c.layers[i]
-Base.getindex(c::LayeredDAG, i::Int, j::Int) = getindex(c.layers[i], j)
 
-Base.length(c::LayeredDAG) = length(c.layers)
-Base.lastindex(c::LayeredDAG) = lastindex(c.layers)
-Base.firstindex(c::LayeredDAG) = firstindex(c.layers)
-
-function get_loglikelihood(c::LayeredDAG, ps, st)
+function get_loglikelihood(c::Lux.Chain, ps, st)
     _get_layer_loglikelihood(c.layers, ps, st)
 end
 
-function get_loglikelihood(c::LayeredDAG, ps, st, paths::Vector{<:AbstractPathState})
+function get_loglikelihood(c::Lux.Chain, ps, st, paths::Vector{<:AbstractPathState})
     lls = get_loglikelihood(c, ps, st)
     map(paths) do path
         nodes = get_nodes(path)
