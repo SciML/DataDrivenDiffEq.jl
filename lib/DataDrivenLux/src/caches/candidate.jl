@@ -153,7 +153,7 @@ end
     logpdf(c, p, y, ŷ)
 end
 
-function Distributions.logpdf(c::Candidate, p::AbstractVector, y::AbstractMatrix{T}, ŷ::AbstractMatrix{T}) where {T,P}
+function Distributions.logpdf(c::Candidate, p::AbstractVector, y::AbstractMatrix{T}, ŷ::AbstractMatrix{T}) where {T}
    @unpack scales, parameters = p
    @unpack observed, parameterdist = c
 

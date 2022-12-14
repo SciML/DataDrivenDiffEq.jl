@@ -58,7 +58,7 @@ get_dist(d::ObservedDistribution{<:Any, D}) where {D} = D
 
 Base.show(io::IO, d::ObservedDistribution) = summary(io, d)
 
-function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Y, scale) where {X, Y, S <: Number}
+function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Y, scale::S) where {X, Y, S <: Number}
     sum(map(xs -> d.errormodel(get_dist(d), xs..., transform(d.scale_transformation,scale)), zip(x, x̂))) 
 end
 
