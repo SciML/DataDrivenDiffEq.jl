@@ -60,11 +60,11 @@ end
 
 function get_loglikelihood(c::Lux.Chain, ps, st, paths::Vector{<:AbstractPathState})
     lls = get_loglikelihood(c, ps, st)
-    map(paths) do path
+    sum(map(paths) do path
         nodes = get_nodes(path)
         sum(map(nodes) do (i,j)
             i > 0 && return lls[i][j]
             return 0f0
         end)
-    end
+    end)
 end
