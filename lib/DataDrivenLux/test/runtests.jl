@@ -20,5 +20,6 @@ const GROUP = get(ENV, "GROUP", "All")
     end
     @safetestset "Algorithms" begin
         @safetestset "RandomSearch" begin include("./randomsearch_solve.jl") end
+        @safetestset "Reinforce" begin include("./reinforce_solve.jl") end
     end
 end end

@@ -37,8 +37,7 @@ function FunctionNode(f::F, arity::Int, input_dimension::Int, id::Union{Int, NTu
         input_functions = [identity for i in 1:input_dimension], kwargs...
     ) where {F}
     input_mask = mask_inverse(f, arity, input_functions)
-    @info input_mask
-    @info input_functions
+    
     @assert sum(input_mask) >= 1 "Input masks should enable at least one choice."
     @assert length(input_mask) == input_dimension "Input dimension should be sized equally to input_mask"
 
