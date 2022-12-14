@@ -81,11 +81,11 @@ export Dataset
 include("caches/candidate.jl")
 export Candidate
 
-#include("caches/cache.jl")
-#export SearchCache
-#
-#include("algorithms/randomsearch.jl")
-#export RandomSearch
+include("caches/cache.jl")
+export SearchCache
+
+include("algorithms/randomsearch.jl")
+export RandomSearch
 
 #include("algorithms/reinforce.jl")
 #export Reinforce

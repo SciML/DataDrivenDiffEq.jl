@@ -92,7 +92,8 @@ function Candidate(rng, model, basis, dataset;
 
     # Create the initial state and path
     dataset_intervals = interval_eval(basis, dataset, get_interval(parameterdist))
-    
+    @info dataset_intervals
+    @info summary(model)
     incoming_path = [PathState{ptype}(dataset_intervals[i], (), ((0, i),))
                      for i in 1:length(basis)]
 
@@ -144,7 +145,7 @@ end
 
 
 @views function Distributions.logpdf(c::Candidate, p::ComponentVector, 
-                             dataset::Dataset{T}, ps::ComponentVector = c.ps) where {T}
+                             dataset::Dataset{T}, ps = c.ps) where {T}
     @unpack observed, parameterdist = c
     @unpack scales, parameters = p
     @unpack y = dataset
@@ -172,7 +173,7 @@ function optimize_candidate!(c::Candidate, dataset::Dataset{T}, ps = c.ps; optim
 
     if all(IntervalArithmetic.iscommon, map(get_interval, c.outgoing_path))
         if any(needs_optimization,(c.observed, c.parameterdist))
-            loss(p) = -logpdf(c, p, dataset, ps)
+            loss(p) = -logpdf(c, p, dataset)
             # We do not want any warnings here
             res = with_logger(NullLogger()) do 
                 Optim.optimize(loss, p_init, optimizer, options)
@@ -206,7 +207,7 @@ function sample(c::Candidate, ps, i = 0, max_sample = 10)
     return sample(c.model.model, incoming_path, ps, st, i, max_sample)
 end
 
-function sample(model, incoming, ps, st, i = 0, max_sample = 10)
+function sample(model, incoming, ps, st, i = 0, max_sample = 30)
     outgoing, new_st = model(incoming, ps, st)
     if check_intervals(outgoing) || (i >= max_sample)
         return outgoing, new_st
@@ -216,3 +217,27 @@ end
 
 get_nodes(c::Candidate) = ChainRulesCore.@ignore_derivatives get_nodes(c.outgoing_path)
 
+
+function convert_to_basis(candidate::Candidate, ps = candidate.ps, options = DataDrivenCommonOptions())
+    @unpack basis, model = candidate.model
+    @unpack eval_expresssion = options
+    p_best = get_parameters(candidate)
+
+    p_new = map(enumerate(ModelingToolkit.parameters(basis))) do (i, ps)
+        DataDrivenDiffEq._set_default_val(Num(ps), p_best[i])
+    end
+
+    subs = Dict(a => b for (a, b) in zip(ModelingToolkit.parameters(basis), p_new))
+
+    rhs = map(x -> Num(x.rhs), equations(basis))
+    eqs, _ = model(rhs, ps, candidate.st)
+
+    eqs = collect(map(eq -> ModelingToolkit.substitute(eq, subs), eqs))
+
+    Basis(eqs, states(basis),
+                      parameters = p_new, iv = get_iv(basis),
+                      controls = controls(basis), observed = observed(basis),
+                      implicits = implicit_variables(basis),
+                      name = gensym(:Basis),
+                      eval_expression = eval_expresssion)
+end

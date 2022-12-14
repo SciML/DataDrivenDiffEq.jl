@@ -28,7 +28,9 @@ function FunctionNode(f::F, arity::Int, input_dimension::Int, id::Union{Int, NTu
         init_weight = Lux.zeros32, skip = false, simplex = Softmax(), 
         input_mask = ones(Bool, input_dimension)
     ) where {F}
-    @assert all(sum(input_mask) .>= 1) "Input masks should enable at least one choice."
+    @assert sum(input_mask) >= 1 "Input masks should enable at least one choice."
+    @assert length(input_mask) == input_dimension "Input dimension should be sized equally to input_mask"
+
     return FunctionNode{skip, id, F, typeof(init_weight), typeof(simplex)}(
         f, arity, input_dimension, simplex, input_mask, init_weight
     )
@@ -49,7 +51,7 @@ function Lux.initialstates(rng::AbstractRNG, p::FunctionNode)
         (;
          active_inputs = zeros(Int, p.arity),
          temperature = 1.0f0,
-         priors = tuple(collect(p.init_weight(rng_, p.in_dims) for i in 1:p.arity)...),
+         priors = tuple(collect(p.init_weight(rng_, sum(p.input_mask)) for i in 1:p.arity)...),
          rng = rng_)
     end
 end
@@ -88,12 +90,12 @@ end
 end
 
 function get_masked_inputs(l::FunctionNode, x::AbstractVector, ps, st::NamedTuple)
-    ntuple(i->x[l.input_mask][st.active_inputs[i]], l.arity)
+    @unpack active_inputs = st
+    @unpack input_mask = l
+    ntuple(i->x[input_mask][active_inputs[i]], l.arity)
 end
 
 @views function _apply_node(l::FunctionNode, x::AbstractVector, ps, st::NamedTuple{fieldnames}) where {fieldnames}
-    @unpack active_inputs = st
-    @unpack input_mask = l
     l.f(get_masked_inputs(l, x, ps, st)...)
 end
 
@@ -104,7 +106,6 @@ end
 get_temperature(::FunctionNode, ps, st) = st.temperature
 
 function get_loglikelihood(d::FunctionNode, ps, st)
-    #logll = logsoftmax(ps.weight ./ st.temperature, dims = 2)
     sum(map(enumerate(ps.weights)) do (i, weight)
         logsoftmax(weight ./ st.temperature)[st.active_inputs[i]]
     end)
