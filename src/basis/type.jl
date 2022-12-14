@@ -94,7 +94,7 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     # Scalarize equations
-    eqs = collect(eqs)
+    eqs = Symbolics.scalarize(eqs)
 
     lhs = isa(eqs, AbstractVector{Equation}) ?
           map(Base.Fix2(getfield, :lhs), eqs) :
