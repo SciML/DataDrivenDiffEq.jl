@@ -99,7 +99,7 @@ function Candidate(rng, model, basis, dataset;
     ps, st = Lux.setup(rng, model)
     outgoing_path, st = sample(model, incoming_path, ps, st) 
     ps = ComponentVector(ps)
-    
+
     parameters = T.(get_init(parameterdist))
     scales = T.(get_init(observed))
 
@@ -207,7 +207,7 @@ function sample(c::Candidate, ps, i = 0, max_sample = 10)
     return sample(c.model.model, incoming_path, ps, st, i, max_sample)
 end
 
-function sample(model, incoming, ps, st, i = 0, max_sample = 30)
+function sample(model, incoming, ps, st, i = 0, max_sample = 10)
     outgoing, new_st = model(incoming, ps, st)
     if check_intervals(outgoing) || (i >= max_sample)
         return outgoing, new_st

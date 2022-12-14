@@ -87,9 +87,9 @@ export SearchCache
 include("algorithms/randomsearch.jl")
 export RandomSearch
 
-#include("algorithms/reinforce.jl")
-#export Reinforce
-#
+include("algorithms/reinforce.jl")
+export Reinforce
+
 include("solve.jl")
 
 end # module DataDrivenLux

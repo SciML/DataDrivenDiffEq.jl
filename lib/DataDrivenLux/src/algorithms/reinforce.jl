@@ -88,8 +88,9 @@ function reinforce_loss(candidates, p, alg)
     @unpack loss, reward = alg
     losses = map(loss, candidates)
     rewards = reward(losses)
-    -sum(map(enumerate(candidates)) do (i,candidate)
-        rewards[i] *  candidate(p)
+    # ∇U(θ) = E[∇log(p)*R(t)]
+    mean(map(enumerate(candidates)) do (i,candidate)
+        rewards[i] *  -candidate(p)
     end)
 end
 

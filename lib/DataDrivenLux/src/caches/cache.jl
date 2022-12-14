@@ -139,7 +139,7 @@ function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(2)}, p = cache.p
         if cache.keeps[i]
             cache.ages[i] += 1
         else
-            optimize_candidate!(candidate, cache.dataset, p; optimizer = optimizer, options = optim_options)
+            optimize_candidate!(cache.candidates[i], cache.dataset, p; optimizer = optimizer, options = optim_options)
             cache.ages[i] = 0
         end
     end
@@ -156,7 +156,7 @@ function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(3)}, p = cache.p
             cache.ages[i] += 1
             return true
         else
-            optimize_candidate!(candidate, cache.dataset, p; optimizer = optimizer, options = optim_options)
+            optimize_candidate!(cache.candidates[i], cache.dataset, p; optimizer = optimizer, options = optim_options)
             cache.ages[i] = 0
             return true
         end
