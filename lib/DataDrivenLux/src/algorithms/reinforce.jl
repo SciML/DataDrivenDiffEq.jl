@@ -46,7 +46,7 @@ $(FIELDS)
 """
 @with_kw struct Reinforce{F, A, L, O, R} <: AbstractDAGSRAlgorithm
     "Reward function which should convert the loss to a reward."
-    reward::R = RelativeReward(true)
+    reward::R = RelativeReward(false)
     "The number of candidates to track"
     populationsize::Int = 100
     "The functions to include in the search"
