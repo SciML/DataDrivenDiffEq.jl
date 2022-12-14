@@ -23,7 +23,7 @@ rss_wrong = sum(abs2, Y .- X)
 
 @test 2 <= length(unique(map(rss, cache.candidates))) <= 3
 @test all(x -> (rss(x) == rss_wrong) || (rss(x) == 0.0), cache.candidates)
-@test !any(cache.keeps)
+@test sum(cache.keeps) == 1
 @test all(iszero, cache.ages)
 
 # Update the cache
@@ -44,3 +44,6 @@ end
 @test sum(cache.keeps) == 1
 @test sum(cache.ages) == 11
 @test (0.0, 1) == findmin(rss, cache.candidates)
+@test_nowarn basis = DataDrivenLux.convert_to_basis(cache.candidates[1])
+basis = DataDrivenLux.convert_to_basis(cache.candidates[1])
+@test all(isequal.(map(x->x.rhs, equations(basis)),[sin(x[1])]))

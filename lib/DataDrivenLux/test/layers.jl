@@ -25,7 +25,7 @@ using Test
     @test y == [sin(x[1]); x[3]+x[1]; x[1]*x[3]-x[3]]
     @test Y == [sin.(X[1:1,:]); X[3:3,:]+X[1:1,:];X[1:1,:].*X[3:3,:]-X[3:3,:]]
     fs = (sin, cos, log, exp, +, -, *)
-    @test DataDrivenLux.mask_inverse(log, fs) == [1,1,1,0,1,1,1]
-    @test DataDrivenLux.mask_inverse(exp, fs) == [1,1,0,1,1,1,1]
+    @test DataDrivenLux.mask_inverse(log, 1, collect(fs)) == [1,1,1,0,1,1,1]
+    @test DataDrivenLux.mask_inverse(exp, 1, collect(fs)) == [1,1,0,1,1,1,1]
 end
 

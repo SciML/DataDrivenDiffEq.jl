@@ -18,4 +18,7 @@ const GROUP = get(ENV, "GROUP", "All")
         @safetestset "Candidate" begin include("./candidate.jl") end
         @safetestset "Cache" begin include("./cache.jl") end
     end
+    @safetestset "Algorithms" begin
+        @safetestset "RandomSearch" begin include("./randomsearch_solve.jl") end
+    end
 end end

@@ -4,6 +4,7 @@ using IntervalArithmetic
 using Random
 using Lux
 using Test
+using ComponentArrays
 
 states = collect(PathState(-10.0..10.0, (0, i)) for i in 1:1)
 f(x,y,z) = x*y-z
