@@ -4,8 +4,9 @@ using Lux
 using Test
 using Distributions
 using DataDrivenDiffEq
+using StableRNGs
 
-rng = Random.seed!(1234)
+rng =StableRNG(1234)
 # Dummy stuff
 X = randn(rng, 1, 10)
 Y = sin.(X[1:1, :])

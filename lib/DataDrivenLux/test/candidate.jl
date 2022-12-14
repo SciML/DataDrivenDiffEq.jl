@@ -5,6 +5,7 @@ using Distributions
 using Random
 using Lux
 using Test
+using StableRNGs
 
 @testset "Candidate without choice" begin 
     fs = (x->x^2,)
@@ -17,7 +18,7 @@ using Test
     basis = Basis([x], [x])
 
     dataset = Dataset(X, Y)
-    rng = Random.seed!(422)
+    rng = StableRNG(3)
     candidate = DataDrivenLux.Candidate(rng, dag, basis, dataset)
     @test nobs(candidate) == 101
     @test rss(candidate) <= 1.3
@@ -32,7 +33,6 @@ end
     fs = (exp,)
     arities = (1,)
     dag = LayeredDAG(1, 1, 1, arities, fs, skip = true)
-    rng = Random.seed!(25)
     X = permutedims(collect(0:0.1:3.0))
     Y = sin.(2.0*X) 
     @variables x
@@ -40,7 +40,7 @@ end
     basis = Basis([sin(p*x)], [x], parameters = [p])
 
     dataset = Dataset(X, Y)
-    rng = Random.seed!(1)
+    rng = StableRNG(2)
     candidate = DataDrivenLux.Candidate(rng, dag, basis, dataset)
     candidate.outgoing_path
     DataDrivenLux.optimize_candidate!(candidate, dataset)

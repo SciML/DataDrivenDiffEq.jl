@@ -5,8 +5,9 @@ using LinearAlgebra
 using Random
 using Distributions
 using Test
+using StableRNGs
 
-rng = Random.seed!(1234)
+rng = StableRNG(1234)
 # Dummy stuff
 X = randn(rng, 1, 40)
 Y = sin.(X[1:1, :])

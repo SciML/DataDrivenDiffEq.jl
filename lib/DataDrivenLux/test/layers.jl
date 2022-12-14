@@ -4,6 +4,7 @@ using IntervalArithmetic
 using Random
 using Lux
 using Test
+using StableRNGs
 
 @testset "Layer" begin 
     states = collect(PathState(-10.0..10.0, (1, i)) for i in 1:3)
@@ -13,7 +14,7 @@ using Test
     x = randn(3)
     X = randn(3,10)
     layer = FunctionLayer(3, arities, fs, id_offset = 2)
-    rng = Random.seed!(45)
+    rng = StableRNG(43)
     ps, st = Lux.setup(rng, layer)
     layer_states, new_st = layer(states, ps, st)
     @test all(exp.(values(DataDrivenLux.get_loglikelihood(layer, ps, new_st))) .≈ (1/3, 1/9, 1/27))
@@ -28,4 +29,4 @@ using Test
     @test DataDrivenLux.mask_inverse(log, 1, collect(fs)) == [1,1,1,0,1,1,1]
     @test DataDrivenLux.mask_inverse(exp, 1, collect(fs)) == [1,1,0,1,1,1,1]
 end
-
+ 

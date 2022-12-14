@@ -2,6 +2,7 @@ using DataDrivenDiffEq
 using DataDrivenLux
 using IntervalArithmetic
 using Random
+using StableRNGs
 using Lux
 using Test
 
@@ -9,7 +10,7 @@ using Test
 states = collect(PathState(-10.0..10.0, (1, i)) for i in 1:3)
 
 @testset "Unary function" begin
-    rng = Random.seed!(42)
+    rng = StableRNG(10)
     sin_node = FunctionNode(sin, 1, 3, (2,1))
     sin_node.input_mask
     ps_sin, st_sin = Lux.setup(rng, sin_node)
@@ -23,7 +24,7 @@ states = collect(PathState(-10.0..10.0, (1, i)) for i in 1:3)
 end
 
 @testset "Binary function" begin
-    rng = Random.seed!(233)
+    rng = StableRNG(14)
     add_node = FunctionNode(+, 2, 3, (2,2))
     ps_add, st_add = Lux.setup(rng, add_node)
     add_state, new_add_st = add_node(states, ps_add, st_add)
@@ -37,7 +38,7 @@ end
 
 @testset "Ternary function" begin
     f(x,y,z) = x*y-z
-    rng = Random.seed!(456)
+    rng = StableRNG(31)
     fnode = FunctionNode(f,3,3,(2,3))
     ps_f, st_f = Lux.setup(rng, fnode)
     f_state, new_f_st = fnode(states, ps_f, st_f)

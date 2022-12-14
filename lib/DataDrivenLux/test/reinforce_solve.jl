@@ -6,8 +6,9 @@ using Random
 using Distributions
 using Test
 using Optimisers
+using StableRNGs
 
-rng = Random.seed!(1234)
+rng = StableRNG(1234)
 # Dummy stuff
 X = randn(rng, 2, 40)
 Y = sin.(sin.(X[1:1, :]) .+ exp.(X[2:2,:]))
