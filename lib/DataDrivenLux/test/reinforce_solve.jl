@@ -36,7 +36,7 @@ b = Basis([x; exp.(x)], x)
 alg = Reinforce(populationsize = 200, functions = (sin, exp, +),
                 arities = (1, 1, 2), rng = rng, n_layers = 3, use_protected = true,
                 loss = bic, keep = 10, threaded = true,
-                optim_options = Optim.Options(time_limit = 0.2), optimiser = ADAMW(1e-2))
+                optim_options = Optim.Options(time_limit = 0.2), optimiser = AdamW(1e-2))
 
 res = solve(dummy_problem, b, alg,
             options = DataDrivenCommonOptions(maxiters = 1000, progress = true,
