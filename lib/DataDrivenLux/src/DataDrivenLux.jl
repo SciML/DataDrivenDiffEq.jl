@@ -45,6 +45,7 @@ abstract type AbstractSimplex end
 abstract type AbstractErrorModel end
 abstract type AbstractErrorDistribution end
 abstract type AbstractConfigurationCache <: StatsBase.StatisticalModel end
+abstract type AbstractRewardScale{risk} end
 
 @enum __PROCESSUSE begin
     SERIAL = 1
@@ -82,6 +83,9 @@ export Candidate
 
 include("caches/cache.jl")
 export SearchCache
+
+include("algorithms/rewards.jl")
+export RelativeReward, AbsoluteReward
 
 include("algorithms/randomsearch.jl")
 export RandomSearch
