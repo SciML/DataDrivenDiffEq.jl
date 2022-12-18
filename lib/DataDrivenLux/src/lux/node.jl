@@ -9,7 +9,7 @@ and a latent array of weights representing a probability distribution over the i
 $(FIELDS)
 
 """
-struct FunctionNode{skip, ID, F, W, S} <: Lux.AbstractExplicitLayer
+struct FunctionNode{skip, ID, F, S} <: Lux.AbstractExplicitLayer
     "Function which should map from in_dims ↦ R"
     f::F
     "Arity of the function"
@@ -20,8 +20,6 @@ struct FunctionNode{skip, ID, F, W, S} <: Lux.AbstractExplicitLayer
     simplex::S
     "Masking of the input values"
     input_mask::Vector{Bool}
-    "Weight initialization"
-    init_weight::W
 end
 
 function mask_inverse(f::F, arity::Int, in_f::AbstractVector) where {F <: Function}
@@ -39,7 +37,7 @@ end
 
 function FunctionNode(f::F, arity::Int, input_dimension::Int,
                       id::Union{Int, NTuple{M, Int} where M};
-                      init_weight = Lux.zeros32, skip = false, simplex = Softmax(),
+                      skip = false, simplex = Softmax(),
                       input_functions = [identity for i in 1:input_dimension],
                       kwargs...) where {F}
     input_mask = mask_inverse(f, arity, input_functions)
@@ -47,17 +45,16 @@ function FunctionNode(f::F, arity::Int, input_dimension::Int,
     @assert sum(input_mask)>=1 "Input masks should enable at least one choice."
     @assert length(input_mask)==input_dimension "Input dimension should be sized equally to input_mask"
 
-    return FunctionNode{skip, id, F, typeof(init_weight), typeof(simplex)}(f, arity,
+    return FunctionNode{skip, id, F, typeof(simplex)}(f, arity,
                                                                            input_dimension,
                                                                            simplex,
-                                                                           input_mask,
-                                                                           init_weight)
+                                                                           input_mask,)
 end
 
 get_id(::FunctionNode{<:Any, id}) where {id} = id
 
 function Lux.initialparameters(rng::AbstractRNG, l::FunctionNode)
-    return (; weights = l.init_weight(rng, sum(l.input_mask), l.arity))
+    return (; weights = init_weights(l.simplex, rng, sum(l.input_mask), l.arity))
 end
 
 function Lux.initialstates(rng::AbstractRNG, p::FunctionNode)
@@ -66,7 +63,7 @@ function Lux.initialstates(rng::AbstractRNG, p::FunctionNode)
         rng_ = Lux.replicate(rng)
         # Call once
         (;
-         priors = p.init_weight(rng, sum(p.input_mask), p.arity),
+         priors = init_weights(p.simplex, rng, sum(p.input_mask), p.arity),
          active_inputs = zeros(Int, p.arity),
          temperature = 1.0f0,
          rng = rng_)
@@ -78,7 +75,7 @@ function update_state(p::FunctionNode, ps, st)
     @unpack weights = ps
 
     foreach(enumerate(eachcol(weights))) do (i, weight)
-        priors[:, i] = exp.(p.simplex(rng, weight, temperature))
+        @views  p.simplex(rng, priors[:, i], weight, temperature)
         active_inputs[i] = findfirst(rand(rng) .<= cumsum(priors[:, i]))
     end
 

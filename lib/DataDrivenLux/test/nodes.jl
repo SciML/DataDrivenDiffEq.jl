@@ -8,7 +8,7 @@ using Test
 
 states = collect(PathState(-10.0 .. 10.0, (1, i)) for i in 1:3)
 
-@testset "Unary function" begin
+@testset "Unary function Softmax" begin
     rng = StableRNG(10)
     sin_node = FunctionNode(sin, 1, 3, (2, 1))
     sin_node.input_mask
@@ -22,9 +22,22 @@ states = collect(PathState(-10.0 .. 10.0, (1, i)) for i in 1:3)
     @test exp(DataDrivenLux.get_loglikelihood(sin_node, ps_sin, new_sin_st)) ≈ 1 / 3
 end
 
-@testset "Unary function Gumbel Softmax" begin
+@testset "Unary function GumbelSoftmax" begin
     rng = StableRNG(12)
     sin_node = FunctionNode(sin, 1, 3, (2, 1), simplex = GumbelSoftmax())
+    ps_sin, st_sin = Lux.setup(rng, sin_node)
+    sin_state, new_sin_st = sin_node(states, ps_sin, st_sin)
+    @test DataDrivenLux.get_nodes(sin_state) == ((2, 1), (1, 1))
+    @test DataDrivenLux.get_interval(sin_state) == -1 .. 1
+    @test DataDrivenLux.get_operators(sin_state) == (sin,)
+    @test DataDrivenLux.get_inputs(sin_node, ps_sin, new_sin_st) == [1]
+    @test DataDrivenLux.get_temperature(sin_node, ps_sin, new_sin_st) == 1.0f0
+    @test exp(DataDrivenLux.get_loglikelihood(sin_node, ps_sin, new_sin_st)) ≈ 1 / 3
+end
+
+@testset "Unary function DirectSimplex" begin
+    rng = StableRNG(22)
+    sin_node = FunctionNode(sin, 1, 3, (2, 1), simplex = DirectSimplex())
     ps_sin, st_sin = Lux.setup(rng, sin_node)
     sin_state, new_sin_st = sin_node(states, ps_sin, st_sin)
     @test DataDrivenLux.get_nodes(sin_state) == ((2, 1), (1, 1))

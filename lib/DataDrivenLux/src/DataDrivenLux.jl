@@ -63,7 +63,7 @@ export ObservedModel
 
 # Simplex
 include("./lux/simplex.jl")
-export Softmax, GumbelSoftmax
+export Softmax, GumbelSoftmax, DirectSimplex
 
 # Nodes and Layers
 include("./lux/path_state.jl")
