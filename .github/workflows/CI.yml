@@ -16,6 +16,7 @@ jobs:
           - DataDrivenDMD
           - DataDrivenSR
           - DataDrivenSparse
+          - DataDrivenLux
         version:
           - '1'
           - '1.6'
@@ -40,7 +41,7 @@ jobs:
           GROUP: ${{ matrix.group }}
       - uses: julia-actions/julia-processcoverage@v1
         with:
-          directories: src,lib/DataDrivenDMD/src,lib/DataDrivenSparse/src,lib/DataDrivenSR/src
+          directories: src,lib/DataDrivenDMD/src,lib/DataDrivenSparse/src,lib/DataDrivenSR/src,lib/DataDrivenLux/src
       - uses: codecov/codecov-action@v3
         with:
           files: lcov.info
