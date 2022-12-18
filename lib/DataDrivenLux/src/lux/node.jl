@@ -46,9 +46,9 @@ function FunctionNode(f::F, arity::Int, input_dimension::Int,
     @assert length(input_mask)==input_dimension "Input dimension should be sized equally to input_mask"
 
     return FunctionNode{skip, id, F, typeof(simplex)}(f, arity,
-                                                                           input_dimension,
-                                                                           simplex,
-                                                                           input_mask)
+                                                      input_dimension,
+                                                      simplex,
+                                                      input_mask)
 end
 
 get_id(::FunctionNode{<:Any, id}) where {id} = id
@@ -75,7 +75,7 @@ function update_state(p::FunctionNode, ps, st)
     @unpack weights = ps
 
     foreach(enumerate(eachcol(weights))) do (i, weight)
-        @views  p.simplex(rng, priors[:, i], weight, temperature)
+        @views p.simplex(rng, priors[:, i], weight, temperature)
         active_inputs[i] = findfirst(rand(rng) .<= cumsum(priors[:, i]))
     end
 

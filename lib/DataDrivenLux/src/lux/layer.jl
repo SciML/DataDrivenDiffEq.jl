@@ -68,15 +68,15 @@ end
 end
 
 @generated function _get_configuration(layers::NamedTuple{fields}, ps,
-    st::NamedTuple{fields}) where {fields}
-N = length(fields)
-st_symbols = [gensym() for _ in 1:N]
-calls = [:($(st_symbols[i]) = get_configuration(layers.$(fields[i]),
-           ps.$(fields[i]),
-           st.$(fields[i])))
-for i in 1:N]
-push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
-return Expr(:block, calls...)
+                                       st::NamedTuple{fields}) where {fields}
+    N = length(fields)
+    st_symbols = [gensym() for _ in 1:N]
+    calls = [:($(st_symbols[i]) = get_configuration(layers.$(fields[i]),
+                                                    ps.$(fields[i]),
+                                                    st.$(fields[i])))
+             for i in 1:N]
+    push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
+    return Expr(:block, calls...)
 end
 
 @generated function _apply_layer(layers::NamedTuple{fields}, x, ps,

@@ -30,13 +30,12 @@ function init_model(x::AbstractDAGSRAlgorithm, basis::Basis, dataset::Dataset, i
     end
 
     return LayeredDAG(length(basis), size(dataset.y, 1), n_layers, arities, functions;
-                 skip = skip, input_functions = variable_mask, simplex = simplex)
-
+                      skip = skip, input_functions = variable_mask, simplex = simplex)
 end
 
 function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
                     problem::DataDrivenProblem; kwargs...)
-    @unpack rng, keep, observed, populationsize, optimizer, optim_options, optimiser,  loss = x
+    @unpack rng, keep, observed, populationsize, optimizer, optim_options, optimiser, loss = x
     # Derive the model
     dataset = Dataset(problem)
     TData = eltype(dataset)
@@ -50,9 +49,8 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
 
     intervals = interval_eval(basis, dataset, get_interval(parameters))
 
-
     model = init_model(x, basis, dataset, intervals)
-    
+
     ps = ComponentVector(Lux.initialparameters(rng_, model))
 
     # Derive the candidates     

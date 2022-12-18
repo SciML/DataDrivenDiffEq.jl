@@ -63,16 +63,15 @@ function init_model(x::CrossEntropy, basis::Basis, dataset::Dataset, intervals)
     end
 
     return LayeredDAG(length(basis), size(dataset.y, 1), n_layers, arities, functions;
-                 skip = skip, input_functions = variable_mask, simplex = simplex)
-
+                      skip = skip, input_functions = variable_mask, simplex = simplex)
 end
 
 function update_parameters!(cache::SearchCache{<:CrossEntropy})
     @unpack candidates, keeps, p, alg = cache
     @unpack alpha = alg
-   p̄ = mean(map(candidates[keeps]) do candidate
-        ComponentVector(get_configuration(candidate.model.model, p, candidate.st))
-   end)
-   cache.p .= alpha * p + (one(alpha) - alpha) .* p̄
-   return 
+    p̄ = mean(map(candidates[keeps]) do candidate
+                  ComponentVector(get_configuration(candidate.model.model, p, candidate.st))
+              end)
+    cache.p .= alpha * p + (one(alpha) - alpha) .* p̄
+    return
 end
