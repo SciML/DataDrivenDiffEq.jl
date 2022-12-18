@@ -18,6 +18,8 @@ $(FIELDS)
     n_layers::Int = 1
     "Include skip layers"
     skip::Bool = true
+    "Simplex mapping"
+    simplex::AbstractSimplex = Softmax()
     "Evaluation function to sort the samples"
     loss::L = aicc
     "The number of candidates to keep in each iteration"

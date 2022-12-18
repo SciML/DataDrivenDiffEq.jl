@@ -18,7 +18,7 @@ function FunctionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = fals
                        kwargs...)
     nodes = map(eachindex(arities)) do i
         # We check if we have an inverse here
-        FunctionNode(fs[i], arities[i], in_dimension, (id_offset, i),
+        FunctionNode(fs[i], arities[i], in_dimension, (id_offset, i);
                      input_functions = input_functions, kwargs...)
     end
 

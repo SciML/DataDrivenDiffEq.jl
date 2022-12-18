@@ -14,21 +14,8 @@ function Base.show(io::IO, cache::SearchCache)
     return
 end
 
-function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
-                    problem::DataDrivenProblem; kwargs...)
-    @unpack rng, keep, observed, populationsize, functions, arities, skip, use_protected, optimizer, optim_options, optimiser, n_layers, loss = x
-    # Derive the model
-    dataset = Dataset(problem)
-    TData = eltype(dataset)
-
-    rng_ = Lux.replicate(rng)
-
-    observed = isa(observed, ObservedModel) ? observed :
-               ObservedModel(dataset.y, fixed = true)
-
-    parameters = ParameterDistributions(basis, TData)
-
-    intervals = interval_eval(basis, dataset, get_interval(parameters))
+function init_model(x::AbstractDAGSRAlgorithm, basis::Basis, dataset::Dataset, intervals)
+    @unpack simplex, n_layers, arities, functions, use_protected, skip = x
 
     # Get the parameter mapping
     variable_mask = map(enumerate(equations(basis))) do (i, eq)
@@ -42,9 +29,30 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
         functions = map(convert_to_safe, functions)
     end
 
-    model = LayeredDAG(length(basis), size(dataset.y, 1), n_layers, arities, functions;
-                       skip = skip, input_functions = variable_mask)
+    return LayeredDAG(length(basis), size(dataset.y, 1), n_layers, arities, functions;
+                 skip = skip, input_functions = variable_mask, simplex = simplex)
 
+end
+
+function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
+                    problem::DataDrivenProblem; kwargs...)
+    @unpack rng, keep, observed, populationsize, optimizer, optim_options, optimiser,  loss = x
+    # Derive the model
+    dataset = Dataset(problem)
+    TData = eltype(dataset)
+
+    rng_ = Lux.replicate(rng)
+
+    observed = isa(observed, ObservedModel) ? observed :
+               ObservedModel(dataset.y, fixed = true)
+
+    parameters = ParameterDistributions(basis, TData)
+
+    intervals = interval_eval(basis, dataset, get_interval(parameters))
+
+
+    model = init_model(x, basis, dataset, intervals)
+    
     ps = ComponentVector(Lux.initialparameters(rng_, model))
 
     # Derive the candidates     

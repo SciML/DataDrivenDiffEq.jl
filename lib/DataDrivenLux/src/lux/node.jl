@@ -48,7 +48,7 @@ function FunctionNode(f::F, arity::Int, input_dimension::Int,
     return FunctionNode{skip, id, F, typeof(simplex)}(f, arity,
                                                                            input_dimension,
                                                                            simplex,
-                                                                           input_mask,)
+                                                                           input_mask)
 end
 
 get_id(::FunctionNode{<:Any, id}) where {id} = id
