@@ -114,9 +114,11 @@ function update_cache!(cache::SearchCache)
         permute!(cache.candidates, cache.sorting)
         cache.keeps[1:keep] .= true
     else
-        losses = filter(!isnan, map(loss, cache.candidates))
+        losses = map(loss, cache.candidates)
         # TODO Maybe weight by age or loss here
-        loss_quantile = quantile(losses, keep)
+        sortperm!(cache.sorting, cache.candidates, by = loss)
+        permute!(cache.candidates, cache.sorting)
+        loss_quantile = quantile(losses, keep, sorted = true)
         cache.keeps .= (losses .<= loss_quantile)
     end
 

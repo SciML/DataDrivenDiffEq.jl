@@ -93,6 +93,9 @@ export RandomSearch
 include("algorithms/reinforce.jl")
 export Reinforce
 
+include("algorithms/crossentropy.jl")
+export CrossEntropy
+
 include("solve.jl")
 
 end # module DataDrivenLux

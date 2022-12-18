@@ -51,15 +51,19 @@ function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, aritie
     # The last layer is a decision node which uses an identity
     push!(layers,
           FunctionLayer(n_inputs, Tuple(1 for i in 1:out_dimension),
-                        Tuple(identity for i in 1:out_dimension),
+                        Tuple(identity for i in 1:out_dimension);
                         skip = false, input_functions = input_functions,
-                        id_offset = n_layers + 1))
+                        id_offset = n_layers + 1, kwargs...))
 
     return Lux.Chain(layers...)
 end
 
 function get_loglikelihood(c::Lux.Chain, ps, st)
     _get_layer_loglikelihood(c.layers, ps, st)
+end
+
+function get_configuration(c::Lux.Chain, ps, st)
+    _get_configuration(c.layers, ps, st)
 end
 
 function get_loglikelihood(c::Lux.Chain, ps, st, paths::Vector{<:AbstractPathState})

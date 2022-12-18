@@ -128,6 +128,19 @@ end
 
 get_inputs(::FunctionNode, ps, st) = st.active_inputs
 
+function get_configuration(::FunctionNode, ps, st)
+    @unpack weights = ps
+    @unpack active_inputs = st
+    config = similar(weights)
+    xzero = zero(eltype(config))
+    xone = one(eltype(config))
+    foreach(enumerate(eachcol(config))) do (i, config_)
+        config_ .= xzero
+        config_[active_inputs[i]] = xone
+    end
+    (; weights = config)
+end
+
 # Special dispatch on the path state
 function (l::FunctionNode{false})(x::AbstractVector{<:AbstractPathState}, ps,
                                   st::NamedTuple)
