@@ -1,7 +1,7 @@
 # # [Implicit Nonlinear Dynamics : Autoregulation](@id autoregulation)
 #
 # The following is another example on how to use the [`ImplicitOptimizer`](@ref) describing a biological autoregulation process using
-# two coupled implicit equations. 
+# two coupled implicit equations.
 
 using DataDrivenDiffEq
 using ModelingToolkit
@@ -48,14 +48,14 @@ basis = Basis(eqs, x, independent_variable = t, implicits = D.(x))
 
 #md plot(dd_prob)
 
-# Next to varying over different sparsity penalties, we want also to batch our data using the **TEXT**
+# Next to varying over different sparsity penalties, we also want to batch our data using the **TEXT**
 
 sampler = DataProcessing(split = 0.8, shuffle = true, batchsize = 30)
 res = solve(dd_prob, basis, ImplicitOptimizer(STLSQ(1e-2:1e-2:1.0)),
             options = DataDrivenCommonOptions(data_processing = sampler, digits = 2))
 #md println(res) #hide
 
-# And have a look at the outcoming plots
+# And have a look at the resulting plot
 
 #md plot(res)
 
@@ -70,7 +70,7 @@ system = get_basis(res) #hide
 
 # And the coefficient of determination of the result.
 
-#md r2(res) 
+#md r2(res)
 
 #md # ## [Copy-Pasteable Code](@id autoregulation_copy_paste)
 #md #
