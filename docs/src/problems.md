@@ -63,7 +63,7 @@ DirectDataDrivenProblem
 DataDrivenDataset
 ```
 
-A `DataDrivenDataset` collects several [`DataDrivenProblem`s](@ref problem) of the same type but treads them as union used for system identification. 
+A `DataDrivenDataset` collects several [`DataDrivenProblem`s](@ref problem) of the same type but treats them as a union for system identification. 
 ## Concrete Types
 ```@docs
 DiscreteDataset

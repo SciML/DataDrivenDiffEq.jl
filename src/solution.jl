@@ -91,7 +91,7 @@ StatsBase.rss(sol::DataDrivenSolution) = getfield(sol, :residuals)
 """
 $(SIGNATURES)
 
-Returns the loglikelihood of the `DataDrivenSolution` assuming a normal distributed error.
+Returns the log-likelihood of the `DataDrivenSolution` assuming a normal distributed error.
 """
 function StatsBase.loglikelihood(sol::DataDrivenSolution)
     begin -nobs(sol) / 2 * log.(rss(sol) / nobs(sol)) end
@@ -109,7 +109,7 @@ end
 """
 $(SIGNATURES)
 
-Return the nullloglikelihood of the `DataDrivenSolution`. This corresponds to a model only fitted with an 
+Return the null log-likelihood of the `DataDrivenSolution`. This corresponds to a model only fitted with an
 intercept and a normal distributed error.
 """
 @views function StatsBase.nullloglikelihood(sol::DataDrivenSolution)
@@ -122,7 +122,7 @@ end
 """
 $(SIGNATURES)
 
-Return the coefficient of determinantion of the `DataDrivenSolution`. 
+Return the coefficient of determination of the `DataDrivenSolution`.
 
 ## Note
 Only implements `CoxSnell` based on the [`loglikelihood`](@ref) and [`nullloglikelihood`](@ref).

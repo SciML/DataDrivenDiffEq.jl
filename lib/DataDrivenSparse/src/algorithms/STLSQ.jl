@@ -2,7 +2,7 @@
 $(TYPEDEF)
 `STLSQ` is taken from the [original paper on SINDY](https://www.pnas.org/content/113/15/3932) and implements a
 sequentially thresholded least squares iteration. `λ` is the threshold of the iteration.
-It is based upon [this matlab implementation](https://github.com/eurika-kaiser/SINDY-MPC/utils/sparsifyDynamics.m).
+It is based upon [this Matlab implementation](https://github.com/eurika-kaiser/SINDY-MPC/utils/sparsifyDynamics.m).
 It solves the following problem
 ```math
 \\argmin_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\rho \\|x\\|_2
@@ -13,7 +13,7 @@ with the additional constraint
 \\lvert x_i \\rvert > \\lambda
 ```
 
-If the parameter `ρ > 0`, ridge regression will be performed using the normal equations of the corresponding 
+If the parameter `ρ > 0`, ridge regression will be performed using the normal equations of the corresponding
 regression problem.
 
 # Fields

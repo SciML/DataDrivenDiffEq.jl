@@ -19,7 +19,7 @@ p = [-0.8; -0.7]
 
 problem = ODEProblem{true, SciMLBase.NoSpecialize}(slow_manifold, u0, tspan, p)
 solution = solve(problem, Tsit5(), saveat = 0.1);
-#md plot(solution) 
+#md plot(solution)
 
 # Since we are dealing with a continuous system in time, we define the associated [`DataDrivenProblem`](@ref) accordingly using the measured states `X`, their derivatives `DX` and the time `t`.
 
@@ -54,9 +54,9 @@ res = solve(prob, Ψ, DMDPINV(), digits = 2)
 
 #md dof(res)
 
-# Lets have a closer look at the `Basis`
+# Let's have a closer look at the `Basis`
 
-#md basis = get_basis(res) 
+#md basis = get_basis(res)
 #md println(basis) #hide
 
 # And the connected parameters

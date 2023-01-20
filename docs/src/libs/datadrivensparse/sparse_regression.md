@@ -18,14 +18,14 @@ And simply solve the least squares problem
 \Xi' = \min_{\Xi} \lVert Y - \Xi \varPhi \rVert_2^2
 ```
 
-In the simplest case we could use a taylor expansion. However, if we want to interpretable results we need a key ingredient: sparsity! So instead we aim to solve the problem
+In the simplest case, we could use a Taylor expansion. However, if we want interpretable results, we need a key ingredient: sparsity! So, instead we aim to solve the problem
 
 ```math
 \Xi' = \min_{\Xi} \lVert\Xi \rVert_0 \\
 \text{s.t.} \qquad \Xi \varPhi =  Y
 ```
 
-In its original version or via sufficient relaxition of the $L_0$ norm. 
+In its original version or via sufficient relaxation of the $L_0$ norm. 
 
 Similarly, implicit problems of the form 
 
@@ -41,8 +41,6 @@ can be solved using an [`ImplicitOptimizer`](@ref). Similar to the formulation a
 ```
 
 Where the matrix of evaluated basis elements $\varPhi_y \in \mathbb R^{\lvert \varphi \rvert} \times \mathbb R^{m}$ now may also contain basis functions which are dependent on the target variables $y \in \mathbb R^{n_y}$.
-
-For examples see the tutorial section.
 
 ## [Algorithms](@id sparse_algorithms)
 

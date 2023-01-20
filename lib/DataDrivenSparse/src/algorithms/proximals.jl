@@ -11,12 +11,12 @@ end
 
 """
 $(TYPEDEF)
-Proximal operator which implements the soft thresholding operator.
+Proximal operator, which implements the soft thresholding operator.
 
 ```julia
 sign(x) * max(abs(x) - λ, 0)
 ```
-See [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778).
+See [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
 struct SoftThreshold <: AbstractProximalOperator end;
 
@@ -47,12 +47,12 @@ end
 
 """
 $(TYPEDEF)
-Proximal operator which implements the hard thresholding operator.
+Proximal operator, which implements the hard thresholding operator.
 
 ```julia
 abs(x) > sqrt(2*λ) ? x : 0
 ```
-See [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778).
+See [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
 struct HardThreshold <: AbstractProximalOperator end;
 
@@ -83,7 +83,7 @@ end
 
 """
 $(TYPEDEF)
-Proximal operator which implements the (smoothly) clipped absolute deviation operator.
+Proximal operator, which implements the (smoothly) clipped absolute deviation operator.
 
 ```julia
 abs(x) > ρ ? x : sign(x) * max(abs(x) - λ, 0)
@@ -101,7 +101,7 @@ opt = ClippedAbsoluteDeviation()
 opt = ClippedAbsoluteDeviation(1e-1)
 ```
 
-See [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778).
+See [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
 struct ClippedAbsoluteDeviation{T} <: AbstractProximalOperator where {T <: Real}
     """Upper threshold"""

@@ -80,8 +80,8 @@ K = Y*V*Σ*U'
 ```
 
 where `Y` and `X = U*Σ*V'` are data matrices. The singular value decomposition is truncated via
-the `truncation` parameter, which can either be an `Int` indiciating an index based truncation or a `Real`
-indiciating a tolerance based truncation. Returns a `Eigen` factorization of the operator.
+the `truncation` parameter, which can either be an `Int` indicating an index-based truncation or a `Real`
+indicating a tolerance-based truncation. Returns a `Eigen` factorization of the operator.
 
 
 # Fields
@@ -91,7 +91,7 @@ $(FIELDS)
 $(SIGNATURES)
 """
 mutable struct DMDSVD{T} <: AbstractKoopmanAlgorithm where {T <: Number}
-    """Indiciates the truncation"""
+    """Indicates the truncation"""
     truncation::T
 end;
 

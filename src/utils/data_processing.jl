@@ -1,23 +1,23 @@
 """
 $(TYPEDEF)
 
-Defines a preprocessing pipeline for the data using `MLUtils.jl`. 
-All of the fields can be set using keyworded arguments.
+Defines a preprocessing pipeline for the data using `MLUtils.jl`.
+All of the fields can be set using keyword arguments.
 
 # Fields
 $(FIELDS)
 
-## Note 
+## Note
 
 Currently, only `splitobs` for a train-test split and `DataLoader` is wrapped.
-Other algorithms may follow. 
+Other algorithms may follow.
 """
 @with_kw struct DataProcessing
     """Train test split, indicates the (rough) percentage of training data"""
     split::Real = 1.0
     """Shuffle the training data"""
     shuffle::Bool = false
-    """Batchsizes to use, if zero no batching is performed"""
+    """Batch size to use, if zero no batching is performed"""
     batchsize::Int = 0
     """Using partial batches"""
     partial::Bool = true
