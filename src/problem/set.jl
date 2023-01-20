@@ -3,7 +3,7 @@ $(TYPEDEF)
 
 A collection of DataDrivenProblems used to concatenate different trajectories or experiments.
 
-Can be called with either a `NTuple` of problems or a `NamedTuple` of `NamedTuples`. 
+Can be called with either a `NTuple` of problems or a `NamedTuple` of `NamedTuples`.
 Similar to the `DataDrivenProblem`, it has three constructors available:
 
 + `DirectDataset` for direct problems
@@ -76,7 +76,7 @@ A time continuous `DataDrivenDataset` useable for problems of the form `f(x,p,t,
 $(SIGNATURES)
 
 Automatically constructs derivatives via an additional collocation method, which can be either a collocation
-or an interpolation from `DataInterpolations.jl` wrapped by an `InterpolationMethod` provided by the `collocation` keyworded argument.
+or an interpolation from `DataInterpolations.jl` wrapped by an `InterpolationMethod` provided by the `collocation` keyword argument.
 """
 function ContinuousDataset(s::NamedTuple; name = gensym(:DDSet),
                            collocation = InterpolationMethod(), kwargs...)

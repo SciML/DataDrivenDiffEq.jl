@@ -1,6 +1,6 @@
 """
 $(TYPEDEF)
-`ADMM` is an implementation of Lasso using the alternating direction methods of multipliers and
+`ADMM` is an implementation of Lasso using the alternating direction methods of multipliers, and
 loosely based on [this implementation](https://web.stanford.edu/~boyd/papers/admm/lasso/lasso.html).
 It solves the following problem
 ```math

@@ -14,6 +14,5 @@ pages = [
     "DataDrivenSR" => ["Background" => "libs/datadrivensr/symbolic_regression.md",
         "Examples" => sr_tutorial,
     ],
-    "Contributing" => "contributions.md",
     "Citing" => "citations.md",
 ]

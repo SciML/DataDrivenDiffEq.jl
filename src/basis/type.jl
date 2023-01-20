@@ -9,17 +9,17 @@ a vector of `eqs`.
 It can be called with the typical SciML signature, meaning out of place with `f(u,p,t)`
 or in place with `f(du, u, p, t)`. If control inputs are present, it is assumed that no control corresponds to
 zero for all inputs. The corresponding function calls are `f(u,p,t,inputs)` and `f(du,u,p,t,inputs)` and need to
-be specified fully. 
+be specified fully.
 
 The optional `implicits` declare implicit variables in the `Basis`, meaning variables representing the (measured) target of the system.
-Right now only supported with the use of `ImplicitOptimizer`s.
+Right now, only supported with the use of `ImplicitOptimizer`s.
 
 
 If `linear_independent` is set to `true`, a linear independent basis is created from all atom functions in `f`.
 
 If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
 
-Additional keyworded arguments include `name`, which can be used to name the basis, and
+Additional keyword arguments include `name`, which can be used to name the basis, and
 `observed` for defining observables.
 
 
@@ -267,7 +267,7 @@ is_controlled(b::Basis{<:Any, X}) where {X} = X
 get_f(b::AbstractBasis) = getfield(b, :f)
 
 #(b::Basis)(args...) = get_f(b)(args...)
-# OOP 
+# OOP
 
 # Without controls or implicits
 function (b::Basis{false, false})(u::AbstractVector, p::P = parameters(b),
@@ -396,11 +396,11 @@ end
 """
 $(SIGNATURES)
 
-Returns a function representing the jacobian matrix / gradient of the [`Basis`](@ref) with respect to the
+Returns a function representing the Jacobian matrix / gradient of the [`Basis`](@ref) with respect to the
 states as a function with the common signature `f(u,p,t)` for out of place and `f(du, u, p, t)` for in place computation.
 If control variables are defined, the function can also be called by `f(u,p,t,control)` or `f(du,u,p,t,control)` and assumes `control .= 0` if no control is given.
 
-If the jacobian with respect to other variables is needed, it can be passed via a second argument.
+If the Jacobian with respect to other variables is needed, it can be passed via a second argument.
 """
 jacobian(x::Basis, eval_expression::Bool = false) = jacobian(x, states(x), eval_expression)
 
@@ -519,7 +519,7 @@ end
 """
 $(SIGNATURES)
 
-Return the default values as a vecotr of pairs for the given [`Basis`](@ref).
+Return the default values as a vector of pairs for the given [`Basis`](@ref).
 If no default value is stored, returns `zero(T)` where `T` is the `symtype` of the parameter.
 
 ## Note

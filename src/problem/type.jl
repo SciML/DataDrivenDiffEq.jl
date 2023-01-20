@@ -96,11 +96,11 @@ struct DataDrivenProblem{dType, cType, probType} <:
     """Time measurements (optional)"""
     t::AbstractVector{dType}
 
-    """Differental state measurements (optional); Used for time continuous problems"""
+    """Differential state measurements (optional); Used for time continuous problems"""
     DX::AbstractMatrix{dType}
     """Output measurements (optional); Used for direct problems"""
     Y::AbstractMatrix{dType}
-    """Input measurements (optional); Used for non-autonoumous problems"""
+    """Input measurements (optional); Used for non-autonomous problems"""
     U::AbstractMatrix{dType}
 
     """Parameters associated with the problem (optional)"""
@@ -425,9 +425,9 @@ end
 $(SIGNATURES)
 
 Asserts if the given combination of `problem` and `basis` - and optionally a target matrix `dx` for in place evaluation - is
-valid in its dimensions. Should only be used for checking explicit evaluation. Can also be used as a shorthand to 
+valid in its dimensions. Should only be used for checking explicit evaluation. Can also be used as a shorthand to
 
-```julia 
+```julia
 @is_applicable problem # Checks if the problem is well posed in terms of dimensions
 @is_applicable problem basis # Checks if the basis can be called with the problem out of place
 @is_applicable problem basis dx # Checks if the basis can be called with the problem and matrix dx in place

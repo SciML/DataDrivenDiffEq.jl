@@ -2,13 +2,13 @@
 
 """
 $(TYPEDEF)
-`SR3` is an optimizer framework introduced [by Zheng et. al., 2018](https://ieeexplore.ieee.org/document/8573778) and used within
-[Champion et. al., 2019](https://arxiv.org/abs/1906.10612). `SR3` contains a sparsification parameter `λ`, a relaxation `ν`.
+`SR3` is an optimizer framework introduced [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778) and used within
+[Champion et al., 2019](https://arxiv.org/abs/1906.10612). `SR3` contains a sparsification parameter `λ`, a relaxation `ν`.
 It solves the following problem
 ```math
 \\argmin_{x, w} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda R(w) + \\frac{\\nu}{2}\\|x-w\\|_2
 ```
-Where `R` is a proximal operator and the result is given by `w`.
+Where `R` is a proximal operator, and the result is given by `w`.
 
 # Fields
 $(FIELDS)
@@ -22,7 +22,7 @@ opt = SR3(1e-3, 1.0, SoftThreshold())
 ```
 ## Note
 Opposed to the original formulation, we use `nu` as a relaxation parameter,
-as given in [Champion et. al., 2019](https://arxiv.org/abs/1906.10612). In the standard case of
+as given in [Champion et al., 2019](https://arxiv.org/abs/1906.10612). In the standard case of
 hard thresholding the sparsity is interpreted as `λ = threshold^2 / 2`, otherwise `λ = threshold`.
 """
 mutable struct SR3{T, V, P <: AbstractProximalOperator} <: AbstractSparseRegressionAlgorithm

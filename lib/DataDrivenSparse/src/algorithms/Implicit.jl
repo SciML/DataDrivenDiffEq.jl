@@ -1,6 +1,6 @@
 """
 $(TYPEDEF)
-Optimizer for finding a sparse implicit relationship via alternating the left hand side of the problem and
+Optimizer for finding a sparse implicit relationship via alternating the left-hand side of the problem and
 solving the explicit problem, as introduced [here](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279).
 
 ```math

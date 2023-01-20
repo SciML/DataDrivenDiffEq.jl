@@ -5,10 +5,10 @@ DataDrivenDiffEq.jl is a package for finding systems of equations of automatical
 The methods in this package take in data and return the model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete, continuous differential equations or direct mappings.
 
 There are two main types of estimation, depending on if you need the result to be human-understandable:
-+ Structural identification - returns a human readable result in symbolic form.
-+ Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human readable.
++ Structural identification - returns a human-readable result in symbolic form.
++ Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human-readable.
 
-A quickstart example:
+A quick-start example:
 
 ```@example quickstart
 using DataDrivenDiffEq
@@ -89,6 +89,22 @@ To use this functionality, install [DataDrivenSR](@ref) via:
 using Pkg
 Pkg.add("DataDrivenSR")
 ```
+
+
+## Contributing
+
+- Please refer to the
+  [SciML ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://github.com/SciML/ColPrac/blob/master/README.md)
+  for guidance on PRs, issues, and other matters relating to contributing to SciML.
+- See the [SciML Style Guide](https://github.com/SciML/SciMLStyle) for common coding practices and other style decisions.
+- There are a few community forums:
+    - The #diffeq-bridged and #sciml-bridged channels in the
+      [Julia Slack](https://julialang.org/slack/),
+      you can message @AlCap23 to start a discussion.
+    - The #diffeq-bridged and #sciml-bridged channels in the
+      [Julia Zulip](https://julialang.zulipchat.com/#narrow/stream/279055-sciml-bridged)
+    - On the [Julia Discourse forums](https://discourse.julialang.org)
+    - See also [SciML Community page](https://sciml.ai/community/)
 
 ## Reproducibility
 ```@raw html
