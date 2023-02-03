@@ -43,7 +43,7 @@ can be solved using an [`ImplicitOptimizer`](@ref). Similar to the formulation a
 Where the matrix of evaluated basis elements $\varPhi_y \in \mathbb R^{\lvert \varphi \rvert} \times \mathbb R^{m}$ now may also contain basis functions which are dependent on the target variables $y \in \mathbb R^{n_y}$.
 
 !!! warning "Tuning parameters for sparse regression"
-    The algorithms used by `DataDrivenSparse` are sensible to the tuning of the hyperparameters! These are problem and coefficient specific, e.g. depend on the data and the unknown equations. While the examples used here are designed to work well, the used settings are not guaranteed to lead to sucess on other problems. User who want to explore the space of possible hyperparameters further might be interested in using [Hyperopt.jl](https://github.com/baggepinnen/Hyperopt.jl).
+    The algorithms used by `DataDrivenSparse` are sensible to the tuning of the hyperparameters! These are problem and coefficient specific, e.g. depend on the data and the unknown equations. While the examples used here are designed to work well, the used settings are not guaranteed to lead to success on other problems. User who want to explore the space of possible hyperparameters further might be interested in using [Hyperopt.jl](https://github.com/baggepinnen/Hyperopt.jl).
 
 ## [Algorithms](@id sparse_algorithms)
 
