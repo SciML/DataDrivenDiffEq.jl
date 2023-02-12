@@ -3,6 +3,7 @@
 ```@docs
 DataDrivenProblem
 ```
+
 ## Defining a Problem
 
 Problems of identification, estimation, or inference are defined by data. These data contain at least measurements of the states `X`, which would be sufficient to describe a `[DiscreteDataDrivenProblem`](@ref) with unit time steps similar to the first example on dynamic mode decomposition. Of course, we can extend this to include time points `t`, control signals `U` or a function describing those `u(x,p,t)`. Additionally, any parameters `p` known a priori can be included in the problem. In practice, this looks like:
@@ -12,7 +13,7 @@ problem = DiscreteDataDrivenProblem(X)
 problem = DiscreteDataDrivenProblem(X, t)
 problem = DiscreteDataDrivenProblem(X, t, U)
 problem = DiscreteDataDrivenProblem(X, t, U, p = p)
-problem = DiscreteDataDrivenProblem(X, t, (x,p,t)->u(x,p,t))
+problem = DiscreteDataDrivenProblem(X, t, (x, p, t) -> u(x, p, t))
 ```
 
 Similarly, a [`ContinuousDataDrivenProblem`](@ref) would need at least measurements and time-derivatives (`X` and `DX`) or measurements, time information and a way to derive the time derivatives(`X`, `t` and a [Collocation](@ref collocation) method). Again, this can be extended by including a control input as measurements or a function and possible parameters:
@@ -22,7 +23,7 @@ Similarly, a [`ContinuousDataDrivenProblem`](@ref) would need at least measureme
 problem = ContinuousDataDrivenProblem(X, DX)
 problem = ContinuousDataDrivenProblem(X, t, DX)
 problem = ContinuousDataDrivenProblem(X, t, DX, U, p = p)
-problem = ContinuousDataDrivenProblem(X, t, DX, (x,p,t)->u(x,p,t))
+problem = ContinuousDataDrivenProblem(X, t, DX, (x, p, t) -> u(x, p, t))
 
 # Using collocation
 problem = ContinuousDataDrivenProblem(X, t, InterpolationMethod())
@@ -47,8 +48,9 @@ problem = DirectDataDrivenProblem(X, Y)
 problem = DirectDataDrivenProblem(X, t, Y)
 problem = DirectDataDrivenProblem(X, t, Y, U)
 problem = DirectDataDrivenProblem(X, t, Y, p = p)
-problem = DirectDataDrivenProblem(X, t, Y, (x,p,t)->u(x,p,t), p = p)
+problem = DirectDataDrivenProblem(X, t, Y, (x, p, t) -> u(x, p, t), p = p)
 ```
+
 ## Concrete Types
 
 ```@docs
@@ -63,8 +65,10 @@ DirectDataDrivenProblem
 DataDrivenDataset
 ```
 
-A `DataDrivenDataset` collects several [`DataDrivenProblem`s](@ref problem) of the same type but treats them as a union for system identification. 
+A `DataDrivenDataset` collects several [`DataDrivenProblem`s](@ref problem) of the same type but treats them as a union for system identification.
+
 ## Concrete Types
+
 ```@docs
 DiscreteDataset
 ContinuousDataset
