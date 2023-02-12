@@ -73,7 +73,7 @@ abstract type AbstractBasis <: AbstractSystem end
 abstract type AbstractInterpolationMethod end
 abstract type CollocationKernel end
 
-# Algortihms
+# Algorithms
 abstract type AbstractDataDrivenAlgorithm end
 abstract type AbstractDataDrivenResult <: StatsBase.StatisticalModel end
 
