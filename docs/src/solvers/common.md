@@ -1,22 +1,23 @@
 # [Solve](@id solve)
 
-All algorithms have been combined under a single API to match the interface of other SciML packages. Thus, you can simply define a Problem, and then seamlessly switch between solvers. 
+All algorithms have been combined under a single API to match the interface of other SciML packages. Thus, you can simply define a Problem, and then seamlessly switch between solvers.
 
-+ [DataDrivenDMD](@ref) for Koopman based inference
-+ [DataDrivenSparse](@ref) for sparse regression-based inference
-+ [DataDrivenSR](@ref) for interfacing SymbolicRegression.jl
+  - [DataDrivenDMD](@ref) for Koopman based inference
+  - [DataDrivenSparse](@ref) for sparse regression-based inference
+  - [DataDrivenSR](@ref) for interfacing SymbolicRegression.jl
 
 All of the above methods return a [`DataDrivenSolution`](@ref) if not enforced otherwise.
 
 ## [Common Options](@id common_options)
 
-Many of the algorithms implemented directly in `DataDrivenDiffEq` share common options. These can be passed into the `solve` call via keyword arguments and get collected into the `CommonOptions` struct, which is given below. 
+Many of the algorithms implemented directly in `DataDrivenDiffEq` share common options. These can be passed into the `solve` call via keyword arguments and get collected into the `CommonOptions` struct, which is given below.
 
 ```@docs
 DataDrivenCommonOptions
 ```
 
 !!! info
+    
     The keyword argument `eval_expression` controls the function creation
     behavior. `eval_expression=true` means that `eval` is used, so normal
     world-age behavior applies (i.e. the functions cannot be called from
@@ -41,22 +42,21 @@ Or more concrete examples:
 # Use a Koopman based inference without a basis
 res = solve(problem, DMDSVD(); options = DataDrivenCommonOptions(), kwargs...)
 # Use a sparse identification
-res = solve(problem, basis, STLSQ(); options = DataDrivenCommonOptions(),  kwargs...)
+res = solve(problem, basis, STLSQ(); options = DataDrivenCommonOptions(), kwargs...)
 ```
+
 As we can see above, the use of a [`Basis`](@ref) is optional to invoke the estimation process. Internally, a linear [`Basis`](@ref) will be generated based on the [`DataDrivenProblem`](@ref problem) containing the states and control inputs.
 
 The [`DataDrivenSolution`](@ref) `res` contains a `result` which is the inferred system and a [`Basis`](@ref).
 
 ## Model Selection
 
-Most estimation and model inference algorithms require hyperparameters, e.g., the sparsity controlling penalty, train-test splits. To account for this, the keyword `selector` can be passed to the [`DataDrivenCommonOptions`](@ref). This allows the user to control the selection criteria and returns the **minimum** selector. 
+Most estimation and model inference algorithms require hyperparameters, e.g., the sparsity controlling penalty, train-test splits. To account for this, the keyword `selector` can be passed to the [`DataDrivenCommonOptions`](@ref). This allows the user to control the selection criteria and returns the **minimum** selector.
 
 Common choices for `selector` are `rss`, `bic`, `aic`, `aicc`, and `r2`. Given that each subresult of the algorithm extends the `StatsBase` API, we can also use different schemes like:
 
 ```julia
-options = DataDrivenCommonOptions(
-    selector = (x)->rss(x) / nobs(x)
-    )
+options = DataDrivenCommonOptions(selector = (x) -> rss(x) / nobs(x))
 ```
 
 Which results in the mean squared error of the system.

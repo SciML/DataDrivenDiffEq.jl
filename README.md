@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/SciML/DataDrivenDiffEq.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SciML/DataDrivenDiffEq.jl)
 [![Build Status](https://github.com/SciML/DataDrivenDiffEq.jl/workflows/CI/badge.svg)](https://github.com/SciML/DataDrivenDiffEq.jl/actions?query=workflow%3ACI)
 
-[![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
+[![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor%27s%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 [![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
 
 DataDrivenDiffEq.jl is a package in the SciML ecosystem for data-driven differential equation
@@ -31,27 +31,26 @@ using DataDrivenSparse
 using LinearAlgebra
 
 # Create a test problem
-function lorenz(u,p,t)
+function lorenz(u, p, t)
     x, y, z = u
 
-    ẋ = 10.0*(y - x)
-    ẏ = x*(28.0-z) - y
-    ż = x*y - (8/3)*z
+    ẋ = 10.0 * (y - x)
+    ẏ = x * (28.0 - z) - y
+    ż = x * y - (8 / 3) * z
     return [ẋ, ẏ, ż]
 end
 
-u0 = [1.0;0.0;0.0]
-tspan = (0.0,100.0)
+u0 = [1.0; 0.0; 0.0]
+tspan = (0.0, 100.0)
 dt = 0.1
-prob = ODEProblem(lorenz,u0,tspan)
+prob = ODEProblem(lorenz, u0, tspan)
 sol = solve(prob, Tsit5(), saveat = dt)
-
 
 ## Start the automatic discovery
 ddprob = DataDrivenProblem(sol)
 
 @variables t x(t) y(t) z(t)
-u = [x;y;z]
+u = [x; y; z]
 basis = Basis(polynomial_basis(u, 5), u, iv = t)
 opt = STLSQ(exp10.(-5:0.1:-1))
 ddsol = solve(ddprob, basis, opt, options = DataDrivenCommonOptions(digits = 1))

@@ -20,7 +20,7 @@ Luckily, we can approximate the operator via Dynamic Mode Decomposition:
 \hat \varphi_{i+1} \approx K \hat \varphi_i
 ```
 
-with $K \in \mathbb C^{n_d \times n_d}$ being a simple matrix, not necessary limited to the complex domain. 
+with $K \in \mathbb C^{n_d \times n_d}$ being a simple matrix, not necessary limited to the complex domain.
 A similar result holds for time continuous systems in the form of the Koopman generator:
 
 ```math
@@ -35,4 +35,3 @@ DMDSVD
 TOTALDMD
 FBDMD
 ```
-

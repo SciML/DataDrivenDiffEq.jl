@@ -3,6 +3,7 @@
 ```@docs
 DataDrivenSolution
 ```
+
 ## API
 
 ```@docs
@@ -24,5 +25,3 @@ StatsBase.nullloglikelihood
 StatsBase.r2
 StatsBase.summarystats
 ```
-
-

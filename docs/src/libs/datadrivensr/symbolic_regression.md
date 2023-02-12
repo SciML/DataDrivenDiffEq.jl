@@ -1,6 +1,5 @@
 # DataDrivenSR
 
-
 DataDrivenSR provides an API to [`SymbolicRegression.jl`](https://github.com/MilesCranmer/SymbolicRegression.jl) to infer arbitrary systems of equations.
 
 ```math
