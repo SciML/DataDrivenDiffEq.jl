@@ -115,9 +115,6 @@ function _collect_numerical_parameters!(ps::AbstractVector, eq, options)
         return Symbolics.operation(eq)(args_...)
     elseif isa(eq, Number)
         pval = round(eq, options.roundingmode, digits = options.digits)
-        # We do not collect zeros or ones
-        iszero(pval) && return zero(eltype(pval))
-        (abs(pval) ≈ 1) & return sign(pval) * one(eltype(pval))
         p_ = Symbolics.variable(:p, length(ps) + 1)
         p_ = Symbolics.setdefaultval(p_, pval)
         p_ = ModelingToolkit.toparam(p_)
@@ -143,7 +140,7 @@ function convert_to_basis(paretofrontier, prob)
     subs = Dict([SymbolicUtils.Sym{LiteralReal}(Symbol("x$(i)")) => x
                  for (i, x) in enumerate(atoms)]...)
 
-    eqs, ps = collect_numerical_parameters(eqs_)
+    eqs, ps = collect_numerical_parameters(eqs_, options)
     eqs = map(Base.Fix2(substitute, subs), eqs)
 
     # Get the lhs
