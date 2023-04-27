@@ -1,6 +1,7 @@
 ## Create linear independent basis
 count_operation(x::Number, op::Function, nested::Bool = true) = 0
 count_operation(x::Sym, op::Function, nested::Bool = true) = 0
+count_operation(x::SymbolicUtils.BasicSymbolic, op::Function, nested::Bool = true) = 0
 function count_operation(x::Num, op::Function, nested::Bool = true)
     count_operation(value(x), op, nested)
 end
