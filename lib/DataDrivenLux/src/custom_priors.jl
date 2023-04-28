@@ -53,38 +53,38 @@ function Base.summary(io::IO, d::ObservedDistribution{fixed, D, E}) where {fixed
 end
 
 get_init(d::ObservedDistribution) = d.latent_scale
-get_scale(d::ObservedDistribution) = transform(d.scale_transformation, d.latent_scale)
+get_scale(d::ObservedDistribution) = TransformVariables.transform(d.scale_transformation, d.latent_scale)
 get_dist(d::ObservedDistribution{<:Any, D}) where {D} = D
 
 Base.show(io::IO, d::ObservedDistribution) = summary(io, d)
 
 function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Y,
                               scale::S) where {X, Y, S <: Number}
-    sum(map(xs -> d.errormodel(get_dist(d), xs..., transform(d.scale_transformation, scale)),
+    sum(map(xs -> d.errormodel(get_dist(d), xs..., TransformVariables.transform(d.scale_transformation, scale)),
             zip(x, x̂)))
 end
 
 function Distributions.logpdf(d::ObservedDistribution{true}, x::X, x̂::Y,
                               scale::S) where {X, Y, S <: Number}
     sum(map(xs -> d.errormodel(get_dist(d), xs...,
-                               transform(d.scale_transformation, d.latent_scale)),
+    TransformVariables.transform(d.scale_transformation, d.latent_scale)),
             zip(x, x̂)))
 end
 
 function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Number,
                               scale::S) where {X, S <: Number}
     sum(map(xs -> d.errormodel(get_dist(d), xs, x̂,
-                               transform(d.scale_transformation, scale)), x))
+    TransformVariables.transform(d.scale_transformation, scale)), x))
 end
 
 function Distributions.logpdf(d::ObservedDistribution{true}, x::X, x̂::Number,
                               scale::S) where {X, S <: Number}
     sum(map(xs -> d.errormodel(get_dist(d), xs, x̂,
-                               transform(d.scale_transformation, d.latent_scale)), x))
+    TransformVariables.transform(d.scale_transformation, d.latent_scale)), x))
 end
 
 function transform_scales(d::ObservedDistribution, scale::T) where {T <: Number}
-    transform(d.scale_transformation, scale)
+    TransformVariables.transform(d.scale_transformation, scale)
 end
 
 """
