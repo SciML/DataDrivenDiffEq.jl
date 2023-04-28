@@ -1,12 +1,7 @@
 ## Create linear independent basis
 count_operation(x::Number, op::Function, nested::Bool = true) = 0
-count_operation(x::Sym, op::Function, nested::Bool = true) = 0
-count_operation(x::SymbolicUtils.BasicSymbolic, op::Function, nested::Bool = true) = 0
-function count_operation(x::Num, op::Function, nested::Bool = true)
-    count_operation(value(x), op, nested)
-end
-
-function count_operation(x, op::Function, nested::Bool = true)
+function count_operation(x::SymbolicUtils.BasicSymbolic, op::Function, nested::Bool = true)
+    issym(x) && return 0
     if operation(x) == op
         if is_unary(op)
             # Handles sin, cos and stuff
@@ -21,6 +16,10 @@ function count_operation(x, op::Function, nested::Bool = true)
         return count_operation(arguments(x), op, nested)
     end
     return 0
+end
+
+function count_operation(x::Num, op::Function, nested::Bool = true)
+    count_operation(value(x), op, nested)
 end
 
 function count_operation(x, ops::AbstractArray, nested::Bool = true)
