@@ -14,12 +14,11 @@ using Setfield
 
 @reexport using ModelingToolkit
 using ModelingToolkit: AbstractSystem
-using ModelingToolkit: value, operation, arguments, istree, get_observed
-using ModelingToolkit.Symbolics
-using ModelingToolkit.SymbolicUtils
-using ModelingToolkit.Symbolics: scalarize, variable
+using SymbolicUtils: operation, arguments, istree, issym
+using Symbolics
+using Symbolics: scalarize, variable, value
 @reexport using ModelingToolkit: states, parameters, independent_variable, observed,
-                                 controls, get_iv
+                                 controls, get_iv, get_observed
 
 using Random
 using QuadGK
