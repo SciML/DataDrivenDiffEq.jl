@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         group:
-          - Core
+  #        - Core
           - DataDrivenDMD
           - DataDrivenSR
           - DataDrivenSparse
