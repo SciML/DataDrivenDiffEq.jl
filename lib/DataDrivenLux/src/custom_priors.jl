@@ -159,7 +159,7 @@ Base.show(io::IO, p::ParameterDistribution) = summary(io, p)
 
 get_init(p::ParameterDistribution) = p.init
 function transform_parameter(p::ParameterDistribution, pval::T) where {T <: Number}
-    transform(p.transformation, pval)
+    TransformVariables.transform(p.transformation, pval)
 end
 get_interval(p::ParameterDistribution) = p.interval
 
