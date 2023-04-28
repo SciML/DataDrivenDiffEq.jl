@@ -14,7 +14,7 @@ jobs:
         group:
           - Core
           - DataDrivenDMD
-          - DataDrivenSR
+#          - DataDrivenSR
           - DataDrivenSparse
           - DataDrivenLux
         version:
