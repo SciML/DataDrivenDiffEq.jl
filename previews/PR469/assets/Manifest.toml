@@ -405,10 +405,10 @@ uuid = "fa6b7ba4-c1ee-5f82-b5fc-ecf0adba8f74"
 version = "0.6.8"
 
 [[deps.DynamicExpressions]]
-deps = ["LinearAlgebra", "LoopVectorization", "Printf", "Random", "Reexport", "SnoopPrecompile", "SymbolicUtils", "TOML", "Zygote"]
-git-tree-sha1 = "d2470d877aa610bdfe67d1bfd20aa2cd3eab99cd"
+deps = ["LinearAlgebra", "LoopVectorization", "PrecompileTools", "Printf", "Random", "Reexport", "SymbolicUtils", "TOML", "Zygote"]
+git-tree-sha1 = "fdb62319cb4b838f93bf55ccb8bc65fbd27ef808"
 uuid = "a40a106e-89c9-4ca8-8020-a735e8728b6b"
-version = "0.5.1"
+version = "0.6.1"
 
 [[deps.DynamicPolynomials]]
 deps = ["DataStructures", "Future", "LinearAlgebra", "MultivariatePolynomials", "MutableArithmetics", "Pkg", "Reexport", "Test"]
@@ -1621,10 +1621,10 @@ uuid = "2efcf032-c050-4f8e-a9bb-153293bab1f5"
 version = "0.2.2"
 
 [[deps.SymbolicRegression]]
-deps = ["Dates", "Distributed", "DynamicExpressions", "JSON3", "LineSearches", "LossFunctions", "Optim", "Pkg", "Printf", "ProgressBars", "Random", "Reexport", "SnoopPrecompile", "SpecialFunctions", "StatsBase", "SymbolicUtils", "TOML"]
-git-tree-sha1 = "54b33bae2f74928c1330f850a870f7804d86101c"
+deps = ["Dates", "Distributed", "DynamicExpressions", "JSON3", "LineSearches", "LossFunctions", "Optim", "Pkg", "PrecompileTools", "Printf", "ProgressBars", "Random", "Reexport", "SpecialFunctions", "StatsBase", "SymbolicUtils", "TOML"]
+git-tree-sha1 = "49dd1c9c0fd9037a55d9b8607e0572b6014f2bd5"
 uuid = "8254be44-1295-4e6a-a16d-46603ac705cb"
-version = "0.16.3"
+version = "0.17.1"
 
 [[deps.SymbolicUtils]]
 deps = ["AbstractTrees", "Bijections", "ChainRulesCore", "Combinatorics", "ConstructionBase", "DataStructures", "DocStringExtensions", "DynamicPolynomials", "IfElse", "LabelledArrays", "LinearAlgebra", "MultivariatePolynomials", "NaNMath", "Setfield", "SparseArrays", "SpecialFunctions", "StaticArrays", "TimerOutputs", "Unityper"]
