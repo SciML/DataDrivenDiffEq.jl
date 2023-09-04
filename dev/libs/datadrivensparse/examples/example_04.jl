@@ -42,4 +42,3 @@ res = solve(dd_prob, basis, ImplicitOptimizer(STLSQ(1e-2:1e-2:1.0)),
 system = get_basis(res) #hide
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
-

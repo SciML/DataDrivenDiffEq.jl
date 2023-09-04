@@ -19,4 +19,3 @@ res = solve(prob, DMDSVD(), digits = 1)
 get_basis(res)
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
-

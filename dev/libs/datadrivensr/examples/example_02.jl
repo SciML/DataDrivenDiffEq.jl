@@ -32,4 +32,3 @@ res = solve(prob, basis, alg, options = DataDrivenCommonOptions(maxiters = 100))
 system = get_basis(res)
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
-

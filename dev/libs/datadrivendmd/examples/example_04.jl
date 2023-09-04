@@ -23,4 +23,3 @@ prob = DataDrivenProblem(solution)
 res = solve(prob, Ψ, DMDPINV(), digits = 2)
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
-
