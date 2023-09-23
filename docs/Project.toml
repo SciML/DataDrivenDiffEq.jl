@@ -11,7 +11,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 DataDrivenDiffEq = "1"
-Documenter = "0.27"
+Documenter = "1"
 Literate = "2.14"
 ModelingToolkit = "8"
 OrdinaryDiffEq = "6"

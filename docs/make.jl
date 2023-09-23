@@ -72,19 +72,11 @@ makedocs(sitename = "DataDrivenDiffEq.jl",
          authors = "Julius Martensen, Christopher Rackauckas, et al.",
          modules = [DataDrivenDiffEq, DataDrivenDMD, DataDrivenSparse, DataDrivenSR],
          clean = true, doctest = false, linkcheck = true,
+         warnonly = [:missing_docs, :cross_references],
          linkcheck_ignore = ["http://cwrowley.princeton.edu/papers/Hemati-2017a.pdf",
              "https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279",
              "https://www.pnas.org/doi/10.1073/pnas.1517384113"],
-         strict = [
-             :doctest,
-             :linkcheck,
-             :parse_error,
-             :example_block,
-             # Other available options are
-             # :autodocs_block, :cross_references, :docs_block, :eval_block, :example_block, :footnote, :meta_block, :missing_docs, :setup_block
-         ],
-         format = Documenter.HTML(analytics = "UA-90474609-3",
-                                  assets = ["assets/favicon.ico"],
+         format = Documenter.HTML(assets = ["assets/favicon.ico"],
                                   canonical = "https://docs.sciml.ai/DataDrivenDiffEq/stable/"),
          pages = pages)
 
