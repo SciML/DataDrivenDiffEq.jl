@@ -224,7 +224,7 @@ get_nodes(c::Candidate) = ChainRulesCore.@ignore_derivatives get_nodes(c.outgoin
 function convert_to_basis(candidate::Candidate, ps = candidate.ps,
                           options = DataDrivenCommonOptions())
     @unpack basis, model = candidate.model
-    @unpack eval_expresssion = options
+    @unpack eval_expression = options
     p_best = get_parameters(candidate)
 
     p_new = map(enumerate(ModelingToolkit.parameters(basis))) do (i, ps)
@@ -243,5 +243,5 @@ function convert_to_basis(candidate::Candidate, ps = candidate.ps,
           controls = controls(basis), observed = observed(basis),
           implicits = implicit_variables(basis),
           name = gensym(:Basis),
-          eval_expression = eval_expresssion)
+          eval_expression = eval_expression)
 end

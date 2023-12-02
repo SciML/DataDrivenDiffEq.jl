@@ -20,7 +20,7 @@ sys = ODEProblem(f, u0, tspan)
 sol = solve(sys, Tsit5(), saveat = 0.05);
 
 # We could use the `DESolution` to define our problem, but here we want to use the data for didactic purposes.
-# For a [`ContinuousDataDrivenProblem`](@ref DataDrivenProblem), we need either the state trajectory and the timepoints or the state trajectory and its derivate.
+# For a [`ContinuousDataDrivenProblem`](@ref DataDrivenProblem), we need either the state trajectory and the timepoints or the state trajectory and its derivative.
 
 X = Array(sol)
 t = sol.t

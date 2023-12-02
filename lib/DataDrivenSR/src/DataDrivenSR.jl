@@ -131,7 +131,7 @@ end
 function convert_to_basis(paretofrontier, prob)
     @unpack alg, basis, problem, options = prob
     @unpack eq_options = alg
-    @unpack maxiters, eval_expresssion, generate_symbolic_parameters, digits, roundingmode = options
+    @unpack maxiters, eval_expression, generate_symbolic_parameters, digits, roundingmode = options
 
     eqs_ = map(paretofrontier) do dom
         node_to_symbolic(dom[end].tree, eq_options)
@@ -175,7 +175,7 @@ function convert_to_basis(paretofrontier, prob)
           controls = controls(basis), observed = observed(basis),
           implicits = implicit_variables(basis),
           name = gensym(:Basis),
-          eval_expression = eval_expresssion)
+          eval_expression = eval_expression)
 end
 
 # apply the algorithm on each dataset
@@ -207,7 +207,7 @@ function CommonSolve.solve!(ps::InternalDataDrivenProblem{EQSearch})
     @unpack alg, basis, testdata, traindata, kwargs = ps
     @unpack weights, numprocs, procs, addprocs_function, parallelism, runtests, eq_options = alg
     @unpack traindata, testdata, basis, options = ps
-    @unpack maxiters, eval_expresssion, generate_symbolic_parameters, digits, roundingmode, selector = options
+    @unpack maxiters, eval_expression, generate_symbolic_parameters, digits, roundingmode, selector = options
     @unpack problem = ps
 
     results = map(traindata) do (X, Y)
