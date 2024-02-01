@@ -48,7 +48,7 @@ Denoising happens before normalization!
     """Enables the use of symbolic parameters for the result. If `false`, the numerical value is used."""
     generate_symbolic_parameters::Bool = true
     """Evaluate the expression, see [`Symbolics.build_function`](https://symbolics.juliasymbolics.org/stable/manual/build_function/)"""
-    eval_expresssion::Bool = false
+    eval_expression::Bool = false
     """Additional kwargs"""
     kwargs::K = (;)
 end

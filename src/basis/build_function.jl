@@ -61,7 +61,7 @@ function (f::DataDrivenFunction{false, true})(u::AbstractVector, p::P, t::Number
     _apply_function(f, __EMPTY_VECTOR, u, p, t, c)
 end
 
-# With implict, without controls
+# With implicit, without controls
 function (f::DataDrivenFunction{true, false})(du::AbstractVector, u::AbstractVector, p::P,
                                               t::Number) where {
                                                                 P <:
@@ -100,7 +100,7 @@ function (f::DataDrivenFunction{false, true})(res::AbstractVector, u::AbstractVe
     _apply_function!(f, res, __EMPTY_VECTOR, u, p, t, c)
 end
 
-# With implict, without controls
+# With implicit, without controls
 function (f::DataDrivenFunction{true, false})(res::AbstractVector, du::AbstractVector,
                                               u::AbstractVector, p::P,
                                               t::Number) where {

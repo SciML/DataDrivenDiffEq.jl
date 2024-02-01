@@ -289,7 +289,7 @@ function (b::Basis{false, true})(u::AbstractVector,
     f(u, p, t, c)
 end
 
-# With implict, without controls
+# With implicit, without controls
 function (b::Basis{true, false})(du::AbstractVector, u::AbstractVector,
                                  p::P = parameters(b),
                                  t::Number = get_iv(b)) where {

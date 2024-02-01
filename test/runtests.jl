@@ -17,6 +17,7 @@ function activate_subpkg_env(subpkg)
 end
 
 @time begin if GROUP == "All" || GROUP == "Core" || GROUP == "Downstream"
+    @safetestset "Quality Assurance" begin include("qa.jl") end
     @safetestset "Basis" begin include("./basis/basis.jl") end
     @safetestset "Implicit Basis" begin include("./basis/implicit_basis.jl") end
     @safetestset "Basis generators" begin include("./basis/generators.jl") end

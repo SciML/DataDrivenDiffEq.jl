@@ -58,7 +58,7 @@ Three construction methods are available:
 
 + `DirectDataDrivenProblem` for direct mappings
 + `DiscreteDataDrivenProblem` for time discrete systems
-+ `ContinousDataDrivenProblem` for systems continuous in time
++ `ContinuousDataDrivenProblem` for systems continuous in time
 
 where all are aliases for constructing a problem.
 
@@ -123,7 +123,7 @@ function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem
         if (isempty(DX) && !isempty(Y))
             probType = DDProbType(1) # Direct problem
         elseif !isempty(DX)
-            probType = DDProbType(3) # Continouos
+            probType = DDProbType(3) # Continuous
         end
     end
 
@@ -206,7 +206,7 @@ function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::Func
     return DataDrivenProblem(X; t = t, U = U, probtype = DDProbType(2), kwargs...)
 end
 
-## Continouos Constructors
+## Continuous Constructors
 """
 A time continuous `DataDrivenProblem` useable for problems of the form `f(x,p,t,u) ↦ dx/dt`.
 

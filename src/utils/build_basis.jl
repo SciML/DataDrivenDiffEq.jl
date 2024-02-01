@@ -114,7 +114,7 @@ function _implicit_build_eqs(basis, eqs, p, prob)
 end
 
 function __construct_basis(X, b, prob, options)
-    @unpack eval_expresssion, generate_symbolic_parameters, digits, roundingmode = options
+    @unpack eval_expression, generate_symbolic_parameters, digits, roundingmode = options
 
     p = parameters(prob)
 
@@ -162,7 +162,7 @@ function __construct_basis(X, b, prob, options)
           controls = controls(b), observed = observed(b),
           implicits = implicits,
           name = gensym(:Basis),
-          eval_expression = eval_expresssion)
+          eval_expression = eval_expression)
 end
 
 function unit_basis(prob::DataDrivenProblem)

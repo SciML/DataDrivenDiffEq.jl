@@ -93,6 +93,6 @@ function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis,
 end
 
 function CommonSolve.solve!(::InternalDataDrivenProblem{ZeroDataDrivenAlgorithm})
-    @warn "No sufficient algorithm choosen! Return ErrorDataDrivenResult!"
+    @warn "No sufficient algorithm chosen! Return ErrorDataDrivenResult!"
     return ErrorDataDrivenResult()
 end

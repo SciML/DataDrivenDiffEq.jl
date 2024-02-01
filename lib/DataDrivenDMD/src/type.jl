@@ -101,7 +101,7 @@ Return the approximation of the discrete Koopman operator stored in `k`.
 """
 operator(k::Koopman{<:Any, <:Any, <:Any, true}) = __get_K(k)
 function operator(k::Koopman{<:Any, <:Any, <:Any, false})
-    throw(AssertionError("Koopman is continouos."))
+    throw(AssertionError("Koopman is continuous."))
 end
 
 """_

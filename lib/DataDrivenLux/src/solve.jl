@@ -15,7 +15,7 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
                                                                        AbstractDAGSRAlgorithm
                                                                        }
     @unpack alg, basis, testdata, traindata, control_idx, options, problem, kwargs = prob
-    @unpack maxiters, progress, eval_expresssion, abstol = options
+    @unpack maxiters, progress, eval_expression, abstol = options
 
     cache = init_cache(alg, basis, problem)
     p = ProgressMeter.Progress(maxiters, dt = 0.1, enabled = progress)
