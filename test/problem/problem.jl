@@ -69,7 +69,7 @@ end
 @testset "Problem Basis Interaction" begin
     @variables x y z t α β u
     b1 = Basis([α * x; β * y; z * t^2 + u], [x; y; z], iv = t, parameters = [α; β],
-               controls = [u])
+        controls = [u])
     b2 = Basis([α * x; β * y; z * t; α], [x; y; z], iv = t, parameters = [α; β])
     sample_size = 100
     X1 = randn(3, sample_size)
@@ -126,7 +126,7 @@ end
     p3 = ContinuousDataDrivenProblem(X, t, DX = DX)
 
     data = (prob1 = (X = X, t = t, Y = Y),
-            prob2 = (X = X, t = t, Y = Y, DX = DX))
+        prob2 = (X = X, t = t, Y = Y, DX = DX))
 
     s1 = DataDrivenDataset(p1, p2)
     s2 = ContinuousDataset(data)
@@ -159,6 +159,6 @@ end
 
     # Check if misspecified data is detected
     wrong_data = (prob1 = (X = X, Y = Y),
-                  prob2 = (X = X, t = t, Y = Y))
+        prob2 = (X = X, t = t, Y = Y))
     @test_throws ArgumentError ContinuousDataset(wrong_data)
 end

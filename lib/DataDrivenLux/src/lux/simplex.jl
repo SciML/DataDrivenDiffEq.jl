@@ -11,7 +11,7 @@ on each row.
 struct Softmax <: AbstractSimplex end
 
 function (::Softmax)(rng::Random.AbstractRNG, x̂::AbstractVector, x::AbstractVector,
-                     κ = one(eltype(x)))
+        κ = one(eltype(x)))
     softmax!(x̂, x ./ κ)
 end
 
@@ -27,7 +27,7 @@ $(FIELDS)
 struct GumbelSoftmax <: AbstractSimplex end
 
 function (::GumbelSoftmax)(rng::Random.AbstractRNG, x̂::AbstractVector, x::AbstractVector,
-                           κ = one(eltype(x)))
+        κ = one(eltype(x)))
     z = -log.(-log.(rand(rng, size(x)...)))
     y = similar(x)
     foreach(axes(x, 2)) do i
@@ -48,7 +48,7 @@ $(FIELDS)
 struct DirectSimplex <: AbstractSimplex end
 
 function (::DirectSimplex)(rng::Random.AbstractRNG, x̂::AbstractVector, x::AbstractVector,
-                           κ = one(eltype(x)))
+        κ = one(eltype(x)))
     x̂ .= x
 end
 

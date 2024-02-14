@@ -41,11 +41,11 @@ end
 @testset "Noise" begin
     rng = StableRNG(1111)
     prob = DataDrivenDataset(map((solution_1, solution_2)) do sol
-                                 X = Array(sol)
-                                 X .+= 0.01 * randn(rng, size(X))
-                                 t = sol.t
-                                 ContinuousDataDrivenProblem(X, t, GaussianKernel())
-                             end...)
+        X = Array(sol)
+        X .+= 0.01 * randn(rng, size(X))
+        t = sol.t
+        ContinuousDataDrivenProblem(X, t, GaussianKernel())
+    end...)
 
     opts = [ImplicitOptimizer(ADMM(1e-2:1e-4:1e-1))]
     for opt in opts

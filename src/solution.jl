@@ -27,23 +27,23 @@ struct DataDrivenSolution{T} <: AbstractDataDrivenSolution
 end
 
 function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
-                            alg::AbstractDataDrivenAlgorithm,
-                            result::Vector{<:AbstractDataDrivenResult},
-                            internal_problem::InternalDataDrivenProblem,
-                            retcode = DDReturnCode(2))
+        alg::AbstractDataDrivenAlgorithm,
+        result::Vector{<:AbstractDataDrivenResult},
+        internal_problem::InternalDataDrivenProblem,
+        retcode = DDReturnCode(2))
     ps = get_parameter_values(b)
     prob = remake_problem(p, p = ps)
 
     rss = sum(abs2, get_implicit_data(prob) .- b(prob))
 
     return DataDrivenSolution{eltype(p)}(b,
-                                         retcode,
-                                         alg,
-                                         result,
-                                         prob,
-                                         rss,
-                                         length(parameters(b)),
-                                         internal_problem)
+        retcode,
+        alg,
+        result,
+        prob,
+        rss,
+        length(parameters(b)),
+        internal_problem)
 end
 
 (r::DataDrivenSolution)(args...) = r.basis(args...)
@@ -94,7 +94,9 @@ $(SIGNATURES)
 Returns the log-likelihood of the `DataDrivenSolution` assuming a normal distributed error.
 """
 function StatsBase.loglikelihood(sol::DataDrivenSolution)
-    begin -nobs(sol) / 2 * log.(rss(sol) / nobs(sol)) end
+    begin
+        -nobs(sol) / 2 * log.(rss(sol) / nobs(sol))
+    end
 end
 
 """
@@ -103,7 +105,9 @@ $(SIGNATURES)
 Returns the number of observations of the `DataDrivenSolution`.
 """
 function StatsBase.nobs(sol::DataDrivenSolution)
-    begin prod(size(get_implicit_data(getfield(sol, :prob)))) end
+    begin
+        prod(size(get_implicit_data(getfield(sol, :prob))))
+    end
 end
 
 """

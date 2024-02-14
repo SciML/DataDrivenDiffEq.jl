@@ -1,10 +1,10 @@
 # This will get called within init in DataDrivenDiffEq
 
 function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_CONT_PROB,
-                                          basis::AbstractBasis) where {
-                                                                       A <:
-                                                                       AbstractKoopmanAlgorithm
-                                                                       }
+        basis::AbstractBasis) where {
+        A <:
+        AbstractKoopmanAlgorithm
+}
     @unpack DX, X, p, t, U = prob
 
     @assert size(DX, 1)==size(X, 1) "$(A) needs equal number of observed states and differentials for continuous problems!"
@@ -32,10 +32,10 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_CONT_PROB,
 end
 
 function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_DISCRETE_PROB,
-                                          basis::AbstractBasis) where {
-                                                                       A <:
-                                                                       AbstractKoopmanAlgorithm
-                                                                       }
+        basis::AbstractBasis) where {
+        A <:
+        AbstractKoopmanAlgorithm
+}
     # TODO Maybe we could, but this would require X[:, i+2] -> split in three here
     @assert !is_implicit(basis) "$(A) does not support implicit arguments in the basis for discrete problems!"
 
@@ -48,7 +48,7 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::ABSTRACT_DISCRETE_PROB,
     if is_controlled(basis)
         foreach(1:m) do i
             Ỹ[:, i] .= basis(X[:, i + 1], p, t[i + 1],
-                              U[:, i + 1])
+                U[:, i + 1])
         end
     else
         foreach(1:m) do i
@@ -60,9 +60,9 @@ end
 
 ## Solve the Koopman 
 function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
-                                                                       A <:
-                                                                       AbstractKoopmanAlgorithm
-                                                                       }
+        A <:
+        AbstractKoopmanAlgorithm
+}
     @unpack alg, basis, testdata, traindata, control_idx, options, problem, kwargs = prob
     @unpack selector = options
     # Check for 
@@ -94,7 +94,7 @@ function convert_to_basis(res::KoopmanResult, basis::Basis, prob, options, contr
 end
 
 function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
-                                               control_input = nothing, kwargs...)
+        control_input = nothing, kwargs...)
     @unpack traindata, testdata, control_idx, options = prob
     @unpack abstol = options
     # Preprocess control idx, indicates if any control is active in a single basis atom

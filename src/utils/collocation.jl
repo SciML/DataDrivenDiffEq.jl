@@ -205,7 +205,7 @@ function collocate_data(data, tpoints, kernel = TriangularKernel(); crop = false
     estimated_solution = reduce(hcat, transpose.(last.(x)))
     crop &&
         return estimated_derivative[:, 2:(end - 1)], estimated_derivative[:, 2:(end - 1)],
-               tpoints[2:(end - 1)]
+        tpoints[2:(end - 1)]
     estimated_derivative, estimated_solution, tpoints
 end
 
@@ -215,17 +215,17 @@ function collocate_data(data, tpoints, interp::InterpolationMethod; kwargs...)
 end
 
 function collocate_data(data::AbstractVector, tpoints::AbstractVector,
-                        tpoints_sample::AbstractVector,
-                        interp::InterpolationMethod; kwargs...)
+        tpoints_sample::AbstractVector,
+        interp::InterpolationMethod; kwargs...)
     u, du, tpoints = collocate_data(reshape(data, 1, :), tpoints, tpoints_sample, interp;
-                                    kwargs...)
+        kwargs...)
     return du[1, :], u[1, :], tpoints
 end
 
 # Adapted to dispatch on InterpolationMethod
 function collocate_data(data::AbstractMatrix{T}, tpoints::AbstractVector{T},
-                        tpoints_sample::AbstractVector{T}, interp::InterpolationMethod;
-                        crop = false, kwargs...) where {T}
+        tpoints_sample::AbstractVector{T}, interp::InterpolationMethod;
+        crop = false, kwargs...) where {T}
     u = zeros(T, size(data, 1), length(tpoints_sample))
     du = zeros(T, size(data, 1), length(tpoints_sample))
     for d1 in 1:size(data, 1)

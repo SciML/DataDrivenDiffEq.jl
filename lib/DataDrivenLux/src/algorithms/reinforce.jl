@@ -55,8 +55,8 @@ function reinforce_loss(candidates, p, alg)
     rewards = reward(losses)
     # ∇U(θ) = E[∇log(p)*R(t)]
     mean(map(enumerate(candidates)) do (i, candidate)
-             rewards[i] * -candidate(p)
-         end)
+        rewards[i] * -candidate(p)
+    end)
 end
 
 function update_parameters!(cache::SearchCache{<:Reinforce})

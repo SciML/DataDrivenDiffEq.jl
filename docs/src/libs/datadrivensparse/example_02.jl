@@ -39,8 +39,8 @@ ts = sol.t;
 # in as a function `(u,p,t)->control` or an array of measurements.
 
 prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel(),
-                                   U = (u, p, t) -> [exp(-((t - 5.0) / 5.0)^2)],
-                                   p = ones(2))
+    U = (u, p, t) -> [exp(-((t - 5.0) / 5.0)^2)],
+    p = ones(2))
 
 #md plot(prob, size = (600,600))
 
@@ -66,7 +66,7 @@ sampler = DataProcessing(split = 0.8, shuffle = true, batchsize = 30, rng = rng)
 λs = exp10.(-10:0.1:0)
 opt = STLSQ(λs)
 res = solve(prob, basis, opt,
-            options = DataDrivenCommonOptions(data_processing = sampler, digits = 1))
+    options = DataDrivenCommonOptions(data_processing = sampler, digits = 1))
 #src println(res) #hide
 
 # !!! info

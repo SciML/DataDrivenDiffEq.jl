@@ -30,10 +30,10 @@ sol = solve(prob, Tsit5(), saveat = dt)
         ADMM(1e-2),
         SR3(1e-2, SoftThreshold()),
         SR3(1e-1, ClippedAbsoluteDeviation()),
-        SR3(5e-1),
+        SR3(5e-1)
     ]
         res = solve(dd_prob, basis, opt,
-                    options = DataDrivenCommonOptions(maxiters = 10_000, digits = 1))
+            options = DataDrivenCommonOptions(maxiters = 10_000, digits = 1))
         @test r2(res)≈0.9 atol=1e-1
         @test rss(res) <= 500.0
         @test loglikelihood(res) >= 100.0
@@ -55,12 +55,13 @@ end
         ADMM(1e-2),
         SR3(1e-2, SoftThreshold()),
         SR3(1e-1, ClippedAbsoluteDeviation()),
-        SR3(5e-1),
+        SR3(5e-1)
     ]
         res = solve(dd_prob, basis, opt,
-                    options = DataDrivenCommonOptions(normalize = DataNormalization(ZScoreTransform),
-                                                      denoise = true,
-                                                      maxiters = 10_000, digits = 1))
+            options = DataDrivenCommonOptions(
+                normalize = DataNormalization(ZScoreTransform),
+                denoise = true,
+                maxiters = 10_000, digits = 1))
         @test r2(res)≈0.9 atol=1e-1
         @test rss(res) <= 100.0
         @test loglikelihood(res) >= 100.0

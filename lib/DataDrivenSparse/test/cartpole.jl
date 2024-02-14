@@ -30,7 +30,7 @@ end
 t = solution.t
 
 ddprob = ContinuousDataDrivenProblem(X, t, DX = DX[3:4, :],
-                                     U = (u, p, t) -> [-0.2 + 0.5 * sin(6 * t)])
+    U = (u, p, t) -> [-0.2 + 0.5 * sin(6 * t)])
 
 @variables u[1:4] x[1:1] t
 du = [Symbolics.variable("du", i) for i in 3:4]
@@ -59,7 +59,7 @@ basis = Basis(implicits, u, controls = x, iv = t, implicits = du)
      4e-2; 5e-2]
 
 res = solve(ddprob, basis, ImplicitOptimizer(λ),
-            options = DataDrivenCommonOptions(verbose = false, digits = 3))
+    options = DataDrivenCommonOptions(verbose = false, digits = 3))
 @test r2(res) >= 0.95
 @test rss(res) <= 1e-2
 @test dof(res) == 10

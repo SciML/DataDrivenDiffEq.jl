@@ -57,11 +57,11 @@ end
     ∂ = Differential(get_iv(basis))
 
     direct_res = DataDrivenDiffEq.__construct_basis(Ξ, basis, direct_prob,
-                                                    DataDrivenDiffEq.DataDrivenCommonOptions())
+        DataDrivenDiffEq.DataDrivenCommonOptions())
     discrete_res = DataDrivenDiffEq.__construct_basis(Ξ, basis, discrete_prob,
-                                                      DataDrivenDiffEq.DataDrivenCommonOptions())
+        DataDrivenDiffEq.DataDrivenCommonOptions())
     cont_res = DataDrivenDiffEq.__construct_basis(Ξ, basis, cont_prob,
-                                                  DataDrivenDiffEq.DataDrivenCommonOptions())
+        DataDrivenDiffEq.DataDrivenCommonOptions())
 
     for r in [direct_res, discrete_res, cont_res]
         lhs = Num.(map(eq -> eq.rhs, equations(direct_res)))
@@ -74,6 +74,6 @@ end
     basis = Basis(du .+ u, u, implicits = du)
     K = Float32[0 3 0; 2 0 1; 0 0 0.5]
     imp_basis = DataDrivenDiffEq.__construct_basis(K, basis, discrete_prob,
-                                                   DataDrivenDiffEq.DataDrivenCommonOptions())
+        DataDrivenDiffEq.DataDrivenCommonOptions())
     @test all(isequal.(equations(imp_basis), collect(du .~ -u)))
 end

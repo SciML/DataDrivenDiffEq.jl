@@ -9,13 +9,13 @@ struct SparseLinearSolver{A <: AbstractSparseRegressionAlgorithm, T <: Number}
 end
 
 function SparseLinearSolver(x::A;
-                            options = DataDrivenCommonOptions()) where {
-                                                                        A <:
-                                                                        AbstractSparseRegressionAlgorithm
-                                                                        }
+        options = DataDrivenCommonOptions()) where {
+        A <:
+        AbstractSparseRegressionAlgorithm
+}
     return SparseLinearSolver(x,
-                              options.abstol, options.reltol, options.maxiters,
-                              options.verbose, options.progress, options.selector)
+        options.abstol, options.reltol, options.maxiters,
+        options.verbose, options.progress, options.selector)
 end
 
 init_cache(alg::SparseLinearSolver, X, Y) = init_cache(alg.algorithm, X, Y)

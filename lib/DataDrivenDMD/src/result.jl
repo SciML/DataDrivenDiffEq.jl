@@ -25,7 +25,7 @@ struct KoopmanResult{K, B, C, Q, P, T} <: AbstractDataDrivenResult
     retcode::DDReturnCode
 
     function KoopmanResult(k_::K, b::B, c::C, q::Q, p::P, X::AbstractMatrix{T},
-                           Y::AbstractMatrix{T}, U::AbstractMatrix) where {K, B, C, Q, P, T}
+            Y::AbstractMatrix{T}, U::AbstractMatrix) where {K, B, C, Q, P, T}
         k = Matrix(k_)
         rss = isempty(b) ? sum(abs2, Y .- c * k * X) : sum(abs2, Y .- c * (k * X .+ b * U))
         dof = sum(!iszero, k)

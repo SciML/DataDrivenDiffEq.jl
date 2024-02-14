@@ -42,16 +42,18 @@ function split_term!(x::AbstractArray, o, ops::AbstractArray = [+])
     if istree(o)
         n_ops = count_operation(o, ops, false)
         c_ops = 0
-        @views begin if n_ops == 0
-            x[begin] = o
-        else
-            counter_ = 1
-            for oi in arguments(o)
-                c_ops = count_operation(oi, ops, false)
-                split_term!(x[counter_:(counter_ + c_ops)], oi, ops)
-                counter_ += c_ops + 1
+        @views begin
+            if n_ops == 0
+                x[begin] = o
+            else
+                counter_ = 1
+                for oi in arguments(o)
+                    c_ops = count_operation(oi, ops, false)
+                    split_term!(x[counter_:(counter_ + c_ops)], oi, ops)
+                    counter_ += c_ops + 1
+                end
             end
-        end end
+        end
     else
         x[begin] = o
     end

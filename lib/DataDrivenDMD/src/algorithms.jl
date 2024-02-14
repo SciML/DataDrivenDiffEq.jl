@@ -20,14 +20,16 @@ function truncated_svd(A::AbstractMatrix{T}, truncation::Int) where {T <: Number
 end
 
 # General method with inputs
-function (x::AbstractKoopmanAlgorithm)(X::AbstractArray, Y::AbstractArray, U::AbstractArray,
-                                       B::AbstractArray)
+function (x::AbstractKoopmanAlgorithm)(
+        X::AbstractArray, Y::AbstractArray, U::AbstractArray,
+        B::AbstractArray)
     K, _ = x(X, Y - B * U)
     return (K, B)
 end
 
-function (x::AbstractKoopmanAlgorithm)(X::AbstractArray, Y::AbstractArray, U::AbstractArray,
-                                       ::Nothing)
+function (x::AbstractKoopmanAlgorithm)(
+        X::AbstractArray, Y::AbstractArray, U::AbstractArray,
+        ::Nothing)
     return x(X, Y, U)
 end
 
@@ -113,7 +115,7 @@ end
 
 # DMDc
 function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray,
-                        U::AbstractArray) where {T <: Real}
+        U::AbstractArray) where {T <: Real}
     isempty(U) && return x(X, Y)
     nx, m = size(X)
     nu, m = size(U)
@@ -176,7 +178,7 @@ function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray)
 end
 
 function (x::TOTALDMD)(X::AbstractArray, Y::AbstractArray, U::AbstractArray,
-                       B::AbstractArray)
+        B::AbstractArray)
     _, _, Q = truncated_svd([X; Y], x.truncation)
     K, _ = x.alg(X * Q, (Y - B * U) * Q)
     return (K, B)

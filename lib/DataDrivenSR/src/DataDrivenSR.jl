@@ -78,8 +78,8 @@ function SRResult(prob, hof, paretos)
     ll = iszero(rss) ? convert(eltype(rss), Inf) : -nobs / 2 * log(rss / nobs)
     ll0 = -nobs / 2 * log.(sum(abs2, y .- mean(y, dims = 2)[:, 1]) / nobs)
     return SRResult(bs, hof, paretos,
-                    rss, ll, ll0, dof, nobs,
-                    DDReturnCode(1))
+        rss, ll, ll0, dof, nobs,
+        DDReturnCode(1))
 end
 
 is_success(k::SRResult) = getfield(k, :retcode) == DDReturnCode(1)
@@ -171,11 +171,11 @@ function convert_to_basis(paretofrontier, prob)
     end
 
     Basis(eqs, states(basis),
-          parameters = [p_new; ps], iv = get_iv(basis),
-          controls = controls(basis), observed = observed(basis),
-          implicits = implicit_variables(basis),
-          name = gensym(:Basis),
-          eval_expression = eval_expresssion)
+        parameters = [p_new; ps], iv = get_iv(basis),
+        controls = controls(basis), observed = observed(basis),
+        implicits = implicit_variables(basis),
+        name = gensym(:Basis),
+        eval_expression = eval_expresssion)
 end
 
 # apply the algorithm on each dataset
@@ -185,12 +185,12 @@ function (x::EQSearch)(ps::InternalDataDrivenProblem{EQSearch}, X, Y)
     @unpack weights, eq_options, numprocs, procs, parallelism, runtests = x
 
     hofs = SymbolicRegression.EquationSearch(X, Y,
-                                             niterations = maxiters,
-                                             weights = weights,
-                                             options = eq_options,
-                                             numprocs = numprocs,
-                                             procs = procs, parallelism = parallelism,
-                                             runtests = runtests)
+        niterations = maxiters,
+        weights = weights,
+        options = eq_options,
+        numprocs = numprocs,
+        procs = procs, parallelism = parallelism,
+        runtests = runtests)
 
     # We always want something which is a vector or tuple
     hofs = !isa(hofs, AbstractVector) ? [hofs] : hofs

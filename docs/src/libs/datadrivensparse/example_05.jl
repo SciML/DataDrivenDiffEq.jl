@@ -36,7 +36,7 @@ end
 t = solution.t
 
 ddprob = ContinuousDataDrivenProblem(X, t, DX = DX[3:4, :],
-                                     U = (u, p, t) -> [-0.2 + 0.5 * sin(6 * t)])
+    U = (u, p, t) -> [-0.2 + 0.5 * sin(6 * t)])
 
 #md plot(ddprob)
 

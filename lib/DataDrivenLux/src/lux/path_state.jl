@@ -23,23 +23,23 @@ get_nodes(state::PathState) = state.path_ids
 @inline tuplejoin(x, y, z...) = tuplejoin(tuplejoin(x, y), z...)
 
 function update_path(f::F where {F <: Function}, id::Tuple{Int, Int},
-                     state::PathState{T}) where {T}
+        state::PathState{T}) where {T}
     PathState{T}(f(get_interval(state)),
-                 (f, get_operators(state)...),
-                 (id, get_nodes(state)...))
+        (f, get_operators(state)...),
+        (id, get_nodes(state)...))
 end
 
 function update_path(::Nothing, id::Tuple{Int, Int}, state::PathState{T}) where {T}
     PathState{T}(get_interval(state),
-                 (identity, get_operators(state)...),
-                 (id, get_nodes(state)...))
+        (identity, get_operators(state)...),
+        (id, get_nodes(state)...))
 end
 
 function update_path(f::F where {F <: Function}, id::Tuple{Int, Int},
-                     states::PathState{T}...) where {T}
+        states::PathState{T}...) where {T}
     PathState{T}(f(get_interval.(states)...),
-                 (f, tuplejoin(map(get_operators, states)...)...),
-                 (id, tuplejoin(map(get_nodes, states)...)...))
+        (f, tuplejoin(map(get_operators, states)...)...),
+        (id, tuplejoin(map(get_nodes, states)...)...))
 end
 
 # Compute the degrees of freedom

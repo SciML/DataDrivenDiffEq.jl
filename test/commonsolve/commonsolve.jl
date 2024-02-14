@@ -105,8 +105,8 @@ end
     end
 
     function CommonSolve.solve!(p::DataDrivenDiffEq.InternalDataDrivenProblem{
-                                                                              DummyDataDrivenAlgorithm
-                                                                              })
+            DummyDataDrivenAlgorithm
+    })
         return DummyDataDrivenResult(p)
     end
 
@@ -160,9 +160,10 @@ end
         xs = Symbolics.collect(xs)
         us = Symbolics.collect(us)
         ys = Symbolics.collect(ys)
-        basis = Basis([xs .* us[3] .* exp(-ys[2]); xs[1] * sin(us[2]); xs[3] * us[1];
-                       sum(ys)], xs,
-                      controls = us, implicits = ys)
+        basis = Basis(
+            [xs .* us[3] .* exp(-ys[2]); xs[1] * sin(us[2]); xs[3] * us[1];
+             sum(ys)], xs,
+            controls = us, implicits = ys)
 
         prob = DirectDataDrivenProblem(x, y, U = u)
         alg = DummyDataDrivenAlgorithm()

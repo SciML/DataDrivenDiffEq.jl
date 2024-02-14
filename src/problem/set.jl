@@ -29,12 +29,12 @@ end
 # Constructor
 
 function DataDrivenDataset(probs::Vararg{T, N}; name = gensym(:DDSet),
-                           kwargs...) where {T <: AbstractDataDrivenProblem, N}
+        kwargs...) where {T <: AbstractDataDrivenProblem, N}
     return DataDrivenDataset(name, probs, map(length, probs))
 end
 
 function DataDrivenDataset(solutions::Vararg{T, N}; name = gensym(:DDSet),
-                           kwargs...) where {T <: DiffEqBase.DESolution, N}
+        kwargs...) where {T <: DiffEqBase.DESolution, N}
     probs = map(solutions) do s
         DataDrivenProblem(s; kwargs...)
     end
@@ -79,7 +79,7 @@ Automatically constructs derivatives via an additional collocation method, which
 or an interpolation from `DataInterpolations.jl` wrapped by an `InterpolationMethod` provided by the `collocation` keyword argument.
 """
 function ContinuousDataset(s::NamedTuple; name = gensym(:DDSet),
-                           collocation = InterpolationMethod(), kwargs...)
+        collocation = InterpolationMethod(), kwargs...)
     probs = map(keys(s)) do k
         si = s[k]
         # Check for differential states
@@ -143,8 +143,8 @@ function ModelingToolkit.parameters(x::DataDrivenDataset, i = :)
 end
 
 function remake_problem(d::DataDrivenDataset{<:Any, <:Any, probType};
-                        p = parameters(d),
-                        kwargs...) where {probType}
+        p = parameters(d),
+        kwargs...) where {probType}
     probs = map(d.probs) do prob
         remake_problem(prob, p = p)
     end

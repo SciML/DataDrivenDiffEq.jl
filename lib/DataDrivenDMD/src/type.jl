@@ -148,10 +148,10 @@ the L2 error of the prediction exceeds the `threshold`.
 `p` and `t` are the parameters of the basis and the vector of timepoints, if necessary.
 """
 function update!(k::AbstractKoopman,
-                 X::AbstractArray, Y::AbstractArray;
-                 p::AbstractArray = [], t::AbstractVector = [],
-                 U::AbstractArray = [],
-                 threshold::T = eps()) where {T <: Real}
+        X::AbstractArray, Y::AbstractArray;
+        p::AbstractArray = [], t::AbstractVector = [],
+        U::AbstractArray = [],
+        threshold::T = eps()) where {T <: Real}
     @assert updatable(k) "Linear Koopman is not updatable."
 
     Ψ₀ = k(X, p, t, U)

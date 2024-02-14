@@ -51,34 +51,34 @@ function create_tutorials(dirname, targetdir, excludes = [])
             Literate.markdown(ipath, targetdir)
             Literate.markdown(ipath, targetdir, execute = false, postprocess = mdpost)
             push!(tutorials,
-                  relpath(joinpath(targetdir, fname * ".md"), joinpath(@__DIR__, "src")))
+                relpath(joinpath(targetdir, fname * ".md"), joinpath(@__DIR__, "src")))
         end
     end
     return tutorials
 end
 
 koopman_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivendmd/"),
-                                    joinpath(@__DIR__, "src/libs/datadrivendmd/examples"))
+    joinpath(@__DIR__, "src/libs/datadrivendmd/examples"))
 sparse_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivensparse/"),
-                                   joinpath(@__DIR__, "src/libs/datadrivensparse/examples"))
+    joinpath(@__DIR__, "src/libs/datadrivensparse/examples"))
 sr_tutorial = create_tutorials(joinpath(@__DIR__, "src/libs/datadrivensr/"),
-                               joinpath(@__DIR__, "src/libs/datadrivensr/examples"))
+    joinpath(@__DIR__, "src/libs/datadrivensr/examples"))
 
 # Must be after tutorials is created
 include("pages.jl")
 
 # Create the docs
 makedocs(sitename = "DataDrivenDiffEq.jl",
-         authors = "Julius Martensen, Christopher Rackauckas, et al.",
-         modules = [DataDrivenDiffEq, DataDrivenDMD, DataDrivenSparse, DataDrivenSR],
-         clean = true, doctest = false, linkcheck = true,
-         warnonly = [:missing_docs, :cross_references],
-         linkcheck_ignore = ["http://cwrowley.princeton.edu/papers/Hemati-2017a.pdf",
-             "https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279",
-             "https://www.pnas.org/doi/10.1073/pnas.1517384113"],
-         format = Documenter.HTML(assets = ["assets/favicon.ico"],
-                                  canonical = "https://docs.sciml.ai/DataDrivenDiffEq/stable/"),
-         pages = pages)
+    authors = "Julius Martensen, Christopher Rackauckas, et al.",
+    modules = [DataDrivenDiffEq, DataDrivenDMD, DataDrivenSparse, DataDrivenSR],
+    clean = true, doctest = false, linkcheck = true,
+    warnonly = [:missing_docs, :cross_references],
+    linkcheck_ignore = ["http://cwrowley.princeton.edu/papers/Hemati-2017a.pdf",
+        "https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279",
+        "https://www.pnas.org/doi/10.1073/pnas.1517384113"],
+    format = Documenter.HTML(assets = ["assets/favicon.ico"],
+        canonical = "https://docs.sciml.ai/DataDrivenDiffEq/stable/"),
+    pages = pages)
 
 deploydocs(repo = "github.com/SciML/DataDrivenDiffEq.jl.git";
-           push_preview = true)
+    push_preview = true)

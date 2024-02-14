@@ -158,11 +158,11 @@ function __construct_basis(X, b, prob, options)
     end
 
     Basis(eqs, states(b),
-          parameters = p_new, iv = get_iv(b),
-          controls = controls(b), observed = observed(b),
-          implicits = implicits,
-          name = gensym(:Basis),
-          eval_expression = eval_expresssion)
+        parameters = p_new, iv = get_iv(b),
+        controls = controls(b), observed = observed(b),
+        implicits = implicits,
+        name = gensym(:Basis),
+        eval_expression = eval_expresssion)
 end
 
 function unit_basis(prob::DataDrivenProblem)
