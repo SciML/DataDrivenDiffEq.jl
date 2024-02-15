@@ -32,9 +32,9 @@ using ModelingToolkit
             @test isequal(b(x0, p), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
             @test isequal(b(x0, p, t), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
             @test isequal(b(x0, p0, t, zeros(2)),
-                          DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
+                DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
             @test isequal(b(x0, p0, t0, zeros(2)),
-                          DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
+                DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
             @test isequal(b(x0, p0, t0, u0), DataDrivenDiffEq.get_f(b)(x0, p0, t0, u0))
         end
 
@@ -72,9 +72,9 @@ using ModelingToolkit
             @test isequal(b(x0, p), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
             @test isequal(b(x0, p, t), DataDrivenDiffEq.get_f(b)(x0, p, t, u))
             @test isequal(b(x0, p0, t, zeros(2)),
-                          DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
+                DataDrivenDiffEq.get_f(b)(x0, p0, t, zeros(2)))
             @test isequal(b(x0, p0, t0, zeros(2)),
-                          DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
+                DataDrivenDiffEq.get_f(b)(x0, p0, t0, zeros(2)))
             @test isequal(b(x0, p0, t0, u0), DataDrivenDiffEq.get_f(b)(x0, p0, t0, u0))
         end
 
@@ -107,7 +107,7 @@ end
     @test isequal(controls(basis), [])
     @test !DataDrivenDiffEq.is_implicit(basis)
     @test DataDrivenDiffEq.count_operation((1 + cos(u[2]) * sin(u[1]))^3,
-                                           [+, cos, ^, *]) == 4
+        [+, cos, ^, *]) == 4
 
     # Check array functionalities
     unique!(basis)

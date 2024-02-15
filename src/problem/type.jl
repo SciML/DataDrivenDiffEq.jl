@@ -113,7 +113,7 @@ end
 Base.eltype(::AbstractDataDrivenProblem{T}) where {T} = T
 
 function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem),
-                           kwargs...)
+        kwargs...)
     dType = Base.promote_eltype(X, t, DX, Y, U, p)
     cType = !isempty(U)
     name = isa(name, Symbol) ? name : Symbol(name)
@@ -131,9 +131,9 @@ function DataDrivenProblem(probType, X, t, DX, Y, U, p; name = gensym(:DDProblem
 end
 
 function remake_problem(d::DataDrivenProblem{<:Any, <:Any, probType};
-                        X = getfield(d, :X), t = getfield(d, :t), DX = getfield(d, :DX),
-                        Y = getfield(d, :Y), U = getfield(d, :U), p = getfield(d, :p),
-                        kwargs...) where {probType}
+        X = getfield(d, :X), t = getfield(d, :t), DX = getfield(d, :DX),
+        Y = getfield(d, :Y), U = getfield(d, :U), p = getfield(d, :p),
+        kwargs...) where {probType}
     DataDrivenProblem(probType, X, t, DX, Y, U, p; kwargs...)
 end
 
@@ -148,13 +148,13 @@ function DataDrivenProblem(probtype, X, t, DX, Y, U::F, p; kwargs...) where {F <
 end
 
 function DataDrivenProblem(X::AbstractMatrix;
-                           t::AbstractVector = collect(one(eltype(X)):size(X, 2)),
-                           DX::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
-                           Y::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
-                           U::F = Array{eltype(X)}(undef, 0, 0),
-                           p::AbstractVector = Array{eltype(X)}(undef, 0),
-                           probtype = nothing,
-                           kwargs...) where {F <: Union{AbstractMatrix, Function}}
+        t::AbstractVector = collect(one(eltype(X)):size(X, 2)),
+        DX::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
+        Y::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
+        U::F = Array{eltype(X)}(undef, 0, 0),
+        p::AbstractVector = Array{eltype(X)}(undef, 0),
+        probtype = nothing,
+        kwargs...) where {F <: Union{AbstractMatrix, Function}}
     return DataDrivenProblem(probtype, X, t, DX, Y, U, p; kwargs...)
 end
 
@@ -197,12 +197,12 @@ function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector; kwargs.
 end
 
 function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::AbstractMatrix;
-                                   kwargs...)
+        kwargs...)
     return DataDrivenProblem(X; t = t, U = U, probtype = DDProbType(2), kwargs...)
 end
 
 function DiscreteDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, U::Function;
-                                   kwargs...)
+        kwargs...)
     return DataDrivenProblem(X; t = t, U = U, probtype = DDProbType(2), kwargs...)
 end
 
@@ -220,29 +220,29 @@ function ContinuousDataDrivenProblem(X::AbstractMatrix, DX::AbstractMatrix; kwar
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector,
-                                     DX::AbstractMatrix; kwargs...)
+        DX::AbstractMatrix; kwargs...)
     return DataDrivenProblem(X; t = t, DX = DX, probtype = DDProbType(3), kwargs...)
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector,
-                                     DX::AbstractMatrix, U::AbstractMatrix; kwargs...)
+        DX::AbstractMatrix, U::AbstractMatrix; kwargs...)
     return DataDrivenProblem(X; t = t, DX = DX, U = U, probtype = DDProbType(3), kwargs...)
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector,
-                                     DX::AbstractMatrix, U::F;
-                                     kwargs...) where {F <: Function}
+        DX::AbstractMatrix, U::F;
+        kwargs...) where {F <: Function}
     return DataDrivenProblem(X; t = t, DX = DX, U = U, probtype = DDProbType(3), kwargs...)
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector,
-                                     collocation = InterpolationMethod(); kwargs...)
+        collocation = InterpolationMethod(); kwargs...)
     dx, x, t = collocate_data(X, t, collocation; kwargs...)
     return DataDrivenProblem(x; t = t, DX = dx, probtype = DDProbType(3), kwargs...)
 end
 
 function ContinuousDataDrivenProblem(X::AbstractMatrix, t::AbstractVector,
-                                     U::AbstractMatrix, collocation; kwargs...)
+        U::AbstractMatrix, collocation; kwargs...)
     dx, x, t = collocate_data(X, t, collocation; kwargs...)
     return DataDrivenProblem(x; t = t, DX = dx, U = U, probtype = DDProbType(3), kwargs...)
 end
@@ -258,12 +258,13 @@ function DirectDataDrivenProblem(X::AbstractMatrix, Y::AbstractMatrix; kwargs...
 end
 
 function DirectDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, Y::AbstractMatrix;
-                                 kwargs...)
+        kwargs...)
     return DataDrivenProblem(X; t = t, Y = Y, probtype = DDProbType(1), kwargs...)
 end
 
-function DirectDataDrivenProblem(X::AbstractMatrix, t::AbstractVector, Y::AbstractMatrix, U;
-                                 kwargs...)
+function DirectDataDrivenProblem(
+        X::AbstractMatrix, t::AbstractVector, Y::AbstractMatrix, U;
+        kwargs...)
     return DataDrivenProblem(X; t = t, Y = Y, U = U, probtype = DDProbType(1), kwargs...)
 end
 
@@ -327,9 +328,9 @@ end
 
 function Base.getindex(p::AbstractDataDrivenProblem, i = :, j = :)
     return (ModelingToolkit.states(p, i, j),
-            ModelingToolkit.parameters(p),
-            ModelingToolkit.independent_variable(p, j),
-            ModelingToolkit.controls(p, i, j))
+        ModelingToolkit.parameters(p),
+        ModelingToolkit.independent_variable(p, j),
+        ModelingToolkit.controls(p, i, j))
 end
 
 function (b::Basis{<:Any, <:Any})(p::AbstractDataDrivenProblem{<:Any, <:Any, <:Any})
@@ -338,7 +339,7 @@ function (b::Basis{<:Any, <:Any})(p::AbstractDataDrivenProblem{<:Any, <:Any, <:A
 end
 
 function (b::Basis{<:Any, <:Any})(res::AbstractMatrix,
-                                  p::AbstractDataDrivenProblem{<:Any, <:Any, <:Any})
+        p::AbstractDataDrivenProblem{<:Any, <:Any, <:Any})
     @unpack f = b
     _apply_vec_function!(f, res, get_implicit_data(p), get_oop_args(p)...)
 end
@@ -362,9 +363,9 @@ end
 
 function get_oop_args(x::DataDrivenProblem{N, C, DDProbType(2)}) where {N, C}
     return (x.X[:, 1:(end - 1)],
-            x.p,
-            x.t[1:(end - 1)],
-            x.U[:, 1:(end - 1)])
+        x.p,
+        x.t[1:(end - 1)],
+        x.U[:, 1:(end - 1)])
 end
 
 """
@@ -466,7 +467,7 @@ end
 ## DESolution dispatch
 
 function DataDrivenProblem(sol::T; use_interpolation = false,
-                           kwargs...) where {T <: DiffEqBase.DESolution}
+        kwargs...) where {T <: DiffEqBase.DESolution}
     if sol.retcode != :Success
         throw(AssertionError("The solution is not successful. Abort."))
         return

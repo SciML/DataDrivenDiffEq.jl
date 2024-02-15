@@ -89,9 +89,9 @@ function init_cache(alg::STLSQ, A::AbstractMatrix, B::AbstractMatrix)
     active_set!(active_set, proximal, coefficients, λ)
 
     return STLSQCache{usenormal, typeof(coefficients), typeof(active_set), typeof(X),
-                      typeof(Y), typeof(A), typeof(B)}(coefficients, prev_coefficients,
-                                                       active_set, get_proximal(alg),
-                                                       X, Y, A, B)
+        typeof(Y), typeof(A), typeof(B)}(coefficients, prev_coefficients,
+        active_set, get_proximal(alg),
+        X, Y, A, B)
 end
 
 function step!(cache::STLSQCache, λ::T) where {T}

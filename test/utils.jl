@@ -30,7 +30,7 @@ end
         GaussianKernel(),
         LogisticKernel(),
         SigmoidKernel(),
-        SilvermanKernel(),
+        SilvermanKernel()
     ]
         ẑ, ŷ, x̂ = collocate_data(y, x, m)
         @test ẑ≈z atol=1e-1 rtol=1e-1
@@ -43,10 +43,10 @@ end
     z = permutedims(cos.(x))
 
     for m in InterpolationMethod.([
-                                      LinearInterpolation,
-                                      QuadraticInterpolation,
-                                      CubicSpline,
-                                  ])
+        LinearInterpolation,
+        QuadraticInterpolation,
+        CubicSpline
+    ])
         ẑ, ŷ, x̂ = collocate_data(y, x, m)
         @test ẑ≈z atol=1e-1 rtol=1e-1
         @test ŷ≈y atol=1e-1 rtol=1e-1

@@ -36,9 +36,9 @@ Base.summary(opt::ImplicitOptimizer) = "Implicit Optimizer using " * summary(opt
 get_threshold(opt::ImplicitOptimizer) = get_threshold(opt.optimizer)
 
 function (x::ImplicitOptimizer)(X, Y;
-                                options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
-                                necessary_idx = ones(Bool, size(X, 1)),
-                                kwargs...)
+        options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
+        necessary_idx = ones(Bool, size(X, 1)),
+        kwargs...)
     @unpack optimizer = x
     @unpack verbose = options
 

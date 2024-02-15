@@ -29,11 +29,13 @@ function incremental_marcenko_pastur(x, beta, gamma)
     lower = (1 - sqrt(beta))^2
 
     @inline function marcenko_pastur(x)
-        begin if (upper - x) * (x - lower) > 0
-            return marcenko_pastur_density(x, lower, upper, beta)
-        else
-            return zero(eltype(x))
-        end end
+        begin
+            if (upper - x) * (x - lower) > 0
+                return marcenko_pastur_density(x, lower, upper, beta)
+            else
+                return zero(eltype(x))
+            end
+        end
     end
 
     if gamma ≈ zero(eltype(gamma))

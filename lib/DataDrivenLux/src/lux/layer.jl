@@ -13,13 +13,13 @@ struct FunctionLayer{skip, T, output_dimension} <:
 end
 
 function FunctionLayer(in_dimension::Int, arities::Tuple, fs::Tuple; skip = false,
-                       id_offset = 1,
-                       input_functions = Any[identity for i in 1:in_dimension],
-                       kwargs...)
+        id_offset = 1,
+        input_functions = Any[identity for i in 1:in_dimension],
+        kwargs...)
     nodes = map(eachindex(arities)) do i
         # We check if we have an inverse here
         FunctionNode(fs[i], arities[i], in_dimension, (id_offset, i);
-                     input_functions = input_functions, kwargs...)
+            input_functions = input_functions, kwargs...)
     end
 
     output_dimension = length(arities)
@@ -56,38 +56,38 @@ function get_configuration(r::FunctionLayer, ps, st)
 end
 
 @generated function _get_layer_loglikelihood(layers::NamedTuple{fields}, ps,
-                                             st::NamedTuple{fields}) where {fields}
+        st::NamedTuple{fields}) where {fields}
     N = length(fields)
     st_symbols = [gensym() for _ in 1:N]
     calls = [:($(st_symbols[i]) = get_loglikelihood(layers.$(fields[i]),
-                                                    ps.$(fields[i]),
-                                                    st.$(fields[i])))
+                 ps.$(fields[i]),
+                 st.$(fields[i])))
              for i in 1:N]
     push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
     return Expr(:block, calls...)
 end
 
 @generated function _get_configuration(layers::NamedTuple{fields}, ps,
-                                       st::NamedTuple{fields}) where {fields}
+        st::NamedTuple{fields}) where {fields}
     N = length(fields)
     st_symbols = [gensym() for _ in 1:N]
     calls = [:($(st_symbols[i]) = get_configuration(layers.$(fields[i]),
-                                                    ps.$(fields[i]),
-                                                    st.$(fields[i])))
+                 ps.$(fields[i]),
+                 st.$(fields[i])))
              for i in 1:N]
     push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
     return Expr(:block, calls...)
 end
 
 @generated function _apply_layer(layers::NamedTuple{fields}, x, ps,
-                                 st::NamedTuple{fields}) where {fields}
+        st::NamedTuple{fields}) where {fields}
     N = length(fields)
     y_symbols = vcat([gensym() for _ in 1:N])
     st_symbols = [gensym() for _ in 1:N]
     calls = [:(($(y_symbols[i]), $(st_symbols[i])) = Lux.apply(layers.$(fields[i]),
-                                                               x,
-                                                               ps.$(fields[i]),
-                                                               st.$(fields[i])))
+                 x,
+                 ps.$(fields[i]),
+                 st.$(fields[i])))
              for i in 1:N]
     push!(calls, :(st = NamedTuple{$fields}(($(Tuple(st_symbols)...),))))
     push!(calls, :(return vcat($(y_symbols...)), st))

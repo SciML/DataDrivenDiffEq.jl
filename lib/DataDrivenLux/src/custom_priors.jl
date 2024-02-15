@@ -8,8 +8,8 @@ An error following `ŷ ~ y + ϵ`.
 struct AdditiveError <: AbstractErrorModel end
 
 function (x::AdditiveError)(d::D, y::T, ỹ::R,
-                            scale::S = one(T)) where {D <: Type, T <: Number, S <: Number,
-                                                      R <: Number}
+        scale::S = one(T)) where {D <: Type, T <: Number, S <: Number,
+        R <: Number}
     logpdf(d(y, scale), ỹ)
 end
 
@@ -22,8 +22,8 @@ An error following `ŷ ~ y * (1+ϵ)`.
 struct MultiplicativeError <: AbstractErrorModel end
 
 function (x::MultiplicativeError)(d::D, y::T, ỹ::R,
-                                  scale::S = one(T)) where {D <: Type, T <: Number,
-                                                            S <: Number, R <: Number}
+        scale::S = one(T)) where {D <: Type, T <: Number,
+        S <: Number, R <: Number}
     logpdf(d(y, abs(y) * scale), ỹ)
 end
 
@@ -37,50 +37,61 @@ struct ObservedDistribution{fixed, D <: Distribution, M <: AbstractErrorModel, S
 end
 
 function ObservedDistribution(distribution::Type{T}, errormodel::AbstractErrorModel;
-                              fixed = false,
-                              transform = as(Real, 1e-5, TransformVariables.∞),
-                              scale = 1.0) where {
-                                                  T <:
-                                                  Distributions.Distribution{Univariate,
-                                                                             <:Any}}
+        fixed = false,
+        transform = as(Real, 1e-5, TransformVariables.∞),
+        scale = 1.0) where {
+        T <:
+        Distributions.Distribution{Univariate,
+        <:Any}}
     latent_scale = TransformVariables.inverse(transform, scale)
     return ObservedDistribution{fixed, T, typeof(errormodel), typeof(latent_scale),
-                                typeof(transform)}(errormodel, latent_scale, transform)
+        typeof(transform)}(errormodel, latent_scale, transform)
 end
 
 function Base.summary(io::IO, d::ObservedDistribution{fixed, D, E}) where {fixed, D, E}
-    begin print(io, "$E : $D() with $(fixed ? "fixed" : "variable") scale.") end
+    begin
+        print(io, "$E : $D() with $(fixed ? "fixed" : "variable") scale.")
+    end
 end
 
 get_init(d::ObservedDistribution) = d.latent_scale
-get_scale(d::ObservedDistribution) = TransformVariables.transform(d.scale_transformation, d.latent_scale)
+function get_scale(d::ObservedDistribution)
+    TransformVariables.transform(d.scale_transformation, d.latent_scale)
+end
 get_dist(d::ObservedDistribution{<:Any, D}) where {D} = D
 
 Base.show(io::IO, d::ObservedDistribution) = summary(io, d)
 
 function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Y,
-                              scale::S) where {X, Y, S <: Number}
-    sum(map(xs -> d.errormodel(get_dist(d), xs..., TransformVariables.transform(d.scale_transformation, scale)),
-            zip(x, x̂)))
+        scale::S) where {X, Y, S <: Number}
+    sum(map(
+        xs -> d.errormodel(
+            get_dist(d), xs..., TransformVariables.transform(d.scale_transformation, scale)),
+        zip(x, x̂)))
 end
 
 function Distributions.logpdf(d::ObservedDistribution{true}, x::X, x̂::Y,
-                              scale::S) where {X, Y, S <: Number}
-    sum(map(xs -> d.errormodel(get_dist(d), xs...,
-    TransformVariables.transform(d.scale_transformation, d.latent_scale)),
-            zip(x, x̂)))
+        scale::S) where {X, Y, S <: Number}
+    sum(map(
+        xs -> d.errormodel(get_dist(d), xs...,
+            TransformVariables.transform(d.scale_transformation, d.latent_scale)),
+        zip(x, x̂)))
 end
 
 function Distributions.logpdf(d::ObservedDistribution{false}, x::X, x̂::Number,
-                              scale::S) where {X, S <: Number}
-    sum(map(xs -> d.errormodel(get_dist(d), xs, x̂,
-    TransformVariables.transform(d.scale_transformation, scale)), x))
+        scale::S) where {X, S <: Number}
+    sum(map(
+        xs -> d.errormodel(get_dist(d), xs, x̂,
+            TransformVariables.transform(d.scale_transformation, scale)),
+        x))
 end
 
 function Distributions.logpdf(d::ObservedDistribution{true}, x::X, x̂::Number,
-                              scale::S) where {X, S <: Number}
-    sum(map(xs -> d.errormodel(get_dist(d), xs, x̂,
-    TransformVariables.transform(d.scale_transformation, d.latent_scale)), x))
+        scale::S) where {X, S <: Number}
+    sum(map(
+        xs -> d.errormodel(get_dist(d), xs, x̂,
+            TransformVariables.transform(d.scale_transformation, d.latent_scale)),
+        x))
 end
 
 function transform_scales(d::ObservedDistribution, scale::T) where {T <: Number}
@@ -113,19 +124,19 @@ end
 Base.show(io::IO, o::ObservedModel) = summary(io, o)
 
 function Distributions.logpdf(o::ObservedModel{M}, x::AbstractMatrix, x̂::AbstractMatrix,
-                              scales::AbstractVector = ones(eltype(x̂), size(x, 1))) where {
-                                                                                            M
-                                                                                            }
+        scales::AbstractVector = ones(eltype(x̂), size(x, 1))) where {
+        M
+}
     sum(map(logpdf, o.observed_distributions, eachrow(x), eachrow(x̂), scales))
 end
 
 function Distributions.logpdf(o::ObservedModel{M}, x::AbstractMatrix, x̂::AbstractVector,
-                              scales::AbstractVector = ones(eltype(x̂), size(x, 1))) where {
-                                                                                            M
-                                                                                            }
+        scales::AbstractVector = ones(eltype(x̂), size(x, 1))) where {
+        M
+}
     sum(map(axes(x, 1)) do i
-            logpdf(o.observed_distributions[i], x[i, :], x̂[i], scales[i])
-        end)
+        logpdf(o.observed_distributions[i], x[i, :], x̂[i], scales[i])
+    end)
 end
 
 get_init(o::ObservedModel) = collect(map(get_init, o.observed_distributions))
@@ -143,7 +154,7 @@ struct ParameterDistribution{P <: Distribution{Univariate}, T, I <: Interval, D 
 end
 
 function ParameterDistribution(d::Distribution{Univariate}, init = mean(d),
-                               type::Type{T} = Float64) where {T}
+        type::Type{T} = Float64) where {T}
     lower, upper = convert.(T, extrema(d))
     lower_t = isinf(lower) ? -TransformVariables.∞ : lower
     upper_t = isinf(upper) ? TransformVariables.∞ : upper

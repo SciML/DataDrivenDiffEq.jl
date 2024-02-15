@@ -4,7 +4,7 @@ for f in [
     :cos_basis,
     :fourier_basis,
     :polynomial_basis,
-    :monomial_basis,
+    :monomial_basis
 ]
     @eval $f(x, c) = $f(scalarize(x), c)
 end

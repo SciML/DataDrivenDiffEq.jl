@@ -1,6 +1,6 @@
 @inline function (s::AbstractProximalOperator)(x::AbstractArray{<:Number},
-                                               y::AbstractArray{<:Bool},
-                                               λ::T) where {T <: Real}
+        y::AbstractArray{<:Bool},
+        λ::T) where {T <: Real}
     @assert size(y) == size(x)
     active_set!(y, s, x, λ)
     for i in eachindex(x)
@@ -21,7 +21,7 @@ See [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778).
 struct SoftThreshold <: AbstractProximalOperator end;
 
 @inline function active_set!(idx::BitArray, ::SoftThreshold, x::AbstractArray{T},
-                             λ::T) where {T}
+        λ::T) where {T}
     @assert size(idx) == size(x)
     @inbounds foreach(eachindex(x)) do i
         idx[i] = abs(x[i]) > λ
@@ -37,7 +37,7 @@ end
 end
 
 @inline function (s::SoftThreshold)(y::AbstractArray{N}, x::AbstractArray{N},
-                                    λ::T) where {N <: Number, T <: Real}
+        λ::T) where {N <: Number, T <: Real}
     @assert size(y) == size(x)
     for i in eachindex(x)
         y[i] = sign(x[i]) * max(abs(x[i]) - λ, zero(eltype(x)))
@@ -57,7 +57,7 @@ See [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778).
 struct HardThreshold <: AbstractProximalOperator end;
 
 @inline function active_set!(idx::BitArray, ::HardThreshold, x::AbstractArray,
-                             λ::T) where {T}
+        λ::T) where {T}
     @assert size(idx) == size(x)
     @inbounds foreach(eachindex(x)) do i
         idx[i] = abs(x[i]) > sqrt(2 * λ)
@@ -73,7 +73,7 @@ end
 end
 
 @inline function (s::HardThreshold)(y::AbstractArray{N}, x::AbstractArray{N},
-                                    λ::T) where {N <: Number, T <: Real}
+        λ::T) where {N <: Number, T <: Real}
     @assert all(size(y) .== size(x))
     for i in eachindex(x)
         y[i] = abs(x[i]) > sqrt(2 * λ) ? x[i] : zero(eltype(x))
@@ -111,7 +111,7 @@ end
 ClippedAbsoluteDeviation() = ClippedAbsoluteDeviation(NaN)
 
 @inline function active_set!(idx::BitArray, h::ClippedAbsoluteDeviation,
-                             x::AbstractArray, λ::T) where {T}
+        x::AbstractArray, λ::T) where {T}
     @assert size(idx) == size(x)
     @unpack ρ = h
     ρ = isnan(ρ) ? convert(T, 5) * λ : convert(T, ρ)
@@ -131,7 +131,7 @@ function (s::ClippedAbsoluteDeviation)(x::AbstractArray, λ::T) where {T <: Real
 end
 
 function (s::ClippedAbsoluteDeviation)(y::AbstractArray{N}, x::AbstractArray{N},
-                                       λ::T) where {N <: Number, T <: Real}
+        λ::T) where {N <: Number, T <: Real}
     @assert all(size(y) .== size(x))
     ρ = isnan(s.ρ) ? convert(eltype(x), 5) * λ : convert(eltype(x), s.ρ)
     for i in eachindex(x)

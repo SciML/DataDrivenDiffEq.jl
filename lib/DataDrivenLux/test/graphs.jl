@@ -24,7 +24,8 @@ X = randn(1, 10)
     Y, _ = dag(X, ps, new_st)
     @test y == [sin.(x[1]); sin.(x[1])]
     @test Y == [sin.(X[1:1, :]); sin.(X[1:1, :])]
-    @test exp(sum(sum ∘ values, values(DataDrivenLux.get_loglikelihood(dag, ps, new_st)))) ==
+    @test exp(sum(
+        sum ∘ values, values(DataDrivenLux.get_loglikelihood(dag, ps, new_st)))) ==
           1.0f0
 end
 

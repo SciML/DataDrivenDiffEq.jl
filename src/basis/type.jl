@@ -72,7 +72,7 @@ struct Basis{IMPL, CTRLS} <: AbstractBasis
     systems::Vector{AbstractBasis}
 
     function Basis(eqs, states, ctrls, ps, observed, iv, implicit, f, name, systems;
-                   checks::Bool = true)
+            checks::Bool = true)
         if checks
             # Currently do nothing here
             #check_variables(dvs, iv)
@@ -89,7 +89,7 @@ struct Basis{IMPL, CTRLS} <: AbstractBasis
 end
 
 function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name, systems,
-                            simplify, linear_independent, eval_expression)
+        simplify, linear_independent, eval_expression)
     # Check for iv
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
@@ -108,10 +108,10 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
 
     # Scalarize all variables
     states, controls, parameters, implicits, observed = value.(collect(states)),
-                                                        value.(collect(ctrls)),
-                                                        value.(collect(ps)),
-                                                        value.(collect(implicit)),
-                                                        value.(collect(observed))
+    value.(collect(ctrls)),
+    value.(collect(ps)),
+    value.(collect(implicit)),
+    value.(collect(observed))
     # Filter out zeros
     rhs = [eq for eq in rhs if ~isequal(Num(eq), zero(Num))]
 
@@ -119,33 +119,33 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
     unique!(rhs, simplify)
 
     f = DataDrivenFunction(rhs,
-                           implicits, states, parameters, iv,
-                           controls, eval_expression)
+        implicits, states, parameters, iv,
+        controls, eval_expression)
 
     eqs = reduce(vcat, map(Symbolics.Equation, lhs, rhs); init = Equation[])
     eqs = isa(eqs, AbstractVector) ? collect(eqs) : [collect(eqs)]
     return eqs, states, controls, parameters, observed, iv, implicits, f, name,
-           systems
+    systems
 end
 
 ## Constructors
 
 function Basis(eqs::AbstractVector, states::AbstractVector;
-               parameters::AbstractVector = [], iv = nothing,
-               controls::AbstractVector = [], implicits = [],
-               observed::AbstractVector = [],
-               name = gensym(:Basis),
-               simplify = false, linear_independent = false,
-               eval_expression = false,
-               kwargs...)
+        parameters::AbstractVector = [], iv = nothing,
+        controls::AbstractVector = [], implicits = [],
+        observed::AbstractVector = [],
+        name = gensym(:Basis),
+        simplify = false, linear_independent = false,
+        eval_expression = false,
+        kwargs...)
     return Basis(__preprocess_basis(eqs, states, controls, parameters, observed, iv,
-                                    implicits, name, AbstractBasis[], simplify,
-                                    linear_independent, eval_expression)...)
+        implicits, name, AbstractBasis[], simplify,
+        linear_independent, eval_expression)...)
 end
 
 function Basis(f::Function, states::AbstractVector; parameters::AbstractVector = [],
-               controls::AbstractVector = [], implicits::AbstractVector = [],
-               iv = nothing, kwargs...)
+        controls::AbstractVector = [], implicits::AbstractVector = [],
+        iv = nothing, kwargs...)
     isnothing(iv) && (iv = Num(Variable(:t)))
 
     try
@@ -159,7 +159,7 @@ function Basis(f::Function, states::AbstractVector; parameters::AbstractVector =
             eqs = f(implicits, states, parameters, iv, controls)
         end
         return Basis(eqs, states, parameters = parameters, iv = iv, controls = controls,
-                     implicits = implicits; kwargs...)
+            implicits = implicits; kwargs...)
     catch e
         rethrow(e)
     end
@@ -271,96 +271,97 @@ get_f(b::AbstractBasis) = getfield(b, :f)
 
 # Without controls or implicits
 function (b::Basis{false, false})(u::AbstractVector, p::P = parameters(b),
-                                  t::Number = get_iv(b)) where {
-                                                                P <:
-                                                                Union{AbstractArray, Tuple}}
+        t::Number = get_iv(b)) where {
+        P <:
+        Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(u, p, t)
 end
 
 # Without implicits, with controls
 function (b::Basis{false, true})(u::AbstractVector,
-                                 p::P = parameters(b), t::Number = get_iv(b),
-                                 c::AbstractVector = controls(b)) where {
-                                                                         P <: Union{
-                                                                               AbstractArray,
-                                                                               Tuple}}
+        p::P = parameters(b), t::Number = get_iv(b),
+        c::AbstractVector = controls(b)) where {
+        P <: Union{
+        AbstractArray,
+        Tuple}}
     f = get_f(b)
     f(u, p, t, c)
 end
 
 # With implict, without controls
 function (b::Basis{true, false})(du::AbstractVector, u::AbstractVector,
-                                 p::P = parameters(b),
-                                 t::Number = get_iv(b)) where {
-                                                               P <:
-                                                               Union{AbstractArray, Tuple}}
+        p::P = parameters(b),
+        t::Number = get_iv(b)) where {
+        P <:
+        Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(du, u, p, t)
 end
 
 # With implicit and controls
 function (b::Basis{true, true})(du::AbstractVector, u::AbstractVector,
-                                p::P = parameters(b), t::Number = get_iv(b),
-                                c::AbstractVector = controls(b)) where {
-                                                                        P <:
-                                                                        Union{AbstractArray,
-                                                                              Tuple}}
+        p::P = parameters(b), t::Number = get_iv(b),
+        c::AbstractVector = controls(b)) where {
+        P <:
+        Union{AbstractArray,
+        Tuple}}
     f = get_f(b)
     f(du, u, p, t, c)
 end
 
 # Array
 function (b::Basis{false, false})(u::AbstractMatrix, p::P,
-                                  t::AbstractVector) where {P <:
-                                                            Union{AbstractArray, Tuple}}
+        t::AbstractVector) where {P <:
+                                  Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(u, p, t)
 end
 
 function (b::Basis{true, false})(du::AbstractMatrix, u::AbstractMatrix, p::P,
-                                 t::AbstractVector) where {P <: Union{AbstractArray, Tuple}}
+        t::AbstractVector) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(du, u, p, t)
 end
 
 function (b::Basis{false, true})(u::AbstractMatrix, p::P, t::AbstractVector,
-                                 c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
+        c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(u, p, t, c)
 end
 
 function (b::Basis{true, true})(du::AbstractMatrix, u::AbstractMatrix, p::P,
-                                t::AbstractVector,
-                                c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
+        t::AbstractVector,
+        c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(du, u, p, t, c)
 end
 
 function (b::Basis{false, false})(res::AbstractMatrix, u::AbstractMatrix, p::P,
-                                  t::AbstractVector) where {P <:
-                                                            Union{AbstractArray, Tuple}}
+        t::AbstractVector) where {P <:
+                                  Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(res, u, p, t)
 end
 
-function (b::Basis{true, false})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix,
-                                 p::P,
-                                 t::AbstractVector) where {P <: Union{AbstractArray, Tuple}}
+function (b::Basis{true, false})(
+        res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix,
+        p::P,
+        t::AbstractVector) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(res, du, u, p, t)
 end
 
 function (b::Basis{false, true})(res::AbstractMatrix, u::AbstractMatrix, p::P,
-                                 t::AbstractVector,
-                                 c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
+        t::AbstractVector,
+        c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(res, u, p, t, c)
 end
 
 function (b::Basis{true, true})(res::AbstractMatrix, du::AbstractMatrix, u::AbstractMatrix,
-                                p::P, t::AbstractVector,
-                                c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
+        p::P, t::AbstractVector,
+        c::AbstractMatrix) where {P <: Union{AbstractArray, Tuple}}
     f = get_f(b)
     f(res, du, u, p, t, c)
 end
@@ -379,8 +380,8 @@ Base.iterate(x::B, id) where {B <: AbstractBasis} = iterate(equations(x), id)
 ## Internal update
 function __update!(b::AbstractBasis, eval_expression = false)
     ff = DataDrivenFunction([bi.rhs for bi in collect(equations(b))],
-                            implicit_variables(b), states(b), parameters(b), [get_iv(b)],
-                            controls(b), eval_expression)
+        implicit_variables(b), states(b), parameters(b), [get_iv(b)],
+        controls(b), eval_expression)
     @set! b.f = ff
     return
 end
@@ -408,8 +409,8 @@ function jacobian(x::Basis, s, eval_expression::Bool = false)
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], s)
 
     return DataDrivenFunction(j,
-                              implicit_variables(x), states(x), parameters(x), [get_iv(x)],
-                              controls(x), eval_expression)
+        implicit_variables(x), states(x), parameters(x), [get_iv(x)],
+        controls(x), eval_expression)
 end
 
 ## Utilities
@@ -452,7 +453,7 @@ function Base.deleteat!(b::Basis, inds; eval_expression = false)
 end
 
 function Base.push!(b::Basis, eqs::AbstractArray, simplify_eqs = true;
-                    eval_expression = false)
+        eval_expression = false)
     @inbounds for eq in eqs
         push!(b, eq, false)
     end

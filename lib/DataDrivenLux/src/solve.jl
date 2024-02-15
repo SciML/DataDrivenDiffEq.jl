@@ -1,7 +1,7 @@
 function DataDrivenDiffEq.get_fit_targets(::A, prob::AbstractDataDrivenProblem,
-                                          basis::Basis) where {
-                                                               A <: AbstractDAGSRAlgorithm
-                                                               }
+        basis::Basis) where {
+        A <: AbstractDAGSRAlgorithm
+}
     return prob.X, DataDrivenDiffEq.get_implicit_data(prob)
 end
 
@@ -11,9 +11,9 @@ struct DataDrivenLuxResult <: DataDrivenDiffEq.AbstractDataDrivenResult
 end
 
 function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
-                                                                       A <:
-                                                                       AbstractDAGSRAlgorithm
-                                                                       }
+        A <:
+        AbstractDAGSRAlgorithm
+}
     @unpack alg, basis, testdata, traindata, control_idx, options, problem, kwargs = prob
     @unpack maxiters, progress, eval_expresssion, abstol = options
 
@@ -33,7 +33,7 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
                 (:Mode, mode(losses)),
                 (:Mean, mean(losses)),
                 (:Probabilities,
-                 map(x -> exp.(x(cache.p)), cache.candidates[cache.keeps][1:shows])),
+                    map(x -> exp.(x(cache.p)), cache.candidates[cache.keeps][1:shows]))
             ]
         end
     end
@@ -58,9 +58,9 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
     new_problem = DataDrivenDiffEq.remake_problem(problem, p = pnew)
 
     rss = sum(abs2,
-              new_basis(new_problem) .- DataDrivenDiffEq.get_implicit_data(new_problem))
+        new_basis(new_problem) .- DataDrivenDiffEq.get_implicit_data(new_problem))
 
     return DataDrivenSolution{typeof(rss)}(new_basis, DDReturnCode(1), alg,
-                                           [cache], new_problem,
-                                           rss, length(pnew), prob)
+        [cache], new_problem,
+        rss, length(pnew), prob)
 end

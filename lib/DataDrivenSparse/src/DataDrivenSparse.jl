@@ -26,7 +26,7 @@ abstract type AbstractProximalOperator end
 abstract type AbstractSparseRegressionCache <: StatsBase.StatisticalModel end
 
 function _set!(x::AbstractSparseRegressionCache,
-               y::AbstractSparseRegressionCache) where {T <: Number}
+        y::AbstractSparseRegressionCache) where {T <: Number}
     begin
         foreach(eachindex(x.X)) do i
             x.X[i] = y.X[i]
@@ -71,7 +71,9 @@ StatsBase.nobs(x::AbstractSparseRegressionCache) = begin
 end
 
 function StatsBase.loglikelihood(x::AbstractSparseRegressionCache)
-    begin -nobs(x) / 2 * log(rss(x) / nobs(x)) end
+    begin
+        -nobs(x) / 2 * log(rss(x) / nobs(x))
+    end
 end
 
 function StatsBase.nullloglikelihood(x::AbstractSparseRegressionCache)
@@ -96,8 +98,8 @@ include("solver.jl")
 export SparseLinearSolver
 
 function (x::X where {X <: AbstractSparseRegressionAlgorithm})(X, Y;
-                                                               options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
-                                                               kwargs...)
+        options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
+        kwargs...)
     solver = SparseLinearSolver(x, options = options)
     results = solver(X, Y) # Keep this here for now
 

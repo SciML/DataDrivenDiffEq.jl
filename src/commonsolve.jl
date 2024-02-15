@@ -3,9 +3,9 @@
 
 # This is a way to create a datadriven problem relatively efficient and handle all algorithms
 struct InternalDataDrivenProblem{A <: AbstractDataDrivenAlgorithm, B <: AbstractBasis, TD,
-                                 T <: DataLoader, F, CI, VI, PI, SI,
-                                 O <: DataDrivenCommonOptions,
-                                 P <: AbstractDataDrivenProblem, K}
+    T <: DataLoader, F, CI, VI, PI, SI,
+    O <: DataDrivenCommonOptions,
+    P <: AbstractDataDrivenProblem, K}
     # The Algorithm
     alg::A
     # Data and Normalization
@@ -34,23 +34,24 @@ end
 # This is a preprocess step, which commonly returns the implicit data.
 # For Koopman Algorithms this is not true
 function get_fit_targets(::AbstractDataDrivenAlgorithm, prob::AbstractDataDrivenProblem,
-                         basis::AbstractBasis)
+        basis::AbstractBasis)
     Y = get_implicit_data(prob)
     X = basis(prob)
     return X, Y
 end
 
 # We always want a basis
-function CommonSolve.init(prob::AbstractDataDrivenProblem, alg::AbstractDataDrivenAlgorithm;
-                          options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
-                          kwargs...)
+function CommonSolve.init(
+        prob::AbstractDataDrivenProblem, alg::AbstractDataDrivenAlgorithm;
+        options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
+        kwargs...)
     init(prob, unit_basis(prob), alg; options = options, kwargs...)
 end
 
 function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis,
-                          alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm();
-                          options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
-                          kwargs...)
+        alg::AbstractDataDrivenAlgorithm = ZeroDataDrivenAlgorithm();
+        options::DataDrivenCommonOptions = DataDrivenCommonOptions(),
+        kwargs...)
     @unpack denoise, normalize, data_processing = options
 
     # This function handles preprocessing of the variables
@@ -88,8 +89,8 @@ function CommonSolve.init(prob::AbstractDataDrivenProblem, basis::AbstractBasis,
     test, loader = data_processing(data)
 
     return InternalDataDrivenProblem(alg, test, loader, dt, control_idx, implicit_idx,
-                                     parameter_idx, state_idx,
-                                     options, basis, prob, kwargs)
+        parameter_idx, state_idx,
+        options, basis, prob, kwargs)
 end
 
 function CommonSolve.solve!(::InternalDataDrivenProblem{ZeroDataDrivenAlgorithm})

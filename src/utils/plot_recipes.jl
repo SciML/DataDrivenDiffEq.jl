@@ -34,13 +34,13 @@ end
 function gather_plot_information(x::DataDrivenDataset{N, C, D}) where {N, C, D}
     data = map([:X, :Y, :DX, :U]) do s
         reduce(hcat, map(x.probs) do prob
-                   getproperty(prob, s)
-               end)
+            getproperty(prob, s)
+        end)
     end
 
     t = reduce(vcat, map(x.probs) do prob
-                   getproperty(prob, :t)
-               end)
+        getproperty(prob, :t)
+    end)
 
     ylab = is_direct(x) ? "Sample ID" : "t"
 

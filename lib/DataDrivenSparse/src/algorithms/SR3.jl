@@ -34,8 +34,8 @@ mutable struct SR3{T, V, P <: AbstractProximalOperator} <: AbstractSparseRegress
     proximal::P
 
     function SR3(threshold::T = 1e-1, nu::V = 1.0,
-                 R::P = HardThreshold()) where {T, V <: Number,
-                                                P <: AbstractProximalOperator}
+            R::P = HardThreshold()) where {T, V <: Number,
+            P <: AbstractProximalOperator}
         @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
         @assert nu>zero(V) "Relaxation must be positive definite"
 
@@ -94,11 +94,11 @@ function init_cache(alg::SR3, A::AbstractMatrix, B::AbstractMatrix)
     active_set!(idx, proximal, coefficients, λ)
 
     return SR3Cache{typeof(coefficients), typeof(idx), typeof(proximal), typeof(X),
-                    typeof(Y), typeof(nu), typeof(A), typeof(B)}(coefficients,
-                                                                 copy(coefficients), idx,
-                                                                 proximal,
-                                                                 zero(coefficients),
-                                                                 X, Y, nu, A, B)
+        typeof(Y), typeof(nu), typeof(A), typeof(B)}(coefficients,
+        copy(coefficients), idx,
+        proximal,
+        zero(coefficients),
+        X, Y, nu, A, B)
 end
 
 function step!(cache::SR3Cache, λ::T) where {T <: Number}

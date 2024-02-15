@@ -26,8 +26,8 @@ struct DummyDataDrivenResult{IP} <: DataDrivenDiffEq.AbstractDataDrivenResult
 end
 
 function CommonSolve.solve!(p::DataDrivenDiffEq.InternalDataDrivenProblem{
-                                                                          DummyDataDrivenAlgorithm
-                                                                          })
+        DummyDataDrivenAlgorithm
+})
     return DummyDataDrivenResult(p)
 end
 
@@ -35,8 +35,8 @@ prob = DirectDataDrivenProblem(x, y, p = p0)
 dummy_sol = solve(prob, b, DummyDataDrivenAlgorithm())
 internal_problem = dummy_sol.internal
 sol = DataDrivenSolution(b, prob, DataDrivenDiffEq.ZeroDataDrivenAlgorithm(),
-                         DataDrivenDiffEq.AbstractDataDrivenResult[dummy_sol],
-                         internal_problem)
+    DataDrivenDiffEq.AbstractDataDrivenResult[dummy_sol],
+    internal_problem)
 
 @test dof(sol) == 2
 @test rss(sol) == 0
@@ -59,8 +59,8 @@ prob = DirectDataDrivenProblem(x, ŷ, p = p0)
 dummy_sol = solve(prob, b, DummyDataDrivenAlgorithm())
 internal_problem = dummy_sol.internal
 sol_2 = DataDrivenSolution(b, prob, DataDrivenDiffEq.ZeroDataDrivenAlgorithm(),
-                           DataDrivenDiffEq.AbstractDataDrivenResult[dummy_sol],
-                           internal_problem)
+    DataDrivenDiffEq.AbstractDataDrivenResult[dummy_sol],
+    internal_problem)
 
 @test aic(sol_2) <= -1800.0
 @test bic(sol_2) <= -1700.0

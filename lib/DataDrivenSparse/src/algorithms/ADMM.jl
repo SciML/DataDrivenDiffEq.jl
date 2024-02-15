@@ -77,11 +77,11 @@ function init_cache(alg::ADMM, A::AbstractMatrix, B::AbstractMatrix)
     active_set!(idx, proximal, coefficients, λ / rho)
 
     return ADMMCache{fat, typeof(coefficients), typeof(idx), typeof(X), typeof(Y),
-                     typeof(rho), typeof(A), typeof(B)}(coefficients, zero(coefficients),
-                                                        idx, proximal,
-                                                        zero(coefficients),
-                                                        zero(coefficients),
-                                                        X, Y, rho, A, B)
+        typeof(rho), typeof(A), typeof(B)}(coefficients, zero(coefficients),
+        idx, proximal,
+        zero(coefficients),
+        zero(coefficients),
+        X, Y, rho, A, B)
 end
 
 # Fat regression
