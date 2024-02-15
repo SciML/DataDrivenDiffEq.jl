@@ -12,11 +12,11 @@ end
 u0 = [0.5]
 
 ode_problem = ODEProblem(michaelis_menten, u0, (0.0, 4.0));</code></pre><p>Since we have multiple trajectories at hand, we define a <a href="../../../../problems/#DataDrivenDiffEq.DataDrivenDataset"><code>DataDrivenDataset</code></a>, which collects multiple problems but handles them as a unit for the processing.</p><pre><code class="language-julia hljs">prob = DataDrivenDataset(map(1:2) do i
-                             solve(remake(ode_problem, u0 = i * u0),
-                                   Tsit5(), saveat = 0.1, tspan = (0.0, 4.0))
-                         end...)
+    solve(remake(ode_problem, u0 = i * u0),
+        Tsit5(), saveat = 0.1, tspan = (0.0, 4.0))
+end...)
 
-plot(prob)</code></pre><img src="a64e314b.svg" alt="Example block output"/><p>Next, we define our <a href="../../../../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a>. Since we want to identify an implicit system, we have to include some candidate terms which use these as an argument, and inform our constructor about the meaning of these variables.</p><pre><code class="language-julia hljs">@parameters t
+plot(prob)</code></pre><img src="9e3547bb.svg" alt="Example block output"/><p>Next, we define our <a href="../../../../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a>. Since we want to identify an implicit system, we have to include some candidate terms which use these as an argument, and inform our constructor about the meaning of these variables.</p><pre><code class="language-julia hljs">@parameters t
 @variables u(t)[1:1]
 u = collect(u)
 D = Differential(t)
@@ -33,21 +33,21 @@ Equations
 φ₁₀ = ((u(t))[1]^4)*Differential(t)((u(t))[1])</code></pre><p>Next, we define the <a href="../../sparse_regression/#DataDrivenSparse.ImplicitOptimizer"><code>ImplicitOptimizer</code></a> and <code>solve</code> the problem. It wraps a standard optimizer, by default <a href="../../sparse_regression/#DataDrivenSparse.STLSQ"><code>STLSQ</code></a>, and performs implicit sparse regression upon the selected basis.</p><pre><code class="language-julia hljs">opt = ImplicitOptimizer(1e-1:1e-1:5e-1)
 res = solve(prob, basis, opt)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;DataDrivenSolution{Float64}&quot; with 1 equations and 4 parameters.
 Returncode: Success
-Residual sum of squares: 1.631346268072317e-18</code></pre><p>Let&#39;s check the summary statistics of the solution, which show the summary of the residual sum of squares.</p><pre><code class="language-julia hljs">summarystats(res)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1-element Vector{StatsBase.SummaryStats{Float64}}:
+Residual sum of squares: 8.536944700035077e-20</code></pre><p>Let&#39;s check the summary statistics of the solution, which show the summary of the residual sum of squares.</p><pre><code class="language-julia hljs">summarystats(res)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1-element Vector{StatsBase.SummaryStats{Float64}}:
  Summary Stats:
 Length:         82
 Missing Count:  0
-Mean:           0.000000
-Minimum:        0.000000
-1st Quartile:   0.000000
-Median:         0.000000
-3rd Quartile:   0.000000
-Maximum:        0.000000
+Mean:           -0.000000
+Minimum:        -0.000000
+1st Quartile:   -0.000000
+Median:         -0.000000
+3rd Quartile:   -0.000000
+Maximum:        -0.000000
 </code></pre><p>We could also check different metrics as described in the <a href="../../../../solutions/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> section, e.g. <code>aic</code> or <code>bic</code>. As we can see, the <a href="../../../../solutions/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> has good metrics.</p><p>Furthermore, inspection of the underlying system shows that the original equations have been recovered correctly:</p><pre><code class="language-julia hljs">system = get_basis(res)
 
 plot(
     plot(prob), plot(res), layout = (1,2)
-)</code></pre><img src="20d1b831.svg" alt="Example block output"/><h2 id="michaelis_menten_copy_paste"><a class="docs-heading-anchor" href="#michaelis_menten_copy_paste">Copy-Pasteable Code</a><a id="michaelis_menten_copy_paste-1"></a><a class="docs-heading-anchor-permalink" href="#michaelis_menten_copy_paste" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDrivenDiffEq
+)</code></pre><img src="041e5c6d.svg" alt="Example block output"/><h2 id="michaelis_menten_copy_paste"><a class="docs-heading-anchor" href="#michaelis_menten_copy_paste">Copy-Pasteable Code</a><a id="michaelis_menten_copy_paste-1"></a><a class="docs-heading-anchor-permalink" href="#michaelis_menten_copy_paste" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenSparse
@@ -61,9 +61,9 @@ u0 = [0.5]
 ode_problem = ODEProblem(michaelis_menten, u0, (0.0, 4.0));
 
 prob = DataDrivenDataset(map(1:2) do i
-                             solve(remake(ode_problem, u0 = i * u0),
-                                   Tsit5(), saveat = 0.1, tspan = (0.0, 4.0))
-                         end...)
+    solve(remake(ode_problem, u0 = i * u0),
+        Tsit5(), saveat = 0.1, tspan = (0.0, 4.0))
+end...)
 
 @parameters t
 @variables u(t)[1:1]
@@ -77,4 +77,4 @@ res = solve(prob, basis, opt)
 
 summarystats(res)
 
-# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_02/">« Sparse Identification with noisy data</a><a class="docs-footer-nextpage" href="../example_04/">Implicit Nonlinear Dynamics : Autoregulation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 23 January 2024 07:17">Tuesday 23 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_02/">« Sparse Identification with noisy data</a><a class="docs-footer-nextpage" href="../example_04/">Implicit Nonlinear Dynamics : Autoregulation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 15 February 2024 00:35">Thursday 15 February 2024</span>. Using Julia version 1.10.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

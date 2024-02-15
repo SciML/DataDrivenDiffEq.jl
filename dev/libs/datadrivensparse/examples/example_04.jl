@@ -12,7 +12,9 @@ using DataDrivenSparse
     δ = 0.5
 end
 
-@variables begin x[1:2](t) = [20.0; 12.0] end
+@variables begin
+    x[1:2](t) = [20.0; 12.0]
+end
 
 x = collect(x)
 D = Differential(t)
@@ -37,7 +39,7 @@ basis = Basis(eqs, x, independent_variable = t, implicits = D.(x))
 
 sampler = DataProcessing(split = 0.8, shuffle = true, batchsize = 30)
 res = solve(dd_prob, basis, ImplicitOptimizer(STLSQ(1e-2:1e-2:1.0)),
-            options = DataDrivenCommonOptions(data_processing = sampler, digits = 2))
+    options = DataDrivenCommonOptions(data_processing = sampler, digits = 2))
 
 system = get_basis(res) #hide
 

@@ -22,11 +22,11 @@ sol = solve(prob, Tsit5(), saveat = 0.01);</code></pre><p>We add random noise to
 ts = sol.t;
 
 plot(ts, X&#39;, color = :red)
-plot!(sol, color = :black)</code></pre><img src="f126d302.svg" alt="Example block output"/><p>To estimate the system, we first create a <a href="../../../../problems/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a>, which requires measurement data. Using a <a href="../../../../utils/#collocation">collocation method</a>, it automatically provides the derivative and smoothes the trajectory. Control signals can be passed in as a function <code>(u,p,t)-&gt;control</code> or an array of measurements.</p><pre><code class="language-julia hljs">prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel(),
-                                   U = (u, p, t) -&gt; [exp(-((t - 5.0) / 5.0)^2)],
-                                   p = ones(2))
+plot!(sol, color = :black)</code></pre><img src="d1e86982.svg" alt="Example block output"/><p>To estimate the system, we first create a <a href="../../../../problems/#DataDrivenDiffEq.DataDrivenProblem"><code>DataDrivenProblem</code></a>, which requires measurement data. Using a <a href="../../../../utils/#collocation">collocation method</a>, it automatically provides the derivative and smoothes the trajectory. Control signals can be passed in as a function <code>(u,p,t)-&gt;control</code> or an array of measurements.</p><pre><code class="language-julia hljs">prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel(),
+    U = (u, p, t) -&gt; [exp(-((t - 5.0) / 5.0)^2)],
+    p = ones(2))
 
-plot(prob, size = (600,600))</code></pre><img src="77713ec5.svg" alt="Example block output"/><p>Now we infer the system structure. First we define a <a href="../../../../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> which collects all possible candidate terms. Since we want to use SINDy, we call <code>solve</code> with an <a href="../../sparse_regression/#sparse_algorithms"><code>sparsifying algorithm</code></a>, in this case <a href="../../sparse_regression/#DataDrivenSparse.STLSQ"><code>STLSQ</code></a> which iterates different sparsity thresholds and returns a Pareto optimal solution. Note that we include the control signal in the basis as an additional variable <code>c</code>.</p><pre><code class="language-julia hljs">@variables u[1:2] c[1:1]
+plot(prob, size = (600,600))</code></pre><img src="c6504234.svg" alt="Example block output"/><p>Now we infer the system structure. First we define a <a href="../../../../basis/#DataDrivenDiffEq.Basis"><code>Basis</code></a> which collects all possible candidate terms. Since we want to use SINDy, we call <code>solve</code> with an <a href="../../sparse_regression/#sparse_algorithms"><code>sparsifying algorithm</code></a>, in this case <a href="../../sparse_regression/#DataDrivenSparse.STLSQ"><code>STLSQ</code></a> which iterates different sparsity thresholds and returns a Pareto optimal solution. Note that we include the control signal in the basis as an additional variable <code>c</code>.</p><pre><code class="language-julia hljs">@variables u[1:2] c[1:1]
 @parameters w[1:2]
 u = collect(u)
 c = collect(c)
@@ -48,7 +48,7 @@ Equations
 λs = exp10.(-10:0.1:0)
 opt = STLSQ(λs)
 res = solve(prob, basis, opt,
-            options = DataDrivenCommonOptions(data_processing = sampler, digits = 1))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;DataDrivenSolution{Float64}&quot;</code></pre><div class="admonition is-info"><header class="admonition-header">Info</header><div class="admonition-body"><p>A more detailed description of the result can be printed via <code>print(res, Val{true})</code>, which also includes the discovered equations and parameter values.</p></div></div><p>Where the resulting <a href="../../../../solutions/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> stores information about the inferred model and the parameters:</p><pre><code class="language-julia hljs">system = get_basis(res)
+    options = DataDrivenCommonOptions(data_processing = sampler, digits = 1))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;DataDrivenSolution{Float64}&quot;</code></pre><div class="admonition is-info"><header class="admonition-header">Info</header><div class="admonition-body"><p>A more detailed description of the result can be printed via <code>print(res, Val{true})</code>, which also includes the discovered equations and parameter values.</p></div></div><p>Where the resulting <a href="../../../../solutions/#DataDrivenDiffEq.DataDrivenSolution"><code>DataDrivenSolution</code></a> stores information about the inferred model and the parameters:</p><pre><code class="language-julia hljs">system = get_basis(res)
 params = get_parameter_map(system)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Model ##Basis#972 with 2 equations
 States : u[1] u[2]
 Parameters : 19
@@ -59,7 +59,7 @@ Differential(t)(u[2]) = p₆ + c[1]*p₁₉ + p₁₀*u[2] + p₄*sin(u[1]*w[1])
 
 Pair{SymbolicUtils.BasicSymbolic{Real}, Float64}[w[1] =&gt; 1.0, w[2] =&gt; 1.0, p₃ =&gt; 0.9, p₄ =&gt; -8.6, p₅ =&gt; -5.8, p₆ =&gt; 9.2, p₇ =&gt; 7.6, p₈ =&gt; 1.8, p₉ =&gt; 0.1, p₁₀ =&gt; 2.8, p₁₁ =&gt; 5.3, p₁₂ =&gt; 2.8, p₁₃ =&gt; 0.5, p₁₄ =&gt; 2.7, p₁₅ =&gt; 2.5, p₁₆ =&gt; 0.7, p₁₇ =&gt; 0.6, p₁₈ =&gt; 0.5, p₁₉ =&gt; -10.3]</code></pre><p>We can see that even if there are other terms active, the most important terms are included inside the model.</p><p>And a visual check of the result can be performed by plotting the result</p><pre><code class="language-julia hljs">plot(
     plot(prob), plot(res), layout = (1,2)
-)</code></pre><img src="7390d563.svg" alt="Example block output"/><h2 id="autoregulation_copy_paste"><a class="docs-heading-anchor" href="#autoregulation_copy_paste">Copy-Pasteable Code</a><a id="autoregulation_copy_paste-1"></a><a class="docs-heading-anchor-permalink" href="#autoregulation_copy_paste" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDrivenDiffEq
+)</code></pre><img src="4504fd2a.svg" alt="Example block output"/><h2 id="autoregulation_copy_paste"><a class="docs-heading-anchor" href="#autoregulation_copy_paste">Copy-Pasteable Code</a><a id="autoregulation_copy_paste-1"></a><a class="docs-heading-anchor-permalink" href="#autoregulation_copy_paste" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenSparse
@@ -82,8 +82,8 @@ X = sol[:, :] + 0.2 .* randn(rng, size(sol));
 ts = sol.t;
 
 prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel(),
-                                   U = (u, p, t) -&gt; [exp(-((t - 5.0) / 5.0)^2)],
-                                   p = ones(2))
+    U = (u, p, t) -&gt; [exp(-((t - 5.0) / 5.0)^2)],
+    p = ones(2))
 
 @variables u[1:2] c[1:1]
 @parameters w[1:2]
@@ -100,11 +100,11 @@ sampler = DataProcessing(split = 0.8, shuffle = true, batchsize = 30, rng = rng)
 λs = exp10.(-10:0.1:0)
 opt = STLSQ(λs)
 res = solve(prob, basis, opt,
-            options = DataDrivenCommonOptions(data_processing = sampler, digits = 1))
+    options = DataDrivenCommonOptions(data_processing = sampler, digits = 1))
 
 system = get_basis(res)
 params = get_parameter_map(system)
 println(system) # hide
 println(params) # hide
 
-# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_01/">« Getting Started</a><a class="docs-footer-nextpage" href="../example_03/">Implicit Nonlinear Dynamics : Michaelis-Menten »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 23 January 2024 07:17">Tuesday 23 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_01/">« Getting Started</a><a class="docs-footer-nextpage" href="../example_03/">Implicit Nonlinear Dynamics : Michaelis-Menten »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 15 February 2024 00:35">Thursday 15 February 2024</span>. Using Julia version 1.10.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

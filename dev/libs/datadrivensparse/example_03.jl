@@ -24,9 +24,9 @@ ode_problem = ODEProblem(michaelis_menten, u0, (0.0, 4.0));
 # for the processing.
 
 prob = DataDrivenDataset(map(1:2) do i
-                             solve(remake(ode_problem, u0 = i * u0),
-                                   Tsit5(), saveat = 0.1, tspan = (0.0, 4.0))
-                         end...)
+    solve(remake(ode_problem, u0 = i * u0),
+        Tsit5(), saveat = 0.1, tspan = (0.0, 4.0))
+end...)
 
 #md plot(prob)
 

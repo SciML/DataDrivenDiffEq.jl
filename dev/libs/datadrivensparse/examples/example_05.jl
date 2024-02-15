@@ -29,7 +29,7 @@ end
 t = solution.t
 
 ddprob = ContinuousDataDrivenProblem(X, t, DX = DX[3:4, :],
-                                     U = (u, p, t) -> [-0.2 + 0.5 * sin(6 * t)])
+    U = (u, p, t) -> [-0.2 + 0.5 * sin(6 * t)])
 
 @parameters t
 @variables u[1:4] du[1:2] x[1:1]

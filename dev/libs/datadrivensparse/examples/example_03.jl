@@ -12,9 +12,9 @@ u0 = [0.5]
 ode_problem = ODEProblem(michaelis_menten, u0, (0.0, 4.0));
 
 prob = DataDrivenDataset(map(1:2) do i
-                             solve(remake(ode_problem, u0 = i * u0),
-                                   Tsit5(), saveat = 0.1, tspan = (0.0, 4.0))
-                         end...)
+    solve(remake(ode_problem, u0 = i * u0),
+        Tsit5(), saveat = 0.1, tspan = (0.0, 4.0))
+end...)
 
 @parameters t
 @variables u(t)[1:1]

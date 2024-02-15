@@ -21,8 +21,8 @@ X = sol[:, :] + 0.2 .* randn(rng, size(sol));
 ts = sol.t;
 
 prob = ContinuousDataDrivenProblem(X, ts, GaussianKernel(),
-                                   U = (u, p, t) -> [exp(-((t - 5.0) / 5.0)^2)],
-                                   p = ones(2))
+    U = (u, p, t) -> [exp(-((t - 5.0) / 5.0)^2)],
+    p = ones(2))
 
 @variables u[1:2] c[1:1]
 @parameters w[1:2]
@@ -39,7 +39,7 @@ sampler = DataProcessing(split = 0.8, shuffle = true, batchsize = 30, rng = rng)
 λs = exp10.(-10:0.1:0)
 opt = STLSQ(λs)
 res = solve(prob, basis, opt,
-            options = DataDrivenCommonOptions(data_processing = sampler, digits = 1))
+    options = DataDrivenCommonOptions(data_processing = sampler, digits = 1))
 
 system = get_basis(res)
 params = get_parameter_map(system)
