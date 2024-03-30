@@ -53,7 +53,7 @@ struct Basis{IMPL, CTRLS} <: AbstractBasis
     """The equations of the basis"""
     eqs::Vector{Equation}
     """Dependent (state) variables"""
-    states::Vector
+    unknowns::Vector
     """Control variables"""
     ctrls::Vector
     """Parameters"""
@@ -168,7 +168,7 @@ end
 ## Printing
 
 @inline function Base.print(io::IO, x::AbstractBasis)
-    state = states(x)
+    state = unknowns(x)
     ps = parameters(x)
     Base.printstyled(io, "Model $(nameof(x)) with $(length(x)) equations\n"; bold = true)
     print(io, "States :")
@@ -207,7 +207,7 @@ end
 @inline function Base.print(io::IO, x::AbstractBasis, fullview::Bool)
     !fullview && return print(io, x)
 
-    state = states(x)
+    state = unknowns(x)
     ps = parameters(x)
     Base.printstyled(io, "Model $(nameof(x)) with $(length(x)) equations\n"; bold = true)
     print(io, "States :")
@@ -257,6 +257,10 @@ Return the implicit variables of the basis.
 """
 function implicit_variables(b::AbstractBasis)
     return getfield(b, :implicit)
+end
+
+function states(b::AbstractBasis)
+    return getfield(b, :unknowns)
 end
 
 # For internal use
@@ -380,7 +384,7 @@ Base.iterate(x::B, id) where {B <: AbstractBasis} = iterate(equations(x), id)
 ## Internal update
 function __update!(b::AbstractBasis, eval_expression = false)
     ff = DataDrivenFunction([bi.rhs for bi in collect(equations(b))],
-        implicit_variables(b), states(b), parameters(b), [get_iv(b)],
+        implicit_variables(b), unknowns(b), parameters(b), [get_iv(b)],
         controls(b), eval_expression)
     @set! b.f = ff
     return
@@ -403,13 +407,14 @@ If control variables are defined, the function can also be called by `f(u,p,t,co
 
 If the Jacobian with respect to other variables is needed, it can be passed via a second argument.
 """
-jacobian(x::Basis, eval_expression::Bool = false) = jacobian(x, states(x), eval_expression)
+jacobian(x::Basis, eval_expression::Bool = false) = jacobian(
+    x, unknowns(x), eval_expression)
 
 function jacobian(x::Basis, s, eval_expression::Bool = false)
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], s)
 
     return DataDrivenFunction(j,
-        implicit_variables(x), states(x), parameters(x), [get_iv(x)],
+        implicit_variables(x), unknowns(x), parameters(x), [get_iv(x)],
         controls(x), eval_expression)
 end
 
@@ -481,7 +486,7 @@ end
 
 function Base.merge!(x::Basis, y::Basis; eval_expression = false)
     push!(x, equations(y))
-    @set! x.states = unique(vcat(states(x), states(y)))
+    @set! x.unknowns = unique(vcat(unknowns(x), unknowns(y)))
     @set! x.ps = unique(vcat(parameters(x), parameters(y)))
     @set! x.ctrls = unique(vcat(controls(x), controls(y)))
     @set! x.observed = unique(vcat(get_observed(x), get_observed(y)))

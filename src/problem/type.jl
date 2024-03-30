@@ -287,7 +287,7 @@ get_name(p::AbstractDataDrivenProblem) = getfield(p, :name)
 
 ## Utils
 
-function ModelingToolkit.states(p::AbstractDataDrivenProblem, i = :, j = :)
+function states(p::AbstractDataDrivenProblem, i = :, j = :)
     x = getfield(p, :X)
     isempty(x) ? x : getindex(x, i, j)
 end
