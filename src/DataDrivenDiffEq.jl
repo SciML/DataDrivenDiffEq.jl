@@ -17,7 +17,7 @@ using ModelingToolkit: AbstractSystem
 using SymbolicUtils: operation, arguments, istree, issym
 using Symbolics
 using Symbolics: scalarize, variable, value
-@reexport using ModelingToolkit: states, parameters, independent_variable, observed,
+@reexport using ModelingToolkit: unknowns, parameters, independent_variable, observed,
                                  controls, get_iv, get_observed
 
 using Random
@@ -97,7 +97,7 @@ include("./basis/utils.jl")
 include("./basis/type.jl")
 export Basis
 export jacobian, dynamics
-export implicit_variables
+export implicit_variables, states
 export get_parameter_values, get_parameter_map
 
 include("./utils/basis_generators.jl")
