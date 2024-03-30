@@ -40,7 +40,7 @@ Statistics = "1"
 StatsBase = "0.32.0, 0.33, 0.34"
 SymbolicUtils = "1"
 Symbolics = "5"
-julia = "1.6"
+julia = "1.10"
 
 [extras]
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
