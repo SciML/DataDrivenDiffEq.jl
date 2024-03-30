@@ -407,7 +407,8 @@ If control variables are defined, the function can also be called by `f(u,p,t,co
 
 If the Jacobian with respect to other variables is needed, it can be passed via a second argument.
 """
-jacobian(x::Basis, eval_expression::Bool = false) = jacobian(x, unknowns(x), eval_expression)
+jacobian(x::Basis, eval_expression::Bool = false) = jacobian(
+    x, unknowns(x), eval_expression)
 
 function jacobian(x::Basis, s, eval_expression::Bool = false)
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], s)
