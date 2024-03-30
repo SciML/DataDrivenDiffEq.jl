@@ -260,7 +260,7 @@ function implicit_variables(b::AbstractBasis)
 end
 
 function states(b::AbstractBasis)
-    return getfield(b, :states)
+    return getfield(b, :unknowns)
 end
 
 # For internal use
