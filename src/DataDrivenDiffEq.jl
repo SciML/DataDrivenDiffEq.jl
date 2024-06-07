@@ -14,7 +14,7 @@ using Setfield
 
 @reexport using ModelingToolkit
 using ModelingToolkit: AbstractSystem
-using SymbolicUtils: operation, arguments, istree, issym
+using SymbolicUtils: operation, arguments, iscall, issym
 using Symbolics
 using Symbolics: scalarize, variable, value
 @reexport using ModelingToolkit: unknowns, parameters, independent_variable, observed,

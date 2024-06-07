@@ -39,7 +39,7 @@ function count_operation(x::AbstractArray, ops::AbstractArray, nested::Bool = tr
 end
 
 function split_term!(x::AbstractArray, o, ops::AbstractArray = [+])
-    if istree(o)
+    if iscall(o)
         n_ops = count_operation(o, ops, false)
         c_ops = 0
         @views begin
@@ -69,7 +69,7 @@ remove_constant_factor(x::Number) = one(x)
 
 function remove_constant_factor(x)
     # Return, if the function is nested
-    istree(x) || return x
+    iscall(x) || return x
     # Count the number of operations
     n_ops = count_operation(x, [*], false) + 1
     # Create a new array

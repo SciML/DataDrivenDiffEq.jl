@@ -108,7 +108,7 @@ function collect_numerical_parameters(eq, options = DataDrivenCommonOptions())
 end
 
 function _collect_numerical_parameters!(ps::AbstractVector, eq, options)
-    if Symbolics.istree(eq)
+    if Symbolics.iscall(eq)
         args_ = map(Symbolics.arguments(eq)) do (eqi)
             _collect_numerical_parameters!(ps, eqi, options)
         end
