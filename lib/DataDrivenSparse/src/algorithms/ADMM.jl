@@ -22,7 +22,7 @@ mutable struct ADMM{T, R <: Number} <: AbstractSparseRegressionAlgorithm
 
     function ADMM(threshold::T = 1e-1, ρ::R = 1.0) where {T, R}
         @assert all(threshold .> zero(eltype(threshold))) "Threshold must be positive definite"
-        @assert zero(R)<ρ "Augemented lagrangian parameter should be positive definite"
+        @assert zero(R)<ρ "Augmented Lagrangian parameter should be positive definite"
         return new{T, R}(threshold, ρ)
     end
 end

@@ -71,7 +71,7 @@ function __sparse_regression(ps::InternalDataDrivenProblem{<:ImplicitOptimizer},
     opt_iterations = []
 
     foreach(enumerate(eachcol(candidate_matrix))) do (i, idx)
-        # We enforce that one of the implicit variables is necessary for sucess
+        # We enforce that one of the implicit variables is necessary for success
         coeff, thresholds, iters = alg(X[idx, :], Y, options = options,
             necessary_idx = implicit_idx[idx, i])
         opt_coefficients[i:i, idx] .= coeff

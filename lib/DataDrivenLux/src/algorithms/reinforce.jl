@@ -40,7 +40,7 @@ $(FIELDS)
     optim_options::Optim.Options = Optim.Options()
     "Observed model - if `nothing`is used, a normal distributed additive error with fixed variance is assumed."
     observed::Union{ObservedModel, Nothing} = nothing
-    "AD Backendend"
+    "AD Backend"
     ad_backend::AD.AbstractBackend = AD.ForwardDiffBackend()
     "Optimiser"
     optimiser::Optimisers.AbstractRule = ADAM()

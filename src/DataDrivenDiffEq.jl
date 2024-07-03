@@ -44,7 +44,7 @@ using RecipesBase
 @enum DDProbType begin
     Direct = 1 # Direct problem without further information
     Discrete = 2 # Time discrete problem
-    Continuous = 3 # Time continous problem
+    Continuous = 3 # Time continuous problem
 end
 
 # We want to export the ReturnCodes
