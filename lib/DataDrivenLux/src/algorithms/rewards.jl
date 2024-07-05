@@ -19,7 +19,7 @@ end
 """
 $(TYPEDEF)
 
-Scales the losses in such a way that the minimum loss is the most influencial reward.
+Scales the losses in such a way that the minimum loss is the most influential reward.
 """
 struct AbsoluteReward{risk} <: AbstractRewardScale{risk} end
 

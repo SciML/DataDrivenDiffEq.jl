@@ -15,7 +15,7 @@ same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
 """
 struct Koopman{T, B <: AbstractBasis, K, DISCRETE} <: AbstractKoopman
-    """The basis of observeables"""
+    """The basis of observables"""
     basis::B
     """The operator/generator of the dynamics"""
     K::K
