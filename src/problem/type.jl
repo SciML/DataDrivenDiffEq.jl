@@ -334,7 +334,7 @@ function Base.getindex(p::AbstractDataDrivenProblem, i = :, j = :)
 end
 
 function (b::Basis{<:Any, <:Any})(p::AbstractDataDrivenProblem{<:Any, <:Any, <:Any})
-    @unpack f = b
+    f = ModelingToolkit.get_f(b)
     _apply_vec_function(f, get_implicit_data(p), get_oop_args(p)...)
 end
 
