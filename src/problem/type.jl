@@ -340,7 +340,7 @@ end
 
 function (b::Basis{<:Any, <:Any})(res::AbstractMatrix,
         p::AbstractDataDrivenProblem{<:Any, <:Any, <:Any})
-    @unpack f = b
+    getfield(b, :f)
     _apply_vec_function!(f, res, get_implicit_data(p), get_oop_args(p)...)
 end
 
