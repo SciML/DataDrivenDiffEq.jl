@@ -147,7 +147,7 @@ function ParameterDistribution(
     upper_t = isinf(upper) ? TransformVariables.∞ : upper
     transform = as(Real, lower_t, upper_t)
     init = convert.(T, TransformVariables.inverse(transform, init))
-    return ParameterDistribution(d, Interval(lower, upper), transform, init)
+    return ParameterDistribution(d, interval(lower, upper), transform, init)
 end
 
 function Base.summary(io::IO, p::ParameterDistribution)

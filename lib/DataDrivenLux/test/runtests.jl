@@ -10,35 +10,20 @@ const GROUP = get(ENV, "GROUP", "All")
 @time begin
     if GROUP == "All" || GROUP == "DataDrivenLux"
         @safetestset "Lux" begin
-            @safetestset "Nodes" begin
-                include("./nodes.jl")
-            end
-            @safetestset "Layers" begin
-                include("./layers.jl")
-            end
-            @safetestset "Graphs" begin
-                include("./graphs.jl")
-            end
+            @safetestset "Nodes" include("nodes.jl")
+            @safetestset "Layers" include("layers.jl")
+            @safetestset "Graphs" include("graphs.jl")
         end
 
         @safetestset "Caches" begin
-            @safetestset "Candidate" begin
-                include("./candidate.jl")
-            end
-            @safetestset "Cache" begin
-                include("./cache.jl")
-            end
+            @safetestset "Candidate" include("candidate.jl")  # FIXME
+            @safetestset "Cache" include("cache.jl")
         end
+
         @safetestset "Algorithms" begin
-            @safetestset "RandomSearch" begin
-                include("./randomsearch_solve.jl")
-            end
-            @safetestset "Reinforce" begin
-                include("./reinforce_solve.jl")
-            end
-            @safetestset "CrossEntropy" begin
-                include("./crossentropy_solve.jl")
-            end
+            @safetestset "RandomSearch" include("randomsearch_solve.jl")  # FIXME
+            @safetestset "Reinforce" include("reinforce_solve.jl")  # FIXME
+            @safetestset "CrossEntropy" include("crossentropy_solve.jl")  # FIXME
         end
     end
 end

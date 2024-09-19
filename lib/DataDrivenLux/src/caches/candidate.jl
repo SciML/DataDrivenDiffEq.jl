@@ -22,17 +22,16 @@ StatsBase.nullloglikelihood(stats::PathStatistics) = getfield(stats, :nullloglik
 StatsBase.dof(stats::PathStatistics) = getfield(stats, :dof)
 StatsBase.r2(c::PathStatistics) = r2(c, :CoxSnell)
 
-struct ComponentModel{B, M}
-    basis::B
-    model::M
+@concrete struct ComponentModel
+    basis
+    model
 end
 
-function (c::ComponentModel)(dataset::Dataset{T}, ps, st::NamedTuple{fieldnames},
-        p::AbstractVector{T}) where {T, fieldnames}
+function (c::ComponentModel)(dataset::Dataset{T}, ps, st::NamedTuple,
+        p::AbstractVector{T}) where {T}
     return first(c.model(c.basis(dataset, p), ps, st))
 end
-function (c::ComponentModel)(ps, st::NamedTuple{fieldnames},
-        paths::Vector{<:AbstractPathState}) where {fieldnames}
+function (c::ComponentModel)(ps, st::NamedTuple, paths::Vector{<:AbstractPathState})
     return get_loglikelihood(c.model, ps, st, paths)
 end
 
@@ -45,29 +44,29 @@ to the symbolic regression problem.
 # Fields
 $(FIELDS)
 """
-struct Candidate{S <: NamedTuple} <: StatsBase.StatisticalModel
+@concrete struct Candidate <: StatsBase.StatisticalModel
     "Random seed"
-    rng::AbstractRNG
+    rng <: AbstractRNG
     "The current state"
-    st::S
+    st <: NamedTuple
     "The current parameters"
-    ps::AbstractVector
+    ps <: AbstractVector
     "Incoming paths"
-    incoming_path::Vector{AbstractPathState}
+    incoming_path <: Vector{<:AbstractPathState}
     "Outgoing path"
-    outgoing_path::Vector{AbstractPathState}
+    outgoing_path <: Vector{<:AbstractPathState}
     "Statistics"
-    statistics::PathStatistics
+    statistics <: PathStatistics
     "The observed model"
-    observed::ObservedModel
+    observed <: ObservedModel
     "The parameter distribution"
-    parameterdist::ParameterDistributions
+    parameterdist <: ParameterDistributions
     "The optimal scales"
-    scales::AbstractVector
+    scales <: AbstractVector
     "The optimal parameters"
-    parameters::AbstractVector
+    parameters <: AbstractVector
     "The component model"
-    model::ComponentModel
+    model <: ComponentModel
 end
 
 function (c::Candidate)(dataset::Dataset{T}, ps = c.ps, p = c.parameters) where {T}
@@ -89,12 +88,9 @@ StatsBase.r2(c::Candidate) = r2(c, :CoxSnell)
 get_parameters(c::Candidate) = transform_parameter(c.parameterdist, c.parameters)
 get_scales(c::Candidate) = transform_scales(c.observed, c.scales)
 
-function Candidate(rng, model, basis, dataset; observed = ObservedModel(dataset.y),
-        parameterdist = ParameterDistributions(basis), ptype = Float32)
-    (; y, x) = dataset
-
-    T = eltype(dataset)
-
+function Candidate(
+        rng, model, basis, dataset::Dataset{T}; observed = ObservedModel(dataset.y),
+        parameterdist = ParameterDistributions(basis), ptype = Float32) where {T}
     # Create the initial state and path
     dataset_intervals = interval_eval(basis, dataset, get_interval(parameterdist))
 
@@ -110,21 +106,21 @@ function Candidate(rng, model, basis, dataset; observed = ObservedModel(dataset.
 
     ŷ, _ = model(basis(dataset, transform_parameter(parameterdist, parameters)), ps, st)
 
-    lls = logpdf(observed, y, ŷ, scales)
+    lls = logpdf(observed, dataset.y, ŷ, scales)
     lls += logpdf(parameterdist, parameters)
 
-    rss = sum(abs2, y .- ŷ)
+    rss = sum(abs2, dataset.y .- ŷ)
     dof_ = get_dof(outgoing_path)
 
-    ȳ = vec(mean(y, dims = 2))
+    ȳ = vec(mean(dataset.y; dims = 2))
 
-    null_ll = logpdf(observed, y, ȳ, scales) + logpdf(parameterdist, parameters)
+    null_ll = logpdf(observed, dataset.y, ȳ, scales) + logpdf(parameterdist, parameters)
 
-    stats = PathStatistics(rss, lls, null_ll, dof_, prod(size(y)))
+    stats = PathStatistics(rss, lls, null_ll, dof_, prod(size(dataset.y)))
 
-    return Candidate{typeof(st)}(
-        Lux.replicate(rng), st, ComponentVector(ps), incoming_path, outgoing_path, stats,
-        observed, parameterdist, scales, parameters, ComponentModel(basis, model))
+    return Candidate(Lux.replicate(rng), st, ComponentVector(ps), incoming_path,
+        outgoing_path, stats, observed, parameterdist, scales, parameters,
+        ComponentModel(basis, model))
 end
 
 function update_values!(c::Candidate, ps, dataset)
@@ -136,7 +132,7 @@ function update_values!(c::Candidate, ps, dataset)
     dataloglikelihood = logpdf(observed, y, ŷ, scales) + logpdf(parameterdist, parameters)
     rss = sum(abs2, y .- ŷ)
     dof = get_dof(outgoing_path)
-    ȳ = vec(mean(y, dims = 2))
+    ȳ = vec(mean(y; dims = 2))
     nullloglikelihood = logpdf(observed, y, ȳ, scales) + logpdf(parameterdist, parameters)
     update_stats!(statistics, rss, dataloglikelihood, nullloglikelihood, dof)
     return
@@ -144,26 +140,16 @@ end
 
 @views function Distributions.logpdf(
         c::Candidate, p::ComponentVector, dataset::Dataset{T}, ps = c.ps) where {T}
-    (; observed, parameterdist) = c
-    (; scales, parameters) = p
-    (; y) = dataset
-
-    ŷ = c(dataset, ps, parameters)
-    return logpdf(c, p, y, ŷ)
+    ŷ = c(dataset, ps, p.parameters)
+    return logpdf(c, p, dataset.y, ŷ)
 end
 
 function Distributions.logpdf(c::Candidate, p::AbstractVector, y::AbstractMatrix{T},
         ŷ::AbstractMatrix{T}) where {T}
-    (; scales, parameters) = p
-    (; observed, parameterdist) = c
-
-    return logpdf(observed, y, ŷ, scales) + logpdf(parameterdist, parameters)
+    return logpdf(c.observed, y, ŷ, p.scales) + logpdf(c.parameterdist, p.parameters)
 end
 
-function initial_values(c::Candidate)
-    (; scales, parameters) = c
-    return ComponentVector((; scales = scales, parameters = parameters))
-end
+initial_values(c::Candidate) = ComponentVector(; c.scales, c.parameters)
 
 function optimize_candidate!(
         c::Candidate, dataset::Dataset{T}, ps = c.ps; optimizer = Optim.LBFGS(),
@@ -195,16 +181,10 @@ function optimize_candidate!(
     return
 end
 
-function check_intervals(paths::AbstractArray{<:AbstractPathState})::Bool
-    @inbounds for path in paths
-        check_intervals(path) || return false
-    end
-    return true
-end
+check_intervals(paths::AbstractArray{<:AbstractPathState}) = all(check_intervals, paths)
 
 function sample(c::Candidate, ps, i = 0, max_sample = 10)
-    (; incoming_path, st) = c
-    return sample(c.model.model, incoming_path, ps, st, i, max_sample)
+    return sample(c.model.model, c.incoming_path, ps, c.st, i, max_sample)
 end
 
 function sample(model, incoming, ps, st, i = 0, max_sample = 10)

@@ -1,12 +1,21 @@
 abstract type AbstractPathState end
 
-@concrete struct PathState{T} <: AbstractPathState
+struct PathState{T, PO <: Tuple, PI <: Tuple} <: AbstractPathState
     "Accumulated loglikelihood of the state"
     path_interval::Interval{T}
     "All the operators of the path"
-    path_operators <: Tuple
+    path_operators::PO
     "The unique identifier of nodes in the path"
-    path_ids <: Tuple
+    path_ids::PI
+
+    function PathState{T}(
+            interval::Interval{T}, path_operators::PO, path_ids::PI) where {T, PO, PI}
+        return new{T, PO, PI}(interval, path_operators, path_ids)
+    end
+    function PathState{T}(
+            interval::Interval, path_operators::PO, path_ids::PI) where {T, PO, PI}
+        return new{T, PO, PI}(Interval{T}(interval), path_operators, path_ids)
+    end
 end
 
 function PathState(interval::Interval{T}, id::Tuple{Int, Int} = (1, 1)) where {T}

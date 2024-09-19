@@ -9,10 +9,7 @@ struct SearchCache{ALG, PTYPE, O} <: AbstractAlgorithmCache
     optimiser_state::O
 end
 
-function Base.show(io::IO, cache::SearchCache)
-    print(io, "SearchCache : $(cache.alg)")
-    return
-end
+Base.show(io::IO, cache::SearchCache) = print(io, "SearchCache : $(cache.alg)")
 
 function init_model(x::AbstractDAGSRAlgorithm, basis::Basis, dataset::Dataset, intervals)
     (; simplex, n_layers, arities, functions, use_protected, skip) = x
@@ -116,7 +113,7 @@ function update_cache!(cache::SearchCache)
         sortperm!(cache.sorting, cache.candidates, by = loss)
         permute!(cache.candidates, cache.sorting)
         loss_quantile = quantile(losses, keep, sorted = true)
-        cache.keeps .= (losses .<= loss_quantile)
+        @. cache.keeps = losses ≤ loss_quantile
     end
 
     return
@@ -158,7 +155,6 @@ function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(2)}, p = cache.p
 end
 
 # Distributed
-
 function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(3)}, p = cache.p)
     (; optimizer, optim_options) = cache.alg
 
@@ -176,4 +172,4 @@ function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(3)}, p = cache.p
     return
 end
 
-function convert_to_basis(cache::SearchCache) end
+function convert_to_basis(::SearchCache) end

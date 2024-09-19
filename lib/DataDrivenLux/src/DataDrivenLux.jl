@@ -13,6 +13,7 @@ using CommonSolve: CommonSolve, solve!
 using ConcreteStructs: @concrete
 using Setfield: Setfield, @set!
 
+# TODO: Get rid of Optim and Optimisers in favor of Optimization.jl
 using Optim: Optim, LBFGS
 using Optimisers: Optimisers, ADAM
 
@@ -64,17 +65,20 @@ export AdditiveError, MultiplicativeError
 export ObservedModel
 
 # Simplex
-include("./lux/simplex.jl")
+include("lux/simplex.jl")
 export Softmax, GumbelSoftmax, DirectSimplex
 
 # Nodes and Layers
-include("./lux/path_state.jl")
+include("lux/path_state.jl")
 export PathState
-include("./lux/node.jl")
+
+include("lux/node.jl")
 export FunctionNode
-include("./lux/layer.jl")
+
+include("lux/layer.jl")
 export FunctionLayer
-include("./lux/graph.jl")
+
+include("lux/graph.jl")
 export LayeredDAG
 
 include("caches/dataset.jl")
