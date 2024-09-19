@@ -7,8 +7,9 @@ It accumulates all outputs of the nodes.
 # Fields
 $(FIELDS)
 """
-struct FunctionLayer{skip, T, output_dimension} <: AbstractLuxWrapperLayer{:nodes}
-    nodes::T
+@concrete struct FunctionLayer <: AbstractLuxWrapperLayer{:nodes}
+    nodes
+    skip
 end
 
 function FunctionLayer(
@@ -17,40 +18,29 @@ function FunctionLayer(
     nodes = map(eachindex(arities)) do i
         # We check if we have an inverse here
         return FunctionNode(fs[i], arities[i], in_dimension, (id_offset, i);
-            input_functions = input_functions, kwargs...)
+            input_functions, kwargs...)
     end
-
-    output_dimension = length(arities)
-    output_dimension += skip ? in_dimension : 0
-
-    names = map(gensym ∘ string, fs)
-    nodes = NamedTuple{names}(nodes)
-    return FunctionLayer{skip, typeof(nodes), output_dimension}(nodes)
+    inner_model = Lux.Chain(Lux.BranchLayer(nodes...), Lux.WrappedFunction(splat(vcat)))
+    return FunctionLayer(
+        skip ? Lux.Parallel(vcat, inner_model, Lux.NoOpLayer()) : inner_model, skip)
 end
-
-function (r::FunctionLayer)(x, ps, st)
-    return _apply_layer(r.nodes, x, ps, st)
-end
-
-function (r::FunctionLayer{true})(x, ps, st)
-    y, st = _apply_layer(r.nodes, x, ps, st)
-    return vcat(y, x), st
-end
-
-Base.keys(m::FunctionLayer) = Base.keys(getfield(m, :nodes))
-
-Base.getindex(c::FunctionLayer, i::Int) = c.nodes[i]
-
-Base.length(c::FunctionLayer) = length(c.nodes)
-Base.lastindex(c::FunctionLayer) = lastindex(c.nodes)
-Base.firstindex(c::FunctionLayer) = firstindex(c.nodes)
 
 function get_loglikelihood(r::FunctionLayer, ps, st)
-    return _get_layer_loglikelihood(r.nodes, ps, st)
+    if r.skip
+        return _get_layer_loglikelihood(
+            r.nodes.layers[1].layers[1].layers, ps.layer_1.layer_1, st.layer_1.layer_1)
+    else
+        return _get_layer_loglikelihood(r.nodes.layers[1].layers, ps.layer_1, st.layer_1)
+    end
 end
 
 function get_configuration(r::FunctionLayer, ps, st)
-    return _get_configuration(r.nodes, ps, st)
+    if r.skip
+        return _get_configuration(
+            r.nodes.layers[1].layers[1].layers, ps.layer_1.layer_1, st.layer_1.layer_1)
+    else
+        return _get_configuration(r.nodes.layers[1].layers, ps.layer_1, st.layer_1)
+    end
 end
 
 @generated function _get_layer_loglikelihood(
@@ -70,17 +60,5 @@ end
     calls = [:($(st_symbols[i]) = get_configuration(
                  layers.$(fields[i]), ps.$(fields[i]), st.$(fields[i]))) for i in 1:N]
     push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
-    return Expr(:block, calls...)
-end
-
-@generated function _apply_layer(
-        layers::NamedTuple{fields}, x, ps, st::NamedTuple{fields}) where {fields}
-    N = length(fields)
-    y_symbols = vcat([gensym() for _ in 1:N])
-    st_symbols = [gensym() for _ in 1:N]
-    calls = [:(($(y_symbols[i]), $(st_symbols[i])) = Lux.apply(
-                 layers.$(fields[i]), x, ps.$(fields[i]), st.$(fields[i]))) for i in 1:N]
-    push!(calls, :(st = NamedTuple{$fields}(($(Tuple(st_symbols)...),))))
-    push!(calls, :(return vcat($(y_symbols...)), st))
     return Expr(:block, calls...)
 end

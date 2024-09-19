@@ -16,7 +16,6 @@ X = randn(1, 10)
 
 @testset "Single Layer" begin
     dag = LayeredDAG(1, 2, 1, arities, fs)
-    @test length(dag) == 2
     rng = StableRNG(33)
     ps, st = Lux.setup(rng, dag)
     out_state, new_st = dag(states, ps, st)
@@ -30,7 +29,6 @@ end
 
 @testset "Two Layer Skip" begin
     dag = LayeredDAG(1, 2, 2, arities, fs, skip = true)
-    @test length(dag) == 3
     rng = StableRNG(11)
     ps, st = Lux.setup(rng, dag)
     ps = ComponentVector(ps)

@@ -52,18 +52,18 @@ function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int,
             Tuple(identity for i in 1:out_dimension); skip = false,
             input_functions = input_functions, id_offset = n_layers + 1, kwargs...))
 
-    return Lux.Chain(layers...)
+    return LayeredDAG(Lux.Chain(layers...))
 end
 
-function get_loglikelihood(c::Lux.Chain, ps, st)
-    return _get_layer_loglikelihood(c.layers, ps, st)
+function get_loglikelihood(c::LayeredDAG, ps, st)
+    return _get_layer_loglikelihood(c.layers.layers, ps, st)
 end
 
-function get_configuration(c::Lux.Chain, ps, st)
-    return _get_configuration(c.layers, ps, st)
+function get_configuration(c::LayeredDAG, ps, st)
+    return _get_configuration(c.layers.layers, ps, st)
 end
 
-function get_loglikelihood(c::Lux.Chain, ps, st, paths::Vector{<:AbstractPathState})
+function get_loglikelihood(c::LayeredDAG, ps, st, paths::Vector{<:AbstractPathState})
     lls = get_loglikelihood(c, ps, st)
     sum(map(paths) do path
         nodes = get_nodes(path)

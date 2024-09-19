@@ -49,7 +49,7 @@ function FunctionNode(f::F, arity::Int, input_dimension::Int,
                                                  to input_mask"
 
     internal_node = InternalFunctionNode{id}(f, arity, input_dimension, simplex, input_mask)
-    node = skip ? Lux.Parallel(vcat, internal_node, Lux, NoOpLayer()) : internal_node
+    node = skip ? Lux.Parallel(vcat, internal_node, Lux.NoOpLayer()) : internal_node
     return FunctionNode(node)
 end
 
@@ -78,13 +78,13 @@ end
 end
 
 function (l::InternalFunctionNode)(x::AbstractMatrix, ps, st)
-    return mapreduce(hcat, eachcol(x)) do xi
-        return LuxCore.apply(l, xi, ps, st)
-    end
+    m = Lux.StatefulLuxLayer{true}(l, ps, st)
+    z = map(m, eachcol(x))
+    return reduce(hcat, z), m.st
 end
 
 function (l::InternalFunctionNode)(x::AbstractVector, ps, st)
-    return l.f(get_masked_inputs(l, x, ps, st)...)
+    return l.f(get_masked_inputs(l, x, ps, st)...), st
 end
 
 function (l::InternalFunctionNode)(x::AbstractVector{<:AbstractPathState}, ps, st)
