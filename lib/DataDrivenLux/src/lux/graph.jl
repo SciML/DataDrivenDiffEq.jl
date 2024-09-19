@@ -13,14 +13,13 @@ end
 
 function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int,
         fs::Vector{Pair{Function, Int}}; kwargs...)
-    return LayeredDAG(in_dimension, out_dimension, n_layers, tuple(last.(fs)...),
-        tuple(first.(fs)...); kwargs...)
+    return LayeredDAG(in_dimension, out_dimension, n_layers,
+        tuple(last.(fs)...), tuple(first.(fs)...); kwargs...)
 end
 
-function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, arities::Tuple,
-        fs::Tuple; skip = false, eltype::Type{T} = Float32,
-        input_functions = Any[identity for i in 1:in_dimension],
-        kwargs...) where {T}
+function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int,
+        arities::Tuple, fs::Tuple; skip = false, eltype::Type{T} = Float32,
+        input_functions = Any[identity for i in 1:in_dimension], kwargs...) where {T}
     n_inputs = in_dimension
 
     input_functions = copy(input_functions)
@@ -33,9 +32,8 @@ function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, aritie
 
         valid_idxs .= (arities .<= n_inputs)
 
-        layer = FunctionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs];
-            skip = skip, id_offset = i, input_functions = input_functions,
-            kwargs...)
+        layer = FunctionLayer(n_inputs, arities[valid_idxs], fs[valid_idxs]; skip = skip,
+            id_offset = i, input_functions = input_functions, kwargs...)
 
         if skip
             n_inputs = n_inputs + sum(valid_idxs)
@@ -46,24 +44,23 @@ function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int, aritie
 
         pushfirst!(input_functions, fs[valid_idxs]...)
 
-        push!(layers, layer)
+        return push!(layers, layer)
     end
     # The last layer is a decision node which uses an identity
     push!(layers,
         FunctionLayer(n_inputs, Tuple(1 for i in 1:out_dimension),
-            Tuple(identity for i in 1:out_dimension);
-            skip = false, input_functions = input_functions,
-            id_offset = n_layers + 1, kwargs...))
+            Tuple(identity for i in 1:out_dimension); skip = false,
+            input_functions = input_functions, id_offset = n_layers + 1, kwargs...))
 
     return Lux.Chain(layers...)
 end
 
 function get_loglikelihood(c::Lux.Chain, ps, st)
-    _get_layer_loglikelihood(c.layers, ps, st)
+    return _get_layer_loglikelihood(c.layers, ps, st)
 end
 
 function get_configuration(c::Lux.Chain, ps, st)
-    _get_configuration(c.layers, ps, st)
+    return _get_configuration(c.layers, ps, st)
 end
 
 function get_loglikelihood(c::Lux.Chain, ps, st, paths::Vector{<:AbstractPathState})

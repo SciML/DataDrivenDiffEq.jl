@@ -7,7 +7,7 @@ symbolic regression problem.
 # Fields
 $(FIELDS)
 """
-@with_kw struct Reinforce{F, A, L, O, R} <: AbstractDAGSRAlgorithm
+@kwdef struct Reinforce{F, A, L, O, R} <: AbstractDAGSRAlgorithm
     "Reward function which should convert the loss to a reward."
     reward::R = RelativeReward(false)
     "The number of candidates to track"
@@ -33,7 +33,7 @@ $(FIELDS)
     "Use threaded optimization and resampling - not implemented right now."
     threaded::Bool = false
     "Random seed"
-    rng::Random.AbstractRNG = Random.default_rng()
+    rng::AbstractRNG = Random.default_rng()
     "Optim optimiser"
     optimizer::O = LBFGS()
     "Optim options"
@@ -55,7 +55,7 @@ function reinforce_loss(candidates, p, alg)
     rewards = reward(losses)
     # ∇U(θ) = E[∇log(p)*R(t)]
     mean(map(enumerate(candidates)) do (i, candidate)
-        rewards[i] * -candidate(p)
+        return rewards[i] * -candidate(p)
     end)
 end
 

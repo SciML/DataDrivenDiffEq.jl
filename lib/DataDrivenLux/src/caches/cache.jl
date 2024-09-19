@@ -19,8 +19,8 @@ function init_model(x::AbstractDAGSRAlgorithm, basis::Basis, dataset::Dataset, i
 
     # Get the parameter mapping
     variable_mask = map(enumerate(equations(basis))) do (i, eq)
-        any(ModelingToolkit.isvariable, ModelingToolkit.get_variables(eq.rhs)) &&
-            IntervalArithmetic.iscommon(intervals[i])
+        return any(ModelingToolkit.isvariable, ModelingToolkit.get_variables(eq.rhs)) &&
+               IntervalArithmetic.iscommon(intervals[i])
     end
 
     variable_mask = Any[variable_mask...]
@@ -33,8 +33,8 @@ function init_model(x::AbstractDAGSRAlgorithm, basis::Basis, dataset::Dataset, i
         skip = skip, input_functions = variable_mask, simplex = simplex)
 end
 
-function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
-        problem::DataDrivenProblem; kwargs...)
+function init_cache(x::X where {X <: AbstractDAGSRAlgorithm},
+        basis::Basis, problem::DataDrivenProblem; kwargs...)
     (; rng, keep, observed, populationsize, optimizer, optim_options, optimiser, loss) = x
     # Derive the model
     dataset = Dataset(problem)
@@ -57,9 +57,9 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
     candidates = map(1:populationsize) do i
         candidate = Candidate(rng_, model, basis, dataset; observed = observed,
             parameterdist = parameters, ptype = TData)
-        optimize_candidate!(candidate, dataset; optimizer = optimizer,
-            options = optim_options)
-        candidate
+        optimize_candidate!(
+            candidate, dataset; optimizer = optimizer, options = optim_options)
+        return candidate
     end
 
     keeps = zeros(Bool, populationsize)
@@ -92,9 +92,8 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
     else
         optimiser_state = nothing
     end
-    return SearchCache{typeof(x), ptype, typeof(optimiser_state)}(x, candidates, ages,
-        keeps, sorting, ps,
-        dataset, optimiser_state)
+    return SearchCache{typeof(x), ptype, typeof(optimiser_state)}(
+        x, candidates, ages, keeps, sorting, ps, dataset, optimiser_state)
 end
 
 function update_cache!(cache::SearchCache)
@@ -133,8 +132,8 @@ function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(1)}, p = cache.p
             cache.ages[i] += 1
             return true
         else
-            optimize_candidate!(candidate, cache.dataset, p; optimizer = optimizer,
-                options = optim_options)
+            optimize_candidate!(
+                candidate, cache.dataset, p; optimizer = optimizer, options = optim_options)
             cache.ages[i] = 0
             return true
         end
@@ -177,5 +176,4 @@ function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(3)}, p = cache.p
     return
 end
 
-function convert_to_basis(cache::SearchCache)
-end
+function convert_to_basis(cache::SearchCache) end

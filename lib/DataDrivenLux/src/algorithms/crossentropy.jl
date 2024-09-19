@@ -6,7 +6,7 @@ Uses the crossentropy method for discrete optimization to search the space of po
 # Fields
 $(FIELDS)
 """
-@with_kw struct CrossEntropy{F, A, L, O} <: AbstractDAGSRAlgorithm
+@kwdef struct CrossEntropy{F, A, L, O} <: AbstractDAGSRAlgorithm
     "The number of candidates to track"
     populationsize::Int = 100
     "The functions to include in the search"
@@ -28,7 +28,7 @@ $(FIELDS)
     "Use threaded optimization and resampling - not implemented right now."
     threaded::Bool = false
     "Random seed"
-    rng::Random.AbstractRNG = Random.default_rng()
+    rng::AbstractRNG = Random.default_rng()
     "Optim optimiser"
     optimizer::O = LBFGS()
     "Optim options"
@@ -52,8 +52,8 @@ function init_model(x::CrossEntropy, basis::Basis, dataset::Dataset, intervals)
 
     # Get the parameter mapping
     variable_mask = map(enumerate(equations(basis))) do (i, eq)
-        any(ModelingToolkit.isvariable, ModelingToolkit.get_variables(eq.rhs)) &&
-            IntervalArithmetic.iscommon(intervals[i])
+        return any(ModelingToolkit.isvariable, ModelingToolkit.get_variables(eq.rhs)) &&
+               IntervalArithmetic.iscommon(intervals[i])
     end
 
     variable_mask = Any[variable_mask...]
@@ -70,7 +70,7 @@ function update_parameters!(cache::SearchCache{<:CrossEntropy})
     (; candidates, keeps, p, alg) = cache
     (; alpha) = alg
     p̄ = mean(map(candidates[keeps]) do candidate
-        ComponentVector(get_configuration(candidate.model.model, p, candidate.st))
+        return ComponentVector(get_configuration(candidate.model.model, p, candidate.st))
     end)
     cache.p .= alpha * p + (one(alpha) - alpha) .* p̄
     return

@@ -25,8 +25,7 @@ X = randn(1, 10)
     @test y == [sin.(x[1]); sin.(x[1])]
     @test Y == [sin.(X[1:1, :]); sin.(X[1:1, :])]
     @test exp(sum(
-        sum ∘ values, values(DataDrivenLux.get_loglikelihood(dag, ps, new_st)))) ==
-          1.0f0
+        sum ∘ values, values(DataDrivenLux.get_loglikelihood(dag, ps, new_st)))) == 1.0f0
 end
 
 @testset "Two Layer Skip" begin

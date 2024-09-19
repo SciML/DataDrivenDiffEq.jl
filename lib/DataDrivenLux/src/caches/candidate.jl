@@ -6,8 +6,8 @@ mutable struct PathStatistics{T} <: StatsBase.StatisticalModel
     nobs::Int
 end
 
-function update_stats!(stats::PathStatistics{T}, rss::T, ll::T, nullll::T,
-        dof::Int) where {T}
+function update_stats!(
+        stats::PathStatistics{T}, rss::T, ll::T, nullll::T, dof::Int) where {T}
     stats.dof = dof
     stats.loglikelihood = ll
     stats.nullloglikelihood = nullll
@@ -29,11 +29,11 @@ end
 
 function (c::ComponentModel)(dataset::Dataset{T}, ps, st::NamedTuple{fieldnames},
         p::AbstractVector{T}) where {T, fieldnames}
-    first(c.model(c.basis(dataset, p), ps, st))
+    return first(c.model(c.basis(dataset, p), ps, st))
 end
 function (c::ComponentModel)(ps, st::NamedTuple{fieldnames},
         paths::Vector{<:AbstractPathState}) where {fieldnames}
-    get_loglikelihood(c.model, ps, st, paths)
+    return get_loglikelihood(c.model, ps, st, paths)
 end
 
 """
@@ -47,7 +47,7 @@ $(FIELDS)
 """
 struct Candidate{S <: NamedTuple} <: StatsBase.StatisticalModel
     "Random seed"
-    rng::Random.AbstractRNG
+    rng::AbstractRNG
     "The current state"
     st::S
     "The current parameters"
@@ -71,7 +71,7 @@ struct Candidate{S <: NamedTuple} <: StatsBase.StatisticalModel
 end
 
 function (c::Candidate)(dataset::Dataset{T}, ps = c.ps, p = c.parameters) where {T}
-    c.model(dataset, ps, c.st, transform_parameter(c.parameterdist, p))
+    return c.model(dataset, ps, c.st, transform_parameter(c.parameterdist, p))
 end
 (c::Candidate)(ps = c.ps) = c.model(ps, c.st, c.outgoing_path)
 
@@ -89,10 +89,8 @@ StatsBase.r2(c::Candidate) = r2(c, :CoxSnell)
 get_parameters(c::Candidate) = transform_parameter(c.parameterdist, c.parameters)
 get_scales(c::Candidate) = transform_scales(c.observed, c.scales)
 
-function Candidate(rng, model, basis, dataset;
-        observed = ObservedModel(dataset.y),
-        parameterdist = ParameterDistributions(basis),
-        ptype = Float32)
+function Candidate(rng, model, basis, dataset; observed = ObservedModel(dataset.y),
+        parameterdist = ParameterDistributions(basis), ptype = Float32)
     (; y, x) = dataset
 
     T = eltype(dataset)
@@ -124,11 +122,9 @@ function Candidate(rng, model, basis, dataset;
 
     stats = PathStatistics(rss, lls, null_ll, dof_, prod(size(y)))
 
-    return Candidate{typeof(st)}(Lux.replicate(rng), st, ComponentVector(ps),
-        incoming_path, outgoing_path, stats,
-        observed, parameterdist,
-        scales, parameters,
-        ComponentModel(basis, model))
+    return Candidate{typeof(st)}(
+        Lux.replicate(rng), st, ComponentVector(ps), incoming_path, outgoing_path, stats,
+        observed, parameterdist, scales, parameters, ComponentModel(basis, model))
 end
 
 function update_values!(c::Candidate, ps, dataset)
@@ -146,14 +142,14 @@ function update_values!(c::Candidate, ps, dataset)
     return
 end
 
-@views function Distributions.logpdf(c::Candidate, p::ComponentVector,
-        dataset::Dataset{T}, ps = c.ps) where {T}
+@views function Distributions.logpdf(
+        c::Candidate, p::ComponentVector, dataset::Dataset{T}, ps = c.ps) where {T}
     (; observed, parameterdist) = c
     (; scales, parameters) = p
     (; y) = dataset
 
     ŷ = c(dataset, ps, parameters)
-    logpdf(c, p, y, ŷ)
+    return logpdf(c, p, y, ŷ)
 end
 
 function Distributions.logpdf(c::Candidate, p::AbstractVector, y::AbstractMatrix{T},
@@ -161,16 +157,16 @@ function Distributions.logpdf(c::Candidate, p::AbstractVector, y::AbstractMatrix
     (; scales, parameters) = p
     (; observed, parameterdist) = c
 
-    logpdf(observed, y, ŷ, scales) + logpdf(parameterdist, parameters)
+    return logpdf(observed, y, ŷ, scales) + logpdf(parameterdist, parameters)
 end
 
 function initial_values(c::Candidate)
     (; scales, parameters) = c
-    ComponentVector((; scales = scales, parameters = parameters))
+    return ComponentVector((; scales = scales, parameters = parameters))
 end
 
-function optimize_candidate!(c::Candidate, dataset::Dataset{T}, ps = c.ps;
-        optimizer = Optim.LBFGS(),
+function optimize_candidate!(
+        c::Candidate, dataset::Dataset{T}, ps = c.ps; optimizer = Optim.LBFGS(),
         options::Optim.Options = Optim.Options()) where {T}
     path, st = sample(c, ps)
     p_init = initial_values(c)
@@ -180,7 +176,7 @@ function optimize_candidate!(c::Candidate, dataset::Dataset{T}, ps = c.ps;
             loss(p) = -logpdf(c, p, dataset)
             # We do not want any warnings here
             res = with_logger(NullLogger()) do
-                Optim.optimize(loss, p_init, optimizer, options)
+                return Optim.optimize(loss, p_init, optimizer, options)
             end
 
             if Optim.converged(res)
@@ -219,16 +215,16 @@ function sample(model, incoming, ps, st, i = 0, max_sample = 10)
     return sample(model, incoming, ps, st, i + 1, max_sample)
 end
 
-get_nodes(c::Candidate) = ChainRulesCore.@ignore_derivatives get_nodes(c.outgoing_path)
+get_nodes(c::Candidate) = @ignore_derivatives get_nodes(c.outgoing_path)
 
-function convert_to_basis(candidate::Candidate, ps = candidate.ps,
-        options = DataDrivenCommonOptions())
+function convert_to_basis(
+        candidate::Candidate, ps = candidate.ps, options = DataDrivenCommonOptions())
     (; basis, model) = candidate.model
     (; eval_expresssion) = options
     p_best = get_parameters(candidate)
 
     p_new = map(enumerate(ModelingToolkit.parameters(basis))) do (i, ps)
-        DataDrivenDiffEq._set_default_val(Num(ps), p_best[i])
+        return DataDrivenDiffEq._set_default_val(Num(ps), p_best[i])
     end
 
     subs = Dict(a => b for (a, b) in zip(ModelingToolkit.parameters(basis), p_new))
@@ -238,10 +234,8 @@ function convert_to_basis(candidate::Candidate, ps = candidate.ps,
 
     eqs = collect(map(eq -> ModelingToolkit.substitute(eq, subs), eqs))
 
-    Basis(eqs, states(basis),
-        parameters = p_new, iv = get_iv(basis),
+    return Basis(eqs, states(basis), parameters = p_new, iv = get_iv(basis),
         controls = controls(basis), observed = observed(basis),
         implicits = implicit_variables(basis),
-        name = gensym(:Basis),
-        eval_expression = eval_expresssion)
+        name = gensym(:Basis), eval_expression = eval_expresssion)
 end

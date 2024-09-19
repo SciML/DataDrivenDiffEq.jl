@@ -30,31 +30,31 @@ end
 function Dataset(prob::DataDrivenDiffEq.DataDrivenProblem)
     X, _, t, U = DataDrivenDiffEq.get_oop_args(prob)
     Y = DataDrivenDiffEq.get_implicit_data(prob)
-    Dataset(X, Y, U, t)
+    return Dataset(X, Y, U, t)
 end
 
 function (b::Basis{false, false})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     (; x, t) = d
-    f(x, p, t)
+    return f(x, p, t)
 end
 
 function (b::Basis{false, true})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     (; x, t, u) = d
-    f(x, p, t, u)
+    return f(x, p, t, u)
 end
 
 function (b::Basis{true, false})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     (; y, x, t) = d
-    f(y, x, p, t)
+    return f(y, x, p, t)
 end
 
 function (b::Basis{true, true})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     (; y, x, t, u) = d
-    f(y, x, p, t, u)
+    return f(y, x, p, t, u)
 end
 
 ##
@@ -62,23 +62,23 @@ end
 function interval_eval(b::Basis{false, false}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     (; x_intervals, t_interval) = d
-    f(x_intervals, p, t_interval)
+    return f(x_intervals, p, t_interval)
 end
 
 function interval_eval(b::Basis{false, true}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     (; x_intervals, t_interval, u_intervals) = d
-    f(x_intervals, p, t_interval, u_intervals)
+    return f(x_intervals, p, t_interval, u_intervals)
 end
 
 function interval_eval(b::Basis{true, false}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     (; y_intervals, x_intervals, t_interval) = d
-    f(y_intervals, x_intervals, p, t_interval)
+    return f(y_intervals, x_intervals, p, t_interval)
 end
 
 function interval_eval(b::Basis{true, true}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
     (; y_intervals, x_intervals, t_interval, u_intervals) = d
-    f(y_intervals, x_intervals, p, t_interval, u_intervals)
+    return f(y_intervals, x_intervals, p, t_interval, u_intervals)
 end

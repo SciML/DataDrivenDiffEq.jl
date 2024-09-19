@@ -7,7 +7,7 @@ symbolic regression problem.
 # Fields
 $(FIELDS)
 """
-@with_kw struct RandomSearch{F, A, L, O} <: AbstractDAGSRAlgorithm
+@kwdef struct RandomSearch{F, A, L, O} <: AbstractDAGSRAlgorithm
     "The number of candidates to track"
     populationsize::Int = 100
     "The functions to include in the search"
@@ -31,7 +31,7 @@ $(FIELDS)
     "Use threaded optimization and resampling - not implemented right now."
     threaded::Bool = false
     "Random seed"
-    rng::Random.AbstractRNG = Random.default_rng()
+    rng::AbstractRNG = Random.default_rng()
     "Optim optimiser"
     optimizer::O = LBFGS()
     "Optim options"

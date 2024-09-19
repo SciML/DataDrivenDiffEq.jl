@@ -26,8 +26,8 @@ using StableRNGs
 
     @test DataDrivenLux.get_scales(candidate) ≈ ones(Float64, 1)
     @test isempty(DataDrivenLux.get_parameters(candidate))
-    @test_nowarn DataDrivenLux.optimize_candidate!(candidate, dataset;
-        options = Optim.Options())
+    @test_nowarn DataDrivenLux.optimize_candidate!(
+        candidate, dataset; options = Optim.Options())
 end
 
 @testset "Candidate with parametes" begin
