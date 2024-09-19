@@ -18,9 +18,14 @@ using DataDrivenDiffEq.StatsBase
 using DataDrivenDiffEq.Parameters
 using DataDrivenDiffEq.Setfield
 
+using ConcreteStructs: @concrete
+
 using Reexport
 @reexport using Optim
+
 using Lux
+using LuxCore
+using WeightInitializers
 
 using InverseFunctions
 using TransformVariables

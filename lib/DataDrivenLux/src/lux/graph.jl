@@ -7,13 +7,13 @@ different [`DecisionLayer`](@ref)s.
 # Fields
 $(FIELDS)
 """
-struct LayeredDAG{T} <: Lux.AbstractExplicitContainerLayer{(:layers,)}
-    layers::T
+@concrete struct LayeredDAG <: AbstractLuxWrapperLayer{:layers}
+    layers
 end
 
 function LayeredDAG(in_dimension::Int, out_dimension::Int, n_layers::Int,
         fs::Vector{Pair{Function, Int}}; kwargs...)
-    LayeredDAG(in_dimension, out_dimension, n_layers, tuple(last.(fs)...),
+    return LayeredDAG(in_dimension, out_dimension, n_layers, tuple(last.(fs)...),
         tuple(first.(fs)...); kwargs...)
 end
 

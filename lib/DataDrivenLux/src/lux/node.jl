@@ -9,15 +9,15 @@ and a latent array of weights representing a probability distribution over the i
 $(FIELDS)
 
 """
-struct FunctionNode{skip, ID, F, S} <: Lux.AbstractExplicitLayer
+@concrete struct FunctionNode{skip, ID} <: AbstractLuxLayer
     "Function which should map from in_dims ↦ R"
-    f::F
+    f
     "Arity of the function"
     arity::Int
     "Input dimensions of the signal"
     in_dims::Int
     "Mapping to the unit simplex"
-    simplex::S
+    simplex
     "Masking of the input values"
     input_mask::Vector{Bool}
 end
@@ -53,21 +53,19 @@ end
 
 get_id(::FunctionNode{<:Any, id}) where {id} = id
 
-function Lux.initialparameters(rng::AbstractRNG, l::FunctionNode)
+function LuxCore.initialparameters(rng::AbstractRNG, l::FunctionNode)
     return (; weights = init_weights(l.simplex, rng, sum(l.input_mask), l.arity))
 end
 
-function Lux.initialstates(rng::AbstractRNG, p::FunctionNode)
-    begin
-        rand(rng)
-        rng_ = Lux.replicate(rng)
-        # Call once
-        (;
-            priors = init_weights(p.simplex, rng, sum(p.input_mask), p.arity),
-            active_inputs = zeros(Int, p.arity),
-            temperature = 1.0f0,
-            rng = rng_)
-    end
+function LuxCore.initialstates(rng::AbstractRNG, p::FunctionNode)
+    rand(rng)
+    rng_ = LuxCore.replicate(rng)
+    # Call once
+    return (;
+        priors = init_weights(p.simplex, rng, sum(p.input_mask), p.arity),
+        active_inputs = zeros(Int, p.arity),
+        temperature = 1.0f0,
+        rng = rng_)
 end
 
 function update_state(p::FunctionNode, ps, st)
@@ -79,11 +77,7 @@ function update_state(p::FunctionNode, ps, st)
         active_inputs[i] = findfirst(rand(rng) .<= cumsum(priors[:, i]))
     end
 
-    (;
-        priors = priors,
-        active_inputs = active_inputs,
-        temperature = temperature,
-        rng = rng)
+    return (; priors, active_inputs, temperature, rng)
 end
 
 function (l::FunctionNode{false})(x::AbstractArray{<:Number}, ps, st::NamedTuple)

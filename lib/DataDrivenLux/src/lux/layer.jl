@@ -7,8 +7,7 @@ It accumulates all outputs of the nodes.
 # Fields
 $(FIELDS)
 """
-struct FunctionLayer{skip, T, output_dimension} <:
-       Lux.AbstractExplicitContainerLayer{(:nodes,)}
+struct FunctionLayer{skip, T, output_dimension} <: AbstractLuxWrapperLayer{:nodes}
     nodes::T
 end
 

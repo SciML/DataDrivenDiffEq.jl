@@ -1,6 +1,4 @@
-function init_weights(::AbstractSimplex, rng::Random.AbstractRNG, dims...)
-    Lux.zeros32(rng, dims...)
-end
+init_weights(::AbstractSimplex, rng::Random.AbstractRNG, dims...) = zeros32(rng, dims...)
 
 """
 $(TYPEDEF)
@@ -53,7 +51,7 @@ function (::DirectSimplex)(rng::Random.AbstractRNG, x̂::AbstractVector, x::Abst
 end
 
 function init_weights(::DirectSimplex, rng::Random.AbstractRNG, dims...)
-    w = Lux.ones32(rng, dims...)
+    w = ones32(rng, dims...)
     w ./= first(dims)
     w
 end
