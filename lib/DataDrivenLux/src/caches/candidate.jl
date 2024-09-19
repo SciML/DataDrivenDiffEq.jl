@@ -93,7 +93,7 @@ function Candidate(rng, model, basis, dataset;
         observed = ObservedModel(dataset.y),
         parameterdist = ParameterDistributions(basis),
         ptype = Float32)
-    @unpack y, x = dataset
+    (; y, x) = dataset
 
     T = eltype(dataset)
 
@@ -132,8 +132,8 @@ function Candidate(rng, model, basis, dataset;
 end
 
 function update_values!(c::Candidate, ps, dataset)
-    @unpack observed, st, scales, statistics, parameters, parameterdist, outgoing_path = c
-    @unpack y = dataset
+    (; observed, st, scales, statistics, parameters, parameterdist, outgoing_path) = c
+    (; y) = dataset
 
     ŷ = c(dataset, ps, parameters)
 
@@ -148,9 +148,9 @@ end
 
 @views function Distributions.logpdf(c::Candidate, p::ComponentVector,
         dataset::Dataset{T}, ps = c.ps) where {T}
-    @unpack observed, parameterdist = c
-    @unpack scales, parameters = p
-    @unpack y = dataset
+    (; observed, parameterdist) = c
+    (; scales, parameters) = p
+    (; y) = dataset
 
     ŷ = c(dataset, ps, parameters)
     logpdf(c, p, y, ŷ)
@@ -158,14 +158,14 @@ end
 
 function Distributions.logpdf(c::Candidate, p::AbstractVector, y::AbstractMatrix{T},
         ŷ::AbstractMatrix{T}) where {T}
-    @unpack scales, parameters = p
-    @unpack observed, parameterdist = c
+    (; scales, parameters) = p
+    (; observed, parameterdist) = c
 
     logpdf(observed, y, ŷ, scales) + logpdf(parameterdist, parameters)
 end
 
 function initial_values(c::Candidate)
-    @unpack scales, parameters = c
+    (; scales, parameters) = c
     ComponentVector((; scales = scales, parameters = parameters))
 end
 
@@ -207,7 +207,7 @@ function check_intervals(paths::AbstractArray{<:AbstractPathState})::Bool
 end
 
 function sample(c::Candidate, ps, i = 0, max_sample = 10)
-    @unpack incoming_path, st = c
+    (; incoming_path, st) = c
     return sample(c.model.model, incoming_path, ps, st, i, max_sample)
 end
 
@@ -223,8 +223,8 @@ get_nodes(c::Candidate) = ChainRulesCore.@ignore_derivatives get_nodes(c.outgoin
 
 function convert_to_basis(candidate::Candidate, ps = candidate.ps,
         options = DataDrivenCommonOptions())
-    @unpack basis, model = candidate.model
-    @unpack eval_expresssion = options
+    (; basis, model) = candidate.model
+    (; eval_expresssion) = options
     p_best = get_parameters(candidate)
 
     p_new = map(enumerate(ModelingToolkit.parameters(basis))) do (i, ps)

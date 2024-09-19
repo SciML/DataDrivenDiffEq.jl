@@ -69,8 +69,8 @@ function LuxCore.initialstates(rng::AbstractRNG, p::FunctionNode)
 end
 
 function update_state(p::FunctionNode, ps, st)
-    @unpack temperature, rng, active_inputs, priors = st
-    @unpack weights = ps
+    (; temperature, rng, active_inputs, priors) = st
+    (; weights) = ps
 
     foreach(enumerate(eachcol(weights))) do (i, weight)
         @views p.simplex(rng, priors[:, i], weight, temperature)
@@ -97,8 +97,8 @@ end
 end
 
 function get_masked_inputs(l::FunctionNode, x::AbstractVector, ps, st::NamedTuple)
-    @unpack active_inputs = st
-    @unpack input_mask = l
+    (; active_inputs) = st
+    (; input_mask) = l
     ntuple(i -> x[input_mask][active_inputs[i]], l.arity)
 end
 
@@ -114,7 +114,7 @@ end
 get_temperature(::FunctionNode, ps, st) = st.temperature
 
 function get_loglikelihood(d::FunctionNode, ps, st)
-    @unpack weights = ps
+    (; weights) = ps
     sum(map(enumerate(eachcol(weights))) do (i, weight)
         logsoftmax(weight ./ st.temperature)[st.active_inputs[i]]
     end)
@@ -123,8 +123,8 @@ end
 get_inputs(::FunctionNode, ps, st) = st.active_inputs
 
 function get_configuration(::FunctionNode, ps, st)
-    @unpack weights = ps
-    @unpack active_inputs = st
+    (; weights) = ps
+    (; active_inputs) = st
     config = similar(weights)
     xzero = zero(eltype(config))
     xone = one(eltype(config))

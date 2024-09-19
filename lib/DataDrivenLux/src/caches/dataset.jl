@@ -35,25 +35,25 @@ end
 
 function (b::Basis{false, false})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
-    @unpack x, t = d
+    (; x, t) = d
     f(x, p, t)
 end
 
 function (b::Basis{false, true})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
-    @unpack x, t, u = d
+    (; x, t, u) = d
     f(x, p, t, u)
 end
 
 function (b::Basis{true, false})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
-    @unpack y, x, t = d
+    (; y, x, t) = d
     f(y, x, p, t)
 end
 
 function (b::Basis{true, true})(d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
-    @unpack y, x, t, u = d
+    (; y, x, t, u) = d
     f(y, x, p, t, u)
 end
 
@@ -61,24 +61,24 @@ end
 
 function interval_eval(b::Basis{false, false}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
-    @unpack x_intervals, t_interval = d
+    (; x_intervals, t_interval) = d
     f(x_intervals, p, t_interval)
 end
 
 function interval_eval(b::Basis{false, true}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
-    @unpack x_intervals, t_interval, u_intervals = d
+    (; x_intervals, t_interval, u_intervals) = d
     f(x_intervals, p, t_interval, u_intervals)
 end
 
 function interval_eval(b::Basis{true, false}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
-    @unpack y_intervals, x_intervals, t_interval = d
+    (; y_intervals, x_intervals, t_interval) = d
     f(y_intervals, x_intervals, p, t_interval)
 end
 
 function interval_eval(b::Basis{true, true}, d::Dataset{T}, p::P) where {T, P}
     f = DataDrivenDiffEq.get_f(b)
-    @unpack y_intervals, x_intervals, t_interval, u_intervals = d
+    (; y_intervals, x_intervals, t_interval, u_intervals) = d
     f(y_intervals, x_intervals, p, t_interval, u_intervals)
 end

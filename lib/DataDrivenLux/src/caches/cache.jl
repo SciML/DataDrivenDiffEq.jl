@@ -15,7 +15,7 @@ function Base.show(io::IO, cache::SearchCache)
 end
 
 function init_model(x::AbstractDAGSRAlgorithm, basis::Basis, dataset::Dataset, intervals)
-    @unpack simplex, n_layers, arities, functions, use_protected, skip = x
+    (; simplex, n_layers, arities, functions, use_protected, skip) = x
 
     # Get the parameter mapping
     variable_mask = map(enumerate(equations(basis))) do (i, eq)
@@ -35,7 +35,7 @@ end
 
 function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
         problem::DataDrivenProblem; kwargs...)
-    @unpack rng, keep, observed, populationsize, optimizer, optim_options, optimiser, loss = x
+    (; rng, keep, observed, populationsize, optimizer, optim_options, optimiser, loss) = x
     # Derive the model
     dataset = Dataset(problem)
     TData = eltype(dataset)
@@ -98,7 +98,7 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm}, basis::Basis,
 end
 
 function update_cache!(cache::SearchCache)
-    @unpack keep, loss, optimizer, optim_options = cache.alg
+    (; keep, loss, optimizer, optim_options) = cache.alg
 
     # Update the parameters based on the current results
     update_parameters!(cache)
@@ -127,7 +127,7 @@ end
 
 # Serial 
 function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(1)}, p = cache.p)
-    @unpack optimizer, optim_options = cache.alg
+    (; optimizer, optim_options) = cache.alg
     map(enumerate(cache.candidates)) do (i, candidate)
         if cache.keeps[i]
             cache.ages[i] += 1
@@ -144,7 +144,7 @@ end
 
 # Threaded
 function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(2)}, p = cache.p)
-    @unpack optimizer, optim_options = cache.alg
+    (; optimizer, optim_options) = cache.alg
     # Update all 
     Threads.@threads for i in 1:length(cache.keeps)
         if cache.keeps[i]
@@ -161,7 +161,7 @@ end
 # Distributed
 
 function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(3)}, p = cache.p)
-    @unpack optimizer, optim_options = cache.alg
+    (; optimizer, optim_options) = cache.alg
 
     successes = pmap(1:length(cache.keeps)) do i
         if cache.keeps[i]

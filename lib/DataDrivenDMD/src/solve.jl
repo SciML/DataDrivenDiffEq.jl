@@ -95,8 +95,8 @@ end
 
 function (algorithm::AbstractKoopmanAlgorithm)(prob::InternalDataDrivenProblem;
         control_input = nothing, kwargs...)
-    @unpack traindata, testdata, control_idx, options = prob
-    @unpack abstol = options
+    (; traindata, testdata, control_idx, options) = prob
+    (; abstol) = options
     # Preprocess control idx, indicates if any control is active in a single basis atom
     control_idx = map(any, eachrow(control_idx))
     no_controls = .!control_idx

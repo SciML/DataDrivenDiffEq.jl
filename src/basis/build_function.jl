@@ -29,15 +29,13 @@ function DataDrivenFunction(rhs, implicits, states, parameters, iv, controls,
 end
 
 _apply_function(f::DataDrivenFunction, du, u, p, t, c) = begin
-    @unpack f_oop = f
+    (; f_oop) = f
     f_oop(du, u, p, t, c)
 end
 
 function _apply_function!(f::DataDrivenFunction, res, du, u, p, t, c)
-    begin
-        @unpack f_iip = f
-        f_iip(res, du, u, p, t, c)
-    end
+    (; f_iip) = f
+    f_iip(res, du, u, p, t, c)
 end
 
 # Dispatch

@@ -50,7 +50,7 @@ Base.print(io::IO, ::Reinforce) = print(io, "Reinforce")
 Base.summary(io::IO, x::Reinforce) = print(io, x)
 
 function reinforce_loss(candidates, p, alg)
-    @unpack loss, reward = alg
+    (; loss, reward) = alg
     losses = map(loss, candidates)
     rewards = reward(losses)
     # ∇U(θ) = E[∇log(p)*R(t)]
@@ -60,8 +60,8 @@ function reinforce_loss(candidates, p, alg)
 end
 
 function update_parameters!(cache::SearchCache{<:Reinforce})
-    @unpack alg, optimiser_state, candidates, keeps, p = cache
-    @unpack ad_backend = alg
+    (; alg, optimiser_state, candidates, keeps, p) = cache
+    (; ad_backend) = alg
 
     ∇p, _... = AD.gradient(ad_backend, (p) -> reinforce_loss(candidates[keeps], p, alg), p)
     opt_state, p_ = Optimisers.update!(optimiser_state, p[:], ∇p[:])

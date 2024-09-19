@@ -45,7 +45,7 @@ Base.print(io::IO, ::CrossEntropy) = print(io, "CrossEntropy")
 Base.summary(io::IO, x::CrossEntropy) = print(io, x)
 
 function init_model(x::CrossEntropy, basis::Basis, dataset::Dataset, intervals)
-    @unpack n_layers, arities, functions, use_protected, skip = x
+    (; n_layers, arities, functions, use_protected, skip) = x
 
     # We enforce the direct simplex here!
     simplex = DirectSimplex()
@@ -67,8 +67,8 @@ function init_model(x::CrossEntropy, basis::Basis, dataset::Dataset, intervals)
 end
 
 function update_parameters!(cache::SearchCache{<:CrossEntropy})
-    @unpack candidates, keeps, p, alg = cache
-    @unpack alpha = alg
+    (; candidates, keeps, p, alg) = cache
+    (; alpha) = alg
     p̄ = mean(map(candidates[keeps]) do candidate
         ComponentVector(get_configuration(candidate.model.model, p, candidate.st))
     end)
