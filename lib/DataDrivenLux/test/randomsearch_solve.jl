@@ -6,6 +6,7 @@ using Random
 using Distributions
 using Test
 using StableRNGs
+using IntervalArithmetic
 
 rng = StableRNG(1234)
 # Dummy stuff
