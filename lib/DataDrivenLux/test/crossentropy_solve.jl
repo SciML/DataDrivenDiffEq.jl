@@ -39,7 +39,8 @@ alg = CrossEntropy(populationsize = 2_00, functions = (sin, exp, +), arities = (
     threaded = true, optim_options = Optim.Options(time_limit = 0.2))
 
 res = solve(dummy_problem, b, alg,
-    options = DataDrivenCommonOptions(maxiters = 1_000, progress = true, abstol = 0.0))
+    options = DataDrivenCommonOptions(
+        maxiters = 1_000, progress = parse(Bool, get(ENV, "CI", "false")), abstol = 0.0))
 @test rss(res) <= 1e-2
 @test aicc(res) <= -100.0
 @test r2(res) >= 0.95

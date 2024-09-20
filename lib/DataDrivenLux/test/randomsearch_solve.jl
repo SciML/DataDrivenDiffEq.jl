@@ -34,11 +34,13 @@ for (data, _interval) in zip((X, Y, 1:size(X, 2)),
 end
 
 # We have 1 Choices in the first layer, 2 in the last 
-alg = RandomSearch(populationsize = 10, functions = (sin, exp, *),
-    arities = (1, 1, 2), rng = rng, n_layers = 2, loss = rss, keep = 2)
+alg = RandomSearch(;
+    populationsize = 10, functions = (sin, exp, *), arities = (1, 1, 2), rng,
+    n_layers = 2, loss = rss, keep = 2)
 
 res = solve(dummy_problem, alg,
-    options = DataDrivenCommonOptions(maxiters = 50, progress = true, abstol = 0.0))
+    options = DataDrivenCommonOptions(
+        maxiters = 50, progress = parse(Bool, get(ENV, "CI", "false")), abstol = 0.0))
 @test rss(res) <= 1e-2
 @test aicc(res) <= -100.0
 @test r2(res) >= 0.95

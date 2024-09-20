@@ -37,7 +37,7 @@ end
     Y = sin.(2.0 * X)
     @variables x
     @parameters p [bounds = (1.0, 2.5), dist = Normal(1.75, 1.0)]
-    basis = Basis([sin(p * x)], [x], parameters = [p])
+    basis = Basis([sin(p * x)], [x], parameters = [p])  # NaNMath.sin causes issues
 
     dataset = Dataset(X, Y)
     rng = StableRNG(2)
