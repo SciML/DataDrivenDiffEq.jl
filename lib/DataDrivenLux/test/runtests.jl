@@ -7,7 +7,7 @@ using Test
 
 const GROUP = get(ENV, "GROUP", "All")
 
-@time begin
+@testset "DataDrivenLux" begin
     if GROUP == "All" || GROUP == "DataDrivenLux"
         @testset "Lux" begin
             @safetestset "Nodes" include("nodes.jl")
@@ -16,7 +16,7 @@ const GROUP = get(ENV, "GROUP", "All")
         end
 
         @testset "Caches" begin
-            @safetestset "Candidate" include("candidate.jl")  # FIXME
+            @safetestset "Candidate" include("candidate.jl")
             @safetestset "Cache" include("cache.jl")
         end
 

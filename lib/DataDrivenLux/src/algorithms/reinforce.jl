@@ -16,10 +16,12 @@ function Reinforce(reward = RelativeReward(false); populationsize = 100,
         distributed = false, threaded = false, rng = Random.default_rng(),
         optimizer = LBFGS(), optim_options = Optim.Options(), observed = nothing,
         alpha = 0.999f0, optimiser = Adam(), ad_backend = AD.ForwardDiffBackend())
-    return Reinforce(reward, ad_backend, CommonAlgOptions(;
-        populationsize, functions, arities, n_layers, skip, simplex = Softmax(), loss,
-        keep, use_protected, distributed, threaded, rng, optimizer,
-        optim_options, optimiser, observed, alpha))
+    return Reinforce(reward,
+        ad_backend,
+        CommonAlgOptions(;
+            populationsize, functions, arities, n_layers, skip, simplex = Softmax(), loss,
+            keep, use_protected, distributed, threaded, rng, optimizer,
+            optim_options, optimiser, observed, alpha))
 end
 
 Base.print(io::IO, ::Reinforce) = print(io, "Reinforce")
