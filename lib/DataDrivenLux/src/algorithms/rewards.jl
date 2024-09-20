@@ -25,9 +25,7 @@ struct AbsoluteReward{risk} <: AbstractRewardScale{risk} end
 
 AbsoluteReward(risk_seeking = true) = AbsoluteReward{risk_seeking}()
 
-function (::AbsoluteReward)(losses::Vector{T}) where {T <: Number}
-    return exp.(-losses)
-end
+(::AbsoluteReward)(losses::Vector{T}) where {T <: Number} = exp.(-losses)
 
 function (::AbsoluteReward{true})(losses::Vector{T}) where {T <: Number}
     r = exp.(-losses)

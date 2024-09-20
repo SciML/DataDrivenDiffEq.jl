@@ -32,7 +32,7 @@ end
 
 function init_cache(x::X where {X <: AbstractDAGSRAlgorithm},
         basis::Basis, problem::DataDrivenProblem; kwargs...)
-    (; rng, keep, observed, populationsize, optimizer, optim_options, optimiser, loss) = x
+    (; rng, keep, observed, populationsize, optimizer, optim_options, optimiser, loss) = x.options
     # Derive the model
     dataset = Dataset(problem)
     TData = eltype(dataset)
@@ -75,9 +75,9 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm},
     end
 
     # Distributed always goes first here
-    if x.distributed
+    if x.options.distributed
         ptype = __PROCESSUSE(3)
-    elseif x.threaded
+    elseif x.options.threaded
         ptype = __PROCESSUSE(2)
     else
         ptype = __PROCESSUSE(1)
@@ -94,7 +94,7 @@ function init_cache(x::X where {X <: AbstractDAGSRAlgorithm},
 end
 
 function update_cache!(cache::SearchCache)
-    (; keep, loss, optimizer, optim_options) = cache.alg
+    (; keep, loss) = cache.alg.options
 
     # Update the parameters based on the current results
     update_parameters!(cache)
@@ -109,6 +109,7 @@ function update_cache!(cache::SearchCache)
         cache.keeps[1:keep] .= true
     else
         losses = map(loss, cache.candidates)
+        @. losses = ifelse(isnan(losses), Inf, losses)
         # TODO Maybe weight by age or loss here
         sortperm!(cache.sorting, cache.candidates, by = loss)
         permute!(cache.candidates, cache.sorting)
@@ -123,7 +124,7 @@ end
 
 # Serial 
 function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(1)}, p = cache.p)
-    (; optimizer, optim_options) = cache.alg
+    (; optimizer, optim_options) = cache.alg.options
     map(enumerate(cache.candidates)) do (i, candidate)
         if cache.keeps[i]
             cache.ages[i] += 1
@@ -140,7 +141,7 @@ end
 
 # Threaded
 function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(2)}, p = cache.p)
-    (; optimizer, optim_options) = cache.alg
+    (; optimizer, optim_options) = cache.alg.options
     # Update all 
     Threads.@threads for i in 1:length(cache.keeps)
         if cache.keeps[i]
@@ -156,7 +157,7 @@ end
 
 # Distributed
 function optimize_cache!(cache::SearchCache{<:Any, __PROCESSUSE(3)}, p = cache.p)
-    (; optimizer, optim_options) = cache.alg
+    (; optimizer, optim_options) = cache.alg.options
 
     successes = pmap(1:length(cache.keeps)) do i
         if cache.keeps[i]

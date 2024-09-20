@@ -10,40 +10,40 @@ $(FIELDS)
 @kwdef struct Reinforce{F, A, L, O, R} <: AbstractDAGSRAlgorithm
     "Reward function which should convert the loss to a reward."
     reward::R = RelativeReward(false)
-    "The number of candidates to track"
-    populationsize::Int = 100
-    "The functions to include in the search"
-    functions::F = (sin, exp, cos, log, +, -, /, *)
-    "The arities of the functions"
-    arities::A = (1, 1, 1, 1, 2, 2, 2, 2)
-    "The number of layers"
-    n_layers::Int = 1
-    "Include skip layers"
-    skip::Bool = true
-    "Simplex mapping"
-    simplex::AbstractSimplex = Softmax()
-    "Evaluation function to sort the samples"
-    loss::L = aicc
-    "The number of candidates to keep in each iteration"
-    keep::Union{Real, Int} = 0.1
-    "Use protected operators"
-    use_protected::Bool = true
-    "Use distributed optimization and resampling"
-    distributed::Bool = false
-    "Use threaded optimization and resampling - not implemented right now."
-    threaded::Bool = false
-    "Random seed"
-    rng::AbstractRNG = Random.default_rng()
-    "Optim optimiser"
-    optimizer::O = LBFGS()
-    "Optim options"
-    optim_options::Optim.Options = Optim.Options()
-    "Observed model - if `nothing`is used, a normal distributed additive error with fixed variance is assumed."
-    observed::Union{ObservedModel, Nothing} = nothing
-    "AD Backend"
-    ad_backend::AD.AbstractBackend = AD.ForwardDiffBackend()
-    "Optimiser"
-    optimiser::Optimisers.AbstractRule = ADAM()
+    # "The number of candidates to track"
+    # populationsize::Int = 100
+    # "The functions to include in the search"
+    # functions::F = (sin, exp, cos, log, +, -, /, *)
+    # "The arities of the functions"
+    # arities::A = (1, 1, 1, 1, 2, 2, 2, 2)
+    # "The number of layers"
+    # n_layers::Int = 1
+    # "Include skip layers"
+    # skip::Bool = true
+    # "Simplex mapping"
+    # simplex::AbstractSimplex = Softmax()
+    # "Evaluation function to sort the samples"
+    # loss::L = aicc
+    # "The number of candidates to keep in each iteration"
+    # keep::Union{Real, Int} = 0.1
+    # "Use protected operators"
+    # use_protected::Bool = true
+    # "Use distributed optimization and resampling"
+    # distributed::Bool = false
+    # "Use threaded optimization and resampling - not implemented right now."
+    # threaded::Bool = false
+    # "Random seed"
+    # rng::AbstractRNG = Random.default_rng()
+    # "Optim optimiser"
+    # optimizer::O = LBFGS()
+    # "Optim options"
+    # optim_options::Optim.Options = Optim.Options()
+    # "Observed model - if `nothing`is used, a normal distributed additive error with fixed variance is assumed."
+    # observed::Union{ObservedModel, Nothing} = nothing
+    # "AD Backend"
+    # ad_backend::AD.AbstractBackend = AD.ForwardDiffBackend()
+    # "Optimiser"
+    # optimiser::Optimisers.AbstractRule = ADAM()
 end
 
 Base.print(io::IO, ::Reinforce) = print(io, "Reinforce")

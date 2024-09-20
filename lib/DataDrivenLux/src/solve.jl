@@ -3,9 +3,9 @@ function DataDrivenDiffEq.get_fit_targets(::A, prob::AbstractDataDrivenProblem,
     return prob.X, DataDrivenDiffEq.get_implicit_data(prob)
 end
 
-struct DataDrivenLuxResult <: DataDrivenDiffEq.AbstractDataDrivenResult
-    candidate::Candidate
-    retcode::DDReturnCode
+@concrete struct DataDrivenLuxResult <: DataDrivenDiffEq.AbstractDataDrivenResult
+    candidate <: Candidate
+    retcode <: DDReturnCode
 end
 
 function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <:
@@ -19,7 +19,7 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <:
     _showvalues = let cache = cache
         (iter) -> begin
             shows = min(5, sum(cache.keeps))
-            losses = map(alg.loss, cache.candidates[cache.keeps])
+            losses = map(alg.options.loss, cache.candidates[cache.keeps])
             min_, max_ = extrema(losses)
             [(:Iterations, iter),
                 (:RSS, map(StatsBase.rss, cache.candidates[cache.keeps][1:shows])),
@@ -43,7 +43,7 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {A <:
     end
 
     # Create the optimal basis
-    sort!(cache.candidates, by = alg.loss)
+    sort!(cache.candidates, by = alg.options.loss)
     best_cache = first(cache.candidates)
 
     new_basis = convert_to_basis(best_cache, cache.p, options)

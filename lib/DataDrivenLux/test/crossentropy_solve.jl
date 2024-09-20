@@ -7,6 +7,7 @@ using Distributions
 using Test
 using Optimisers
 using StableRNGs
+using Optim
 
 rng = StableRNG(1234)
 # Dummy stuff

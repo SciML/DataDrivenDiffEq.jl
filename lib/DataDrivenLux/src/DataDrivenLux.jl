@@ -8,12 +8,11 @@ using DataDrivenDiffEq: AbstractBasis, AbstractDataDrivenAlgorithm,
                         ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB,
                         InternalDataDrivenProblem, is_implicit, is_controlled
 
-using DocStringExtensions: DocStringExtensions, FIELDS, TYPEDEF
+using DocStringExtensions: DocStringExtensions, FIELDS, TYPEDEF, SIGNATURES
 using CommonSolve: CommonSolve, solve!
 using ConcreteStructs: @concrete
 using Setfield: Setfield, @set!
 
-# TODO: Get rid of Optim and Optimisers in favor of Optimization.jl
 using Optim: Optim, LBFGS
 using Optimisers: Optimisers, ADAM
 
@@ -93,6 +92,8 @@ export SearchCache
 include("algorithms/rewards.jl")
 export RelativeReward, AbsoluteReward
 
+include("algorithms/common.jl")
+
 include("algorithms/randomsearch.jl")
 export RandomSearch
 
@@ -104,4 +105,4 @@ export CrossEntropy
 
 include("solve.jl")
 
-end # module DataDrivenLux
+end

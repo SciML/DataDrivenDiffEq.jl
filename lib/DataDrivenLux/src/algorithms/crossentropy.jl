@@ -1,54 +1,29 @@
-"""
-$(TYPEDEF)
-
-Uses the crossentropy method for discrete optimization to search the space of possible solutions.
-
-# Fields
-$(FIELDS)
-"""
-@kwdef struct CrossEntropy{F, A, L, O} <: AbstractDAGSRAlgorithm
-    "The number of candidates to track"
-    populationsize::Int = 100
-    "The functions to include in the search"
-    functions::F = (sin, exp, cos, log, +, -, /, *)
-    "The arities of the functions"
-    arities::A = (1, 1, 1, 1, 2, 2, 2, 2)
-    "The number of layers"
-    n_layers::Int = 1
-    "Include skip layers"
-    skip::Bool = true
-    "Evaluation function to sort the samples"
-    loss::L = aicc
-    "The number of candidates to keep in each iteration"
-    keep::Union{Real, Int} = 0.1
-    "Use protected operators"
-    use_protected::Bool = true
-    "Use distributed optimization and resampling"
-    distributed::Bool = false
-    "Use threaded optimization and resampling - not implemented right now."
-    threaded::Bool = false
-    "Random seed"
-    rng::AbstractRNG = Random.default_rng()
-    "Optim optimiser"
-    optimizer::O = LBFGS()
-    "Optim options"
-    optim_options::Optim.Options = Optim.Options()
-    "Observed model - if `nothing`is used, a normal distributed additive error with fixed variance is assumed."
-    observed::Union{ObservedModel, Nothing} = nothing
-    "Field for possible optimiser - no use for CrossEntropy"
-    optimiser::Nothing = nothing
-    "Update parameter for smoothness"
-    alpha::Real = 0.999f0
+@concrete struct CrossEntropy <: AbstractDAGSRAlgorithm
+    options <: CommonAlgOptions
 end
 
-Base.print(io::IO, ::CrossEntropy) = print(io, "CrossEntropy")
+"""
+$(SIGNATURES)
+
+Uses the crossentropy method for discrete optimization to search the space of possible
+solutions.
+"""
+function CrossEntropy(; populationsize = 100, functions = (sin, exp, cos, log, +, -, /, *),
+        arities = (1, 1, 1, 1, 2, 2, 2, 2), n_layers = 1, skip = true, loss = aicc,
+        keep = 0.1, use_protected = true, distributed = false, threaded = false,
+        rng = Random.default_rng(), optimizer = LBFGS(), optim_options = Optim.Options(),
+        observed = nothing, alpha = 0.999f0)
+    return CrossEntropy(CommonAlgOptions(;
+        populationsize, functions, arities, n_layers, skip, simplex = DirectSimplex(), loss,
+        keep, use_protected, distributed, threaded, rng, optimizer,
+        optim_options, optimiser = nothing, observed, alpha))
+end
+
+Base.print(io::IO, ::CrossEntropy) = print(io, "CrossEntropy()")
 Base.summary(io::IO, x::CrossEntropy) = print(io, x)
 
 function init_model(x::CrossEntropy, basis::Basis, dataset::Dataset, intervals)
-    (; n_layers, arities, functions, use_protected, skip) = x
-
-    # We enforce the direct simplex here!
-    simplex = DirectSimplex()
+    (; n_layers, arities, functions, use_protected, skip) = x.options
 
     # Get the parameter mapping
     variable_mask = map(enumerate(equations(basis))) do (i, eq)
@@ -63,15 +38,14 @@ function init_model(x::CrossEntropy, basis::Basis, dataset::Dataset, intervals)
     end
 
     return LayeredDAG(length(basis), size(dataset.y, 1), n_layers, arities, functions;
-        skip = skip, input_functions = variable_mask, simplex = simplex)
+        skip, input_functions = variable_mask, x.options.simplex)
 end
 
 function update_parameters!(cache::SearchCache{<:CrossEntropy})
-    (; candidates, keeps, p, alg) = cache
-    (; alpha) = alg
-    p̄ = mean(map(candidates[keeps]) do candidate
-        return ComponentVector(get_configuration(candidate.model.model, p, candidate.st))
+    p̄ = mean(map(cache.candidates[cache.keeps]) do candidate
+        return ComponentVector(get_configuration(candidate.model.model, cache.p, candidate.st))
     end)
-    cache.p .= alpha * p + (one(alpha) - alpha) .* p̄
+    alpha = cache.alg.options.alpha
+    @. cache.p = alpha * cache.p + (true - alpha) * p̄
     return
 end
