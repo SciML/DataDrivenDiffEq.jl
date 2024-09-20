@@ -6,6 +6,7 @@ using Random
 using Distributions
 using Test
 using Optimisers
+using Optim
 using StableRNGs
 
 rng = StableRNG(1234)

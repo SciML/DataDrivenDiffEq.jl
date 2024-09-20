@@ -27,9 +27,9 @@ dummy_dataset = DataDrivenLux.Dataset(dummy_problem)
 
 @test isempty(dummy_dataset.u_intervals)
 
-for (data, interval) in zip((X, Y, 1:size(X, 2)),
+for (data, _interval) in zip((X, Y, 1:size(X, 2)),
     (dummy_dataset.x_intervals[1], dummy_dataset.y_intervals[1], dummy_dataset.t_interval))
-    @test (interval.lo, interval.hi) == extrema(data)
+    @test isequal_interval(_interval, interval(extrema(data)))
 end
 
 # We have 1 Choices in the first layer, 2 in the last 

@@ -14,7 +14,7 @@ using ConcreteStructs: @concrete
 using Setfield: Setfield, @set!
 
 using Optim: Optim, LBFGS
-using Optimisers: Optimisers, ADAM
+using Optimisers: Optimisers, Adam
 
 using Lux: Lux, logsoftmax, softmax!
 using LuxCore: LuxCore, AbstractLuxLayer, AbstractLuxWrapperLayer

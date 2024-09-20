@@ -12,7 +12,7 @@ end
 Base.show(io::IO, cache::SearchCache) = print(io, "SearchCache : $(cache.alg)")
 
 function init_model(x::AbstractDAGSRAlgorithm, basis::Basis, dataset::Dataset, intervals)
-    (; simplex, n_layers, arities, functions, use_protected, skip) = x
+    (; simplex, n_layers, arities, functions, use_protected, skip) = x.options
 
     # Get the parameter mapping
     variable_mask = map(enumerate(equations(basis))) do (i, eq)
