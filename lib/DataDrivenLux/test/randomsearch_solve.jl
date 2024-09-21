@@ -6,6 +6,7 @@ using Random
 using Distributions
 using Test
 using StableRNGs
+using IntervalArithmetic
 
 rng = StableRNG(1234)
 # Dummy stuff
@@ -27,21 +28,19 @@ dummy_dataset = DataDrivenLux.Dataset(dummy_problem)
 
 @test isempty(dummy_dataset.u_intervals)
 
-for (data, interval) in zip((X, Y, 1:size(X, 2)),
-    (dummy_dataset.x_intervals[1],
-        dummy_dataset.y_intervals[1],
-        dummy_dataset.t_interval))
-    @test (interval.lo, interval.hi) == extrema(data)
+for (data, _interval) in zip((X, Y, 1:size(X, 2)),
+    (dummy_dataset.x_intervals[1], dummy_dataset.y_intervals[1], dummy_dataset.t_interval))
+    @test isequal_interval(_interval, interval(extrema(data)))
 end
 
 # We have 1 Choices in the first layer, 2 in the last 
-alg = RandomSearch(populationsize = 10, functions = (sin, exp, *),
-    arities = (1, 1, 2), rng = rng, n_layers = 2,
-    loss = rss, keep = 2)
+alg = RandomSearch(;
+    populationsize = 10, functions = (sin, exp, *), arities = (1, 1, 2), rng,
+    n_layers = 2, loss = rss, keep = 2)
 
 res = solve(dummy_problem, alg,
-    options = DataDrivenCommonOptions(maxiters = 50, progress = true,
-        abstol = 0.0))
+    options = DataDrivenCommonOptions(
+        maxiters = 50, progress = parse(Bool, get(ENV, "CI", "false")), abstol = 0.0))
 @test rss(res) <= 1e-2
 @test aicc(res) <= -100.0
 @test r2(res) >= 0.95

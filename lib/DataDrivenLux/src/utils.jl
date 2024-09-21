@@ -2,13 +2,13 @@ using InverseFunctions: square
 
 function _safe_div(x::X, y::Y) where {X, Y}
     iszero(y) && return zero(Y)
-    \(x, y)
+    return \(x, y)
 end
 
 InverseFunctions.inverse(::typeof(_safe_div)) = _safe_div
 
 function _safe_pow(x::X, y::Y) where {X, Y}
-    iszero(x) ? x : ^(x, y)
+    return iszero(x) ? x : ^(x, y)
 end
 
 InverseFunctions.inverse(::typeof(_safe_pow)) = InverseFunctions.inverse(^)
@@ -19,7 +19,6 @@ inverse_safe = Dict()
 
 for (f, safe_f) in safe_functions
     finv = InverseFunctions.inverse(f)
-    @info f finv
     if isa(finv, InverseFunctions.NoInverse)
         inverse_safe[safe_f] = NoInverse(safe_f)
     else

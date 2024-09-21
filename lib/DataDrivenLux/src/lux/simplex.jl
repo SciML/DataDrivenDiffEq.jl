@@ -1,6 +1,4 @@
-function init_weights(::AbstractSimplex, rng::Random.AbstractRNG, dims...)
-    Lux.zeros32(rng, dims...)
-end
+init_weights(::AbstractSimplex, rng::AbstractRNG, dims...) = zeros32(rng, dims...)
 
 """
 $(TYPEDEF)
@@ -10,9 +8,9 @@ on each row.
 """
 struct Softmax <: AbstractSimplex end
 
-function (::Softmax)(rng::Random.AbstractRNG, x̂::AbstractVector, x::AbstractVector,
-        κ = one(eltype(x)))
-    softmax!(x̂, x ./ κ)
+function (::Softmax)(
+        rng::AbstractRNG, x̂::AbstractVector, x::AbstractVector, κ = one(eltype(x)))
+    return softmax!(x̂, x ./ κ)
 end
 
 """
@@ -26,15 +24,15 @@ $(FIELDS)
 """
 struct GumbelSoftmax <: AbstractSimplex end
 
-function (::GumbelSoftmax)(rng::Random.AbstractRNG, x̂::AbstractVector, x::AbstractVector,
-        κ = one(eltype(x)))
+function (::GumbelSoftmax)(
+        rng::AbstractRNG, x̂::AbstractVector, x::AbstractVector, κ = one(eltype(x)))
     z = -log.(-log.(rand(rng, size(x)...)))
     y = similar(x)
     foreach(axes(x, 2)) do i
-        y[:, i] .= exp.(x[:, i])
+        return y[:, i] .= exp.(x[:, i])
     end
     y ./= sum(y, dims = 2)
-    softmax!(x̂, (y .+ z) ./ κ)
+    return softmax!(x̂, (y .+ z) ./ κ)
 end
 
 """
@@ -47,13 +45,13 @@ $(FIELDS)
 """
 struct DirectSimplex <: AbstractSimplex end
 
-function (::DirectSimplex)(rng::Random.AbstractRNG, x̂::AbstractVector, x::AbstractVector,
-        κ = one(eltype(x)))
-    x̂ .= x
+function (::DirectSimplex)(
+        rng::AbstractRNG, x̂::AbstractVector, x::AbstractVector, κ = one(eltype(x)))
+    return x̂ .= x
 end
 
-function init_weights(::DirectSimplex, rng::Random.AbstractRNG, dims...)
-    w = Lux.ones32(rng, dims...)
+function init_weights(::DirectSimplex, rng::AbstractRNG, dims...)
+    w = ones32(rng, dims...)
     w ./= first(dims)
-    w
+    return w
 end
