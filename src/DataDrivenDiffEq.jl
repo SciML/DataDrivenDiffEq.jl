@@ -13,7 +13,7 @@ using Parameters
 using Setfield
 
 @reexport using ModelingToolkit
-using ModelingToolkit: AbstractSystem
+using ModelingToolkit: AbstractSystem, AbstractTimeDependentSystem
 using SymbolicUtils: operation, arguments, iscall, issym
 using Symbolics
 using Symbolics: scalarize, variable, value
@@ -66,7 +66,7 @@ const __EMPTY_VECTOR = Vector(undef, 0)
 
 # Basis with an indicator for implicit use
 abstract type AbstractDataDrivenFunction{Bool, Bool} end
-abstract type AbstractBasis <: AbstractSystem end
+abstract type AbstractBasis <: AbstractTimeDependentSystem end
 
 # Collect the DataInterpolations Methods into an Interpolation Type
 abstract type AbstractInterpolationMethod end
