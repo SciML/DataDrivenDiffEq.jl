@@ -25,7 +25,7 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
 CommonSolve = "0.2"
-DataInterpolations = "4, 5, 6, 7"
+DataInterpolations = "4, 5, 6, 7, 8"
 DiffEqBase = "6"
 DocStringExtensions = "0.7, 0.8, 0.9"
 MLUtils = "0.3, 0.4"
