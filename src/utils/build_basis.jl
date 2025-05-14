@@ -102,7 +102,7 @@ function _implicit_build_eqs(basis, eqs, p, prob)
         eqs = eqs .~ 0
         try
             # Try to solve the eq for the implicits
-            eqs = ModelingToolkit.solve_for(eqs, implicits)
+            eqs = ModelingToolkit.symbolic_linear_solve(eqs, implicits)
             eqs = implicits .~ eqs
             implicits = Num[]
         catch
