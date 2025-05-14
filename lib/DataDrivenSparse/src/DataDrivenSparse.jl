@@ -25,8 +25,7 @@ abstract type AbstractProximalOperator end
 
 abstract type AbstractSparseRegressionCache <: StatsBase.StatisticalModel end
 
-function _set!(x::AbstractSparseRegressionCache,
-        y::AbstractSparseRegressionCache) where {T <: Number}
+function _set!(x::AbstractSparseRegressionCache, y::AbstractSparseRegressionCache)
     begin
         foreach(eachindex(x.X)) do i
             x.X[i] = y.X[i]

@@ -64,8 +64,8 @@ end
             cos.(0.5 .* t .^ 2 .- 0.1), exp.(-t))))
     Y = permutedims(0.5 * X[1, :] + 0.22 * X[4, :] - 2.0 * X[3, :])
     X = vcat(X, Y)
-    for alg in [STLSQ, ADMM, SR3]
-        opt = ImplicitOptimizer(alg())
+    for alg in [STLSQ(0.1, 1.0), ADMM(), SR3()]
+        opt = ImplicitOptimizer(alg)
         rescoeff, _... = opt(X, Y, options = DataDrivenCommonOptions(maxiters = 2000))
         @test vec(rescoeff)≈[0.25; 0.0; -1.0; 0.11; 0.0; -0.5] atol=5e-2
     end

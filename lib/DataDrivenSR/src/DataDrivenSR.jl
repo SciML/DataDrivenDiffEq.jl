@@ -22,7 +22,7 @@ using Reexport
 """
 $(TYPEDEF)
 Options for using SymbolicRegression.jl within the `solve` function.
-Automatically creates [`Options`](https://astroautomata.com/SymbolicRegression.jl/stable/api/#Options) with the given specification.
+Automatically creates [`Options`](https://ai.damtp.cam.ac.uk/symbolicregression/stable/api/#Options) with the given specification.
 Sorts the operators stored in `functions` into unary and binary operators on conversion.
 # Fields
 $(FIELDS)
@@ -30,7 +30,7 @@ $(FIELDS)
 @with_kw struct EQSearch <: AbstractDataDrivenAlgorithm
     "Optionally weight the loss for each y by this value (same shape as y)"
     weights::Union{AbstractMatrix, AbstractVector, Nothing} = nothing
-    "The number of processes to use, if you want EquationSearch to set this up automatically."
+    "The number of processes to use, if you want `equation_search` to set this up automatically."
     numprocs = nothing
     "If you have set up a distributed run manually with procs = addprocs() and @everywhere, pass the procs to this keyword argument."
     procs::Union{Vector{Int}, Nothing} = nothing
@@ -40,7 +40,7 @@ $(FIELDS)
     parallelism::Union{String, Symbol} = :serial
     "Whether to run (quick) tests before starting the search, to see if there will be any problems during the equation search related to the host environment"
     runtests::Bool = true
-    "Options for 'EquationSearch'"
+    "Options for `equation_search`"
     eq_options::SymbolicRegression.Options = SymbolicRegression.Options()
 end
 
@@ -184,7 +184,7 @@ function (x::EQSearch)(ps::InternalDataDrivenProblem{EQSearch}, X, Y)
     @unpack maxiters, abstol = options
     @unpack weights, eq_options, numprocs, procs, parallelism, runtests = x
 
-    hofs = SymbolicRegression.EquationSearch(X, Y,
+    hofs = SymbolicRegression.equation_search(X, Y;
         niterations = maxiters,
         weights = weights,
         options = eq_options,
@@ -197,7 +197,7 @@ function (x::EQSearch)(ps::InternalDataDrivenProblem{EQSearch}, X, Y)
 
     # Evaluate over the full training data
     paretos = map(enumerate(hofs)) do (i, hof)
-        SymbolicRegression.calculate_pareto_frontier(X, Y[i, :], hof, eq_options)
+        SymbolicRegression.calculate_pareto_frontier(hof)
     end
 
     return SRResult(ps, hofs, paretos)
