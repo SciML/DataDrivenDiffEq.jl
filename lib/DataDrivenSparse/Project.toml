@@ -1,7 +1,7 @@
 name = "DataDrivenSparse"
 uuid = "5b588203-7d8b-4fab-a537-c31a7f73f46b"
 authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
-version = "0.1.2"
+version = "0.1.3"
 
 [deps]
 DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
@@ -11,7 +11,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 
 [compat]
-julia = "1.6"
+julia = "1.10"
 DataDrivenDiffEq = "1"
 Reexport = "1.2"
 
