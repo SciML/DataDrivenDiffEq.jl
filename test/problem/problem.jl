@@ -165,7 +165,7 @@ end
 
 @testset "DataDrivenProblem from ODEProblem solution" begin
     using OrdinaryDiffEqTsit5
-    using ModelingToolkit: t_nounits as t, D_nounits as D
+    using ModelingToolkit: t_nounits as time, D_nounits as D
 
     @mtkmodel Autoregulation begin
         @parameters begin
@@ -175,7 +175,7 @@ end
             δ = 0.5
         end
         @variables begin
-            (x(t))[1:2] = [20.0; 12.0]
+            (x(time))[1:2] = [20.0; 12.0]
         end
         @equations begin
             D(x[1]) ~ α / (1 + x[2]) - β * x[1]
