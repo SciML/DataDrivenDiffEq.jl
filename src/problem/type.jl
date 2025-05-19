@@ -314,7 +314,7 @@ function ModelingToolkit.get_dvs(p::ABSTRACT_DIRECT_PROB, i = :, j = :)
 end
 
 function ModelingToolkit.get_dvs(p::ABSTRACT_DISCRETE_PROB, i = :, j = :)
-    ModelingToolkit.states(p, i, j)
+    states(p, i, j)
 end
 
 function ModelingToolkit.observed(p::AbstractDataDrivenProblem, i = :, j = :)
@@ -328,7 +328,7 @@ function ModelingToolkit.controls(p::AbstractDataDrivenProblem, i = :, j = :)
 end
 
 function Base.getindex(p::AbstractDataDrivenProblem, i = :, j = :)
-    return (ModelingToolkit.states(p, i, j),
+    return (states(p, i, j),
         ModelingToolkit.parameters(p),
         ModelingToolkit.independent_variable(p, j),
         ModelingToolkit.controls(p, i, j))
