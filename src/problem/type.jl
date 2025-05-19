@@ -152,10 +152,11 @@ function DataDrivenProblem(X::AbstractMatrix;
         DX::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
         Y::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
         U::F = Array{eltype(X)}(undef, 0, 0),
-        p::AbstractVector = Array{eltype(X)}(undef, 0),
+        p::Union{AbstractVector, MTKParameters} = Array{eltype(X)}(undef, 0),
         probtype = nothing,
         kwargs...) where {F <: Union{AbstractMatrix, Function}}
-    return DataDrivenProblem(probtype, X, t, DX, Y, U, p; kwargs...)
+    _p = isa(p, MTKParameters) ? p.tunable : p
+    return DataDrivenProblem(probtype, X, t, DX, Y, U, _p; kwargs...)
 end
 
 function Base.summary(io::IO, x::DataDrivenProblem{N, C, P}) where {N, C, P}
