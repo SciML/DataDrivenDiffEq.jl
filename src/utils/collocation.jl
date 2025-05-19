@@ -142,7 +142,7 @@ $(SIGNATURES)
 
 Unified interface for collocation techniques. The input can either be
 a `CollocationKernel` (see list below) or a wrapped `InterpolationMethod` from
-[DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl).
+[DataInterpolations.jl](https://github.com/SciML/DataInterpolations.jl).
 
 Computes a non-parametrically smoothed estimate of `u'` and `u`
 given the `data`, where each column is a snapshot of the timeseries at
@@ -156,7 +156,7 @@ u′,u,t = collocate_data(data,tpoints,interp)
 ```
 
 # Collocation Kernels
-See [this paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631937/) for more information.
+See [this paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC2631937/) for more information.
 + EpanechnikovKernel
 + UniformKernel
 + TriangularKernel
@@ -170,7 +170,7 @@ See [this paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631937/) for more
 + SilvermanKernel
 
 # Interpolation Methods
-See [DataInterpolations.jl](https://github.com/PumasAI/DataInterpolations.jl) for more information.
+See [DataInterpolations.jl](https://github.com/SciML/DataInterpolations.jl) for more information.
 + ConstantInterpolation
 + LinearInterpolation
 + QuadraticInterpolation
