@@ -14,7 +14,7 @@ using Setfield
 
 @reexport using ModelingToolkit
 using ModelingToolkit: AbstractSystem, AbstractTimeDependentSystem
-using SciMLStructures as SS
+using SciMLStructures: SciMLStructures as SS
 using SymbolicUtils: operation, arguments, iscall, issym
 using Symbolics
 using Symbolics: scalarize, variable, value
