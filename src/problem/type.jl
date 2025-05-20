@@ -155,7 +155,11 @@ function DataDrivenProblem(X::AbstractMatrix;
         p::Union{AbstractVector, MTKParameters} = Array{eltype(X)}(undef, 0),
         probtype = nothing,
         kwargs...) where {F <: Union{AbstractMatrix, Function}}
-    _p, _, _ = SS.isscimlstructure(p) ? SS.canonicalize(SS.Tunable(), p) : p
+    if SS.isscimlstructure(p)
+        _p, _, _ = SS.canonicalize(SS.Tunable(), p)
+    else
+        _p = p
+    end
     return DataDrivenProblem(probtype, X, t, DX, Y, U, _p; kwargs...)
 end
 
