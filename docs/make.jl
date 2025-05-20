@@ -12,7 +12,6 @@ dev_subpkg("DataDrivenDMD")
 dev_subpkg("DataDrivenSparse")
 dev_subpkg("DataDrivenSR")
 
-Pkg.precompile()
 
 using Documenter
 using DataDrivenDiffEq
