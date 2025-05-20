@@ -12,6 +12,7 @@ dev_subpkg("DataDrivenDMD")
 dev_subpkg("DataDrivenSparse")
 dev_subpkg("DataDrivenSR")
 
+
 using Documenter
 using DataDrivenDiffEq
 using DataDrivenDMD
@@ -21,8 +22,8 @@ using DataDrivenSR
 using StatsBase
 using Literate
 
-cp("./docs/Manifest.toml", "./docs/src/assets/Manifest.toml", force = true)
-cp("./docs/Project.toml", "./docs/src/assets/Project.toml", force = true)
+cp(joinpath(@__DIR__, "Manifest.toml"), joinpath(@__DIR__, "src", "assets", "Manifest.toml"), force = true)
+cp(joinpath(@__DIR__, "Project.toml"), joinpath(@__DIR__, "src", "assets", "Project.toml"), force = true)
 
 ENV["GKSwstype"] = "100"
 
@@ -73,9 +74,12 @@ makedocs(sitename = "DataDrivenDiffEq.jl",
     modules = [DataDrivenDiffEq, DataDrivenDMD, DataDrivenSparse, DataDrivenSR],
     clean = true, doctest = false, linkcheck = true,
     warnonly = [:missing_docs, :cross_references],
-    linkcheck_ignore = ["http://cwrowley.princeton.edu/papers/Hemati-2017a.pdf",
+    linkcheck_ignore = [
+        "http://cwrowley.princeton.edu/papers/Hemati-2017a.pdf",
         "https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279",
-        "https://www.pnas.org/doi/10.1073/pnas.1517384113"],
+        "https://www.pnas.org/doi/10.1073/pnas.1517384113",
+        "https://link.springer.com/article/10.1007/s00332-015-9258-5",
+    ],
     format = Documenter.HTML(assets = ["assets/favicon.ico"],
         canonical = "https://docs.sciml.ai/DataDrivenDiffEq/stable/"),
     pages = pages)

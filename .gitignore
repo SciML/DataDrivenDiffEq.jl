@@ -5,5 +5,6 @@ Manifest.toml
 .DS_Store
 /docs/build/*
 /docs/src/libs/*/examples
+/docs/src/assets/Project.toml
 hall_of_fame.*
 /tmp/*
