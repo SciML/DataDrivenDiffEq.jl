@@ -1,7 +1,7 @@
 # # [Implicit Nonlinear Dynamics : Michaelis-Menten](@id michaelis_menten)
 #
 # What if you want to estimate an implicitly defined system of the form ``f(u_t, u, p, t) = 0``?
-# The solution : Implicit Sparse Identification. This method was originally described in [this paper](http://ieeexplore.ieee.org/document/7809160/), and currently there exist [robust algorithms](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279) to identify these systems.
+# The solution : Implicit Sparse Identification. This method was originally described in [this paper](https://ieeexplore.ieee.org/document/7809160/), and currently there exist [robust algorithms](https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279) to identify these systems.
 # We will focus on [Michaelis-Menten Kinetics](https://en.wikipedia.org/wiki/Michaelis%E2%80%93Menten_kinetics). As before, we will define the [`DataDrivenProblem`](@ref) and the [`Basis`](@ref) containing possible candidate functions for our [sparse regression](@ref sparse_algorithms).
 # Let's generate some data! We will use two experiments starting from different initial conditions.
 
