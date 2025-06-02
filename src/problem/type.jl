@@ -326,7 +326,7 @@ function ModelingToolkit.observed(p::AbstractDataDrivenProblem, i = :, j = :)
     isempty(x) ? x : getindex(x, i, j)
 end
 
-function ModelingToolkit.controls(p::AbstractDataDrivenProblem, i = :, j = :)
+function controls(p::AbstractDataDrivenProblem, i = :, j = :)
     x = getfield(p, :U)
     isempty(x) ? x : getindex(x, i, j)
 end
