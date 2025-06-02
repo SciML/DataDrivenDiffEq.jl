@@ -13,13 +13,13 @@ using Parameters
 using Setfield
 
 @reexport using ModelingToolkit
-using ModelingToolkit: AbstractSystem, AbstractTimeDependentSystem
+using ModelingToolkit: AbstractSystem
 using SciMLStructures: SciMLStructures as SS
 using SymbolicUtils: operation, arguments, iscall, issym
 using Symbolics
 using Symbolics: scalarize, variable, value
 @reexport using ModelingToolkit: unknowns, parameters, independent_variable, observed,
-                                 controls, get_iv, get_observed
+                                 get_iv, get_observed
 
 using Random
 using QuadGK
@@ -67,7 +67,7 @@ const __EMPTY_VECTOR = Vector(undef, 0)
 
 # Basis with an indicator for implicit use
 abstract type AbstractDataDrivenFunction{Bool, Bool} end
-abstract type AbstractBasis <: AbstractTimeDependentSystem end
+abstract type AbstractBasis <: AbstractSystem end
 
 # Collect the DataInterpolations Methods into an Interpolation Type
 abstract type AbstractInterpolationMethod end
@@ -98,7 +98,7 @@ include("./basis/utils.jl")
 include("./basis/type.jl")
 export Basis
 export jacobian, dynamics
-export implicit_variables, states
+export implicit_variables, states, controls
 export get_parameter_values, get_parameter_map
 
 include("./utils/basis_generators.jl")

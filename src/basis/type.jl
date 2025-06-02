@@ -263,6 +263,18 @@ function states(b::AbstractBasis)
     return getfield(b, :unknowns)
 end
 
+function controls(b::AbstractBasis)
+    ctrls = getfield(b, :ctrls)
+    systems = getfield(b, :systems)
+    isempty(systems) && return ctrls
+
+    ctrls = copy(ctrls)
+    for sys in systems
+        append!(ctrls, unknowns(sys, controls(sys)))
+    end
+    return ctrls
+end
+
 # For internal use
 is_implicit(b::Basis{X, <:Any}) where {X} = X
 is_controlled(b::Basis{<:Any, X}) where {X} = X

@@ -29,9 +29,9 @@ using Test #src
     end
 end
 
-@mtkbuild sys = Autoregulation()
+@mtkcompile sys = Autoregulation()
 tspan = (0.0, 5.0)
-de_problem = ODEProblem{true, SciMLBase.NoSpecialize}(sys, [], tspan, [])
+de_problem = ODEProblem{true, SciMLBase.NoSpecialize}(sys, [], tspan)
 de_solution = solve(de_problem, Tsit5(), saveat = 0.005);
 #md plot(de_solution)
 
