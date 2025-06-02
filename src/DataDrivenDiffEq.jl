@@ -19,7 +19,7 @@ using SymbolicUtils: operation, arguments, iscall, issym
 using Symbolics
 using Symbolics: scalarize, variable, value
 @reexport using ModelingToolkit: unknowns, parameters, independent_variable, observed,
-                                 controls, get_iv, get_observed
+                                 get_iv, get_observed
 
 using Random
 using QuadGK
@@ -98,7 +98,7 @@ include("./basis/utils.jl")
 include("./basis/type.jl")
 export Basis
 export jacobian, dynamics
-export implicit_variables, states
+export implicit_variables, states, controls
 export get_parameter_values, get_parameter_map
 
 include("./utils/basis_generators.jl")
