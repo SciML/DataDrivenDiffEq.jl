@@ -24,22 +24,22 @@ gr()
     end
 end
 
-@mtkbuild sys = Autoregulation()
+@mtkcompile sys = Autoregulation()
 tspan = (0.0, 5.0)
-de_problem = ODEProblem{true, SciMLBase.NoSpecialize}(sys, [], tspan, [])
+de_problem = ODEProblem{true, SciMLBase.NoSpecialize}(sys, [], tspan)
 de_solution = solve(de_problem, Tsit5(), saveat = 0.005);
-plot(de_solution)</code></pre><img src="cd51c3f0.svg" alt="Example block output"/><p>As always, we start by defining a <a href="../../../../problems/#problem">DataDrivenProblem</a> and a sufficient basis for sparse regression.</p><pre><code class="language-julia hljs">dd_prob = DataDrivenProblem(de_solution)
+plot(de_solution)</code></pre><img src="d51c9a88.svg" alt="Example block output"/><p>As always, we start by defining a <a href="../../../../problems/#problem">DataDrivenProblem</a> and a sufficient basis for sparse regression.</p><pre><code class="language-julia hljs">dd_prob = DataDrivenProblem(de_solution)
 
 x = sys.x
 eqs = [polynomial_basis(x, 4); D.(x); x .* D(x[1]); x .* D(x[2])]
 
 basis = Basis(eqs, x, independent_variable = t, implicits = D.(x))
 
-plot(dd_prob)</code></pre><img src="47ce5d14.svg" alt="Example block output"/><p>Next to varying over different sparsity penalties, we also want to batch our data using the <strong>TEXT</strong></p><pre><code class="language-julia hljs">sampler = DataProcessing(split = 0.8, shuffle = true, batchsize = 30)
+plot(dd_prob)</code></pre><img src="a3355317.svg" alt="Example block output"/><p>Next to varying over different sparsity penalties, we also want to batch our data using the <strong>TEXT</strong></p><pre><code class="language-julia hljs">sampler = DataProcessing(split = 0.8, shuffle = true, batchsize = 30)
 res = solve(dd_prob, basis, ImplicitOptimizer(STLSQ(1e-2:1e-2:1.0)),
     options = DataDrivenCommonOptions(data_processing = sampler, digits = 2))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;DataDrivenSolution{Float64}&quot; with 2 equations and 10 parameters.
 Returncode: Success
-Residual sum of squares: 9.741655697348472</code></pre><p>And have a look at the resulting plot</p><pre><code class="language-julia hljs">plot(res)</code></pre><img src="1446e459.svg" alt="Example block output"/><p>As well as the resulting equations of motion</p><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Model ##Basis#371 with 2 equations
+Residual sum of squares: 9.741655697348472</code></pre><p>And have a look at the resulting plot</p><pre><code class="language-julia hljs">plot(res)</code></pre><img src="0722306d.svg" alt="Example block output"/><p>As well as the resulting equations of motion</p><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Model ##Basis#371 with 2 equations
 States : (x(t))[1] (x(t))[2]
 Parameters : 10
 Independent variable: t
@@ -78,9 +78,9 @@ using DataDrivenSparse
     end
 end
 
-@mtkbuild sys = Autoregulation()
+@mtkcompile sys = Autoregulation()
 tspan = (0.0, 5.0)
-de_problem = ODEProblem{true, SciMLBase.NoSpecialize}(sys, [], tspan, [])
+de_problem = ODEProblem{true, SciMLBase.NoSpecialize}(sys, [], tspan)
 de_solution = solve(de_problem, Tsit5(), saveat = 0.005);
 
 dd_prob = DataDrivenProblem(de_solution)
@@ -96,4 +96,4 @@ res = solve(dd_prob, basis, ImplicitOptimizer(STLSQ(1e-2:1e-2:1.0)),
 
 system = get_basis(res) #hide
 
-# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_03/">« Implicit Nonlinear Dynamics : Michaelis-Menten</a><a class="docs-footer-nextpage" href="../example_05/">Implicit Nonlinear Dynamics : Cartpole »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.11.4 on <span class="colophon-date" title="Tuesday 20 May 2025 12:11">Tuesday 20 May 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_03/">« Implicit Nonlinear Dynamics : Michaelis-Menten</a><a class="docs-footer-nextpage" href="../example_05/">Implicit Nonlinear Dynamics : Cartpole »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.11.4 on <span class="colophon-date" title="Monday 2 June 2025 10:28">Monday 2 June 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
