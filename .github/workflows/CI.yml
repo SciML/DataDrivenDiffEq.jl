@@ -24,6 +24,8 @@ jobs:
           - DataDrivenLux
         version:
           - '1'
+          - 'lts'
+          - 'pre'
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
