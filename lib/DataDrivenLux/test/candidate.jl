@@ -30,7 +30,7 @@ using StableRNGs
 end
 
 # Broken for now since NaNMath.sin doesnt work with IntervalArithmetic
-# @testset "Candidate with parametes" begin
+# @testset "Candidate with parameters" begin
 #     fs = (exp,)
 #     arities = (1,)
 #     dag = LayeredDAG(1, 1, 1, arities, fs, skip = true)
