@@ -56,16 +56,18 @@ $(TYPEDEF)
 The `DataDrivenProblem` defines a general estimation problem given measurements, inputs and (in the near future) observations.
 Three construction methods are available:
 
-+ `DirectDataDrivenProblem` for direct mappings
-+ `DiscreteDataDrivenProblem` for time discrete systems
-+ `ContinuousDataDrivenProblem` for systems continuous in time
+  - `DirectDataDrivenProblem` for direct mappings
+  - `DiscreteDataDrivenProblem` for time discrete systems
+  - `ContinuousDataDrivenProblem` for systems continuous in time
 
 where all are aliases for constructing a problem.
 
 # Fields
+
 $(FIELDS)
 
 # Signatures
+
 $(SIGNATURES)
 
 # Example
@@ -83,7 +85,7 @@ prob = ContinuousDataDrivenProblem(X, DX)
 prob = ContinuousDataDrivenProblem(X, t)
 
 # Define a discrete time problem with an input function as a function
-input_signal(u,p,t) = t^2
+input_signal(u, p, t) = t^2
 prob = DiscreteDataDrivenProblem(X, t, input_signal)
 ```
 """

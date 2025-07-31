@@ -14,7 +14,6 @@ be specified fully.
 The optional `implicits` declare implicit variables in the `Basis`, meaning variables representing the (measured) target of the system.
 Right now, only supported with the use of `ImplicitOptimizer`s.
 
-
 If `linear_independent` is set to `true`, a linear independent basis is created from all atom functions in `f`.
 
 If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
@@ -22,8 +21,8 @@ If `simplify_eqs` is set to `true`, `simplify` is called on `f`.
 Additional keyword arguments include `name`, which can be used to name the basis, and
 `observed` for defining observables.
 
-
 # Fields
+
 $(FIELDS)
 
 # Example
@@ -35,7 +34,7 @@ using DataDrivenDiffEq
 @parameters w[1:2] t
 @variables u[1:2](t)
 
-Ψ = Basis([u; sin.(w.*u)], u, parameters = p, iv = t)
+Ψ = Basis([u; sin.(w .* u)], u, parameters = p, iv = t)
 ```
 
 ## Note
@@ -47,7 +46,6 @@ the function that generates them). If `eval_expression=false`,
 then construction via GeneralizedGenerated.jl is utilized to allow for
 same world-age evaluation. However, this can cause Julia to segfault
 on sufficiently large basis functions. By default eval_expression=false.
-
 """
 struct Basis{IMPL, CTRLS} <: AbstractBasis
     """The equations of the basis"""
@@ -107,7 +105,10 @@ function __preprocess_basis(eqs, states, ctrls, ps, observed, iv, implicit, name
     lhs = Num.(lhs)
 
     # Scalarize all variables
-    states, controls, parameters, implicits, observed = value.(collect(states)),
+    states, controls,
+    parameters,
+    implicits,
+    observed = value.(collect(states)),
     value.(collect(ctrls)),
     value.(collect(ps)),
     value.(collect(implicit)),
@@ -419,8 +420,10 @@ If control variables are defined, the function can also be called by `f(u,p,t,co
 
 If the Jacobian with respect to other variables is needed, it can be passed via a second argument.
 """
-jacobian(x::Basis, eval_expression::Bool = false) = jacobian(
-    x, unknowns(x), eval_expression)
+function jacobian(x::Basis, eval_expression::Bool = false)
+    jacobian(
+        x, unknowns(x), eval_expression)
+end
 
 function jacobian(x::Basis, s, eval_expression::Bool = false)
     j = Symbolics.jacobian([xi.rhs for xi in equations(x)], s)
@@ -440,6 +443,7 @@ end
 function Base.unique!(b::AbstractVector{Num}, simplify_eqs = false)
     idx = zeros(Bool, length(b))
     for i in 1:length(b), j in (i + 1):length(b)
+
         i == j && continue
         idx[i] && continue
         idx[i] = isequal(b[i], b[j])
@@ -454,6 +458,7 @@ function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
     eqs_ = equations(b)
     n_eqs = length(eqs_)
     for i in 1:n_eqs, j in (i + 1):n_eqs
+
         i == j && continue
         idx[i] && continue
         idx[i] = isequal(eqs_[i].rhs, eqs_[j].rhs)
@@ -522,6 +527,7 @@ Return the default values for the given [`Basis`](@ref).
 If no default value is stored, returns `zero(T)` where `T` is the `symtype` of the parameter.
 
 ## Note
+
 This extends `getmetadata` in a way that all parameters have a numeric value.
 """
 function get_parameter_values(x::Basis)
@@ -541,6 +547,7 @@ Return the default values as a vector of pairs for the given [`Basis`](@ref).
 If no default value is stored, returns `zero(T)` where `T` is the `symtype` of the parameter.
 
 ## Note
+
 This extends `getmetadata` in a way that all parameters have a numeric value.
 """
 function get_parameter_map(x::Basis)

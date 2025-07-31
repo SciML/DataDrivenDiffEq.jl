@@ -1,14 +1,19 @@
 """
 $(TYPEDEF)
 `ADMM` is an implementation of Lasso using the alternating direction methods of multipliers, and
-loosely based on [this implementation](https://web.stanford.edu/~boyd/papers/admm/lasso/lasso.html).
+loosely based on [this implementation](https://web.stanford.edu/%7Eboyd/papers/admm/lasso/lasso.html).
 It solves the following problem
+
 ```math
 \\argmin_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\lambda \\|x\\|_1
 ```
+
 # Fields
+
 $(FIELDS)
+
 # Example
+
 ```julia
 opt = ADMM()
 opt = ADMM(1e-1, 2.0)

@@ -20,7 +20,6 @@ end
 @testset "Mini Batching" begin
     for n in 2:5, repeat_ in [true, false],
         shuffle_ in [true, false]
-
         batch = Batcher(n = n, repeated = repeat_, shuffle = shuffle_)
         train, test = batch(prob)
         @test length(train) == n
@@ -31,6 +30,7 @@ end
 
 @testset "DataSampler" begin
     for repeat_ in [true, false], shuffle_ in [true, false]
+
         ds = DataSampler(Batcher(n = 2, repeated = repeat_, shuffle = shuffle_),
             Split(ratio = 0.8))
         train, test = ds(prob)

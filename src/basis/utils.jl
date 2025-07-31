@@ -33,6 +33,7 @@ end
 function count_operation(x::AbstractArray, ops::AbstractArray, nested::Bool = true)
     counter = 0
     @inbounds for xi in x, op in ops
+
         counter += count_operation(xi, op, nested)
     end
     counter

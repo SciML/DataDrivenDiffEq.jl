@@ -59,6 +59,7 @@ function __sparse_regression(ps::InternalDataDrivenProblem{<:ImplicitOptimizer},
     idx = ones(Bool, size(candidate_matrix, 2))
 
     for i in axes(candidate_matrix, 1), j in axes(candidate_matrix, 2)
+
         idx .= true
         idx[j] = false
         # We want only equations which are either dependent on the variable or on no other
@@ -72,7 +73,8 @@ function __sparse_regression(ps::InternalDataDrivenProblem{<:ImplicitOptimizer},
 
     foreach(enumerate(eachcol(candidate_matrix))) do (i, idx)
         # We enforce that one of the implicit variables is necessary for success
-        coeff, thresholds, iters = alg(X[idx, :], Y, options = options,
+        coeff, thresholds,
+        iters = alg(X[idx, :], Y, options = options,
             necessary_idx = implicit_idx[idx, i])
         opt_coefficients[i:i, idx] .= coeff
         push!(opt_thresholds, thresholds)

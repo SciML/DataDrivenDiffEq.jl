@@ -10,6 +10,7 @@ function __assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector)
     isempty(v) && return true
     v = unique(v)
     for xi in x, vi in v
+
         isequal(xi, vi) && return false
     end
     return true
@@ -149,8 +150,9 @@ function __construct_basis(X, b, prob, options)
         end
 
         ps = parameters(b)
-        eqs, ps, implicits = is_implicit(b) ? _implicit_build_eqs(b, eqs, ps, prob) :
-                             _explicit_build_eqs(b, eqs, ps, prob)
+        eqs, ps,
+        implicits = is_implicit(b) ? _implicit_build_eqs(b, eqs, ps, prob) :
+                    _explicit_build_eqs(b, eqs, ps, prob)
 
         p_new = map(eachindex(p)) do i
             _set_default_val(Num(ps[i]), p[i])

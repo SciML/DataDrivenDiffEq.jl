@@ -8,9 +8,11 @@ solving the explicit problem, as introduced [here](https://royalsocietypublishin
 ```
 
 # Fields
+
 $(FIELDS)
 
 # Example
+
 ```julia
 ImplicitOptimizer(STLSQ())
 ImplicitOptimizer(0.1f0, ADMM)

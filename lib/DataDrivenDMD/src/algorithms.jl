@@ -45,9 +45,11 @@ K = Y / X
 where `Y` and `X` are data matrices. Returns a  `Eigen` factorization of the operator.
 
 # Fields
+
 $(FIELDS)
 
 # Signatures
+
 $(SIGNATURES)
 """
 mutable struct DMDPINV <: AbstractKoopmanAlgorithm end;
@@ -85,11 +87,12 @@ where `Y` and `X = U*Σ*V'` are data matrices. The singular value decomposition 
 the `truncation` parameter, which can either be an `Int` indicating an index-based truncation or a `Real`
 indicating a tolerance-based truncation. Returns a `Eigen` factorization of the operator.
 
-
 # Fields
+
 $(FIELDS)
 
 # Signatures
+
 $(SIGNATURES)
 """
 mutable struct DMDSVD{T} <: AbstractKoopmanAlgorithm where {T <: Number}
@@ -153,9 +156,11 @@ entries bigger than `rtol*maximum(Σ)`. If `rtol` is an integer, the reduced SVD
 for computation.
 
 # Fields
+
 $(FIELDS)
 
 # Signatures
+
 $(SIGNATURES)
 """
 mutable struct TOTALDMD{R, A} <:
@@ -187,7 +192,6 @@ end
 """
 $(TYPEDEF)
 
-
 Approximates the Koopman operator `K` via the forward-backward DMD.
 It is assumed that `K = sqrt(K₁*inv(K₂))`, where `K₁` is the approximation via forward and `K₂` via [DMDSVD](@ref). Based on [this paper](https://arxiv.org/pdf/1507.02264).
 
@@ -195,9 +199,11 @@ If `truncation` ∈ (0, 1) is given, the singular value decomposition is reduced
 entries bigger than `truncation*maximum(Σ)`. If `truncation` is an integer, the reduced SVD up to `truncation` is used for computation.
 
 # Fields
+
 $(FIELDS)
 
 # Signatures
+
 $(SIGNATURES)
 """
 mutable struct FBDMD{R} <: AbstractKoopmanAlgorithm where {R <: Number}

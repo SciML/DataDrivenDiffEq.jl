@@ -2,12 +2,12 @@
 """
 $(TYPEDEF)
 
-A layer representing a decision node with a single function 
+A layer representing a decision node with a single function
 and a latent array of weights representing a probability distribution over the inputs.
 
 # Fields
-$(FIELDS)
 
+$(FIELDS)
 """
 @concrete struct FunctionNode <: AbstractLuxWrapperLayer{:node}
     node

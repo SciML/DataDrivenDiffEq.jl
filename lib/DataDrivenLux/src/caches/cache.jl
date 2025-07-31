@@ -32,7 +32,8 @@ end
 
 function init_cache(x::X where {X <: AbstractDAGSRAlgorithm},
         basis::Basis, problem::DataDrivenProblem; kwargs...)
-    (; rng, keep, observed, populationsize, optimizer, optim_options, optimiser, loss) = x.options
+    (; rng, keep, observed, populationsize, optimizer,
+        optim_options, optimiser, loss) = x.options
     # Derive the model
     dataset = Dataset(problem)
     TData = eltype(dataset)

@@ -16,6 +16,7 @@ Proximal operator, which implements the soft thresholding operator.
 ```julia
 sign(x) * max(abs(x) - λ, 0)
 ```
+
 See [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
 struct SoftThreshold <: AbstractProximalOperator end;
@@ -52,6 +53,7 @@ Proximal operator, which implements the hard thresholding operator.
 ```julia
 abs(x) > sqrt(2*λ) ? x : 0
 ```
+
 See [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
 struct HardThreshold <: AbstractProximalOperator end;

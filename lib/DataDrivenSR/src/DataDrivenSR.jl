@@ -24,7 +24,9 @@ $(TYPEDEF)
 Options for using SymbolicRegression.jl within the `solve` function.
 Automatically creates [`Options`](https://ai.damtp.cam.ac.uk/symbolicregression/stable/api/#Options) with the given specification.
 Sorts the operators stored in `functions` into unary and binary operators on conversion.
+
 # Fields
+
 $(FIELDS)
 """
 @with_kw struct EQSearch <: AbstractDataDrivenAlgorithm
@@ -131,7 +133,8 @@ end
 function convert_to_basis(paretofrontier, prob)
     @unpack alg, basis, problem, options = prob
     @unpack eq_options = alg
-    @unpack maxiters, eval_expresssion, generate_symbolic_parameters, digits, roundingmode = options
+    @unpack maxiters, eval_expresssion, generate_symbolic_parameters, digits,
+    roundingmode = options
 
     eqs_ = map(paretofrontier) do dom
         node_to_symbolic(dom[end].tree, eq_options)
@@ -205,9 +208,11 @@ end
 
 function CommonSolve.solve!(ps::InternalDataDrivenProblem{EQSearch})
     @unpack alg, basis, testdata, traindata, kwargs = ps
-    @unpack weights, numprocs, procs, addprocs_function, parallelism, runtests, eq_options = alg
+    @unpack weights, numprocs, procs, addprocs_function, parallelism, runtests,
+    eq_options = alg
     @unpack traindata, testdata, basis, options = ps
-    @unpack maxiters, eval_expresssion, generate_symbolic_parameters, digits, roundingmode, selector = options
+    @unpack maxiters, eval_expresssion, generate_symbolic_parameters,
+    digits, roundingmode, selector = options
     @unpack problem = ps
 
     results = map(traindata) do (X, Y)

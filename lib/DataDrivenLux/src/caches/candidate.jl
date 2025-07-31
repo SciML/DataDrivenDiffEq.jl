@@ -42,6 +42,7 @@ A container holding all the information for the current candidate solution
 to the symbolic regression problem.
 
 # Fields
+
 $(FIELDS)
 """
 @concrete struct Candidate <: StatsBase.StatisticalModel

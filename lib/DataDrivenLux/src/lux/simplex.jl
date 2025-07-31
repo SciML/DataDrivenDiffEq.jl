@@ -16,10 +16,11 @@ end
 """
 $(TYPEDEF)
 
-Maps an `AbstractVector` to the probability simplex by adding gumbel distributed 
+Maps an `AbstractVector` to the probability simplex by adding gumbel distributed
 noise and using `softmax` on each row.
 
 # Fields
+
 $(FIELDS)
 """
 struct GumbelSoftmax <: AbstractSimplex end
@@ -41,6 +42,7 @@ $(TYPEDEF)
 Assumes an `AbstractVector` is on the probability simplex.
 
 # Fields
+
 $(FIELDS)
 """
 struct DirectSimplex <: AbstractSimplex end
