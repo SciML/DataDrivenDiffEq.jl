@@ -8,7 +8,7 @@ create and return an interpolation of `u` over `t`.
 The first argument of the constructor always defines the interpolation method,
 all following arguments will be used in the interpolation.
 
-The additional keyword `crop = false` indicates to discard the first and last element of the time series. 
+The additional keyword `crop = false` indicates to discard the first and last element of the time series.
 
 # Example
 
@@ -16,7 +16,7 @@ The additional keyword `crop = false` indicates to discard the first and last el
 # Create the wrapper struct
 itp_method = InterpolationMethod(QuadraticSpline)
 # Create a callable interpolation
-itp = itp_method(u,t)
+itp = itp_method(u, t)
 # Return u[2]
 itp(t[2])
 ```
@@ -149,37 +149,42 @@ given the `data`, where each column is a snapshot of the timeseries at
 `tpoints[i]`.
 
 # Examples
+
 ```julia
-u′,u,t = collocate_data(data,tpoints,kernel=SigmoidKernel())
-u′,u,t = collocate_data(data,tpoints,tpoints_sample,interp,args...)
-u′,u,t = collocate_data(data,tpoints,interp)
+u′, u, t = collocate_data(data, tpoints, kernel = SigmoidKernel())
+u′, u, t = collocate_data(data, tpoints, tpoints_sample, interp, args...)
+u′, u, t = collocate_data(data, tpoints, interp)
 ```
 
 # Collocation Kernels
+
 See [this paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC2631937/) for more information.
-+ EpanechnikovKernel
-+ UniformKernel
-+ TriangularKernel
-+ QuarticKernel
-+ TriweightKernel
-+ TricubeKernel
-+ GaussianKernel
-+ CosineKernel
-+ LogisticKernel
-+ SigmoidKernel
-+ SilvermanKernel
+
+  - EpanechnikovKernel
+  - UniformKernel
+  - TriangularKernel
+  - QuarticKernel
+  - TriweightKernel
+  - TricubeKernel
+  - GaussianKernel
+  - CosineKernel
+  - LogisticKernel
+  - SigmoidKernel
+  - SilvermanKernel
 
 # Interpolation Methods
+
 See [DataInterpolations.jl](https://github.com/SciML/DataInterpolations.jl) for more information.
-+ ConstantInterpolation
-+ LinearInterpolation
-+ QuadraticInterpolation
-+ LagrangeInterpolation
-+ QuadraticSpline
-+ CubicSpline
-+ BSplineInterpolation
-+ BSplineApprox
-+ Curvefit
+
+  - ConstantInterpolation
+  - LinearInterpolation
+  - QuadraticInterpolation
+  - LagrangeInterpolation
+  - QuadraticSpline
+  - CubicSpline
+  - BSplineInterpolation
+  - BSplineApprox
+  - Curvefit
 """
 function collocate_data(data, tpoints, kernel = TriangularKernel(); crop = false, kwargs...)
     _one = oneunit(first(data))
@@ -217,7 +222,8 @@ end
 function collocate_data(data::AbstractVector, tpoints::AbstractVector,
         tpoints_sample::AbstractVector,
         interp::InterpolationMethod; kwargs...)
-    u, du, tpoints = collocate_data(reshape(data, 1, :), tpoints, tpoints_sample, interp;
+    u, du,
+    tpoints = collocate_data(reshape(data, 1, :), tpoints, tpoints_sample, interp;
         kwargs...)
     return du[1, :], u[1, :], tpoints
 end

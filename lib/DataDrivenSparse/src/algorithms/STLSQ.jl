@@ -4,9 +4,11 @@ $(TYPEDEF)
 sequentially thresholded least squares iteration. `λ` is the threshold of the iteration.
 It is based upon [this Matlab implementation](https://github.com/eurika-kaiser/SINDY-MPC/blob/e1dfd9908b2b56af303ee9fb30a133aced4fd757/utils/sparsifyDynamics.m).
 It solves the following problem
+
 ```math
 \\argmin_{x} \\frac{1}{2} \\| Ax-b\\|_2 + \\rho \\|x\\|_2
 ```
+
 with the additional constraint
 
 ```math
@@ -17,16 +19,20 @@ If the parameter `ρ > 0`, ridge regression will be performed using the normal e
 regression problem.
 
 # Fields
+
 $(FIELDS)
 
 # Example
+
 ```julia
 opt = STLSQ()
 opt = STLSQ(1e-1)
 opt = STLSQ(1e-1, 1.0) # Set rho to 1.0
 opt = STLSQ(Float32[1e-2; 1e-1])
 ```
+
 ## Note
+
 This was formally `STRRidge` and has been renamed.
 """
 struct STLSQ{T <: Union{Number, AbstractVector}, R <: Number} <:

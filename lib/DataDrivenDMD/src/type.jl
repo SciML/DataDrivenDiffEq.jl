@@ -2,6 +2,7 @@
 $(TYPEDEF)
 
 # Fields
+
 $(FIELDS)
 
 ## Note
@@ -104,7 +105,8 @@ function operator(k::Koopman{<:Any, <:Any, <:Any, false})
     throw(AssertionError("Koopman is continuous."))
 end
 
-"""_
+"""
+_
 $(SIGNATURES)
 
 Return the approximation of the continuous Koopman generator stored in `k`.
@@ -131,8 +133,8 @@ $(SIGNATURES)
 
 Returns `true` if either:
 
-+ the Koopman operator has just eigenvalues with magnitude less than one or
-+ the Koopman generator has just eigenvalues with a negative real part
+  - the Koopman operator has just eigenvalues with magnitude less than one or
+  - the Koopman generator has just eigenvalues with a negative real part
 """
 is_stable(k::Koopman{<:Any, true}) = all(real.(eigvals(k)) .< real.(one(eltype(k))))
 is_stable(k::Koopman{<:Any, false}) = all(real.(eigvals(k)) .< real.(zero(eltype(k))))

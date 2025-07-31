@@ -1,10 +1,11 @@
 """
 $(TYPEDEF)
 
-A container for multiple [`DecisionNodes`](@ref). 
+A container for multiple [`DecisionNodes`](@ref).
 It accumulates all outputs of the nodes.
 
 # Fields
+
 $(FIELDS)
 """
 @concrete struct FunctionLayer <: AbstractLuxWrapperLayer{:nodes}

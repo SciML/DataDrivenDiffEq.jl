@@ -5,6 +5,7 @@ A container for a layered directed acyclic graph consisting of
 different [`DecisionLayer`](@ref)s.
 
 # Fields
+
 $(FIELDS)
 """
 @concrete struct LayeredDAG <: AbstractLuxWrapperLayer{:layers}

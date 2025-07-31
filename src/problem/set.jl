@@ -6,16 +6,17 @@ A collection of DataDrivenProblems used to concatenate different trajectories or
 Can be called with either a `NTuple` of problems or a `NamedTuple` of `NamedTuples`.
 Similar to the `DataDrivenProblem`, it has three constructors available:
 
-+ `DirectDataset` for direct problems
-+ `DiscreteDataset` for discrete problems
-+ `ContinuousDataset` for continuous problems
+  - `DirectDataset` for direct problems
+  - `DiscreteDataset` for discrete problems
+  - `ContinuousDataset` for continuous problems
 
 # Fields
+
 $(FIELDS)
 
 # Signatures
-$(SIGNATURES)
 
+$(SIGNATURES)
 """
 struct DataDrivenDataset{N, U, C} <: AbstractDataDrivenProblem{N, U, C}
     """Name of the dataset"""

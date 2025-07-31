@@ -122,6 +122,7 @@ function monomial_basis(x::AbstractArray, degree::Int = 1)
     eqs[1] = Num(1)
     idx = 0
     for i in 1:n_x, j in 1:n_e
+
         idx = (i - 1) * n_e + j + 1
         eqs[idx] = x[i]^exponents[j]
     end

@@ -9,12 +9,14 @@ function DataDrivenFunction(rhs, implicits, states, parameters, iv, controls,
     _is_controlled = !isempty(controls)
 
     if !eval_expression
-        f_oop, f_iip = build_function(rhs,
+        f_oop,
+        f_iip = build_function(rhs,
             value.(implicits), value.(states), value.(parameters),
             [value(iv)], value.(controls),
             expression = Val{false})
     else
-        ex_oop, ex_iip = build_function(rhs,
+        ex_oop,
+        ex_iip = build_function(rhs,
             value.(implicits), value.(states),
             value.(parameters),
             [value(iv)], value.(controls),

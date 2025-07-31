@@ -5,6 +5,7 @@ The solution to a `DataDrivenProblem` derived via a certain algorithm.
 The solution is represented via an `Basis`, which makes it callable.
 
 # Fields
+
 $(FIELDS)
 """
 struct DataDrivenSolution{T} <: AbstractDataDrivenSolution
@@ -129,6 +130,7 @@ $(SIGNATURES)
 Return the coefficient of determination of the `DataDrivenSolution`.
 
 ## Note
+
 Only implements `CoxSnell` based on the [`loglikelihood`](@ref) and [`nullloglikelihood`](@ref).
 """
 StatsBase.r2(sol::DataDrivenSolution) = r2(sol, :CoxSnell)

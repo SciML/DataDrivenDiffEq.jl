@@ -2,11 +2,12 @@
 """
 $(TYPEDEF)
 
-Common options for all methods provided via `DataDrivenDiffEq`. 
+Common options for all methods provided via `DataDrivenDiffEq`.
 
 # Fields
+
 $(FIELDS)
-    
+
 ## Note
 
 The keyword argument `eval_expression` controls the function creation

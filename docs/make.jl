@@ -12,7 +12,6 @@ dev_subpkg("DataDrivenDMD")
 dev_subpkg("DataDrivenSparse")
 dev_subpkg("DataDrivenSR")
 
-
 using Documenter
 using DataDrivenDiffEq
 using DataDrivenDMD
@@ -78,7 +77,7 @@ makedocs(sitename = "DataDrivenDiffEq.jl",
         "http://cwrowley.princeton.edu/papers/Hemati-2017a.pdf",
         "https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279",
         "https://www.pnas.org/doi/10.1073/pnas.1517384113",
-        "https://link.springer.com/article/10.1007/s00332-015-9258-5",
+        "https://link.springer.com/article/10.1007/s00332-015-9258-5"
     ],
     format = Documenter.HTML(assets = ["assets/favicon.ico"],
         canonical = "https://docs.sciml.ai/DataDrivenDiffEq/stable/"),
