@@ -9,8 +9,7 @@ function cart_pole(u, p, t)
     F = -0.2 + 0.5 * sin(6 * t) # the input
     du[1] = u[3]
     du[2] = u[4]
-    du[3] = -(19.62 * sin(u[1]) + sin(u[1]) * cos(u[1]) * u[3]^2 + F * cos(u[1])) /
-            (2 - cos(u[1])^2)
+    du[3] = -(19.62 * sin(u[1]) + sin(u[1]) * cos(u[1]) * u[3]^2 + F * cos(u[1])) / (2 - cos(u[1])^2)
     du[4] = -(sin(u[1]) * u[3]^2 + 9.81 * sin(u[1]) * cos(u[1]) + F) / (2 - cos(u[1])^2)
     return du
 end
