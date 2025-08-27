@@ -559,3 +559,49 @@ function get_parameter_map(x::Basis)
         end
     end
 end
+
+## ModelingToolkit interface methods
+
+# These methods implement the AbstractSystem interface from ModelingToolkit
+# to allow Basis to be used with ODEProblem
+
+function ModelingToolkit.equations(b::AbstractBasis)
+    return getfield(b, :eqs)
+end
+
+function ModelingToolkit.unknowns(b::AbstractBasis)
+    return states(b)
+end
+
+function ModelingToolkit.parameters(b::AbstractBasis)
+    return getfield(b, :ps)
+end
+
+function ModelingToolkit.get_observed(b::AbstractBasis)
+    return getfield(b, :observed)
+end
+
+function ModelingToolkit.get_iv(b::AbstractBasis)
+    return getfield(b, :iv)
+end
+
+function ModelingToolkit.nameof(b::AbstractBasis)
+    return getfield(b, :name)
+end
+
+# Override getproperty to handle :observed field access properly
+# This is needed because ModelingToolkit's getproperty for AbstractSystem
+# tries to use getvar which doesn't work for Basis
+function Base.getproperty(b::AbstractBasis, name::Symbol)
+    if name === :observed
+        return get_observed(b)
+    else
+        # Fall back to getfield for direct field access
+        return getfield(b, name)
+    end
+end
+
+# Override show to avoid ModelingToolkit's display method that needs namespacing
+function Base.show(io::IO, ::MIME"text/plain", b::AbstractBasis)
+    Base.print(io, b)
+end
