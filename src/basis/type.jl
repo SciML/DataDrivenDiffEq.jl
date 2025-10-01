@@ -605,3 +605,8 @@ end
 function Base.show(io::IO, ::MIME"text/plain", b::AbstractBasis)
     Base.print(io, b)
 end
+
+# SciMLBase interface - declare whether this is an in-place function
+# IMPL=true means the basis has implicit variables and supports in-place evaluation
+# IMPL=false means the basis is out-of-place only
+DiffEqBase.isinplace(::Basis{IMPL, CTRLS}, n) where {IMPL, CTRLS} = IMPL
