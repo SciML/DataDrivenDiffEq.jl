@@ -532,11 +532,14 @@ This extends `getmetadata` in a way that all parameters have a numeric value.
 """
 function get_parameter_values(x::Basis)
     map(parameters(x)) do p
-        if hasmetadata(p, Symbolics.VariableDefaultValue)
-            return Symbolics.getdefaultval(p)
+        val = if hasmetadata(p, Symbolics.VariableDefaultValue)
+            Symbolics.getdefaultval(p)
         else
-            return zero(Symbolics.symtype(p))
+            zero(Symbolics.symtype(p))
         end
+        # Convert symbolic values to numeric values for use in ODEProblem
+        # This handles cases where default values are stored as Num types
+        return val isa Num ? Float64(val) : Float64(val)
     end
 end
 
@@ -552,11 +555,15 @@ This extends `getmetadata` in a way that all parameters have a numeric value.
 """
 function get_parameter_map(x::Basis)
     map(parameters(x)) do p
-        if hasmetadata(p, Symbolics.VariableDefaultValue)
-            return p => Symbolics.getdefaultval(p)
+        val = if hasmetadata(p, Symbolics.VariableDefaultValue)
+            Symbolics.getdefaultval(p)
         else
-            return p => zero(Symbolics.symtype(p))
+            zero(Symbolics.symtype(p))
         end
+        # Convert symbolic values to numeric values for use in ODEProblem
+        # This handles cases where default values are stored as Num types
+        numeric_val = val isa Num ? Float64(val) : Float64(val)
+        return p => numeric_val
     end
 end
 
