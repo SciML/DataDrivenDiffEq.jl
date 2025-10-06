@@ -207,8 +207,6 @@ end
     @test recovered_model isa ODEProblem
 
     # Test that we can initialize the integrator without the symbolic conversion error
-    # The key test is that this doesn't throw a MethodError about
-    # "Cannot convert BasicSymbolic{Real} to Float64" during setup
     sol = solve(recovered_model, Tsit5(), save_everystep = false)
 
     # Also test with parameters that have default values
