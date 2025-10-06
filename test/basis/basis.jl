@@ -209,19 +209,7 @@ end
     # Test that we can initialize the integrator without the symbolic conversion error
     # The key test is that this doesn't throw a MethodError about
     # "Cannot convert BasicSymbolic{Real} to Float64" during setup
-    try
-        sol = solve(recovered_model, Tsit5(), save_everystep = false)
-        # If solve succeeds or fails with an Unstable error, that's fine
-        # We just want to ensure no MethodError about symbolic conversion
-        @test true
-    catch e
-        # Fail only if it's a MethodError about symbolic to Float64 conversion
-        if e isa MethodError && occursin("BasicSymbolic", string(e))
-            rethrow(e)
-        end
-        # Otherwise, pass the test (other errors are acceptable)
-        @test true
-    end
+    sol = solve(recovered_model, Tsit5(), save_everystep = false)
 
     # Also test with parameters that have default values
     @parameters w2[1:2] = [1.5, 2.5]
