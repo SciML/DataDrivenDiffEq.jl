@@ -529,14 +529,17 @@ If no default value is stored, returns `zero(T)` where `T` is the `symtype` of t
 ## Note
 
 This extends `getmetadata` in a way that all parameters have a numeric value.
+Values are unwrapped from symbolic wrappers to ensure compatibility with ODEProblem.
 """
 function get_parameter_values(x::Basis)
     map(parameters(x)) do p
-        if hasmetadata(p, Symbolics.VariableDefaultValue)
-            return Symbolics.getdefaultval(p)
+        val = if hasmetadata(p, Symbolics.VariableDefaultValue)
+            Symbolics.getdefaultval(p)
         else
-            return zero(Symbolics.symtype(p))
+            zero(Symbolics.symtype(p))
         end
+        # Unwrap symbolic values to numeric values for use in ODEProblem
+        return Symbolics.unwrap(val)
     end
 end
 
@@ -549,14 +552,17 @@ If no default value is stored, returns `zero(T)` where `T` is the `symtype` of t
 ## Note
 
 This extends `getmetadata` in a way that all parameters have a numeric value.
+Values are unwrapped from symbolic wrappers to ensure compatibility with ODEProblem.
 """
 function get_parameter_map(x::Basis)
     map(parameters(x)) do p
-        if hasmetadata(p, Symbolics.VariableDefaultValue)
-            return p => Symbolics.getdefaultval(p)
+        val = if hasmetadata(p, Symbolics.VariableDefaultValue)
+            Symbolics.getdefaultval(p)
         else
-            return p => zero(Symbolics.symtype(p))
+            zero(Symbolics.symtype(p))
         end
+        # Unwrap symbolic values to numeric values for use in ODEProblem
+        return p => Symbolics.unwrap(val)
     end
 end
 
