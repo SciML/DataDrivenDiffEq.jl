@@ -1,7 +1,7 @@
 name = "DataDrivenDiffEq"
 uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
-authors = ["Julius Martensen <julius.martensen@gmail.com>"]
 version = "1.10.0"
+authors = ["Julius Martensen <julius.martensen@gmail.com>"]
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
@@ -42,7 +42,7 @@ Setfield = "1"
 Statistics = "1"
 StatsBase = "0.32.0, 0.33, 0.34"
 SymbolicUtils = "2, 3, 4"
-Symbolics = "5.30.1, 6"
+Symbolics = "5.30.1, 6, 7"
 julia = "1.10"
 
 [extras]
