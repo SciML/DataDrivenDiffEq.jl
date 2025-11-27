@@ -70,3 +70,40 @@ end
         @test vec(rescoeff)≈[0.25; 0.0; -1.0; 0.11; 0.0; -0.5] atol=5e-2
     end
 end
+
+# Issue #564: Test that solve doesn't throw MethodError when coefficients are all zero
+# This can happen with very small data values or high regularization
+@testset "Zero coefficients handling (Issue #564)" begin
+    rng = StableRNG(1111)
+
+    # Test case 1: Very small data values that lead to zero coefficients after regularization
+    N = 3
+    X̂ = randn(rng, N, 50) * 1e-10
+    Ŷ = randn(rng, 1, 50) * 1e-10
+
+    @variables u[1:N]
+    b = polynomial_basis(u, 2)
+    basis = Basis(b, u)
+    problem = DirectDataDrivenProblem(X̂, Ŷ)
+
+    λ = 1e-1
+    opt = ADMM(λ)
+    options = DataDrivenCommonOptions()
+
+    # This should not throw MethodError: no method matching zero(::Type{Any})
+    result = @test_nowarn solve(problem, basis, opt, options = options)
+    @test result isa DataDrivenSolution
+    @test eltype(result.prob) == Float64
+
+    # Test case 2: High regularization that forces all coefficients to zero
+    X̂2 = randn(rng, N, 50)
+    Ŷ2 = randn(rng, 1, 50)
+    problem2 = DirectDataDrivenProblem(X̂2, Ŷ2)
+
+    λ_high = 1e10  # Very high regularization
+    opt_high = ADMM(λ_high)
+
+    result2 = @test_nowarn solve(problem2, basis, opt_high, options = options)
+    @test result2 isa DataDrivenSolution
+    @test eltype(result2.prob) == Float64
+end
