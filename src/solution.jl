@@ -35,7 +35,23 @@ function DataDrivenSolution(b::AbstractBasis, p::AbstractDataDrivenProblem,
     ps = get_parameter_values(b)
     prob = remake_problem(p, p = ps)
 
-    rss = sum(abs2, get_implicit_data(prob) .- b(prob))
+    # Calculate residual sum of squares, handling potential type instability
+    # when basis has no equations (which can result in Any-typed matrices)
+    Y = get_implicit_data(prob)
+    Ŷ = b(prob)
+    T = eltype(p)
+    residuals = Y .- Ŷ
+    # Handle case where residuals may have element type Any
+    # (e.g., when basis has no equations due to all-zero coefficients)
+    if eltype(residuals) === Any
+        if isempty(residuals)
+            rss = zero(T)
+        else
+            rss = sum(abs2, T.(residuals))
+        end
+    else
+        rss = sum(abs2, residuals)
+    end
 
     return DataDrivenSolution{eltype(p)}(b,
         retcode,

@@ -532,7 +532,13 @@ This extends `getmetadata` in a way that all parameters have a numeric value.
 Values are unwrapped from symbolic wrappers to ensure compatibility with ODEProblem.
 """
 function get_parameter_values(x::Basis)
-    map(parameters(x)) do p
+    ps = parameters(x)
+    # Return a properly typed empty vector if there are no parameters
+    # to avoid creating Any[] which causes type instability issues
+    if isempty(ps)
+        return Float64[]
+    end
+    map(ps) do p
         val = if hasmetadata(p, Symbolics.VariableDefaultValue)
             Symbolics.getdefaultval(p)
         else
