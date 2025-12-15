@@ -106,15 +106,15 @@ function create_linear_independent_eqs(ops::AbstractVector, simplify_eqs::Bool =
     return simplify_eqs ? simplify.(Num.(u_o)) : Num.(u_o)
 end
 
-function is_dependent(x::SymbolicUtils.Symbolic, y::SymbolicUtils.Symbolic)
+function is_dependent(x::SymbolicUtils.BasicSymbolic, y::SymbolicUtils.BasicSymbolic)
     occursin(y, x)
 end
 
-function is_dependent(x::Any, y::SymbolicUtils.Symbolic)
+function is_dependent(x::Any, y::SymbolicUtils.BasicSymbolic)
     false
 end
 
-function is_dependent(x::SymbolicUtils.Symbolic, y::Any)
+function is_dependent(x::SymbolicUtils.BasicSymbolic, y::Any)
     false
 end
 

@@ -21,6 +21,10 @@ using Symbolics: scalarize, variable, value
 @reexport using ModelingToolkit: unknowns, parameters, independent_variable, observed,
                                  get_iv, get_observed
 
+# Local Difference operator (removed from Symbolics v7)
+include("./difference.jl")
+export Difference
+
 using Random
 using QuadGK
 using Statistics

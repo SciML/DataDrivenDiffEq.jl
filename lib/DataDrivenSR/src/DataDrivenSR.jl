@@ -2,7 +2,7 @@ module DataDrivenSR
 
 using DataDrivenDiffEq
 # Load specific (abstract) types
-using DataDrivenDiffEq: AbstractBasis
+using DataDrivenDiffEq: AbstractBasis, Difference
 using DataDrivenDiffEq: AbstractDataDrivenAlgorithm
 using DataDrivenDiffEq: AbstractDataDrivenResult
 using DataDrivenDiffEq: AbstractDataDrivenProblem
