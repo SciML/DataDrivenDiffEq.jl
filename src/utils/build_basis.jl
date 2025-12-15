@@ -6,9 +6,12 @@ end
 function __assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector)
     j = Symbolics.jacobian(eqs, x)
     # Check if any of the variables is in the jacobian
-    v = get_variables.(j)
+    # get_variables returns a Set in Symbolics v7, so we need to collect and flatten
+    v_sets = get_variables.(j)
+    isempty(v_sets) && return true
+    # Flatten all Sets into a single collection and get unique variables
+    v = unique(reduce(union, v_sets; init = Set()))
     isempty(v) && return true
-    v = unique(v)
     for xi in x, vi in v
 
         isequal(xi, vi) && return false

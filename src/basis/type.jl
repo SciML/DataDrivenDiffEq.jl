@@ -539,9 +539,11 @@ function get_parameter_values(x::Basis)
         return Float64[]
     end
     map(ps) do p
-        val = if hasmetadata(p, Symbolics.VariableDefaultValue)
+        # In Symbolics v7, hasmetadata check for VariableDefaultValue may not work
+        # Use try-catch to handle getdefaultval which throws if no default exists
+        val = try
             Symbolics.getdefaultval(p)
-        else
+        catch
             zero(Symbolics.symtype(p))
         end
         # Unwrap symbolic values to numeric values for use in ODEProblem
@@ -562,9 +564,11 @@ Values are unwrapped from symbolic wrappers to ensure compatibility with ODEProb
 """
 function get_parameter_map(x::Basis)
     map(parameters(x)) do p
-        val = if hasmetadata(p, Symbolics.VariableDefaultValue)
+        # In Symbolics v7, hasmetadata check for VariableDefaultValue may not work
+        # Use try-catch to handle getdefaultval which throws if no default exists
+        val = try
             Symbolics.getdefaultval(p)
-        else
+        catch
             zero(Symbolics.symtype(p))
         end
         # Unwrap symbolic values to numeric values for use in ODEProblem

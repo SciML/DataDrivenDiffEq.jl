@@ -65,7 +65,8 @@ end
 
     for r in [direct_res, discrete_res, cont_res]
         lhs = Num.(map(eq -> eq.rhs, equations(direct_res)))
-        xs = unique(reduce(vcat, Symbolics.get_variables.(lhs)))
+        # get_variables returns Sets in Symbolics v7, so use union to combine them
+        xs = collect(reduce(union, Symbolics.get_variables.(lhs); init = Set()))
         @test !any(DataDrivenDiffEq.is_dependent(Num.(xs), du))
         @test any(DataDrivenDiffEq.is_dependent(Num.(xs), u))
     end

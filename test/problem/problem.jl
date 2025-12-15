@@ -167,25 +167,22 @@ end
     using OrdinaryDiffEqTsit5
     using ModelingToolkit: t_nounits as time, D_nounits as D
 
-    @mtkmodel Autoregulation begin
-        @parameters begin
-            α = 1.0
-            β = 1.3
-            γ = 2.0
-            δ = 0.5
-        end
-        @variables begin
-            (x(time))[1:2] = [20.0; 12.0]
-        end
-        @equations begin
-            D(x[1]) ~ α / (1 + x[2]) - β * x[1]
-            D(x[2]) ~ γ / (1 + x[1]) - δ * x[2]
-        end
-    end
+    # Define autoregulation system without @mtkmodel macro
+    # (avoids macro import issues with SafeTestsets)
+    @parameters α=1.0 β=1.3 γ=2.0 δ=0.5
+    @variables (x(time))[1:2]=[20.0, 12.0]
+    x = collect(x)
 
-    @mtkcompile sys = Autoregulation()
+    eqs = [
+        D(x[1]) ~ α / (1 + x[2]) - β * x[1],
+        D(x[2]) ~ γ / (1 + x[1]) - δ * x[2]
+    ]
+
+    @named sys = System(eqs, time)
+    sys_compiled = mtkcompile(sys)
+
     tspan = (0.0, 5.0)
-    de_problem = ODEProblem{true, SciMLBase.NoSpecialize}(sys, [], tspan)
+    de_problem = ODEProblem{true, SciMLBase.NoSpecialize}(sys_compiled, [], tspan)
     de_solution = solve(de_problem, Tsit5(), saveat = 0.005)
     prob = DataDrivenProblem(de_solution)
     @test is_valid(prob)
