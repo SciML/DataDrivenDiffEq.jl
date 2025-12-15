@@ -17,7 +17,11 @@ using ModelingToolkit: AbstractSystem
 using SciMLStructures: SciMLStructures as SS
 using SymbolicUtils: operation, arguments, iscall, issym
 using Symbolics
-using Symbolics: scalarize, variable, value
+using Symbolics: scalarize, variable, value, Difference
+
+# Fix for missing nameof method for Difference operator (issue #563)
+# This should be upstreamed to Symbolics.jl
+Base.nameof(::Difference) = :Difference
 @reexport using ModelingToolkit: unknowns, parameters, independent_variable, observed,
                                  get_iv, get_observed
 

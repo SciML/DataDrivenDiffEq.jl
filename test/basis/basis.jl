@@ -224,3 +224,34 @@ end
     recovered_model2 = ODEProblem(basis2, u0, tspan, params2)
     @test recovered_model2 isa ODEProblem
 end
+
+@testset "Difference operator display (Issue #563)" begin
+    # Regression test for issue #563: Error printing basis objects from DMD fits
+    # The issue was that nameof was not defined for Difference operator
+    using Symbolics: Difference
+
+    @variables t
+    @variables u(t)[1:2]
+    u = collect(u)
+
+    # Create a basis with Difference operators (as created by DMD algorithms)
+    iv = DataDrivenDiffEq.get_iv(Basis([u; u .^ 2], u))
+    d = Difference(iv, dt = 1.0)
+    eqs = [d(u[1]) ~ 0.5 * u[1] + 0.2 * u[2], d(u[2]) ~ 0.1 * u[1] + 0.8 * u[2]]
+
+    basis_with_diff = Basis(eqs, u)
+
+    # Test that nameof works for Difference operator
+    @test nameof(d) == :Difference
+
+    # Test that the basis can be displayed without error
+    # This was throwing "MethodError: no method matching nameof(::Difference)" before the fix
+    io = IOBuffer()
+    @test_nowarn print(io, basis_with_diff)
+    @test_nowarn show(io, MIME"text/plain"(), basis_with_diff)
+
+    # Verify the printed output contains expected content
+    output = String(take!(io))
+    @test occursin("Difference", output)
+    @test occursin("equations", output)
+end
