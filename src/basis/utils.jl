@@ -1,7 +1,17 @@
 ## Create linear independent basis
+
+# Helper to check if x is a constant (Number or SymbolicUtils Const type)
+_is_constant(x::Number) = true
+function _is_constant(x)
+    # In SymbolicUtils v4+, constants are wrapped in Const type
+    # Check using isconst if available
+    SymbolicUtils.isconst(x)
+end
+
 count_operation(x::Number, op::Function, nested::Bool = true) = 0
 function count_operation(x::SymbolicUtils.BasicSymbolic, op::Function, nested::Bool = true)
-    issym(x) && return 0
+    # Check if x is a symbol or not a call (e.g., Const in SymbolicUtils v4)
+    (issym(x) || !iscall(x)) && return 0
     if operation(x) == op
         if is_unary(op)
             # Handles sin, cos and stuff
@@ -76,7 +86,8 @@ function remove_constant_factor(x)
     # Create a new array
     ops = Array{Any}(undef, n_ops)
     @views split_term!(ops, x, [*])
-    filter!(x -> !isa(x, Number), ops)
+    # Filter out constants (both Number and SymbolicUtils Const types)
+    filter!(x -> !_is_constant(x), ops)
     return Num(prod(ops))
 end
 
@@ -106,15 +117,18 @@ function create_linear_independent_eqs(ops::AbstractVector, simplify_eqs::Bool =
     return simplify_eqs ? simplify.(Num.(u_o)) : Num.(u_o)
 end
 
-function is_dependent(x::SymbolicUtils.Symbolic, y::SymbolicUtils.Symbolic)
-    occursin(y, x)
+function is_dependent(x::SymbolicUtils.BasicSymbolic, y::SymbolicUtils.BasicSymbolic)
+    # In SymbolicUtils v4, occursin was removed. Use get_variables instead.
+    # Check if y appears in the variables of x
+    vars = Symbolics.get_variables(x)
+    y in vars
 end
 
-function is_dependent(x::Any, y::SymbolicUtils.Symbolic)
+function is_dependent(x::Any, y::SymbolicUtils.BasicSymbolic)
     false
 end
 
-function is_dependent(x::SymbolicUtils.Symbolic, y::Any)
+function is_dependent(x::SymbolicUtils.BasicSymbolic, y::Any)
     false
 end
 
