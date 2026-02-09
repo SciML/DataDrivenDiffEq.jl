@@ -108,8 +108,8 @@ end
     sol_ = solve(prob, Tsit5(), saveat = 0.01)
 
     # True Rank is 3
-    X = Q * sol_[:, :] + 1.0e-3 * randn(rng, 20, 1001)
-    DX = Q * sol_(sol_.t, Val{1})[:, :] + 1.0e-3 * randn(rng, 20, 1001)
+    X = Q * Array(sol_) + 1.0e-3 * randn(rng, 20, 1001)
+    DX = Q * Array(sol_(sol_.t, Val{1})) + 1.0e-3 * randn(rng, 20, 1001)
     ddprob = ContinuousDataDrivenProblem(X, sol_.t, DX = DX)
 
     for alg in [TOTALDMD(3, DMDPINV()); TOTALDMD(0.01, DMDSVD(3))]

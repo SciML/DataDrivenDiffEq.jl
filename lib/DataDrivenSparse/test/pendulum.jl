@@ -44,7 +44,7 @@ sol = solve(prob, Tsit5(), saveat = dt)
 end
 
 @testset "Noise" begin
-    X = sol[:, :]
+    X = Array(sol)
     t = sol.t
 
     rng = StableRNG(21)
