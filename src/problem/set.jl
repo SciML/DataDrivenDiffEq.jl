@@ -39,7 +39,7 @@ end
 function DataDrivenDataset(
         solutions::Vararg{T, N}; name = gensym(:DDSet),
         kwargs...
-    ) where {T <: DiffEqBase.DESolution, N}
+    ) where {T <: SciMLBase.AbstractTimeseriesSolution, N}
     probs = map(solutions) do s
         DataDrivenProblem(s; kwargs...)
     end
