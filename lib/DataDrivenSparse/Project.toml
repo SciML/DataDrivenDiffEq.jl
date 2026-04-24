@@ -1,7 +1,7 @@
 name = "DataDrivenSparse"
 uuid = "5b588203-7d8b-4fab-a537-c31a7f73f46b"
-authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 version = "0.1.4"
+authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 
 [deps]
 DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
@@ -9,12 +9,11 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
-
 [compat]
-julia = "1.10"
-DataDrivenDiffEq = "1.14"
+DataDrivenDiffEq = "1.14, 1"
 OrdinaryDiffEq = "6, 7"
 Reexport = "1.2"
+julia = "1.10"
 
 [extras]
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
