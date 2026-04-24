@@ -512,13 +512,13 @@ macro is_applicable(problem, basis, dx)
     end
 end
 
-## DESolution dispatch
+## AbstractTimeseriesSolution dispatch (was DESolution in SciMLBase v2)
 
 function DataDrivenProblem(
         sol::T; use_interpolation = false,
         kwargs...
-    ) where {T <: DiffEqBase.DESolution}
-    if !DiffEqBase.SciMLBase.successful_retcode(sol)
+    ) where {T <: SciMLBase.AbstractTimeseriesSolution}
+    if !SciMLBase.successful_retcode(sol)
         throw(AssertionError("The solution is not successful. Abort."))
         return
     end

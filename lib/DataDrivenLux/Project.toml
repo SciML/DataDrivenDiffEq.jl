@@ -1,6 +1,6 @@
 name = "DataDrivenLux"
 uuid = "47881146-99d0-492a-8425-8f2f33327637"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 
 [deps]
@@ -36,7 +36,8 @@ ChainRulesCore = "1.15"
 CommonSolve = "0.2.4"
 ComponentArrays = "0.15"
 ConcreteStructs = "0.2.3"
-DataDrivenDiffEq = "1"
+DataDrivenDiffEq = "1.14"
+OrdinaryDiffEq = "6, 7"
 Distributions = "0.25"
 DistributionsAD = "0.6"
 DocStringExtensions = "0.9.3"

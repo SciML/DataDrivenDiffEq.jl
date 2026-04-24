@@ -17,7 +17,7 @@ rng = StableRNG(42)
     u0 = [1.0; 1.0]
     prob_cont = ODEProblem(linear, u0, (0.0, 30.0))
     sol_cont = solve(prob_cont, Tsit5())
-    U = reshape(map(t -> sin(t), sol_cont.t), 1, length(sol_cont))
+    U = reshape(map(t -> sin(t), sol_cont.t), 1, length(sol_cont.t))
 
     ddprob = DataDrivenProblem(sol_cont, U = U, use_interpolation = true)
 
