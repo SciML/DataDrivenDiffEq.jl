@@ -1,7 +1,7 @@
 name = "DataDrivenSR"
 uuid = "7fed8a53-d475-4873-af3a-ba53cceea094"
-authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 version = "0.1.4"
+authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 
 [deps]
 DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
@@ -9,8 +9,8 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb"
 
 [compat]
+DataDrivenDiffEq = "1.14, 1"
 Reexport = "1.2"
-DataDrivenDiffEq = "1.14"
 SymbolicRegression = "1"
 julia = "1.10"
 
