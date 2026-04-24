@@ -1,14 +1,14 @@
 name = "DataDrivenDMD"
 uuid = "3c9adf31-5280-42ff-b439-b71cc6b07807"
-authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 version = "0.1.3"
+authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 
 [deps]
 DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [compat]
-DataDrivenDiffEq = "1.14"
+DataDrivenDiffEq = "1.14, 1"
 OrdinaryDiffEq = "6, 7"
 julia = "1.10"
 
