@@ -145,9 +145,11 @@ function convert_to_basis(paretofrontier, prob)
     # Substitute with the basis elements
     atoms = map(xi -> xi.rhs, equations(basis))
 
+    # Match the symbol form produced by DynamicExpressions' node_to_symbolic
+    # (Sym{SymReal}(:xN; type=Number)) so substitution actually hits.
     subs = Dict(
         [
-            SymbolicUtils.Sym{LiteralReal}(Symbol("x$(i)")) => x
+            SymbolicUtils.Sym{SymbolicUtils.SymReal}(Symbol("x$(i)"); type = Number) => x
                 for (i, x) in enumerate(atoms)
         ]...
     )

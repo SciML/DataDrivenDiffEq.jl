@@ -6,6 +6,7 @@
 using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
+using SciMLBase: NoSpecialize
 using DataDrivenSR
 #md using Plots
 
@@ -16,7 +17,7 @@ end
 
 u0 = [0.1, π / 2]
 tspan = (0.0, 10.0)
-sys = ODEProblem{true, SciMLBase.NoSpecialize}(pendulum!, u0, tspan)
+sys = ODEProblem{true, NoSpecialize}(pendulum!, u0, tspan)
 sol = solve(sys, Tsit5());
 
 # We will use the data provided by our problem.
