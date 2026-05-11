@@ -5,6 +5,7 @@ using Test
 using StatsBase
 using StableRNGs
 using OrdinaryDiffEq
+using OrdinaryDiffEqFunctionMap
 
 rng = StableRNG(42)
 

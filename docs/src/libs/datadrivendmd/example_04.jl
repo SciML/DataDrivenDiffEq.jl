@@ -5,6 +5,7 @@
 using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
+using SciMLBase: NoSpecialize
 using DataDrivenDMD
 #md using Plots
 
@@ -17,7 +18,7 @@ u0 = [3.0; -2.0]
 tspan = (0.0, 5.0)
 p = [-0.8; -0.7]
 
-problem = ODEProblem{true, SciMLBase.NoSpecialize}(slow_manifold, u0, tspan, p)
+problem = ODEProblem{true, NoSpecialize}(slow_manifold, u0, tspan, p)
 solution = solve(problem, Tsit5(), saveat = 0.1);
 #md plot(solution)
 

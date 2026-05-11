@@ -7,6 +7,7 @@
 using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
+using OrdinaryDiffEqFunctionMap
 using DataDrivenDMD
 #md using Plots
 

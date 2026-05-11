@@ -7,6 +7,7 @@ using DataDrivenDiffEq
 using ModelingToolkit
 using ModelingToolkit: t_nounits as t, D_nounits as D
 using OrdinaryDiffEq
+using SciMLBase: NoSpecialize
 using LinearAlgebra
 using DataDrivenSparse
 #md using Plots
@@ -31,7 +32,7 @@ end
 
 @mtkcompile sys = Autoregulation()
 tspan = (0.0, 5.0)
-de_problem = ODEProblem{true, SciMLBase.NoSpecialize}(sys, [], tspan)
+de_problem = ODEProblem{true, NoSpecialize}(sys, [], tspan)
 de_solution = solve(de_problem, Tsit5(), saveat = 0.005);
 #md plot(de_solution)
 
