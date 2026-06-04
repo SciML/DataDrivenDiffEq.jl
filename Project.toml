@@ -1,7 +1,7 @@
 name = "DataDrivenDiffEq"
 uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
-authors = ["Julius Martensen <julius.martensen@gmail.com>"]
 version = "1.15.0"
+authors = ["Julius Martensen <julius.martensen@gmail.com>"]
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
@@ -34,7 +34,7 @@ DocStringExtensions = "0.7, 0.8, 0.9"
 MLUtils = "0.3, 0.4"
 ModelingToolkit = "11.21.0"
 OrdinaryDiffEqTsit5 = "1, 2"
-Parameters = "0.12.1"
+Parameters = "0.12.1, 0.13"
 PrecompileTools = "1"
 ProgressMeter = "1.6"
 QuadGK = "2.4"
