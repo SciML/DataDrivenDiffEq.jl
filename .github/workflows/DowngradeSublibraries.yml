@@ -20,4 +20,3 @@ jobs:
     with:
       julia-version: "lts"
       skip: "Pkg,TOML,Statistics,LinearAlgebra,SparseArrays,InteractiveUtils,Random,Test,DataDrivenDiffEq"
-      allow-reresolve: true
