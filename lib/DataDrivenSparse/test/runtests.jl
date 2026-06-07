@@ -2,18 +2,22 @@ using DataDrivenDiffEq
 using DataDrivenSparse
 using SafeTestsets
 
-@safetestset "Basic Sparse Regression" begin
-    include("./sparse_linear_solve.jl")
-end
+const GROUP = get(ENV, "DATADRIVENDIFFEQ_TEST_GROUP", get(ENV, "GROUP", "All"))
 
-@safetestset "Pendulum" begin
-    include("./pendulum.jl")
-end
+if GROUP == "All" || GROUP == "Core" || GROUP == "DataDrivenSparse"
+    @safetestset "Basic Sparse Regression" begin
+        include("./sparse_linear_solve.jl")
+    end
 
-@safetestset "Michaelis Menten" begin
-    include("./michaelis_menten.jl")
-end
+    @safetestset "Pendulum" begin
+        include("./pendulum.jl")
+    end
 
-@safetestset "Cartpole" begin
-    include("./cartpole.jl")
+    @safetestset "Michaelis Menten" begin
+        include("./michaelis_menten.jl")
+    end
+
+    @safetestset "Cartpole" begin
+        include("./cartpole.jl")
+    end
 end

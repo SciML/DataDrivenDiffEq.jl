@@ -5,10 +5,10 @@ using Test
 
 @info "Finished loading packages"
 
-const GROUP = get(ENV, "GROUP", "All")
+const GROUP = get(ENV, "DATADRIVENDIFFEQ_TEST_GROUP", get(ENV, "GROUP", "All"))
 
 @time begin
-    if GROUP == "All" || GROUP == "DataDrivenDMD"
+    if GROUP == "All" || GROUP == "Core" || GROUP == "DataDrivenDMD"
         @safetestset "Linear autonomous" begin
             include("./linear_autonomous.jl")
         end

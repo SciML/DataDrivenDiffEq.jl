@@ -4,26 +4,74 @@ using SafeTestsets, Test, Pkg
 
 const GROUP = get(ENV, "GROUP", "All")
 
-function dev_subpkg(subpkg)
-    subpkg_path = joinpath(dirname(@__DIR__), "lib", subpkg)
-    return Pkg.develop(PackageSpec(path = subpkg_path))
-end
-
-function activate_subpkg_env(subpkg)
-    subpkg_path = joinpath(dirname(@__DIR__), "lib", subpkg)
-    Pkg.activate(subpkg_path)
-    Pkg.develop(PackageSpec(path = subpkg_path))
-    return Pkg.instantiate()
-end
-
 function activate_nopre_env()
     Pkg.activate(joinpath(@__DIR__, "nopre"))
     Pkg.develop(PackageSpec(path = dirname(@__DIR__)))
     return Pkg.instantiate()
 end
 
+# GROUP can name a sublibrary (e.g. "DataDrivenDMD" -> Core test group) or
+# "{sublibrary}_{TEST_GROUP}" for a custom group (e.g. "DataDrivenDMD_QA").
+# Sublibraries declare any non-default groups in test/test_groups.toml; the
+# DATADRIVENDIFFEQ_TEST_GROUP env var threads the group into the sublib's
+# own runtests.jl. CI dispatches sublibraries through SublibraryCI.yml, so
+# this branch is primarily for running a sublibrary's suite locally.
+function _detect_sublibrary_group(group, lib_dir)
+    isdir(joinpath(lib_dir, group)) && return (group, "Core")
+    for i in length(group):-1:1
+        if group[i] == '_' && isdir(joinpath(lib_dir, group[1:(i - 1)]))
+            return (group[1:(i - 1)], group[(i + 1):end])
+        end
+    end
+    return (group, "Core")
+end
+
 @time begin
-    if GROUP == "All" || GROUP == "Core" || GROUP == "Downstream"
+    lib_dir = joinpath(dirname(@__DIR__), "lib")
+    base_group, test_group = _detect_sublibrary_group(GROUP, lib_dir)
+
+    if isdir(joinpath(lib_dir, base_group))
+        Pkg.activate(joinpath(lib_dir, base_group))
+        # On Julia < 1.11 the [sources] section is not honored; develop the
+        # in-repo path dependencies (transitively) so the sublibrary tests run
+        # against this checkout of DataDrivenDiffEq rather than a released one.
+        if VERSION < v"1.11.0-DEV.0"
+            developed = Set{String}()
+            push!(developed, normpath(joinpath(lib_dir, base_group)))
+            specs = Pkg.PackageSpec[]
+            queue = [joinpath(lib_dir, base_group)]
+            while !isempty(queue)
+                pkg_dir = popfirst!(queue)
+                toml_path = joinpath(pkg_dir, "Project.toml")
+                isfile(toml_path) || continue
+                toml = Pkg.TOML.parsefile(toml_path)
+                if haskey(toml, "sources")
+                    for (dep_name, source_spec) in toml["sources"]
+                        if source_spec isa Dict && haskey(source_spec, "path")
+                            dep_path = normpath(joinpath(pkg_dir, source_spec["path"]))
+                            if isdir(dep_path) && !(dep_path in developed)
+                                push!(developed, dep_path)
+                                @info "Queuing local source dependency" dep_name dep_path
+                                push!(specs, Pkg.PackageSpec(path = dep_path))
+                                push!(queue, dep_path)
+                            end
+                        end
+                    end
+                end
+            end
+            isempty(specs) || Pkg.develop(specs)
+        end
+        withenv("DATADRIVENDIFFEQ_TEST_GROUP" => test_group) do
+            Pkg.test(base_group, coverage = true)
+        end
+    elseif GROUP == "nopre"
+        # nopre tests are excluded from Julia pre-release versions in CI
+        # to avoid failures from upstream changes (e.g., JET type inference)
+        activate_nopre_env()
+        @safetestset "JET Static Analysis" begin
+            include("nopre/jet_tests.jl")
+        end
+    elseif GROUP == "All" || GROUP == "Core" || GROUP == "Downstream"
         @testset "All" begin
             @safetestset "Basis" begin
                 include("./basis/basis.jl")
@@ -47,16 +95,5 @@ end
                 include("./commonsolve/commonsolve.jl")
             end
         end
-    elseif GROUP == "nopre"
-        # nopre tests are excluded from Julia pre-release versions in CI
-        # to avoid failures from upstream changes (e.g., JET type inference)
-        activate_nopre_env()
-        @safetestset "JET Static Analysis" begin
-            include("nopre/jet_tests.jl")
-        end
-    else
-        dev_subpkg(GROUP)
-        subpkg_path = joinpath(dirname(@__DIR__), "lib", GROUP)
-        Pkg.test(PackageSpec(name = GROUP, path = subpkg_path); coverage = true)
     end
 end

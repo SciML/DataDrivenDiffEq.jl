@@ -30,6 +30,9 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 WeightInitializers = "d49dbf32-c5c2-4618-8acc-27bb2598ef2d"
 
+[sources]
+DataDrivenDiffEq = {path = "../.."}
+
 [compat]
 AbstractDifferentiation = "0.6"
 ChainRulesCore = "1.15"

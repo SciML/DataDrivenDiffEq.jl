@@ -5,10 +5,10 @@ using Test
 
 @info "Finished loading packages"
 
-const GROUP = get(ENV, "GROUP", "All")
+const GROUP = get(ENV, "DATADRIVENDIFFEQ_TEST_GROUP", get(ENV, "GROUP", "All"))
 
 @testset "DataDrivenLux" begin
-    if GROUP == "All" || GROUP == "DataDrivenLux"
+    if GROUP == "All" || GROUP == "Core" || GROUP == "DataDrivenLux"
         @testset "Lux" begin
             @safetestset "Nodes" include("nodes.jl")
             @safetestset "Layers" include("layers.jl")

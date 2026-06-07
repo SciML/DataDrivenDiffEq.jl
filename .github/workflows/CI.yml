@@ -19,12 +19,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Root-only test groups. The lib/* sublibraries (DataDrivenDMD, DataDrivenSR,
+        # DataDrivenSparse, DataDrivenLux) are covered by SublibraryCI.yml via the
+        # project model and must not be double-tested through the root matrix.
         group:
           - Core
-          - DataDrivenDMD
-          - DataDrivenSR
-          - DataDrivenSparse
-          - DataDrivenLux
           - nopre
         version:
           - '1'
@@ -37,5 +36,5 @@ jobs:
     with:
       julia-version: "${{ matrix.version }}"
       group: "${{ matrix.group }}"
-      coverage-directories: "src,lib/DataDrivenDMD/src,lib/DataDrivenSparse/src,lib/DataDrivenSR/src,lib/DataDrivenLux/src"
+      coverage-directories: "src"
     secrets: "inherit"
