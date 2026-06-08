@@ -14,27 +14,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch || github.ref != 'refs/tags/v*' }}
 jobs:
-  test:
-    name: "Tests"
-    strategy:
-      fail-fast: false
-      matrix:
-        # Root-only test groups. The lib/* sublibraries (DataDrivenDMD, DataDrivenSR,
-        # DataDrivenSparse, DataDrivenLux) are covered by SublibraryCI.yml via the
-        # project model and must not be double-tested through the root matrix.
-        group:
-          - Core
-          - nopre
-        version:
-          - '1'
-          - 'lts'
-          - 'pre'
-        exclude:
-          - group: nopre
-            version: 'pre'
-    uses: "SciML/.github/.github/workflows/tests.yml@v1"
+  tests:
+    # Root-only test groups (Core, nopre) are declared in test/test_groups.toml.
+    # The lib/* sublibraries (DataDrivenDMD, DataDrivenSR, DataDrivenSparse,
+    # DataDrivenLux) are covered by SublibraryCI.yml via the project model and
+    # must not be double-tested through this root matrix.
+    uses: "SciML/.github/.github/workflows/grouped-tests.yml@v1"
     with:
-      julia-version: "${{ matrix.version }}"
-      group: "${{ matrix.group }}"
       coverage-directories: "src"
     secrets: "inherit"
