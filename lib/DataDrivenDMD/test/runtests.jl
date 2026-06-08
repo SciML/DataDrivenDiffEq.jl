@@ -10,16 +10,16 @@ const GROUP = get(ENV, "DATADRIVENDIFFEQ_TEST_GROUP", get(ENV, "GROUP", "All"))
 @time begin
     if GROUP == "All" || GROUP == "Core" || GROUP == "DataDrivenDMD"
         @safetestset "Linear autonomous" begin
-            include("./linear_autonomous.jl")
+            include("./Core/linear_autonomous.jl")
         end
         @safetestset "Linear forced" begin
-            include("./linear_forced.jl")
+            include("./Core/linear_forced.jl")
         end
         @safetestset "Nonlinear autonomous" begin
-            include("./nonlinear_autonomous.jl")
+            include("./Core/nonlinear_autonomous.jl")
         end
         @safetestset "Nonlinear forced" begin
-            include("./nonlinear_forced.jl")
+            include("./Core/nonlinear_forced.jl")
         end
     end
 end

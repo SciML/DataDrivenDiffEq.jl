@@ -74,25 +74,25 @@ end
     elseif GROUP == "All" || GROUP == "Core" || GROUP == "Downstream"
         @testset "All" begin
             @safetestset "Basis" begin
-                include("./basis/basis.jl")
+                include("./Core/basis.jl")
             end
             @safetestset "Implicit Basis" begin
-                include("./basis/implicit_basis.jl")
+                include("./Core/implicit_basis.jl")
             end
             @safetestset "Basis generators" begin
-                include("./basis/generators.jl")
+                include("./Core/generators.jl")
             end
             @safetestset "DataDrivenProblem" begin
-                include("./problem/problem.jl")
+                include("./Core/problem.jl")
             end
             @safetestset "DataDrivenSolution" begin
-                include("./solution/solution.jl")
+                include("./Core/solution.jl")
             end
             @safetestset "Utilities" begin
-                include("./utils.jl")
+                include("./Core/utils.jl")
             end
             @safetestset "CommonSolve" begin
-                include("./commonsolve/commonsolve.jl")
+                include("./Core/commonsolve.jl")
             end
         end
     end
