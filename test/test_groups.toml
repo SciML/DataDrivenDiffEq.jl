@@ -1,0 +1,12 @@
+# Test group declarations for the DataDrivenDiffEq root package.
+# The base-environment Core group runs in the package's main test env and is
+# the only group in the `All` run. The `nopre` group is a dep-adding group: it
+# carries JET in test/nopre/Project.toml, is excluded from `All`, and (as its
+# name says) does not run on prerelease Julia. Its CI.yml matrix group input is
+# lowercase, so the group name here is kept lowercase to stay consistent.
+
+[Core]
+versions = ["lts", "1", "pre"]
+
+[nopre]
+versions = ["lts", "1"]

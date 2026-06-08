@@ -5,25 +5,25 @@ using Test
 
 @info "Finished loading packages"
 
-const GROUP = get(ENV, "GROUP", "All")
+const GROUP = get(ENV, "DATADRIVENDIFFEQ_TEST_GROUP", get(ENV, "GROUP", "All"))
 
 @testset "DataDrivenLux" begin
-    if GROUP == "All" || GROUP == "DataDrivenLux"
+    if GROUP == "All" || GROUP == "Core" || GROUP == "DataDrivenLux"
         @testset "Lux" begin
-            @safetestset "Nodes" include("nodes.jl")
-            @safetestset "Layers" include("layers.jl")
-            @safetestset "Graphs" include("graphs.jl")
+            @safetestset "Nodes" include("Core/nodes.jl")
+            @safetestset "Layers" include("Core/layers.jl")
+            @safetestset "Graphs" include("Core/graphs.jl")
         end
 
         @testset "Caches" begin
-            @safetestset "Candidate" include("candidate.jl")
-            @safetestset "Cache" include("cache.jl")
+            @safetestset "Candidate" include("Core/candidate.jl")
+            @safetestset "Cache" include("Core/cache.jl")
         end
 
         @testset "Algorithms" begin
-            @safetestset "RandomSearch" include("randomsearch_solve.jl")
-            @safetestset "Reinforce" include("reinforce_solve.jl")
-            @safetestset "CrossEntropy" include("crossentropy_solve.jl")
+            @safetestset "RandomSearch" include("Core/randomsearch_solve.jl")
+            @safetestset "Reinforce" include("Core/reinforce_solve.jl")
+            @safetestset "CrossEntropy" include("Core/crossentropy_solve.jl")
         end
     end
 end

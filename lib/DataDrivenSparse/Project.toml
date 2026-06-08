@@ -9,12 +9,21 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
+[sources]
+DataDrivenDiffEq = {path = "../.."}
 
 [compat]
-julia = "1.10"
-DataDrivenDiffEq = "1.14"
+DataDrivenDiffEq = "1.15"
+LinearAlgebra = "1.10"
 OrdinaryDiffEq = "6, 7"
+Printf = "1.10"
+Random = "1.10"
 Reexport = "1.2"
+SafeTestsets = "0.1"
+StableRNGs = "1"
+StatsBase = "0.34"
+Test = "1.10"
+julia = "1.10"
 
 [extras]
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"

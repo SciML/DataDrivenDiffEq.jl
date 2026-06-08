@@ -1,0 +1,4 @@
+# Each sublibrary only defines functional ("Core") tests; there are no QA
+# (Aqua/JET/AllocCheck) suites here, so the default QA group is not declared.
+[Core]
+versions = ["lts", "1", "pre"]
