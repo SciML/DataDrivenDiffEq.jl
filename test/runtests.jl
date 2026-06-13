@@ -50,9 +50,9 @@ const GROUP = get(ENV, "GROUP", "All")
             Pkg.test(base_group, coverage = true)
         end
     else
-        # nopre is a dep-adding group (JET in test/nopre/Project.toml), excluded
-        # from `All` (curated to Core) and -- as its name says -- not run on
-        # prerelease Julia (enforced by test/test_groups.toml versions).
+        # QA is a dep-adding group (JET in test/qa/Project.toml), excluded from
+        # `All` (curated to Core) and not run on prerelease Julia (enforced by
+        # test/test_groups.toml versions).
         run_tests(;
             core = function ()
                 @safetestset "Basis" begin
@@ -78,11 +78,11 @@ const GROUP = get(ENV, "GROUP", "All")
                 end
             end,
             groups = Dict(
-                "nopre" => (;
-                    env = joinpath(@__DIR__, "nopre"),
+                "QA" => (;
+                    env = joinpath(@__DIR__, "qa"),
                     body = function ()
                         @safetestset "JET Static Analysis" begin
-                            include("nopre/jet_tests.jl")
+                            include("qa/jet_tests.jl")
                         end
                     end,
                 ),
