@@ -1,14 +1,9 @@
 using SafeTestsets, Test, Pkg
+using SciMLTesting
 
 @info "Finished loading packages"
 
 const GROUP = get(ENV, "GROUP", "All")
-
-function activate_nopre_env()
-    Pkg.activate(joinpath(@__DIR__, "nopre"))
-    Pkg.develop(PackageSpec(path = dirname(@__DIR__)))
-    return Pkg.instantiate()
-end
 
 # GROUP can name a sublibrary (e.g. "DataDrivenDMD" -> Core test group) or
 # "{sublibrary}_{TEST_GROUP}" for a custom group (e.g. "DataDrivenDMD_QA").
@@ -16,21 +11,11 @@ end
 # DATADRIVENDIFFEQ_TEST_GROUP env var threads the group into the sublib's
 # own runtests.jl. CI dispatches sublibraries through SublibraryCI.yml, so
 # this branch is primarily for running a sublibrary's suite locally.
-function _detect_sublibrary_group(group, lib_dir)
-    isdir(joinpath(lib_dir, group)) && return (group, "Core")
-    for i in length(group):-1:1
-        if group[i] == '_' && isdir(joinpath(lib_dir, group[1:(i - 1)]))
-            return (group[1:(i - 1)], group[(i + 1):end])
-        end
-    end
-    return (group, "Core")
-end
-
 @time begin
     lib_dir = joinpath(dirname(@__DIR__), "lib")
-    base_group, test_group = _detect_sublibrary_group(GROUP, lib_dir)
+    base_group, test_group = detect_sublibrary_group(GROUP, lib_dir)
 
-    if isdir(joinpath(lib_dir, base_group))
+    if !isempty(base_group) && isdir(joinpath(lib_dir, base_group))
         Pkg.activate(joinpath(lib_dir, base_group))
         # On Julia < 1.11 the [sources] section is not honored; develop the
         # in-repo path dependencies (transitively) so the sublibrary tests run
@@ -64,36 +49,45 @@ end
         withenv("DATADRIVENDIFFEQ_TEST_GROUP" => test_group) do
             Pkg.test(base_group, coverage = true)
         end
-    elseif GROUP == "nopre"
-        # nopre tests are excluded from Julia pre-release versions in CI
-        # to avoid failures from upstream changes (e.g., JET type inference)
-        activate_nopre_env()
-        @safetestset "JET Static Analysis" begin
-            include("nopre/jet_tests.jl")
-        end
-    elseif GROUP == "All" || GROUP == "Core" || GROUP == "Downstream"
-        @testset "All" begin
-            @safetestset "Basis" begin
-                include("./Core/basis.jl")
-            end
-            @safetestset "Implicit Basis" begin
-                include("./Core/implicit_basis.jl")
-            end
-            @safetestset "Basis generators" begin
-                include("./Core/generators.jl")
-            end
-            @safetestset "DataDrivenProblem" begin
-                include("./Core/problem.jl")
-            end
-            @safetestset "DataDrivenSolution" begin
-                include("./Core/solution.jl")
-            end
-            @safetestset "Utilities" begin
-                include("./Core/utils.jl")
-            end
-            @safetestset "CommonSolve" begin
-                include("./Core/commonsolve.jl")
-            end
-        end
+    else
+        # nopre is a dep-adding group (JET in test/nopre/Project.toml), excluded
+        # from `All` (curated to Core) and -- as its name says -- not run on
+        # prerelease Julia (enforced by test/test_groups.toml versions).
+        run_tests(;
+            core = function ()
+                @safetestset "Basis" begin
+                    include("./Core/basis.jl")
+                end
+                @safetestset "Implicit Basis" begin
+                    include("./Core/implicit_basis.jl")
+                end
+                @safetestset "Basis generators" begin
+                    include("./Core/generators.jl")
+                end
+                @safetestset "DataDrivenProblem" begin
+                    include("./Core/problem.jl")
+                end
+                @safetestset "DataDrivenSolution" begin
+                    include("./Core/solution.jl")
+                end
+                @safetestset "Utilities" begin
+                    include("./Core/utils.jl")
+                end
+                @safetestset "CommonSolve" begin
+                    include("./Core/commonsolve.jl")
+                end
+            end,
+            groups = Dict(
+                "nopre" => (;
+                    env = joinpath(@__DIR__, "nopre"),
+                    body = function ()
+                        @safetestset "JET Static Analysis" begin
+                            include("nopre/jet_tests.jl")
+                        end
+                    end,
+                ),
+            ),
+            all = ["Core"],
+        )
     end
 end
