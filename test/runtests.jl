@@ -77,15 +77,13 @@ const GROUP = get(ENV, "GROUP", "All")
                     include("./Core/commonsolve.jl")
                 end
             end,
-            groups = Dict(
-                "QA" => (;
-                    env = joinpath(@__DIR__, "qa"),
-                    body = function ()
-                        @safetestset "JET Static Analysis" begin
-                            include("qa/jet_tests.jl")
-                        end
-                    end,
-                ),
+            qa = (;
+                env = joinpath(@__DIR__, "qa"),
+                body = function ()
+                    @safetestset "JET Static Analysis" begin
+                        include("qa/jet_tests.jl")
+                    end
+                end,
             ),
             all = ["Core"],
         )
