@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch || github.ref != 'refs/tags/v*' }}
 jobs:
   tests:
-    # Root-only test groups (Core, nopre) are declared in test/test_groups.toml.
+    # Root-only test groups (Core, QA) are declared in test/test_groups.toml.
     # The lib/* sublibraries (DataDrivenDMD, DataDrivenSR, DataDrivenSparse,
     # DataDrivenLux) are covered by SublibraryCI.yml via the project model and
     # must not be double-tested through this root matrix.
