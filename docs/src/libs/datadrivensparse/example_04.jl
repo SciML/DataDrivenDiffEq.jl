@@ -7,32 +7,23 @@ using DataDrivenDiffEq
 using ModelingToolkit
 using ModelingToolkit: t_nounits as t, D_nounits as D
 using OrdinaryDiffEq
-using SciMLBase: NoSpecialize
 using LinearAlgebra
 using DataDrivenSparse
 #md using Plots
 #md gr()
 using Test #src
 
-@mtkmodel Autoregulation begin
-    @parameters begin
-        α = 1.0
-        β = 1.3
-        γ = 2.0
-        δ = 0.5
-    end
-    @variables begin
-        (x(t))[1:2] = [20.0; 12.0]
-    end
-    @equations begin
-        D(x[1]) ~ α / (1 + x[2]) - β * x[1]
-        D(x[2]) ~ γ / (1 + x[1]) - δ * x[2]
-    end
-end
+@parameters α = 1.0 β = 1.3 γ = 2.0 δ = 0.5
+@variables (x(t))[1:2] = [20.0, 12.0]
+eqs = [
+    D(x[1]) ~ α / (1 + x[2]) - β * x[1],
+    D(x[2]) ~ γ / (1 + x[1]) - δ * x[2],
+]
+@named autoregulation = System(eqs, t)
+sys = mtkcompile(autoregulation)
 
-@mtkcompile sys = Autoregulation()
 tspan = (0.0, 5.0)
-de_problem = ODEProblem{true, NoSpecialize}(sys, [], tspan)
+de_problem = ODEProblem(sys, [], tspan)
 de_solution = solve(de_problem, Tsit5(), saveat = 0.005);
 #md plot(de_solution)
 
