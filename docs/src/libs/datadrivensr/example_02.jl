@@ -27,7 +27,7 @@ prob = DataDrivenProblem(sol)
 
 #md plot(prob)
 
-# To solve our problem, we will use [`EQSearch`](@ref), which provides a wrapper for the [symbolic regression interface](https://ai.damtp.cam.ac.uk/symbolicregression/stable/api/#Options).
+# To solve our problem, we will use [`EQSearch`](@ref), which provides a wrapper for the [symbolic regression interface](https://docs.sciml.ai/SymbolicRegression/stable/api/#Options).
 # We will stick to simple operations, use a `L1DistLoss`, and limit the verbosity of the algorithm.
 # Note that we do not include `sin`, but rather lift the search space of variables.
 
