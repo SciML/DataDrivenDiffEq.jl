@@ -22,7 +22,7 @@ using Reexport
 """
 $(TYPEDEF)
 Options for using SymbolicRegression.jl within the `solve` function.
-Automatically creates [`Options`](https://ai.damtp.cam.ac.uk/symbolicregression/stable/api/#Options) with the given specification.
+Automatically creates [`Options`](https://docs.sciml.ai/SymbolicRegression/stable/api/#Options) with the given specification.
 Sorts the operators stored in `functions` into unary and binary operators on conversion.
 
 # Fields
