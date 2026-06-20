@@ -48,11 +48,13 @@ function update_path(::Nothing, id::Tuple{Int, Int}, state::PathState{T}) where 
 end
 
 function update_path(
-        f::F where {F <: Function}, id::Tuple{Int, Int}, states::PathState{T}...
+        f::F where {F <: Function}, id::Tuple{Int, Int},
+        state1::PathState{T}, states::PathState{T}...
     ) where {T}
+    allstates = (state1, states...)
     return PathState{T}(
-        f(get_interval.(states)...), (f, tuplejoin(map(get_operators, states)...)...),
-        (id, tuplejoin(map(get_nodes, states)...)...)
+        f(get_interval.(allstates)...), (f, tuplejoin(map(get_operators, allstates)...)...),
+        (id, tuplejoin(map(get_nodes, allstates)...)...)
     )
 end
 

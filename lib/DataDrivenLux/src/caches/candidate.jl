@@ -50,27 +50,27 @@ $(FIELDS)
 """
 @concrete struct Candidate <: StatsBase.StatisticalModel
     "Random seed"
-    rng <: AbstractRNG
+    rng
     "The current state"
-    st <: NamedTuple
+    st
     "The current parameters"
-    ps <: AbstractVector
+    ps
     "Incoming paths"
-    incoming_path <: Vector{<:AbstractPathState}
+    incoming_path
     "Outgoing path"
-    outgoing_path <: Vector{<:AbstractPathState}
+    outgoing_path
     "Statistics"
-    statistics <: PathStatistics
+    statistics
     "The observed model"
-    observed <: ObservedModel
+    observed
     "The parameter distribution"
-    parameterdist <: ParameterDistributions
+    parameterdist
     "The optimal scales"
-    scales <: AbstractVector
+    scales
     "The optimal parameters"
-    parameters <: AbstractVector
+    parameters
     "The component model"
-    model <: ComponentModel
+    model
 end
 
 function (c::Candidate)(dataset::Dataset{T}, ps = c.ps, p = c.parameters) where {T}

@@ -25,7 +25,7 @@ function Dataset(
     x_intervals = interval.(map(extrema, eachrow(X)))
     y_intervals = interval.(map(extrema, eachrow(Y)))
     u_intervals = interval.(map(extrema, eachrow(U)))
-    t_intervals = isempty(t) ? Interval{T}(zero(T), zero(T)) : interval(extrema(t))
+    t_intervals = isempty(t) ? interval(zero(T), zero(T)) : interval(extrema(t))
     return Dataset{T}(X, Y, U, t, x_intervals, y_intervals, u_intervals, t_intervals)
 end
 

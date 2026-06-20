@@ -47,8 +47,11 @@ function ObservedDistribution(
     return ObservedDistribution{fixed, D}(errormodel, latent_scale, transform)
 end
 
-function Base.summary(io::IO, ::ObservedDistribution{fixed, D}) where {fixed, D}
-    return print(io, "$E : $D() with $(fixed ? "fixed" : "variable") scale.")
+function Base.summary(io::IO, d::ObservedDistribution{fixed, D}) where {fixed, D}
+    return print(
+        io,
+        "$(nameof(typeof(d.errormodel))) : $D() with $(fixed ? "fixed" : "variable") scale."
+    )
 end
 
 get_init(d::ObservedDistribution) = d.latent_scale

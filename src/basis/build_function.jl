@@ -261,6 +261,20 @@ function (f::DataDrivenFunction{true, false})(
     return _apply_vec_function(f, du, u, p, t, __EMPTY_MATRIX)
 end
 
+function (f::DataDrivenFunction{true, true})(
+        du::AbstractMatrix, u::AbstractMatrix, p::P,
+        t::AbstractVector,
+        c::AbstractMatrix
+    ) where {
+        P <:
+        Union{
+            AbstractArray,
+            Tuple,
+        },
+    }
+    return _apply_vec_function(f, du, u, p, t, c)
+end
+
 ## IIP
 
 function (f::DataDrivenFunction{false, false})(
@@ -301,4 +315,19 @@ function (f::DataDrivenFunction{true, false})(
         },
     }
     return _apply_vec_function!(f, res, du, u, p, t, __EMPTY_MATRIX)
+end
+
+function (f::DataDrivenFunction{true, true})(
+        res::AbstractMatrix, du::AbstractMatrix,
+        u::AbstractMatrix, p::P,
+        t::AbstractVector,
+        c::AbstractMatrix
+    ) where {
+        P <:
+        Union{
+            AbstractArray,
+            Tuple,
+        },
+    }
+    return _apply_vec_function!(f, res, du, u, p, t, c)
 end
