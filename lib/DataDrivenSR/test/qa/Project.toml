@@ -1,10 +1,12 @@
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+DataDrivenDiffEq = "2445eb08-9709-466a-b3fc-47e12bd697a2"
 DataDrivenSR = "7fed8a53-d475-4873-af3a-ba53cceea094"
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [sources]
+DataDrivenDiffEq = {path = "../../../.."}
 DataDrivenSR = {path = "../.."}
 
 [compat]

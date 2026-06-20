@@ -89,7 +89,7 @@ end
 is_success(k::SRResult) = getfield(k, :retcode) == DDReturnCode(1)
 
 # StatsBase Overload
-StatsBase.coef(x::SRResult) = getfield(x, :k)
+StatsBase.coef(x::SRResult) = get_parameter_values(getfield(x, :basis))
 
 StatsBase.rss(x::SRResult) = getfield(x, :rss)
 
