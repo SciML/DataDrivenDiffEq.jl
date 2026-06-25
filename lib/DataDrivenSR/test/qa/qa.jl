@@ -1,13 +1,14 @@
+using SciMLTesting
 using DataDrivenSR
-using Aqua
 using JET
 using Test
 
-@testset "QA" begin
-    @testset "Aqua" begin
-        Aqua.test_all(DataDrivenSR)
-    end
-    @testset "JET" begin
-        JET.test_package(DataDrivenSR; target_defined_modules = true)
-    end
-end
+run_qa(
+    DataDrivenSR;
+    explicit_imports = true,
+    # The umbrella `using DataDrivenDiffEq` and `@reexport using SymbolicRegression`
+    # (plus the `using DataDrivenDiffEq.<submodule>` re-exports) pull those public
+    # surfaces in implicitly; making every name explicit is a large refactor tracked
+    # separately.
+    ei_broken = (:no_implicit_imports,)
+)

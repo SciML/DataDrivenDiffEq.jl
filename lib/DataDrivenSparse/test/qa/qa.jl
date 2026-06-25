@@ -1,13 +1,13 @@
+using SciMLTesting
 using DataDrivenSparse
-using Aqua
 using JET
 using Test
 
-@testset "QA" begin
-    @testset "Aqua" begin
-        Aqua.test_all(DataDrivenSparse)
-    end
-    @testset "JET" begin
-        JET.test_package(DataDrivenSparse; target_defined_modules = true)
-    end
-end
+run_qa(
+    DataDrivenSparse;
+    explicit_imports = true,
+    # The umbrella `using DataDrivenDiffEq` (plus the `using DataDrivenDiffEq.<submodule>`
+    # re-exports) pulls the DataDrivenDiffEq public surface in implicitly; making every
+    # name explicit is a large refactor tracked separately.
+    ei_broken = (:no_implicit_imports,)
+)
