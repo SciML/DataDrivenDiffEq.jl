@@ -1,6 +1,6 @@
 name = "DataDrivenLux"
 uuid = "47881146-99d0-492a-8425-8f2f33327637"
-version = "0.2.4"
+version = "0.2.5"
 authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 
 [deps]
@@ -45,13 +45,13 @@ Distributions = "0.25.123"
 DistributionsAD = "0.6"
 DocStringExtensions = "0.9.3"
 ForwardDiff = "0.10, 1"
-IntervalArithmetic = "0.22, 0.23, 1"
+IntervalArithmetic = "0.22.10, 0.23, 1"
 InverseFunctions = "0.1"
 LinearAlgebra = "1.10"
 Logging = "1.10"
 Lux = "1"
 LuxCore = "1"
-Optim = "1.7, 2"
+Optim = "2"
 Optimisers = "0.3, 0.4"
 OrdinaryDiffEq = "6, 7"
 Pkg = "1.10"
