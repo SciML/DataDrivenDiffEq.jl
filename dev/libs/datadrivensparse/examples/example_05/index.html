@@ -36,7 +36,7 @@ ddprob = ContinuousDataDrivenProblem(
     U = (u, p, t) -&gt; [-0.2 + 0.5 * sin(6 * t)]
 )
 
-plot(ddprob)</code></pre><img src="7e8f1121.svg" alt="Example block output"/><p>Note that we just included the third and forth time derivative, assuming that we already know that the velocity <code>x[3:4]</code> is equal to the time derivative of the position <code>x[1:2]</code>. Next, we define a sufficient <a href="../../../../basis/#Basis"><code>Basis</code></a>. Again, we need to include <code>implicits</code> in the definition of our candidate functions and inform the <a href="../../../../basis/#Basis"><code>Basis</code></a> of it.</p><pre><code class="language-julia hljs">@parameters t
+plot(ddprob)</code></pre><img src="b478b6c9.svg" alt="Example block output"/><p>Note that we just included the third and forth time derivative, assuming that we already know that the velocity <code>x[3:4]</code> is equal to the time derivative of the position <code>x[1:2]</code>. Next, we define a sufficient <a href="../../../../basis/#Basis"><code>Basis</code></a>. Again, we need to include <code>implicits</code> in the definition of our candidate functions and inform the <a href="../../../../basis/#Basis"><code>Basis</code></a> of it.</p><pre><code class="language-julia hljs">@parameters t
 @variables u[1:4] du[1:2] x[1:1]
 u, du, x = map(collect, [u, du, x])
 
@@ -65,7 +65,7 @@ Equations
 φ₃ = du[1]*u[1]
 φ₄ = du[1]*u[2]
 ...
-φ₄₅ = x[1]*sin(u[1])</code></pre><p>We solve the problem by varying over a sufficient set of thresholds for the associated optimizer.</p><pre><code class="language-julia hljs">λ = [
+φ₄₅ = sin(u[1])*x[1]</code></pre><p>We solve the problem by varying over a sufficient set of thresholds for the associated optimizer.</p><pre><code class="language-julia hljs">λ = [
     1.0e-4; 5.0e-4; 1.0e-3; 2.0e-3; 3.0e-3; 4.0e-3; 5.0e-3; 6.0e-3; 7.0e-3; 8.0e-3; 9.0e-3; 1.0e-2; 2.0e-2; 3.0e-2;
     4.0e-2; 5.0e-2
 ]
@@ -73,15 +73,15 @@ Equations
 opt = ImplicitOptimizer(λ)
 res = solve(ddprob, basis, opt)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;DataDrivenSolution{Float64}&quot; with 2 equations and 10 parameters.
 Returncode: Success
-Residual sum of squares: 1.064927869477253e-16</code></pre><p>And have a look at the equations</p><pre><code class="language-julia hljs">system = get_basis(res)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr1">Model ##Basis#448 with 2 equations</span>
+Residual sum of squares: 1.0649278482484834e-16</code></pre><p>And have a look at the equations</p><pre><code class="language-julia hljs">system = get_basis(res)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr1">Model ##Basis#448 with 2 equations</span>
 States : u[<span class="sgr34">1</span>] u[<span class="sgr34">2</span>] u[<span class="sgr34">3</span>] u[<span class="sgr34">4</span>]
 Parameters : 10
 Independent variable: t
 Equations
-du[1] = (p₃*sin(u[1]) + p₅*x[1]*cos(u[1]) + p₄*(u[3]^2)*sin(u[1])*cos(u[1])) / (-p₁ - p₂*(cos(u[1])^2))
-du[2] = (p₁₀*x[1] + p₉*sin(u[1])*cos(u[1]) + p₈*(u[3]^2)*sin(u[1])) / (-p₆ - p₇*(cos(u[1])^2))</code></pre><p>We have recovered the correct equations of motion! Another visual check using the problem and the result yields</p><pre><code class="language-julia hljs">plot(
+du[1] = (p₃*sin(u[1]) + cos(u[1])*p₅*x[1] + cos(u[1])*p₄*sin(u[1])*(u[3]^2)) / (-p₁ - (cos(u[1])^2)*p₂)
+du[2] = (p₁₀*x[1] + cos(u[1])*p₉*sin(u[1]) + p₈*sin(u[1])*(u[3]^2)) / (-p₆ - (cos(u[1])^2)*p₇)</code></pre><p>We have recovered the correct equations of motion! Another visual check using the problem and the result yields</p><pre><code class="language-julia hljs">plot(
     plot(ddprob), plot(res), layout = (1,2)
-)</code></pre><img src="b946cb6e.svg" alt="Example block output"/><h2 id="cartpole_copy_paste"><a class="docs-heading-anchor" href="#cartpole_copy_paste">Copy-Pasteable Code</a><a id="cartpole_copy_paste-1"></a><a class="docs-heading-anchor-permalink" href="#cartpole_copy_paste" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDrivenDiffEq
+)</code></pre><img src="c676aaa0.svg" alt="Example block output"/><h2 id="cartpole_copy_paste"><a class="docs-heading-anchor" href="#cartpole_copy_paste">Copy-Pasteable Code</a><a id="cartpole_copy_paste-1"></a><a class="docs-heading-anchor-permalink" href="#cartpole_copy_paste" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
 using LinearAlgebra
@@ -148,4 +148,4 @@ res = solve(ddprob, basis, opt)
 
 system = get_basis(res)
 
-# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_04/">« Implicit Nonlinear Dynamics : Autoregulation</a><a class="docs-footer-nextpage" href="../../../datadrivensr/symbolic_regression/">Background »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 28 June 2026 22:21">Sunday 28 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_04/">« Implicit Nonlinear Dynamics : Autoregulation</a><a class="docs-footer-nextpage" href="../../../datadrivensr/symbolic_regression/">Background »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 30 June 2026 10:18">Tuesday 30 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

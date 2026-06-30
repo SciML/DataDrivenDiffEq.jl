@@ -44,22 +44,22 @@ u: 201-element Vector{Vector{Float64}}:
  [0.978152043599682, -0.46924390523650555]
  [0.9621248494823601, -0.4371499703667943]
  [0.9512137222662925, -0.403976269119007]
- [0.9447467087462442, -0.36997271079720984]
- [0.9420876558497254, -0.3353790207432504]
- [0.9426401095610994, -0.30042236975937403]
+ [0.9447467087462443, -0.36997271079720984]
+ [0.9420876558497255, -0.3353790207432504]
+ [0.9426401095610996, -0.30042236975937403]
  [0.9458508349679332, -0.26531536540777295]
- [0.9512146554835722, -0.2302522371930109]
- [0.9582751993592575, -0.19540826064309594]
+ [0.9512146554835723, -0.2302522371930109]
+ [0.9582751993592576, -0.19540826064309594]
  ⋮
- [0.7026868703738623, 0.531488567058939]
- [0.6408550678308137, 0.4993853640413112]
- [0.5801254850510366, 0.46741945887776704]
- [0.5206868982167442, 0.435703060498587]
- [0.4627025670657734, 0.4043364091458474]
- [0.4063102348915845, 0.37340777637341355]
- [0.3515563529320376, 0.34296672404389433]
- [0.2982899233579527, 0.31297586508217745]
- [0.24644356641748869, 0.2834232416087197]</code></pre><h2 id="Working-with-Real-Data-Format"><a class="docs-heading-anchor" href="#Working-with-Real-Data-Format">Working with Real Data Format</a><a id="Working-with-Real-Data-Format-1"></a><a class="docs-heading-anchor-permalink" href="#Working-with-Real-Data-Format" title="Permalink"></a></h2><p>In practice, your data might come from a CSV file with columns like: <code>time, state1, state2, control1</code></p><p>Here we simulate that data format:</p><p>Time points (like loading from CSV column &quot;time&quot;)</p><pre><code class="language-julia hljs">t_data = sol.t</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">201-element Vector{Float64}:
+ [0.7026868703738636, 0.531488567058939]
+ [0.6408550678308143, 0.4993853640413112]
+ [0.5801254850510372, 0.46741945887776704]
+ [0.5206868982167447, 0.435703060498587]
+ [0.46270256706577373, 0.4043364091458474]
+ [0.4063102348915851, 0.37340777637341355]
+ [0.35155635293203813, 0.34296672404389433]
+ [0.29828992335795323, 0.31297586508217745]
+ [0.2464435664174891, 0.2834232416087197]</code></pre><h2 id="Working-with-Real-Data-Format"><a class="docs-heading-anchor" href="#Working-with-Real-Data-Format">Working with Real Data Format</a><a id="Working-with-Real-Data-Format-1"></a><a class="docs-heading-anchor-permalink" href="#Working-with-Real-Data-Format" title="Permalink"></a></h2><p>In practice, your data might come from a CSV file with columns like: <code>time, state1, state2, control1</code></p><p>Here we simulate that data format:</p><p>Time points (like loading from CSV column &quot;time&quot;)</p><pre><code class="language-julia hljs">t_data = sol.t</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">201-element Vector{Float64}:
   0.0
   0.1
   0.2
@@ -91,15 +91,15 @@ t_data = df.time
 X_data = permutedims(Matrix(df[:, [:state1, :state2]]))  # (n_states, n_timepoints)
 U_data = permutedims(Matrix(df[:, [:control1]]))         # (n_controls, n_timepoints)</code></pre><h2 id="Creating-the-DataDrivenProblem"><a class="docs-heading-anchor" href="#Creating-the-DataDrivenProblem">Creating the DataDrivenProblem</a><a id="Creating-the-DataDrivenProblem-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-the-DataDrivenProblem" title="Permalink"></a></h2><p>Now we can create the problem using the data arrays directly. The key insight is that <code>U</code> can be passed as a matrix of measured values, not just as a function!</p><pre><code class="language-julia hljs">ddprob = ContinuousDataDrivenProblem(X_data, t_data, U = U_data)
 
-plot(ddprob, title = &quot;Data-Driven Problem with Measured Controls&quot;)</code></pre><img src="afd9b2b4.svg" alt="Example block output"/><h2 id="Solving-the-Problem"><a class="docs-heading-anchor" href="#Solving-the-Problem">Solving the Problem</a><a id="Solving-the-Problem-1"></a><a class="docs-heading-anchor-permalink" href="#Solving-the-Problem" title="Permalink"></a></h2><p>We use DMD with SVD to identify the system dynamics:</p><pre><code class="language-julia hljs">res = solve(ddprob, DMDSVD(), digits = 2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;DataDrivenSolution{Float64}&quot; with 2 equations and 6 parameters.
+plot(ddprob, title = &quot;Data-Driven Problem with Measured Controls&quot;)</code></pre><img src="bc34f248.svg" alt="Example block output"/><h2 id="Solving-the-Problem"><a class="docs-heading-anchor" href="#Solving-the-Problem">Solving the Problem</a><a id="Solving-the-Problem-1"></a><a class="docs-heading-anchor-permalink" href="#Solving-the-Problem" title="Permalink"></a></h2><p>We use DMD with SVD to identify the system dynamics:</p><pre><code class="language-julia hljs">res = solve(ddprob, DMDSVD(), digits = 2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;DataDrivenSolution{Float64}&quot; with 2 equations and 6 parameters.
 Returncode: Success
-Residual sum of squares: 0.02889434192292227</code></pre><h2 id="Examining-the-Results"><a class="docs-heading-anchor" href="#Examining-the-Results">Examining the Results</a><a id="Examining-the-Results-1"></a><a class="docs-heading-anchor-permalink" href="#Examining-the-Results" title="Permalink"></a></h2><p>The recovered system should approximate our original dynamics:</p><pre><code class="language-julia hljs">get_basis(res)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr1">Model ##Basis#379 with 2 equations</span>
+Residual sum of squares: 0.02889434192292155</code></pre><h2 id="Examining-the-Results"><a class="docs-heading-anchor" href="#Examining-the-Results">Examining the Results</a><a id="Examining-the-Results-1"></a><a class="docs-heading-anchor-permalink" href="#Examining-the-Results" title="Permalink"></a></h2><p>The recovered system should approximate our original dynamics:</p><pre><code class="language-julia hljs">get_basis(res)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr1">Model ##Basis#379 with 2 equations</span>
 States : x₁ x₂
 Parameters : 6
 Independent variable: t
 Equations
 Differential(t, 1)(x₁) = p₁*x₁ + p₂*x₂ + p₃*u₁
-Differential(t, 1)(x₂) = p₄*x₁ + p₅*x₂ + p₆*u₁</code></pre><p>Let&#39;s visualize how well the identified model matches the data:</p><pre><code class="language-julia hljs">plot(res, title = &quot;Identified System vs Data&quot;)</code></pre><img src="b371a15d.svg" alt="Example block output"/><h2 id="Alternative:-Using-Control-Functions-with-Interpolation"><a class="docs-heading-anchor" href="#Alternative:-Using-Control-Functions-with-Interpolation">Alternative: Using Control Functions with Interpolation</a><a id="Alternative:-Using-Control-Functions-with-Interpolation-1"></a><a class="docs-heading-anchor-permalink" href="#Alternative:-Using-Control-Functions-with-Interpolation" title="Permalink"></a></h2><p>If you prefer to use a continuous function for controls (e.g., for prediction at arbitrary time points), you can interpolate your measured control data. The <code>DataInterpolations.jl</code> package is useful for this:</p><pre><code class="language-julia hljs">using DataInterpolations
+Differential(t, 1)(x₂) = p₄*x₁ + p₅*x₂ + p₆*u₁</code></pre><p>Let&#39;s visualize how well the identified model matches the data:</p><pre><code class="language-julia hljs">plot(res, title = &quot;Identified System vs Data&quot;)</code></pre><img src="8f3c2b63.svg" alt="Example block output"/><h2 id="Alternative:-Using-Control-Functions-with-Interpolation"><a class="docs-heading-anchor" href="#Alternative:-Using-Control-Functions-with-Interpolation">Alternative: Using Control Functions with Interpolation</a><a id="Alternative:-Using-Control-Functions-with-Interpolation-1"></a><a class="docs-heading-anchor-permalink" href="#Alternative:-Using-Control-Functions-with-Interpolation" title="Permalink"></a></h2><p>If you prefer to use a continuous function for controls (e.g., for prediction at arbitrary time points), you can interpolate your measured control data. The <code>DataInterpolations.jl</code> package is useful for this:</p><pre><code class="language-julia hljs">using DataInterpolations
 
 # Create an interpolation from your measured control data
 u_interp = LinearInterpolation(vec(U_data), t_data)
@@ -145,4 +145,4 @@ ddprob = ContinuousDataDrivenProblem(X_data, t_data, U = U_data)
 
 res = solve(ddprob, DMDSVD(), digits = 2)
 
-# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_04/">« Nonlinear Time Continuous System</a><a class="docs-footer-nextpage" href="../../../datadrivensparse/sparse_regression/">Background »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 28 June 2026 22:21">Sunday 28 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example_04/">« Nonlinear Time Continuous System</a><a class="docs-footer-nextpage" href="../../../datadrivensparse/sparse_regression/">Background »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 30 June 2026 10:18">Tuesday 30 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
