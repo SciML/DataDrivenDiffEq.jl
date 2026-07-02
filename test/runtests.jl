@@ -80,6 +80,9 @@ const GROUP = get(ENV, "GROUP", "All")
             qa = (;
                 env = joinpath(@__DIR__, "qa"),
                 body = function ()
+                    @safetestset "Quality Assurance" begin
+                        include("qa/qa.jl")
+                    end
                     @safetestset "JET Static Analysis" begin
                         include("qa/jet_tests.jl")
                     end
