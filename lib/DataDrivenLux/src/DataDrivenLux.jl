@@ -3,13 +3,12 @@ module DataDrivenLux
 using DataDrivenDiffEq
 
 # Load specific (abstract) types
-using DataDrivenDiffEq: AbstractBasis, AbstractDataDrivenAlgorithm,
+using DataDrivenDiffEq: AbstractDataDrivenAlgorithm,
     AbstractDataDrivenResult, AbstractDataDrivenProblem, DDReturnCode,
-    ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB,
-    InternalDataDrivenProblem, is_implicit, is_controlled
+    InternalDataDrivenProblem
 
 using DocStringExtensions: DocStringExtensions, FIELDS, TYPEDEF, SIGNATURES
-using CommonSolve: CommonSolve, solve!
+using CommonSolve: CommonSolve
 using ConcreteStructs: @concrete
 using Setfield: Setfield, @set!
 
@@ -25,7 +24,7 @@ using TransformVariables: TransformVariables, as, transform_logdensity
 using Distributions: Distributions, Distribution, Normal, Uniform, Univariate, dof,
     loglikelihood, logpdf, mean, mode, quantile, scale, truncated
 using DistributionsAD: DistributionsAD
-using StatsBase: StatsBase, aicc, nobs, nullloglikelihood, r2, rss, sum, weights
+using StatsBase: StatsBase, aicc, nobs, nullloglikelihood, r2, rss, sum
 
 using ChainRulesCore: @ignore_derivatives
 using ComponentArrays: ComponentArrays, ComponentVector

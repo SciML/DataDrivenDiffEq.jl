@@ -2,17 +2,14 @@ module DataDrivenSR
 
 using DataDrivenDiffEq
 # Load specific (abstract) types
-using DataDrivenDiffEq: AbstractBasis, Difference
+using DataDrivenDiffEq: Difference
 using DataDrivenDiffEq: AbstractDataDrivenAlgorithm
 using DataDrivenDiffEq: AbstractDataDrivenResult
-using DataDrivenDiffEq: AbstractDataDrivenProblem
-using DataDrivenDiffEq: DDReturnCode, ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB
+using DataDrivenDiffEq: DDReturnCode
 using DataDrivenDiffEq: InternalDataDrivenProblem
-using DataDrivenDiffEq: is_implicit, is_controlled
 
 using DataDrivenDiffEq.DocStringExtensions
 using DataDrivenDiffEq.CommonSolve
-using DataDrivenDiffEq.CommonSolve: solve!
 using DataDrivenDiffEq.StatsBase
 using DataDrivenDiffEq.Parameters
 

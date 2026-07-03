@@ -136,7 +136,7 @@ ClippedAbsoluteDeviation() = ClippedAbsoluteDeviation(NaN)
 end
 
 function (s::ClippedAbsoluteDeviation)(x::AbstractArray, λ::T) where {T <: Real}
-    @unpack ρ = h
+    @unpack ρ = s
     ρ = isnan(ρ) ? convert(T, 5) * λ : convert(T, ρ)
     for i in eachindex(x)
         x[i] = abs(x[i]) > ρ ? x[i] : sign(x[i]) * max(abs(x[i]) - λ, 0)

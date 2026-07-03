@@ -6,7 +6,7 @@ module DataDrivenDiffEq
 using LinearAlgebra
 
 using DiffEqBase
-using SciMLBase: SciMLBase, AbstractTimeseriesSolution
+using SciMLBase: SciMLBase
 using CommonSolve
 using Reexport
 
