@@ -123,6 +123,9 @@ export ADMM
 include("algorithms/SR3.jl")
 export SR3
 
+include("algorithms/WyNDA.jl")
+export WyNDA
+
 include("algorithms/Implicit.jl")
 export ImplicitOptimizer
 
