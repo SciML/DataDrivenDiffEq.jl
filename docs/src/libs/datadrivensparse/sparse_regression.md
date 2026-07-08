@@ -52,6 +52,7 @@ Where the matrix of evaluated basis elements $\varPhi_y \in \mathbb R^{\lvert \v
 STLSQ
 ADMM
 SR3
+WyNDA
 ImplicitOptimizer
 ```
 

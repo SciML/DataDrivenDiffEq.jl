@@ -97,6 +97,34 @@ end
     end
 end
 
+@testset "WyNDA online estimator" begin
+    rng = StableRNG(20260708)
+    t = 0.0:0.02:8.0
+    X = permutedims(
+        reduce(
+            hcat,
+            (
+                ones(length(t)), sin.(0.7 .* t), cos.(1.3 .* t),
+                exp.(-0.2 .* t), randn(rng, length(t)),
+            )
+        )
+    )
+    A = [0.5 -1.2 0.0 0.75 0.0; -0.25 0.0 1.5 0.0 0.1]
+    Y = A * X
+
+    coefficients, λ, iterations = WyNDA(1.0; initial_covariance = 1.0e8)(X, Y)
+
+    @test λ == 1.0
+    @test iterations == size(X, 2)
+    # Finite initial covariance is equivalent to a small ridge prior in RLS.
+    @test coefficients ≈ A atol = 1.0e-6
+
+    problem = DirectDataDrivenProblem(X, Y)
+    result = @test_nowarn solve(problem, WyNDA(1.0; initial_covariance = 1.0e8))
+    @test result isa DataDrivenSolution
+    @test result.residuals <= 1.0e-8
+end
+
 # Issue #564: Test that solve doesn't throw MethodError when coefficients are all zero
 # This can happen with very small data values or high regularization
 @testset "Zero coefficients handling (Issue #564)" begin
