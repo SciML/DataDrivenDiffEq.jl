@@ -34,17 +34,18 @@ WeightInitializers = "d49dbf32-c5c2-4618-8acc-27bb2598ef2d"
 DataDrivenDiffEq = {path = "../.."}
 
 [compat]
-AbstractDifferentiation = "0.6"
+AbstractDifferentiation = "0.6.2"
 ChainRulesCore = "1.15"
-CommonSolve = "0.2.4"
-ComponentArrays = "0.15"
+CommonSolve = "0.2.6"
+ComponentArrays = "0.15.40"
 ConcreteStructs = "0.2.3"
 DataDrivenDiffEq = "1.15"
+DataStructures = "0.19"
 Distributed = "1.10"
 Distributions = "0.25.123"
 DistributionsAD = "0.6"
 DocStringExtensions = "0.9.3"
-ForwardDiff = "0.10, 1"
+ForwardDiff = "0.10.39, 1"
 IntervalArithmetic = "0.22.10, 0.23, 1"
 InverseFunctions = "0.1"
 LinearAlgebra = "1.10"
@@ -53,7 +54,7 @@ Lux = "1"
 LuxCore = "1"
 Optim = "2"
 Optimisers = "0.3, 0.4"
-OrdinaryDiffEq = "6, 7"
+OrdinaryDiffEq = "6.111, 7"
 Pkg = "1.10"
 ProgressMeter = "1.7"
 Random = "1.10"
@@ -68,6 +69,7 @@ julia = "1.10"
 
 [extras]
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
@@ -76,4 +78,4 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Pkg", "Test", "StableRNGs", "Random", "SafeTestsets", "StatsBase", "OrdinaryDiffEq"]
+test = ["Pkg", "Test", "StableRNGs", "Random", "SafeTestsets", "StatsBase", "OrdinaryDiffEq", "DataStructures"]

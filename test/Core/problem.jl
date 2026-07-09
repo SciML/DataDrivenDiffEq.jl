@@ -156,10 +156,12 @@ end
     @variables x[1:size(X, 1)]
     b = Basis(x, x)
     @test b(s1) == hcat(b(p1), b(p2))
-    @test b(s2) == b(s1)
+    # Dataset constructors can evaluate the same symbolic basis through different
+    # call paths, which only guarantees floating-point agreement up to roundoff.
+    @test b(s2) ≈ b(s1)
     @test hcat(X, X) == b(s3)
     @test hcat(X[:, 1:(end - 1)], X[:, 1:(end - 1)]) == b(s4)
-    @test hcat(X, X, X) == b(s5)
+    @test hcat(X, X, X) ≈ b(s5)
 
     # Check if misspecified data is detected
     wrong_data = (
