@@ -13,7 +13,7 @@ MultiplicativeError
 ## Search State
 
 ```@docs
-Dataset
-PathState
-SearchCache
+DataDrivenLux.Dataset
+DataDrivenLux.PathState
+DataDrivenLux.SearchCache
 ```

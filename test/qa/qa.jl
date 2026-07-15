@@ -40,14 +40,15 @@ run_qa(
         ),
         all_explicit_imports_are_public = (;
             ignore = (
-                :Operator,  # Symbolics (owner SymbolicUtils): `Difference <: Operator`
-                :issym,     # SymbolicUtils
+                :Operator,   # Symbolics (owner SymbolicUtils): `Difference <: Operator`
+                :issym,      # SymbolicUtils
             ),
         ),
-        # `Operator` is re-exported by Symbolics from SymbolicUtils; importing it via the
-        # `Symbolics` namespace is intentional (Symbolics is the user-facing surface here).
+        # `Operator` and `scalarize` are re-exported by Symbolics from SymbolicUtils;
+        # importing them via the `Symbolics` namespace is intentional because Symbolics
+        # is the user-facing surface here.
         all_explicit_imports_via_owners = (;
-            ignore = (:Operator,),
+            ignore = (:Operator, :scalarize),
         ),
         # `NullParameters`/`nameof`/`symtype`/`toparam`/`tovar` are accessed through a
         # re-exporting/owning namespace rather than `Base.which`'s reported owner.

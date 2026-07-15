@@ -17,10 +17,9 @@ using Setfield
 
 @reexport using ModelingToolkit
 using SciMLStructures: SciMLStructures as SS
-using SymbolicUtils: arguments, iscall, issym, operation, scalarize, simplify, symtype,
-    unwrap
+using SymbolicUtils: arguments, iscall, issym, operation, simplify, symtype, unwrap
 using Symbolics
-using Symbolics: value, variable
+using Symbolics: scalarize, value, variable
 @reexport using ModelingToolkitBase: get_iv, get_observed, independent_variable,
     observed, parameters, unknowns
 

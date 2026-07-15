@@ -4,7 +4,6 @@
 
 using Symbolics: Num, value, wrap
 using SymbolicUtils: Operator, term, unwrap
-import SymbolicUtils: promote_symtype
 
 """
     Difference(t; dt, update=false)
@@ -35,7 +34,7 @@ end
 (D::Difference)(x::Num) = wrap(D(unwrap(x)))
 
 # More specific method to avoid ambiguity with SymbolicUtils.Operator method
-promote_symtype(::Difference, ::Type{T}) where {T} = T
+SymbolicUtils.promote_symtype(::Difference, ::Type{T}) where {T} = T
 
 function Base.show(io::IO, D::Difference)
     return print(io, "Difference(", D.t, "; dt=", D.dt, ", update=", D.update, ")")
