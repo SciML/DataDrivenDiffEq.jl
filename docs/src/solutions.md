@@ -2,6 +2,7 @@
 
 ```@docs
 DataDrivenSolution
+DDReturnCode
 ```
 
 ## API

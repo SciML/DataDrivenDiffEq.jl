@@ -145,7 +145,7 @@ function get_implicit_data(x::DataDrivenDataset)
 end
 
 # We assume common parameters (for now)
-function ModelingToolkit.parameters(x::DataDrivenDataset, i = :)
+function ModelingToolkitBase.parameters(x::DataDrivenDataset, i = :)
     return parameters(first(x.probs), i)
 end
 

@@ -75,16 +75,16 @@ function CommonSolve.init(
 
     for (i, eq) in enumerate(equations(basis))
         for (j, c) in enumerate(controls(basis))
-            control_idx[i, j] = is_dependent(eq.rhs, Symbolics.unwrap(c))
+            control_idx[i, j] = is_dependent(eq.rhs, unwrap(c))
         end
         for (k, v) in enumerate(implicit_variables(basis))
-            implicit_idx[i, k] = is_dependent(eq.rhs, Symbolics.unwrap(v))
+            implicit_idx[i, k] = is_dependent(eq.rhs, unwrap(v))
         end
         for (k, v) in enumerate(states(basis))
-            state_idx[i, k] = is_dependent(eq.rhs, Symbolics.unwrap(v))
+            state_idx[i, k] = is_dependent(eq.rhs, unwrap(v))
         end
 
-        parameter_idx[i] = all(ModelingToolkit.isparameter, Symbolics.get_variables(eq.rhs))
+        parameter_idx[i] = all(ModelingToolkitBase.isparameter, Symbolics.get_variables(eq.rhs))
     end
 
     # We do not center, given that we can have constants in our Basis!

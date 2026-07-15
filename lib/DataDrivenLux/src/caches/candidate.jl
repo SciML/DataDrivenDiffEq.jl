@@ -104,7 +104,7 @@ function Candidate(
             for i in 1:length(basis)
     ]
 
-    ps, st = Lux.setup(rng, model)
+    ps, st = LuxCore.setup(rng, model)
     outgoing_path, st = sample(model, incoming_path, ps, st)
     ps = ComponentVector(ps)
 
@@ -126,7 +126,7 @@ function Candidate(
     stats = PathStatistics(rss, lls, null_ll, dof_, prod(size(dataset.y)))
 
     return Candidate(
-        Lux.replicate(rng), st, ComponentVector(ps), incoming_path,
+        LuxCore.replicate(rng), st, ComponentVector(ps), incoming_path,
         outgoing_path, stats, observed, parameterdist, scales, parameters,
         ComponentModel(basis, model)
     )

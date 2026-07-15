@@ -2,8 +2,9 @@
 # This was removed from Symbolics.jl v7, so we define it locally for backwards compatibility
 # See: https://github.com/SciML/DataDrivenDiffEq.jl/issues/563
 
-using Symbolics: Operator, value, unwrap, wrap
-using SymbolicUtils: term
+using Symbolics: Num, value, wrap
+using SymbolicUtils: Operator, term, unwrap
+import SymbolicUtils: promote_symtype
 
 """
     Difference(t; dt, update=false)
@@ -34,7 +35,7 @@ end
 (D::Difference)(x::Num) = wrap(D(unwrap(x)))
 
 # More specific method to avoid ambiguity with SymbolicUtils.Operator method
-SymbolicUtils.promote_symtype(::Difference, ::Type{T}) where {T} = T
+promote_symtype(::Difference, ::Type{T}) where {T} = T
 
 function Base.show(io::IO, D::Difference)
     return print(io, "Difference(", D.t, "; dt=", D.dt, ", update=", D.update, ")")

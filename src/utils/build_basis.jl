@@ -37,16 +37,16 @@ end
 
 function _generate_variables(sym::Symbol, n::Int, offset::Int = 0)
     xs = [Symbolics.variable(sym, i) for i in (offset + 1):(offset + n)]
-    return Num.(map(ModelingToolkit.tovar, xs))
+    return Num.(map(ModelingToolkitBase.tovar, xs))
 end
 
 function _generate_parameters(sym::Symbol, n::Int, offset::Int = 0)
     xs = [Symbolics.variable(sym, i) for i in (offset + 1):(offset + n)]
-    return Num.(map(ModelingToolkit.toparam, xs))
+    return Num.(map(ModelingToolkitBase.toparam, xs))
 end
 
 function _set_default_val(x::Num, val::T) where {T <: Number}
-    return Num(Symbolics.setdefaultval(Symbolics.unwrap(x), val))
+    return Num(Symbolics.setdefaultval(unwrap(x), val))
 end
 
 function __build_eqs(coeff_mat, basis, prob)
@@ -106,7 +106,7 @@ function _implicit_build_eqs(basis, eqs, p, prob)
         eqs = eqs .~ 0
         try
             # Try to solve the eq for the implicits
-            eqs = ModelingToolkit.symbolic_linear_solve(eqs, implicits)
+            eqs = Symbolics.symbolic_linear_solve(eqs, implicits)
             eqs = implicits .~ eqs
             implicits = Num[]
         catch
@@ -178,7 +178,7 @@ function unit_basis(prob::DataDrivenProblem)
     n_p = size(p, 1)
     n_u = size(U, 1)
 
-    t = Num(ModelingToolkit.tovar(Symbolics.variable(:t)))
+    t = Num(ModelingToolkitBase.tovar(Symbolics.variable(:t)))
     x = _generate_variables(:x, n_x)
     p = _generate_parameters(:p, n_p)
     u = _generate_variables(:u, n_u)

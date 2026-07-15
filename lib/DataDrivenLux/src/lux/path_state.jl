@@ -1,5 +1,15 @@
 abstract type AbstractPathState end
 
+"""
+$(TYPEDEF)
+
+State for a sampled graph path, including the current interval, applied
+operators, and node identifiers used to compute path complexity.
+
+# Fields
+
+$(FIELDS)
+"""
 struct PathState{T, PO <: Tuple, PI <: Tuple} <: AbstractPathState
     "Accumulated loglikelihood of the state"
     path_interval::Interval{T}

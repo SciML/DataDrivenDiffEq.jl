@@ -54,6 +54,7 @@ ADMM
 SR3
 WyNDA
 ImplicitOptimizer
+SparseLinearSolver
 ```
 
 ## [Proximal Operators](@id proximal_operators)

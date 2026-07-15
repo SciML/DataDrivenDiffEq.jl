@@ -9,6 +9,7 @@ pages = [
         "Background" => "libs/datadrivendmd/koopman.md",
         "Examples" => koopman_tutorial,
     ],
+    "DataDrivenLux" => "libs/datadrivenlux/dag_sr.md",
     "DataDrivenSparse" => [
         "Background" => "libs/datadrivensparse/sparse_regression.md",
         "Examples" => sparse_tutorial,

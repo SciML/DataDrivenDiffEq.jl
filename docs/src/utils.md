@@ -2,6 +2,17 @@
 
 ```@docs
 InterpolationMethod
+EpanechnikovKernel
+UniformKernel
+TriangularKernel
+QuarticKernel
+TriweightKernel
+TricubeKernel
+GaussianKernel
+CosineKernel
+LogisticKernel
+SigmoidKernel
+SilvermanKernel
 collocate_data
 ```
 
