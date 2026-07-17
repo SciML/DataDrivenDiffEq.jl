@@ -8,12 +8,40 @@ for discovering governing equations.
 ```@docs
 AdditiveError
 MultiplicativeError
+ObservedModel
+```
+
+## Priors
+
+```@docs
+Softmax
+GumbelSoftmax
+DirectSimplex
 ```
 
 ## Search State
 
 ```@docs
 DataDrivenLux.Dataset
+DataDrivenLux.Candidate
 DataDrivenLux.PathState
+DataDrivenLux.FunctionNode
+DataDrivenLux.FunctionLayer
+DataDrivenLux.LayeredDAG
 DataDrivenLux.SearchCache
+```
+
+## Rewards
+
+```@docs
+RelativeReward
+AbsoluteReward
+```
+
+## Algorithms
+
+```@docs
+RandomSearch
+Reinforce
+CrossEntropy
 ```

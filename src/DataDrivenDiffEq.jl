@@ -152,7 +152,6 @@ export get_algorithm, get_results, get_basis, is_converged, get_problem
 
 include("./utils/plot_recipes.jl")
 include("./utils/build_basis.jl")
-include("./reexport_docs.jl")
 
 # Precompilation workload to improve startup time and TTFX
 include("./precompilation.jl")

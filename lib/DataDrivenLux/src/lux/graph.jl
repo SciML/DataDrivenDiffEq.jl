@@ -2,7 +2,7 @@
 $(TYPEDEF)
 
 A container for a layered directed acyclic graph consisting of
-different [`DecisionLayer`](@ref)s.
+different [`FunctionLayer`](@ref)s.
 
 # Fields
 

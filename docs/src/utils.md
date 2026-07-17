@@ -22,3 +22,10 @@ collocate_data
 DataProcessing
 DataNormalization
 ```
+
+# [Linear Algebra Utilities](@id linearalgebrautils)
+
+```@docs
+optimal_shrinkage
+optimal_shrinkage!
+```

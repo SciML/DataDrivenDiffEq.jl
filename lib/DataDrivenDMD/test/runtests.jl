@@ -10,10 +10,8 @@ const GROUP = get(ENV, "DATADRIVENDIFFEQ_TEST_GROUP", get(ENV, "GROUP", "All"))
 
 function activate_qa_env()
     Pkg.activate(joinpath(@__DIR__, "qa"))
-    # On Julia < 1.11 the qa env's [sources] table is ignored, so the in-repo
-    # DataDrivenDMD/DataDrivenDiffEq would resolve as registered packages and QA
-    # would analyze stale released code. Develop the local paths to restore the
-    # 1.11+ [sources] behavior (no-op effect on >= 1.11, which honors [sources]).
+    # On Julia 1.10, QA can otherwise resolve registered copies of the in-repo
+    # packages. Develop the local root and sublibrary before instantiating.
     if VERSION < v"1.11.0-DEV.0"
         Pkg.develop(
             [

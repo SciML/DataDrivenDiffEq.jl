@@ -17,8 +17,6 @@ using Reexport
 
 @reexport using SymbolicRegression
 
-include("reexport_docs.jl")
-
 """
 $(TYPEDEF)
 Options for using SymbolicRegression.jl within the `solve` function.

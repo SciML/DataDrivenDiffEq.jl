@@ -3,6 +3,17 @@ using DataDrivenDiffEq
 using Aqua
 using Test
 
+function dependency_owned_public_names(pkg::Module)
+    names = Symbol[]
+    for name in SciMLTesting.public_api_names(pkg)
+        isdefined(pkg, name) || continue
+        value = getfield(pkg, name)
+        owner = value isa Module ? value : parentmodule(value)
+        owner === pkg || push!(names, name)
+    end
+    return Tuple(names)
+end
+
 # Aqua + ExplicitImports via run_qa. JET is handled separately by jet_tests.jl:
 # `JET.test_package` on this package's whole method table reports many false
 # positives from the re-exported symbolic infrastructure (Symbolics/ModelingToolkit),
@@ -12,6 +23,11 @@ run_qa(
     DataDrivenDiffEq;
     jet = false,
     explicit_imports = true,
+    api_docs_kwargs = (;
+        rendered = true,
+        ignore = dependency_owned_public_names(DataDrivenDiffEq),
+        rendered_ignore = dependency_owned_public_names(DataDrivenDiffEq),
+    ),
     # `deleteat!`/`unique!` are defined on `Symbolics.Num`/`Symbolics.Arr` vectors in
     # src/basis/type.jl as the public Basis-manipulation API. Aqua flags them as type
     # piracy and, as a direct consequence, reports the resulting method ambiguities

@@ -1,7 +1,7 @@
 """
 $(TYPEDEF)
 
-A container for multiple [`DecisionNodes`](@ref).
+A container for multiple [`FunctionNode`](@ref)s.
 It accumulates all outputs of the nodes.
 
 # Fields
