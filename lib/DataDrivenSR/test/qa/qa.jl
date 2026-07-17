@@ -46,9 +46,8 @@ run_qa(
             ignore = (:toparam,),  # ModelingToolkit.toparam (owner ModelingToolkitBase)
         ),
     ),
-    # The umbrella `using DataDrivenDiffEq` and `@reexport using SymbolicRegression`
-    # (plus the `using DataDrivenDiffEq.<submodule>` re-exports) pull those public
-    # surfaces in implicitly; making every name explicit is a large refactor tracked
-    # separately.
+    # The umbrella `using DataDrivenDiffEq` and `using DataDrivenDiffEq.<submodule>`
+    # re-exports pull those public surfaces in implicitly; making every name explicit
+    # is a large refactor tracked separately.
     ei_broken = (:no_implicit_imports,)
 )

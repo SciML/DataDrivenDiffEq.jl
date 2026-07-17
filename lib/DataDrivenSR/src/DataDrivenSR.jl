@@ -13,9 +13,7 @@ using DataDrivenDiffEq.CommonSolve
 using DataDrivenDiffEq.StatsBase
 using DataDrivenDiffEq.Parameters
 
-using Reexport
-
-@reexport using SymbolicRegression
+using SymbolicRegression
 
 """
 $(TYPEDEF)
