@@ -1,10 +1,8 @@
 """
 $(TYPEDEF)
-using Base: Multimedia
 
-An error following `ŷ ~ y + ϵ`.
+Additive output error model for observations following `ŷ ~ y + ϵ`.
 """
-
 struct AdditiveError <: AbstractErrorModel end
 
 function (x::AdditiveError)(
@@ -17,9 +15,8 @@ end
 """
 $(TYPEDEF)
 
-An error following `ŷ ~ y * (1+ϵ)`.
+Multiplicative output error model for observations following `ŷ ~ y * (1 + ϵ)`.
 """
-
 struct MultiplicativeError <: AbstractErrorModel end
 
 function (x::MultiplicativeError)(

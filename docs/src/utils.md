@@ -2,6 +2,17 @@
 
 ```@docs
 InterpolationMethod
+EpanechnikovKernel
+UniformKernel
+TriangularKernel
+QuarticKernel
+TriweightKernel
+TricubeKernel
+GaussianKernel
+CosineKernel
+LogisticKernel
+SigmoidKernel
+SilvermanKernel
 collocate_data
 ```
 
@@ -10,4 +21,11 @@ collocate_data
 ```@docs
 DataProcessing
 DataNormalization
+```
+
+# [Linear Algebra Utilities](@id linearalgebrautils)
+
+```@docs
+optimal_shrinkage
+optimal_shrinkage!
 ```

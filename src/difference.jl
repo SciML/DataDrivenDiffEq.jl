@@ -2,8 +2,8 @@
 # This was removed from Symbolics.jl v7, so we define it locally for backwards compatibility
 # See: https://github.com/SciML/DataDrivenDiffEq.jl/issues/563
 
-using Symbolics: Operator, value, unwrap, wrap
-using SymbolicUtils: term
+using Symbolics: Num, value, wrap
+using SymbolicUtils: Operator, term, unwrap
 
 """
     Difference(t; dt, update=false)

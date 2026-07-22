@@ -49,11 +49,13 @@ Where the matrix of evaluated basis elements $\varPhi_y \in \mathbb R^{\lvert \v
 ## [Algorithms](@id sparse_algorithms)
 
 ```@docs
+DataDrivenSparse.AbstractSparseRegressionAlgorithm
 STLSQ
 ADMM
 SR3
 WyNDA
 ImplicitOptimizer
+SparseLinearSolver
 ```
 
 ## [Proximal Operators](@id proximal_operators)

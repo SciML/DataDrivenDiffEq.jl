@@ -139,4 +139,5 @@ is_autonomous
 is_parametrized
 get_name
 is_valid
+@is_applicable
 ```

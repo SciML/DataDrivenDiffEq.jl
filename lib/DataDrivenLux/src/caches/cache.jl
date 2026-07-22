@@ -1,3 +1,12 @@
+"""
+$(TYPEDEF)
+
+Optimization cache for DataDrivenLux symbolic regression algorithms.
+
+# Fields
+
+$(FIELDS)
+"""
 struct SearchCache{ALG, PTYPE, O} <: AbstractAlgorithmCache
     alg::ALG
     candidates::AbstractVector{Candidate}
@@ -44,7 +53,7 @@ function init_cache(
     dataset = Dataset(problem)
     TData = eltype(dataset)
 
-    rng_ = Lux.replicate(rng)
+    rng_ = LuxCore.replicate(rng)
 
     observed = isa(observed, ObservedModel) ? observed :
         ObservedModel(dataset.y, fixed = true)
@@ -55,7 +64,7 @@ function init_cache(
 
     model = init_model(x, basis, dataset, intervals)
 
-    ps = ComponentVector(Lux.initialparameters(rng_, model))
+    ps = ComponentVector(LuxCore.initialparameters(rng_, model))
 
     # Derive the candidates
     candidates = map(1:populationsize) do i

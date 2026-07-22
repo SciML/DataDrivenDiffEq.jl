@@ -1,5 +1,6 @@
 using DataDrivenDiffEq
 using DataDrivenSR
+using SymbolicRegression
 using Test
 using StableRNGs
 
@@ -8,7 +9,7 @@ X = rand(rng, 2, 50)
 
 @testset "Simple" begin
     alg = DataDrivenSR.EQSearch(
-        eq_options = Options(
+        eq_options = SymbolicRegression.Options(
             unary_operators = [sin, exp],
             binary_operators = [*], maxdepth = 1,
             seed = 42,
@@ -25,7 +26,7 @@ end
 
 @testset "Univariate" begin
     alg = DataDrivenSR.EQSearch(
-        eq_options = Options(
+        eq_options = SymbolicRegression.Options(
             unary_operators = [sin, exp],
             binary_operators = [*], maxdepth = 1,
             seed = 42,
@@ -42,7 +43,7 @@ end
 
 @testset "Lifted" begin
     alg = DataDrivenSR.EQSearch(
-        eq_options = Options(
+        eq_options = SymbolicRegression.Options(
             unary_operators = [sin, exp],
             binary_operators = [+], maxdepth = 1,
             seed = 42,

@@ -1,3 +1,12 @@
+"""
+$(TYPEDEF)
+
+Result returned by DataDrivenDMD solvers.
+
+# Fields
+
+$(FIELDS)
+"""
 struct KoopmanResult{K, B, C, Q, P, T} <: AbstractDataDrivenResult
     """Matrix representation of the operator / generator"""
     k::K
@@ -42,11 +51,41 @@ end
 
 is_success(k::KoopmanResult) = getfield(k, :retcode) == DDReturnCode(1)
 
+"""
+$(SIGNATURES)
+
+Return the learned Koopman operator or generator matrix.
+"""
 get_operator(k::KoopmanResult) = getfield(k, :k)
 get_generator(k::KoopmanResult) = getfield(k, :k)
 
+"""
+$(SIGNATURES)
+
+Return the learned input map.
+"""
 get_inputmap(k::KoopmanResult) = getfield(k, :b)
+
+"""
+$(SIGNATURES)
+
+Return the learned output map.
+"""
 get_outputmap(k::KoopmanResult) = getfield(k, :c)
+
+"""
+    get_trainerror(result)
+
+Return training error information from a DMD result when an algorithm provides it.
+"""
+function get_trainerror end
+
+"""
+    get_testerror(result)
+
+Return test error information from a DMD result when an algorithm provides it.
+"""
+function get_testerror end
 
 # StatsBase Overload
 StatsBase.coef(x::KoopmanResult) = getfield(x, :k)

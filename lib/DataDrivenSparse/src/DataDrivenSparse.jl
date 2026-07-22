@@ -17,6 +17,62 @@ using Reexport
 using LinearAlgebra
 using Printf
 
+"""
+    AbstractSparseRegressionAlgorithm
+
+Abstract interface for sparse-regression algorithms used by `DataDrivenSparse`.
+
+Concrete subtypes are callable algorithm objects that solve a matrix regression
+problem for each target row. They are used directly as `solve(prob, basis, alg)`
+optimizers and through [`SparseLinearSolver`](@ref).
+
+# Interface
+
+A subtype `Alg <: AbstractSparseRegressionAlgorithm` must provide:
+
+  - `get_thresholds(alg)`: returns the scalar threshold or iterable threshold
+    schedule evaluated by [`SparseLinearSolver`](@ref).
+  - `alg(X, Y; options = DataDrivenCommonOptions(), kwargs...)`: returns
+    `(coefficients, optimal_thresholds, optimal_iterations)` for feature matrix
+    `X` and target matrix `Y`.
+
+Algorithms that use [`SparseLinearSolver`](@ref) should also implement:
+
+  - `init_cache(alg, A::AbstractMatrix, B::AbstractMatrix)`: constructs the
+    per-target cache for the design matrix `A` and target row matrix `B`.
+  - `step!(cache, threshold)`: performs one thresholded solver update.
+
+# Arguments
+
+  - `X::AbstractMatrix`: feature or basis-evaluation matrix.
+  - `Y::AbstractMatrix`: target matrix whose rows are fit independently.
+
+# Keywords
+
+  - `options::DataDrivenCommonOptions`: convergence tolerances, iteration
+    limits, and verbosity used by iterative sparse-regression solvers.
+  - `kwargs...`: algorithm-specific options. Generic callers should not depend
+    on any keyword that is not documented by the concrete algorithm.
+
+# Returns
+
+The generic sparse-regression call returns a tuple
+`(coefficients, optimal_thresholds, optimal_iterations)`. `coefficients` is a
+matrix with one row per target in `Y`; the other entries record the selected
+threshold and iteration count for each target row.
+
+# Examples
+
+```julia
+using DataDrivenSparse
+
+X = [1.0 2.0 3.0; 1.0 4.0 9.0]
+Y = [2.0 4.0 6.0]
+alg = STLSQ([0.1])
+
+coefficients, thresholds, iterations = alg(X, Y)
+```
+"""
 abstract type AbstractSparseRegressionAlgorithm <: AbstractDataDrivenAlgorithm end
 abstract type AbstractProximalOperator end
 

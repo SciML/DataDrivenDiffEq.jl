@@ -13,9 +13,8 @@ using DataDrivenDiffEq.CommonSolve
 using DataDrivenDiffEq.StatsBase
 using DataDrivenDiffEq.Parameters
 
-using Reexport
+using SymbolicRegression
 
-@reexport using SymbolicRegression
 """
 $(TYPEDEF)
 Options for using SymbolicRegression.jl within the `solve` function.

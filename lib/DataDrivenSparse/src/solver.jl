@@ -1,3 +1,19 @@
+"""
+$(TYPEDEF)
+
+Sparse regression solver that applies an [`AbstractSparseRegressionAlgorithm`](@ref)
+to one or more target variables.
+
+## Constructor
+
+```julia
+SparseLinearSolver(algorithm; options = DataDrivenCommonOptions())
+```
+
+## Fields
+
+$(TYPEDFIELDS)
+"""
 struct SparseLinearSolver{A <: AbstractSparseRegressionAlgorithm, T <: Number}
     algorithm::A
     abstol::T

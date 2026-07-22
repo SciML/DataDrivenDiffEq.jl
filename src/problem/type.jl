@@ -329,40 +329,50 @@ get_name(p::AbstractDataDrivenProblem) = getfield(p, :name)
 
 ## Utils
 
+"""
+$(SIGNATURES)
+
+Return state measurements from the data-driven problem.
+"""
 function states(p::AbstractDataDrivenProblem, i = :, j = :)
     x = getfield(p, :X)
     return isempty(x) ? x : getindex(x, i, j)
 end
 
-function ModelingToolkit.parameters(p::AbstractDataDrivenProblem, i = :)
+function ModelingToolkitBase.parameters(p::AbstractDataDrivenProblem, i = :)
     x = getfield(p, :p)
     return isempty(x) ? x : getindex(x, i)
 end
 
-function ModelingToolkit.independent_variable(p::AbstractDataDrivenProblem, i = :)
+function ModelingToolkitBase.independent_variable(p::AbstractDataDrivenProblem, i = :)
     x = getfield(p, :t)
     return isempty(x) ? x : getindex(x, i)
 end
 
-function ModelingToolkit.get_dvs(p::ABSTRACT_CONT_PROB, i = :, j = :)
+function ModelingToolkitBase.get_dvs(p::ABSTRACT_CONT_PROB, i = :, j = :)
     x = getfield(p, :DX)
     return isempty(x) ? x : getindex(x, i, j)
 end
 
-function ModelingToolkit.get_dvs(p::ABSTRACT_DIRECT_PROB, i = :, j = :)
+function ModelingToolkitBase.get_dvs(p::ABSTRACT_DIRECT_PROB, i = :, j = :)
     x = getfield(p, :Y)
     return isempty(x) ? x : getindex(x, i, j)
 end
 
-function ModelingToolkit.get_dvs(p::ABSTRACT_DISCRETE_PROB, i = :, j = :)
+function ModelingToolkitBase.get_dvs(p::ABSTRACT_DISCRETE_PROB, i = :, j = :)
     return states(p, i, j)
 end
 
-function ModelingToolkit.observed(p::AbstractDataDrivenProblem, i = :, j = :)
+function ModelingToolkitBase.observed(p::AbstractDataDrivenProblem, i = :, j = :)
     x = getfield(p, :Y)
     return isempty(x) ? x : getindex(x, i, j)
 end
 
+"""
+$(SIGNATURES)
+
+Return control measurements from the data-driven problem.
+"""
 function controls(p::AbstractDataDrivenProblem, i = :, j = :)
     x = getfield(p, :U)
     return isempty(x) ? x : getindex(x, i, j)
@@ -371,9 +381,9 @@ end
 function Base.getindex(p::AbstractDataDrivenProblem, i = :, j = :)
     return (
         states(p, i, j),
-        ModelingToolkit.parameters(p),
-        ModelingToolkit.independent_variable(p, j),
-        ModelingToolkit.controls(p, i, j),
+        parameters(p),
+        independent_variable(p, j),
+        controls(p, i, j),
     )
 end
 

@@ -9,12 +9,14 @@ function dev_subpkg(subpkg)
 end
 
 dev_subpkg("DataDrivenDMD")
+dev_subpkg("DataDrivenLux")
 dev_subpkg("DataDrivenSparse")
 dev_subpkg("DataDrivenSR")
 
 using Documenter
 using DataDrivenDiffEq
 using DataDrivenDMD
+using DataDrivenLux
 using DataDrivenSparse
 using DataDrivenSR
 
@@ -79,7 +81,7 @@ include("pages.jl")
 makedocs(
     sitename = "DataDrivenDiffEq.jl",
     authors = "Julius Martensen, Christopher Rackauckas, et al.",
-    modules = [DataDrivenDiffEq, DataDrivenDMD, DataDrivenSparse, DataDrivenSR],
+    modules = [DataDrivenDiffEq, DataDrivenDMD, DataDrivenLux, DataDrivenSparse, DataDrivenSR],
     clean = true, doctest = false, linkcheck = true,
     warnonly = [:missing_docs, :cross_references],
     linkcheck_ignore = [

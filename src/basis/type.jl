@@ -96,7 +96,7 @@ function __preprocess_basis(
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
     # Scalarize equations
-    eqs = Symbolics.scalarize(eqs)
+    eqs = scalarize(eqs)
 
     lhs = isa(eqs, AbstractVector{Equation}) ?
         map(Base.Fix2(getfield, :lhs), eqs) :
@@ -278,10 +278,20 @@ function implicit_variables(b::AbstractBasis)
     return getfield(b, :implicit)
 end
 
+"""
+$(SIGNATURES)
+
+Return the state variables represented by the basis.
+"""
 function states(b::AbstractBasis)
     return getfield(b, :unknowns)
 end
 
+"""
+$(SIGNATURES)
+
+Return the control variables represented by the basis.
+"""
 function controls(b::AbstractBasis)
     ctrls = getfield(b, :ctrls)
     systems = getfield(b, :systems)
@@ -492,7 +502,7 @@ end
 
 ## Utilities
 function Base.deleteat!(b::Symbolics.Arr{T, N}, idxs) where {T, N}
-    return deleteat!(Symbolics.unwrap(b), idxs)
+    return deleteat!(unwrap(b), idxs)
 end
 
 ## Interfacing && merging
@@ -506,7 +516,7 @@ function Base.unique!(b::AbstractVector{Num}, simplify_eqs = false)
         idx[i] = isequal(b[i], b[j])
     end
     deleteat!(b, idx)
-    simplify_eqs && map(ModelingToolkit.simplify, b)
+    simplify_eqs && map(simplify, b)
     return
 end
 
@@ -521,7 +531,7 @@ function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
         idx[i] = isequal(eqs_[i].rhs, eqs_[j].rhs)
     end
     deleteat!(equations(b), idx)
-    simplify_eqs && map(ModelingToolkit.simplify, equations(b))
+    simplify_eqs && map(simplify, equations(b))
     return __update!(b, eval_expression)
 end
 
@@ -603,10 +613,10 @@ function get_parameter_values(x::Basis)
         val = try
             Symbolics.getdefaultval(p)
         catch
-            zero(Symbolics.symtype(p))
+            zero(symtype(p))
         end
         # Unwrap symbolic values to numeric values for use in ODEProblem
-        return Symbolics.unwrap(val)
+        return unwrap(val)
     end
 end
 
@@ -628,10 +638,10 @@ function get_parameter_map(x::Basis)
         val = try
             Symbolics.getdefaultval(p)
         catch
-            zero(Symbolics.symtype(p))
+            zero(symtype(p))
         end
         # Unwrap symbolic values to numeric values for use in ODEProblem
-        return p => Symbolics.unwrap(val)
+        return p => unwrap(val)
     end
 end
 
@@ -640,27 +650,27 @@ end
 # These methods implement the AbstractSystem interface from ModelingToolkit
 # to allow Basis to be used with ODEProblem
 
-function ModelingToolkit.equations(b::AbstractBasis)
+function ModelingToolkitBase.equations(b::AbstractBasis)
     return getfield(b, :eqs)
 end
 
-function ModelingToolkit.unknowns(b::AbstractBasis)
+function ModelingToolkitBase.unknowns(b::AbstractBasis)
     return states(b)
 end
 
-function ModelingToolkit.parameters(b::AbstractBasis)
+function ModelingToolkitBase.parameters(b::AbstractBasis)
     return getfield(b, :ps)
 end
 
-function ModelingToolkit.get_observed(b::AbstractBasis)
+function ModelingToolkitBase.get_observed(b::AbstractBasis)
     return getfield(b, :observed)
 end
 
-function ModelingToolkit.get_iv(b::AbstractBasis)
+function ModelingToolkitBase.get_iv(b::AbstractBasis)
     return getfield(b, :iv)
 end
 
-function ModelingToolkit.nameof(b::AbstractBasis)
+function Base.nameof(b::AbstractBasis)
     return getfield(b, :name)
 end
 

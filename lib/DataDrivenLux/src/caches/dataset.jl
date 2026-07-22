@@ -1,3 +1,13 @@
+"""
+$(TYPEDEF)
+
+Dataset used by DataDrivenLux candidate models, storing observed inputs,
+targets, controls, time points, and interval bounds for symbolic search.
+
+# Fields
+
+$(FIELDS)
+"""
 @concrete struct Dataset{T}
     x <: AbstractMatrix{T}
     y <: AbstractMatrix{T}

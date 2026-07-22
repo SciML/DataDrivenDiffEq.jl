@@ -9,18 +9,19 @@ using DiffEqBase
 using SciMLBase: SciMLBase
 using CommonSolve
 using Reexport
+import ModelingToolkitBase
+using ModelingToolkitBase: AbstractSystem
 
 using Parameters
 using Setfield
 
 @reexport using ModelingToolkit
-using ModelingToolkit: AbstractSystem
 using SciMLStructures: SciMLStructures as SS
-using SymbolicUtils: operation, arguments, iscall, issym
+using SymbolicUtils: arguments, iscall, issym, operation, simplify, symtype, unwrap
 using Symbolics
-using Symbolics: scalarize, variable, value
-@reexport using ModelingToolkit: unknowns, parameters, independent_variable, observed,
-    get_iv, get_observed
+using Symbolics: scalarize, value, variable
+@reexport using ModelingToolkitBase: get_iv, get_observed, independent_variable,
+    observed, parameters, unknowns
 
 # Local Difference operator (removed from Symbolics v7)
 include("./difference.jl")
@@ -53,8 +54,14 @@ using RecipesBase
     Continuous = 3 # Time continuous problem
 end
 
-# We want to export the ReturnCodes
+"""
+    DDReturnCode
 
+Return code for DataDrivenDiffEq solver results.
+
+The values indicate successful convergence, generic failure, and termination due to
+iteration, wall-time, absolute-tolerance, or relative-tolerance limits.
+"""
 @enum DDReturnCode begin
     Success = 1
     Failed = 2

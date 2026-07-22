@@ -40,16 +40,81 @@ InterpolationMethod() = InterpolationMethod(LinearInterpolation)
 # https://github.com/SciML/DiffEqFlux.jl/blob/master/src/collocation.jl
 # On 3-11-2021
 
+"""
+    EpanechnikovKernel()
+
+Epanechnikov smoothing kernel for [`collocate_data`](@ref).
+"""
 struct EpanechnikovKernel <: CollocationKernel end
+
+"""
+    UniformKernel()
+
+Uniform smoothing kernel for [`collocate_data`](@ref).
+"""
 struct UniformKernel <: CollocationKernel end
+
+"""
+    TriangularKernel()
+
+Triangular smoothing kernel for [`collocate_data`](@ref).
+"""
 struct TriangularKernel <: CollocationKernel end
+
+"""
+    QuarticKernel()
+
+Quartic smoothing kernel for [`collocate_data`](@ref).
+"""
 struct QuarticKernel <: CollocationKernel end
+
+"""
+    TriweightKernel()
+
+Triweight smoothing kernel for [`collocate_data`](@ref).
+"""
 struct TriweightKernel <: CollocationKernel end
+
+"""
+    TricubeKernel()
+
+Tricube smoothing kernel for [`collocate_data`](@ref).
+"""
 struct TricubeKernel <: CollocationKernel end
+
+"""
+    GaussianKernel()
+
+Gaussian smoothing kernel for [`collocate_data`](@ref).
+"""
 struct GaussianKernel <: CollocationKernel end
+
+"""
+    CosineKernel()
+
+Cosine smoothing kernel for [`collocate_data`](@ref).
+"""
 struct CosineKernel <: CollocationKernel end
+
+"""
+    LogisticKernel()
+
+Logistic smoothing kernel for [`collocate_data`](@ref).
+"""
 struct LogisticKernel <: CollocationKernel end
+
+"""
+    SigmoidKernel()
+
+Sigmoid smoothing kernel for [`collocate_data`](@ref).
+"""
 struct SigmoidKernel <: CollocationKernel end
+
+"""
+    SilvermanKernel()
+
+Silverman smoothing kernel for [`collocate_data`](@ref).
+"""
 struct SilvermanKernel <: CollocationKernel end
 
 function calckernel(::EpanechnikovKernel, t)
