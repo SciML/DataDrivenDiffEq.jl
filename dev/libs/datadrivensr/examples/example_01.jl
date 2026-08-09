@@ -2,6 +2,9 @@ using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenSR
+using LossFunctions: L1DistLoss
+using StatsAPI: loglikelihood, r2, rss
+import SymbolicRegression
 
 A = [-0.9 0.2; 0.0 -0.5]
 B = [0.0; 1.0]

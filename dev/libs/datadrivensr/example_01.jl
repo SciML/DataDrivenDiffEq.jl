@@ -11,6 +11,9 @@ using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenSR
+using LossFunctions: L1DistLoss
+using StatsAPI: loglikelihood, r2, rss
+import SymbolicRegression
 #md using Plots
 
 A = [-0.9 0.2; 0.0 -0.5]

@@ -2,6 +2,9 @@ using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenSparse
+using ModelingToolkitBase: @parameters
+using StatsBase: summarystats
+using Symbolics: @variables, Differential
 
 function michaelis_menten(u, p, t)
     return [0.6 - 1.5u[1] / (0.3 + u[1])]

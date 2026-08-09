@@ -9,6 +9,7 @@ using ModelingToolkit: t_nounits as t, D_nounits as D
 using OrdinaryDiffEq
 using LinearAlgebra
 using DataDrivenSparse
+using StatsAPI: r2
 #md using Plots
 #md gr()
 using Test #src

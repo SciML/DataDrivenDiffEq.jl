@@ -3,6 +3,9 @@ using LinearAlgebra
 using OrdinaryDiffEq
 using SciMLBase: NoSpecialize
 using DataDrivenDMD
+using ModelingToolkitBase: @parameters
+using StatsAPI: aic, aicc, bic, dof, loglikelihood
+using Symbolics: @variables
 
 function slow_manifold(du, u, p, t)
     du[1] = p[1] * u[1]

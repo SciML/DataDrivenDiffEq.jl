@@ -4,6 +4,7 @@ using ModelingToolkit: t_nounits as t, D_nounits as D
 using OrdinaryDiffEq
 using LinearAlgebra
 using DataDrivenSparse
+using StatsAPI: r2
 
 @parameters α = 1.0 β = 1.3 γ = 2.0 δ = 0.5
 @variables (x(t))[1:2] = [20.0, 12.0]

@@ -2,7 +2,9 @@ using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenSparse
+using ModelingToolkitBase: @parameters
 using StableRNGs
+using Symbolics: @variables, Num
 
 rng = StableRNG(1337)
 
@@ -17,7 +19,7 @@ tspan = (0.0, 15.0)
 prob = ODEProblem(pendulum, u0, tspan)
 sol = solve(prob, Tsit5(), saveat = 0.01);
 
-X = sol[:, :] + 0.2 .* randn(rng, size(sol));
+X = Array(sol) + 0.2 .* randn(rng, size(sol));
 ts = sol.t;
 
 prob = ContinuousDataDrivenProblem(

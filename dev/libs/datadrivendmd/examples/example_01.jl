@@ -3,6 +3,7 @@ using LinearAlgebra
 using OrdinaryDiffEq
 using OrdinaryDiffEqFunctionMap
 using DataDrivenDMD
+using StatsAPI: dof, r2, rss
 
 A = [0.9 -0.2; 0.0 0.2]
 u0 = [10.0; -10.0]

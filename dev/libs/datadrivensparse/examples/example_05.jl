@@ -21,7 +21,7 @@ dt = 0.05
 cart_pole_prob = ODEProblem(cart_pole, u0, tspan)
 solution = solve(cart_pole_prob, Tsit5(), saveat = dt)
 
-X = solution[:, :]
+X = Array(solution)
 DX = similar(X)
 for (i, xi) in enumerate(eachcol(X))
     DX[:, i] = cart_pole(xi, [], solution.t[i])

@@ -9,7 +9,9 @@ using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenSparse
+using ModelingToolkitBase: @parameters
 using StableRNGs
+using Symbolics: @variables, Num
 #md using Plots
 #md gr()
 
@@ -28,7 +30,7 @@ sol = solve(prob, Tsit5(), saveat = 0.01);
 
 # We add random noise to our measurements.
 
-X = sol[:, :] + 0.2 .* randn(rng, size(sol));
+X = Array(sol) + 0.2 .* randn(rng, size(sol));
 ts = sol.t;
 
 #md plot(ts, X', color = :red)

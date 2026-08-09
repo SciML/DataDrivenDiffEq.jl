@@ -8,6 +8,10 @@ using LinearAlgebra
 using OrdinaryDiffEq
 using SciMLBase: NoSpecialize
 using DataDrivenSR
+using LossFunctions: L1DistLoss
+using StatsAPI: r2, rss
+import SymbolicRegression
+using Symbolics: @variables
 #md using Plots
 
 function pendulum!(du, u, p, t)
