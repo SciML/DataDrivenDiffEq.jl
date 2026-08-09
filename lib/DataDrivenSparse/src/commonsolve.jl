@@ -17,7 +17,7 @@ function CommonSolve.solve!(
 
     # Transform the best coefficients
     coefficients = permutedims(copy(get_coefficients(best_res)))
-    coefficients = permutedims(StatsBase.transform(transform, coefficients))
+    coefficients = permutedims(DataDrivenDiffEq.apply_transform(transform, coefficients))
     new_basis = DataDrivenDiffEq.__construct_basis(coefficients, basis, problem, options)
 
     return DataDrivenSolution(new_basis, problem, alg, results, ps, best_res.retcode)

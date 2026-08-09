@@ -1,30 +1,34 @@
 using DataDrivenDiffEq
+using CommonSolve
 using LinearAlgebra
+using ModelingToolkit
 using Random
+using Statistics: var
 using Test
-using StatsBase
+using StatsAPI: fit
+using StatsBase: UnitRangeTransform, ZScoreTransform
 
 @testset "DataNormalization" begin
     xs = randn(3, 100)
 
     @testset "No Normalization" begin
         normalizer = DataNormalization()
-        transformation = StatsBase.fit(normalizer, xs)
-        y = StatsBase.transform(transformation, xs)
+        transformation = fit(normalizer, xs)
+        y = DataDrivenDiffEq.apply_transform(transformation, xs)
         @test xs == y
     end
 
     @testset "ZScore" begin
         normalizer = DataNormalization(ZScoreTransform)
-        transformation = StatsBase.fit(normalizer, xs)
-        y = StatsBase.transform(transformation, xs)
+        transformation = fit(normalizer, xs)
+        y = DataDrivenDiffEq.apply_transform(transformation, xs)
         @test var(y) ≈ one(eltype(y)) atol = 1.0e-1
     end
 
     @testset "UnitRange" begin
         normalizer = DataNormalization(UnitRangeTransform)
-        transformation = StatsBase.fit(normalizer, xs)
-        y = StatsBase.transform(transformation, xs)
+        transformation = fit(normalizer, xs)
+        y = DataDrivenDiffEq.apply_transform(transformation, xs)
         @test all(zero(eltype(y)) .<= y .<= one(eltype(y)))
     end
 end
@@ -97,8 +101,6 @@ end
 
 @testset "CommonSolve Interface" begin
     # For internal testing only
-    using DataDrivenDiffEq.CommonSolve
-
     struct DummyDataDrivenAlgorithm <: DataDrivenDiffEq.AbstractDataDrivenAlgorithm end
     struct DummyDataDrivenResult{IP} <: DataDrivenDiffEq.AbstractDataDrivenResult
         internal::IP

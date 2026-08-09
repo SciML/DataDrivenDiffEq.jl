@@ -43,6 +43,4 @@ KoopmanResult
 get_operator
 get_inputmap
 get_outputmap
-get_trainerror
-get_testerror
 ```

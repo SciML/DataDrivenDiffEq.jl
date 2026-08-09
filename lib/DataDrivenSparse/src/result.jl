@@ -19,7 +19,7 @@ end
 is_success(k::SparseRegressionResult) = getfield(k, :retcode) == DDReturnCode(1)
 l2error(k::SparseRegressionResult) = is_success(k) ? getfield(k, :testerror) : Inf
 
-function l2error(k::SparseRegressionResult{<:Any, <:Any, Nothing})
+function l2error(k::SparseRegressionResult{<:AbstractArray, <:Any, <:Any, Nothing})
     return is_success(k) ? getfield(k, :trainerror) : Inf
 end
 

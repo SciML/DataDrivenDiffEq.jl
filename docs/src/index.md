@@ -2,6 +2,10 @@
 
 DataDrivenDiffEq.jl is a package for finding systems of equations automatically from a dataset.
 
+```@docs
+DataDrivenDiffEq
+```
+
 The methods in this package take in data and return the model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete, continuous differential equations or direct mappings.
 
 There are two main types of estimation, depending on if you need the result to be human-understandable:

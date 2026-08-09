@@ -208,9 +208,9 @@ struct ParameterDistributions{T, N}
 end
 
 function ParameterDistributions(b::Basis, eltype::Type{T} = Float64) where {T}
-    isempty(ModelingToolkit.parameters(b)) &&
+    isempty(parameters(b)) &&
         return ParameterDistributions{T, 0}(NTuple{0, ParameterDistribution}())
-    distributions = map(ModelingToolkit.parameters(b)) do p
+    distributions = map(parameters(b)) do p
         lower, upper = getbounds(p)
         dist = hasdist(p) ? getdist(p) : Uniform(lower, upper)
 
@@ -219,8 +219,8 @@ function ParameterDistributions(b::Basis, eltype::Type{T} = Float64) where {T}
             dist = truncated(dist, lower, upper)
         end
 
-        if hasmetadata(p, Symbolics.VariableDefaultValue)
-            init = Symbolics.getdefaultval(p)
+        if hasdefault(p)
+            init = getdefault(p)
         else
             init = Distributions.mean(dist)
         end

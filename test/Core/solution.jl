@@ -1,8 +1,10 @@
 using DataDrivenDiffEq
+using CommonSolve
 using LinearAlgebra
-using StatsBase
+using ModelingToolkit
+using StatsAPI: aic, aicc, bic, dof, loglikelihood, nobs, r2, rss
+using StatsBase: summarystats
 using Random
-using DataDrivenDiffEq.CommonSolve
 
 rng = Random.default_rng()
 Random.seed!(0)

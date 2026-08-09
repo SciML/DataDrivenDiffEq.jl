@@ -7,6 +7,9 @@ using LinearAlgebra
 using OrdinaryDiffEq
 using SciMLBase: NoSpecialize
 using DataDrivenDMD
+using ModelingToolkitBase: @parameters
+using StatsAPI: aic, aicc, bic, dof, loglikelihood
+using Symbolics: @variables
 #md using Plots
 
 function slow_manifold(du, u, p, t)

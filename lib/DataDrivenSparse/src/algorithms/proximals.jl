@@ -1,6 +1,7 @@
-@inline function (s::AbstractProximalOperator)(
+@inline function _apply_active_set!(
+        s::AbstractProximalOperator,
         x::AbstractArray{<:Number},
-        y::AbstractArray{<:Bool},
+        y::BitArray,
         λ::T
     ) where {T <: Real}
     @assert size(y) == size(x)

@@ -59,7 +59,7 @@ mutable struct DMDPINV <: AbstractKoopmanAlgorithm end;
 # Fast but more allocations
 function (x::DMDPINV)(X::AbstractArray, Y::AbstractArray)
     K = Y / X
-    return (eigen(K), DataDrivenDiffEq.__EMPTY_MATRIX)
+    return (eigen(K), _EMPTY_MATRIX)
 end
 
 # DMDC
@@ -115,7 +115,7 @@ function (x::DMDSVD{T})(X::AbstractArray, Y::AbstractArray) where {T <: Real}
     # Compute the modes
     λ, ω = eigen(Ã)
     φ = B * ω
-    return (Eigen(λ, φ), DataDrivenDiffEq.__EMPTY_MATRIX)
+    return (Eigen(λ, φ), _EMPTY_MATRIX)
 end
 
 # DMDc
@@ -226,7 +226,7 @@ function (x::FBDMD)(X::AbstractArray{T}, Y::AbstractArray{T}) where {T}
     Ã = sqrt(A₁ * inv(A₂))
     # We do not want to lose sign information here
     Ã .= abs.(Ã) .* sign.(A₁)
-    return (eigen(Ã), DataDrivenDiffEq.__EMPTY_MATRIX)
+    return (eigen(Ã), _EMPTY_MATRIX)
 end
 
 function (x::FBDMD)(X::AbstractArray{T}, Y::AbstractArray{T}, U::AbstractArray{T}) where {T}

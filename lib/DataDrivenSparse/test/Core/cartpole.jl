@@ -2,7 +2,8 @@ using DataDrivenDiffEq
 using DataDrivenSparse
 using OrdinaryDiffEq
 using Test
-using StatsBase
+using StatsAPI: dof, r2, rss
+using Symbolics: @variables, variable
 
 function cart_pole(u, p, t)
     du = similar(u)
@@ -34,7 +35,7 @@ ddprob = ContinuousDataDrivenProblem(
 )
 
 @variables u[1:4] x[1:1] t
-du = [Symbolics.variable("du", i) for i in 3:4]
+du = [variable("du", i) for i in 3:4]
 u = collect(u)
 du = collect(du)
 x = collect(x)

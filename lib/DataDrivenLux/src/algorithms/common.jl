@@ -12,7 +12,7 @@
     threaded::Bool
     rng <: AbstractRNG
     optimizer
-    optim_options <: Optim.Options
+    optim_options
     optimiser <: Union{Nothing, Optimisers.AbstractRule}
     observed <: Union{ObservedModel, Nothing}
     alpha::Real
@@ -32,7 +32,7 @@ function CommonAlgOptions(;
         threaded::Bool = false,
         rng::AbstractRNG = Random.default_rng(),
         optimizer = LBFGS(),
-        optim_options::Optim.Options = Optim.Options(),
+        optim_options = nothing,
         optimiser::Union{Nothing, Optimisers.AbstractRule} = nothing,
         observed::Union{ObservedModel, Nothing} = nothing,
         alpha::Real = 0.999f0

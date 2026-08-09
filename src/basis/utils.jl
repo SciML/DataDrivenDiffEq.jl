@@ -113,7 +113,7 @@ function create_linear_independent_eqs(ops::AbstractVector, simplify_eqs::Bool =
         @views split_term!(u_o[ind_lo:ind_up], o[i], [+])
     end
     u_o = remove_constant_factor(u_o)
-    unique!(u_o)
+    _unique_symbolics!(u_o)
     return simplify_eqs ? simplify.(Num.(u_o)) : Num.(u_o)
 end
 

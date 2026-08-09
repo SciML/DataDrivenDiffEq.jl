@@ -1,5 +1,7 @@
 using DataDrivenDiffEq
 using LinearAlgebra
+using ModelingToolkit
+using ModelingToolkitBase: get_iv
 
 @testset "Evaluation" begin
     @variables u[1:3] du[1:3]
@@ -54,6 +56,8 @@ end
     discrete_prob = DiscreteDataDrivenProblem(x)
 
     d = Difference(get_iv(basis), dt = 1.0)
+    @test Symbolics.symtype(d(first(states(basis)))) === Real
+    @test isempty(Symbolics.shape(d(first(states(basis)))))
     ∂ = Differential(get_iv(basis))
 
     direct_res = DataDrivenDiffEq.__construct_basis(

@@ -9,7 +9,9 @@ using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenSparse
+using ModelingToolkitBase: @parameters
 using StableRNGs
+using Symbolics: @variables, Num
 #md using Plots
 #md gr()
 

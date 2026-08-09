@@ -2,7 +2,7 @@ using DataDrivenDiffEq
 using DataDrivenDMD
 using LinearAlgebra
 using Test
-using StatsBase
+using StatsAPI: dof, loglikelihood, r2, rss
 using StableRNGs
 using OrdinaryDiffEq
 

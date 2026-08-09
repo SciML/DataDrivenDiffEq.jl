@@ -1,6 +1,26 @@
-## INTERNAL USE ONLY
+"""
+    InternalDataDrivenProblem
 
-# This is a way to create a datadriven problem relatively efficient and handle all algorithms
+Preprocessed problem passed to data-driven algorithm implementations.
+
+This type is developer API for solver packages. Application code should construct a
+[`DataDrivenProblem`](@ref) and call `solve` instead.
+
+# Fields
+
+- `alg`: selected [`AbstractDataDrivenAlgorithm`](@ref).
+- `testdata`: held-out data used to select a result.
+- `traindata`: batches used to fit the result.
+- `transform`: fitted data-normalization transform.
+- `control_idx`: basis-to-control dependency indicators.
+- `implicit_idx`: basis-to-implicit-variable dependency indicators.
+- `parameter_idx`: basis entries that contain only parameters.
+- `state_idx`: basis-to-state dependency indicators.
+- `options`: shared [`DataDrivenCommonOptions`](@ref).
+- `basis`: feature [`AbstractBasis`](@ref).
+- `problem`: source [`AbstractDataDrivenProblem`](@ref).
+- `kwargs`: algorithm-specific keyword arguments.
+"""
 struct InternalDataDrivenProblem{
         A <: AbstractDataDrivenAlgorithm, B <: AbstractBasis, TD,
         T <: DataLoader, F, CI, VI, PI, SI,
@@ -32,8 +52,25 @@ struct InternalDataDrivenProblem{
     kwargs::K
 end
 
-# This is a preprocess step, which commonly returns the implicit data.
-# For Koopman Algorithms this is not true
+"""
+    get_fit_targets(alg, problem, basis) -> (inputs, targets)
+
+Construct the matrices fitted by a data-driven algorithm.
+
+The default evaluates `basis(problem)` and uses [`get_implicit_data`](@ref) as the
+target. Algorithms whose target convention differs, such as Koopman algorithms, should
+specialize this function.
+
+# Arguments
+
+- `alg::AbstractDataDrivenAlgorithm`: algorithm selecting the target convention.
+- `problem::AbstractDataDrivenProblem`: source data.
+- `basis::AbstractBasis`: feature basis evaluated on the source data.
+
+# Returns
+
+- `(inputs, targets)`: matrices passed to the algorithm implementation.
+"""
 function get_fit_targets(
         ::AbstractDataDrivenAlgorithm, prob::AbstractDataDrivenProblem,
         basis::AbstractBasis
@@ -90,7 +127,7 @@ function CommonSolve.init(
     # We do not center, given that we can have constants in our Basis!
     dt = fit(normalize, first(data))
 
-    StatsBase.transform!(dt, first(data))
+    apply_transform!(dt, first(data))
 
     test, loader = data_processing(data)
 

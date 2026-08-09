@@ -6,6 +6,9 @@ using Random
 using Lux
 using Test
 using StableRNGs
+using StatsAPI: nobs, r2, rss
+using Symbolics: @variables
+using ModelingToolkitBase: @parameters
 
 @testset "Candidate without choice" begin
     fs = (x -> x^2,)

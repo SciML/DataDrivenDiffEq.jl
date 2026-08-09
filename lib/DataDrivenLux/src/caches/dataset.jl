@@ -26,7 +26,7 @@ function Dataset(
         U::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
         t::AbstractVector = Array{eltype(X)}(undef, 0)
     )
-    T = Base.promote_eltype(X, Y, U, t)
+    T = promote_type(map(eltype, (X, Y, U, t))...)
     X = convert.(T, X)
     Y = convert.(T, Y)
     U = convert.(T, U)

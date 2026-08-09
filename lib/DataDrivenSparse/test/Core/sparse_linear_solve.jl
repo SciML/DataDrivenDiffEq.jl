@@ -2,9 +2,27 @@ using DataDrivenDiffEq
 using DataDrivenSparse
 using Random
 using LinearAlgebra
-using StatsBase
+using StatsAPI: aicc, dof, r2, rss
 using Test
 using StableRNGs
+using Symbolics: @variables
+
+@testset "Proximal dispatch" begin
+    for proximal in (SoftThreshold(), HardThreshold(), ClippedAbsoluteDeviation(1.0))
+        coefficients = [2.0, 0.25]
+        active_set = falses(2)
+
+        DataDrivenSparse._apply_active_set!(proximal, coefficients, active_set, 0.5)
+
+        @test active_set == [true, false]
+        @test coefficients == [2.0, 0.0]
+    end
+
+    result = DataDrivenSparse.SparseRegressionResult(
+        ones(1, 1), 1, 0.1, 1, nothing, 2.0, DataDrivenDiffEq.DDReturnCode(1)
+    )
+    @test DataDrivenSparse.l2error(result) == 2.0
+end
 
 @testset "Fat" begin
     rng = StableRNG(42)

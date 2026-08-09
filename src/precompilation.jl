@@ -2,7 +2,7 @@
 # This file contains code that will be executed during precompilation to
 # improve startup time and time-to-first-execution (TTFX)
 
-using PrecompileTools
+using PrecompileTools: @compile_workload, @setup_workload
 
 @setup_workload begin
     # Set up minimal test data and variables

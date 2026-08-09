@@ -1,19 +1,20 @@
 module DataDrivenSR
 
-using DataDrivenDiffEq
-# Load specific (abstract) types
-using DataDrivenDiffEq: Difference
-using DataDrivenDiffEq: AbstractDataDrivenAlgorithm
-using DataDrivenDiffEq: AbstractDataDrivenResult
-using DataDrivenDiffEq: DDReturnCode
-using DataDrivenDiffEq: InternalDataDrivenProblem
+import DataDrivenDiffEq
+using DataDrivenDiffEq: AbstractDataDrivenAlgorithm, AbstractDataDrivenResult, Basis,
+    DDReturnCode, DataDrivenCommonOptions, DataDrivenSolution, Difference,
+    InternalDataDrivenProblem, get_parameter_values, implicit_variables, states
 
-using DataDrivenDiffEq.DocStringExtensions
-using DataDrivenDiffEq.CommonSolve
-using DataDrivenDiffEq.StatsBase
-using DataDrivenDiffEq.Parameters
+using CommonSolve: CommonSolve
+using DocStringExtensions: FIELDS, TYPEDEF
+import ModelingToolkitBase
+using ModelingToolkitBase: equations, get_iv, parameters, setdefault, toparam
+using Parameters: @unpack, @with_kw
+using Statistics: mean
+using StatsAPI: StatsAPI, r2
+using Symbolics: Symbolics, Differential, Num, substitute
 
-using SymbolicRegression
+import SymbolicRegression
 
 """
 $(TYPEDEF)
@@ -49,7 +50,7 @@ struct SRResult{H, P, T} <: AbstractDataDrivenResult
     halloffame::H
     """The Paretofrontier"""
     paretofrontier::P
-    # StatsBase results
+    # Statistical-model results
     """Residual sum of squares"""
     rss::T
     """Loglikelihood"""
@@ -84,20 +85,20 @@ end
 
 is_success(k::SRResult) = getfield(k, :retcode) == DDReturnCode(1)
 
-# StatsBase Overload
-StatsBase.coef(x::SRResult) = get_parameter_values(getfield(x, :basis))
+# StatsAPI interface
+StatsAPI.coef(x::SRResult) = get_parameter_values(getfield(x, :basis))
 
-StatsBase.rss(x::SRResult) = getfield(x, :rss)
+StatsAPI.rss(x::SRResult) = getfield(x, :rss)
 
-StatsBase.dof(x::SRResult) = getfield(x, :dof)
+StatsAPI.dof(x::SRResult) = getfield(x, :dof)
 
-StatsBase.nobs(x::SRResult) = getfield(x, :nobs)
+StatsAPI.nobs(x::SRResult) = getfield(x, :nobs)
 
-StatsBase.loglikelihood(x::SRResult) = getfield(x, :loglikelihood)
+StatsAPI.loglikelihood(x::SRResult) = getfield(x, :loglikelihood)
 
-StatsBase.nullloglikelihood(x::SRResult) = getfield(x, :nullloglikelihood)
+StatsAPI.nullloglikelihood(x::SRResult) = getfield(x, :nullloglikelihood)
 
-StatsBase.r2(x::SRResult) = r2(x, :CoxSnell)
+StatsAPI.r2(x::SRResult) = r2(x, :CoxSnell)
 
 function collect_numerical_parameters(eq, options = DataDrivenCommonOptions())
     ps = Any[]
@@ -119,8 +120,8 @@ function _collect_numerical_parameters!(ps::AbstractVector, eq, options)
         iszero(pval) && return zero(eltype(pval))
         (abs(pval) ≈ 1) & return sign(pval) * one(eltype(pval))
         p_ = Symbolics.variable(:p, length(ps) + 1)
-        p_ = Symbolics.setdefaultval(p_, pval)
-        p_ = ModelingToolkit.toparam(p_)
+        p_ = setdefault(p_, pval)
+        p_ = toparam(p_)
         push!(ps, p_)
         return p_
     else
@@ -135,17 +136,15 @@ function convert_to_basis(paretofrontier, prob)
         roundingmode = options
 
     eqs_ = map(paretofrontier) do dom
-        node_to_symbolic(dom[end].tree, eq_options)
+        SymbolicRegression.node_to_symbolic(dom[end].tree, eq_options)
     end
 
     # Substitute with the basis elements
     atoms = map(xi -> xi.rhs, equations(basis))
 
-    # Match the symbol form produced by DynamicExpressions' node_to_symbolic
-    # (Sym{SymReal}(:xN; type=Number)) so substitution actually hits.
     subs = Dict(
         [
-            SymbolicUtils.Sym{SymbolicUtils.SymReal}(Symbol("x$(i)"); type = Number) => x
+            Symbolics.variable(Symbol("x$(i)"); T = Number) => x
                 for (i, x) in enumerate(atoms)
         ]...
     )
@@ -174,13 +173,14 @@ function convert_to_basis(paretofrontier, prob)
     @unpack p = problem
 
     p_new = map(eachindex(p)) do i
-        DataDrivenDiffEq._set_default_val(Num(ps_[i]), p[i])
+        Num(setdefault(ps_[i], p[i]))
     end
 
     return Basis(
         eqs, states(basis),
         parameters = [p_new; ps], iv = get_iv(basis),
-        controls = controls(basis), observed = observed(basis),
+        controls = DataDrivenDiffEq.controls(basis),
+        observed = ModelingToolkitBase.observed(basis),
         implicits = implicit_variables(basis),
         name = gensym(:Basis),
         eval_expression = eval_expresssion

@@ -19,6 +19,14 @@ function __assert_linearity(eqs::AbstractVector{Num}, x::AbstractVector)
     return true
 end
 
+"""
+    assert_lhs(problem) -> (causality, timestep)
+
+Return the equation causality and timestep used when constructing a recovered basis.
+
+The causality is `:direct`, `:discrete`, or `:continuous`. The timestep is inferred for
+discrete time-series data and is otherwise `0.0`.
+"""
 function assert_lhs(prob::ABSTRACT_CONT_PROB)
     return :continuous, 0.0
 end
@@ -37,7 +45,7 @@ end
 
 function _generate_variables(sym::Symbol, n::Int, offset::Int = 0)
     xs = [Symbolics.variable(sym, i) for i in (offset + 1):(offset + n)]
-    return Num.(map(ModelingToolkitBase.tovar, xs))
+    return Num.(xs)
 end
 
 function _generate_parameters(sym::Symbol, n::Int, offset::Int = 0)
@@ -46,7 +54,7 @@ function _generate_parameters(sym::Symbol, n::Int, offset::Int = 0)
 end
 
 function _set_default_val(x::Num, val::T) where {T <: Number}
-    return Num(Symbolics.setdefaultval(unwrap(x), val))
+    return Num(ModelingToolkitBase.setdefault(unwrap(x), val))
 end
 
 function __build_eqs(coeff_mat, basis, prob)
@@ -117,6 +125,26 @@ function _implicit_build_eqs(basis, eqs, p, prob)
     return eqs, Num.(p), implicits
 end
 
+"""
+    __construct_basis(coefficients, basis, problem, options) -> Basis
+
+Construct a recovered [`Basis`](@ref) from an algorithm's coefficient matrix.
+
+This is developer API for DataDrivenDiffEq solver packages. It applies coefficient
+rounding and sparsification from `options`, creates symbolic parameters when requested,
+and preserves the problem's direct, discrete, or continuous causality.
+
+# Arguments
+
+- `coefficients`: fitted coefficient matrix, mutated during postprocessing.
+- `basis::AbstractBasis`: feature basis used during fitting.
+- `problem::AbstractDataDrivenProblem`: problem that determines output causality.
+- `options::DataDrivenCommonOptions`: shared postprocessing options.
+
+# Returns
+
+- `Basis`: recovered symbolic model.
+"""
 function __construct_basis(X, b, prob, options)
     @unpack eval_expresssion, generate_symbolic_parameters, digits, roundingmode = options
 
@@ -178,7 +206,7 @@ function unit_basis(prob::DataDrivenProblem)
     n_p = size(p, 1)
     n_u = size(U, 1)
 
-    t = Num(ModelingToolkitBase.tovar(Symbolics.variable(:t)))
+    t = Num(Symbolics.variable(:t))
     x = _generate_variables(:x, n_x)
     p = _generate_parameters(:p, n_p)
     u = _generate_variables(:u, n_u)

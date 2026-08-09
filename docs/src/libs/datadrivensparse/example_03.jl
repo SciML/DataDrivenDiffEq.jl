@@ -9,6 +9,9 @@ using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using DataDrivenSparse
+using ModelingToolkitBase: @parameters
+using StatsBase: summarystats
+using Symbolics: @variables, Differential
 #md using Plots
 using Test #src
 

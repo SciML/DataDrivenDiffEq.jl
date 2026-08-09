@@ -100,21 +100,21 @@ $(SIGNATURES)
 
 Returns the degrees of freedom of the `DataDrivenSolution`.
 """
-StatsBase.dof(sol::DataDrivenSolution) = getfield(sol, :dof)
+StatsAPI.dof(sol::DataDrivenSolution) = getfield(sol, :dof)
 
 """
 $(SIGNATURES)
 
 Returns the residual sum of squares of the `DataDrivenSolution`.
 """
-StatsBase.rss(sol::DataDrivenSolution) = getfield(sol, :residuals)
+StatsAPI.rss(sol::DataDrivenSolution) = getfield(sol, :residuals)
 
 """
 $(SIGNATURES)
 
 Returns the log-likelihood of the `DataDrivenSolution` assuming a normal distributed error.
 """
-function StatsBase.loglikelihood(sol::DataDrivenSolution)
+function StatsAPI.loglikelihood(sol::DataDrivenSolution)
     return begin
         -nobs(sol) / 2 * log.(rss(sol) / nobs(sol))
     end
@@ -125,7 +125,7 @@ $(SIGNATURES)
 
 Returns the number of observations of the `DataDrivenSolution`.
 """
-function StatsBase.nobs(sol::DataDrivenSolution)
+function StatsAPI.nobs(sol::DataDrivenSolution)
     return begin
         prod(size(get_implicit_data(getfield(sol, :prob))))
     end
@@ -137,7 +137,7 @@ $(SIGNATURES)
 Return the null log-likelihood of the `DataDrivenSolution`. This corresponds to a model only fitted with an
 intercept and a normal distributed error.
 """
-@views function StatsBase.nullloglikelihood(sol::DataDrivenSolution)
+@views function StatsAPI.nullloglikelihood(sol::DataDrivenSolution)
     begin
         Y = get_implicit_data(getfield(sol, :prob))
         -nobs(sol) / 2 * log(sum(abs2, Y .- mean(Y, dims = 2)) / nobs(sol))
@@ -151,9 +151,10 @@ Return the coefficient of determination of the `DataDrivenSolution`.
 
 ## Note
 
-Only implements `CoxSnell` based on the [`loglikelihood`](@ref) and [`nullloglikelihood`](@ref).
+Only implements `CoxSnell` based on [`StatsAPI.loglikelihood`](@ref) and
+[`StatsAPI.nullloglikelihood`](@ref).
 """
-StatsBase.r2(sol::DataDrivenSolution) = r2(sol, :CoxSnell)
+StatsAPI.r2(sol::DataDrivenSolution) = r2(sol, :CoxSnell)
 
 """
 $(SIGNATURES)

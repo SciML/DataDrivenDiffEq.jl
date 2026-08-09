@@ -27,7 +27,7 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
             min_, max_ = extrema(losses)
             [
                 (:Iterations, iter),
-                (:RSS, map(StatsBase.rss, cache.candidates[cache.keeps][1:shows])),
+                (:RSS, map(StatsAPI.rss, cache.candidates[cache.keeps][1:shows])),
                 (:Minimum, min_),
                 (:Maximum, max_),
                 (:Mode, mode(losses)),
@@ -43,7 +43,7 @@ function CommonSolve.solve!(prob::InternalDataDrivenProblem{A}) where {
     for iter in 1:maxiters
         update_cache!(cache)
 
-        if StatsBase.rss(first(cache.candidates)) <= abstol
+        if StatsAPI.rss(first(cache.candidates)) <= abstol
             ProgressMeter.finish!(p)
             break
         end

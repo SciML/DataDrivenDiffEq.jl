@@ -1,16 +1,18 @@
 module DataDrivenLux
 
-using DataDrivenDiffEq
-
-# Load specific (abstract) types
+import DataDrivenDiffEq
 using DataDrivenDiffEq: AbstractDataDrivenAlgorithm,
-    AbstractDataDrivenResult, AbstractDataDrivenProblem, DDReturnCode,
-    InternalDataDrivenProblem
+    AbstractDataDrivenResult, AbstractDataDrivenProblem, Basis, DDReturnCode,
+    DataDrivenCommonOptions, DataDrivenProblem, DataDrivenSolution,
+    InternalDataDrivenProblem, get_parameter_values, implicit_variables, states
 
 using DocStringExtensions: DocStringExtensions, FIELDS, TYPEDEF, SIGNATURES
 using CommonSolve: CommonSolve
 using ConcreteStructs: @concrete
-using Setfield: Setfield, @set!
+using Setfield: @set!
+using ModelingToolkitBase: equations, get_iv, get_variables, getbounds, getdefault, getdist,
+    hasdefault, hasdist, observed, parameters, setdefault
+using Symbolics: Num, substitute
 
 using Optim: Optim, LBFGS
 using Optimisers: Optimisers, Adam
@@ -24,12 +26,12 @@ using TransformVariables: TransformVariables, as, transform_logdensity
 using Distributions: Distributions, Distribution, Normal, Uniform, Univariate, dof,
     loglikelihood, logpdf, mean, mode, quantile, scale, truncated
 using DistributionsAD: DistributionsAD
-using StatsBase: StatsBase, aicc, nobs, nullloglikelihood, r2, rss, sum
+using StatsAPI: StatsAPI, StatisticalModel, aicc, nobs, nullloglikelihood, r2, rss
 
 using ChainRulesCore: @ignore_derivatives
 using ComponentArrays: ComponentArrays, ComponentVector
 
-using IntervalArithmetic: IntervalArithmetic, Interval, interval, isempty
+using IntervalArithmetic: IntervalArithmetic, Interval, interval
 using ProgressMeter: ProgressMeter
 using AbstractDifferentiation: AbstractDifferentiation
 using ForwardDiff: ForwardDiff
@@ -45,7 +47,7 @@ abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
 abstract type AbstractSimplex end
 abstract type AbstractErrorModel end
 abstract type AbstractErrorDistribution end
-abstract type AbstractConfigurationCache <: StatsBase.StatisticalModel end
+abstract type AbstractConfigurationCache <: StatisticalModel end
 abstract type AbstractRewardScale{risk} end
 
 @enum __PROCESSUSE begin

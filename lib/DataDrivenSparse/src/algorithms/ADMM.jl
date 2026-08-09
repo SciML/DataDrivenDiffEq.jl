@@ -105,7 +105,7 @@ function step!(cache::ADMMCache{false}, λ::T) where {T <: Number}
 
     w .+= X .- alpha
 
-    proximal(X, active_set, λ / rho)
+    _apply_active_set!(proximal, X, active_set, λ / rho)
 
     return
 end
@@ -123,7 +123,7 @@ function step!(cache::ADMMCache{true}, λ::T) where {T <: Number}
 
     w .+= X .- alpha
 
-    proximal(X, active_set, λ / rho)
+    _apply_active_set!(proximal, X, active_set, λ / rho)
 
     return
 end

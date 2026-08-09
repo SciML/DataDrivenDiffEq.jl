@@ -1,27 +1,26 @@
 module DataDrivenDMD
 
-using DataDrivenDiffEq
-# Load specific (abstract) types
-using DataDrivenDiffEq: AbstractBasis
-using DataDrivenDiffEq: AbstractDataDrivenAlgorithm
-using DataDrivenDiffEq: AbstractDataDrivenResult
-using DataDrivenDiffEq: DDReturnCode, ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB
-using DataDrivenDiffEq: InternalDataDrivenProblem
-using DataDrivenDiffEq: is_implicit, is_controlled
+import DataDrivenDiffEq
+using DataDrivenDiffEq: ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB, AbstractBasis,
+    AbstractDataDrivenAlgorithm, AbstractDataDrivenResult, Basis, DDReturnCode,
+    DataDrivenSolution, InternalDataDrivenProblem, is_controlled, is_implicit, jacobian
 
-using DataDrivenDiffEq.DocStringExtensions
-using DataDrivenDiffEq.CommonSolve
-using DataDrivenDiffEq.StatsBase
-using DataDrivenDiffEq.Parameters
+using CommonSolve: CommonSolve, solve
+using DocStringExtensions: FIELDS, SIGNATURES, TYPEDEF
+using Parameters: @unpack
+using Statistics: mean
+using StatsAPI: StatsAPI, r2
 
-using LinearAlgebra
+using LinearAlgebra: Diagonal, Eigen, eigen, svd
+
+const _EMPTY_MATRIX = Matrix(undef, 0, 0)
 
 abstract type AbstractKoopmanAlgorithm <: AbstractDataDrivenAlgorithm end
 
 # Results
 include("./result.jl")
 export KoopmanResult
-export get_operator, get_inputmap, get_outputmap, get_trainerror, get_testerror
+export get_operator, get_inputmap, get_outputmap
 
 # Algorithms
 include("./algorithms.jl")

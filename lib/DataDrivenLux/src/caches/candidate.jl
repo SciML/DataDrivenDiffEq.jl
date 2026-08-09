@@ -1,4 +1,4 @@
-mutable struct PathStatistics{T} <: StatsBase.StatisticalModel
+mutable struct PathStatistics{T} <: StatisticalModel
     rss::T
     loglikelihood::T
     nullloglikelihood::T
@@ -16,12 +16,12 @@ function update_stats!(
     return
 end
 
-StatsBase.rss(stats::PathStatistics) = getfield(stats, :rss)
-StatsBase.nobs(stats::PathStatistics) = getfield(stats, :nobs)
-StatsBase.loglikelihood(stats::PathStatistics) = getfield(stats, :loglikelihood)
-StatsBase.nullloglikelihood(stats::PathStatistics) = getfield(stats, :nullloglikelihood)
-StatsBase.dof(stats::PathStatistics) = getfield(stats, :dof)
-StatsBase.r2(c::PathStatistics) = r2(c, :CoxSnell)
+StatsAPI.rss(stats::PathStatistics) = getfield(stats, :rss)
+StatsAPI.nobs(stats::PathStatistics) = getfield(stats, :nobs)
+StatsAPI.loglikelihood(stats::PathStatistics) = getfield(stats, :loglikelihood)
+StatsAPI.nullloglikelihood(stats::PathStatistics) = getfield(stats, :nullloglikelihood)
+StatsAPI.dof(stats::PathStatistics) = getfield(stats, :dof)
+StatsAPI.r2(c::PathStatistics) = r2(c, :CoxSnell)
 
 @concrete struct ComponentModel
     basis
@@ -48,7 +48,7 @@ to the symbolic regression problem.
 
 $(FIELDS)
 """
-@concrete struct Candidate <: StatsBase.StatisticalModel
+@concrete struct Candidate <: StatisticalModel
     "Random seed"
     rng
     "The current state"
@@ -82,12 +82,12 @@ Base.print(io::IO, c::Candidate) = print(io, "Candidate $(rss(c))")
 Base.show(io::IO, c::Candidate) = print(io, c)
 Base.summary(io::IO, c::Candidate) = print(io, c)
 
-StatsBase.rss(c::Candidate) = rss(c.statistics)
-StatsBase.nobs(c::Candidate) = nobs(c.statistics)
-StatsBase.loglikelihood(c::Candidate) = loglikelihood(c.statistics)
-StatsBase.nullloglikelihood(c::Candidate) = nullloglikelihood(c.statistics)
-StatsBase.dof(c::Candidate) = dof(c.statistics)
-StatsBase.r2(c::Candidate) = r2(c, :CoxSnell)
+StatsAPI.rss(c::Candidate) = rss(c.statistics)
+StatsAPI.nobs(c::Candidate) = nobs(c.statistics)
+StatsAPI.loglikelihood(c::Candidate) = loglikelihood(c.statistics)
+StatsAPI.nullloglikelihood(c::Candidate) = nullloglikelihood(c.statistics)
+StatsAPI.dof(c::Candidate) = dof(c.statistics)
+StatsAPI.r2(c::Candidate) = r2(c, :CoxSnell)
 
 get_parameters(c::Candidate) = transform_parameter(c.parameterdist, c.parameters)
 get_scales(c::Candidate) = transform_scales(c.observed, c.scales)
@@ -165,7 +165,7 @@ initial_values(c::Candidate) = ComponentVector(; c.scales, c.parameters)
 
 function optimize_candidate!(
         c::Candidate, dataset::Dataset{T}, ps = c.ps; optimizer = Optim.LBFGS(),
-        options::Optim.Options = Optim.Options()
+        options = nothing
     ) where {T}
     path, st = sample(c, ps)
     p_init = initial_values(c)
@@ -175,6 +175,9 @@ function optimize_candidate!(
             loss(p) = -logpdf(c, p, dataset)
             # We do not want any warnings here
             res = with_logger(NullLogger()) do
+                if isnothing(options)
+                    return Optim.optimize(loss, p_init, optimizer)
+                end
                 return Optim.optimize(loss, p_init, optimizer, options)
             end
 
@@ -217,20 +220,20 @@ function convert_to_basis(
     (; eval_expresssion) = options
     p_best = get_parameters(candidate)
 
-    p_new = map(enumerate(ModelingToolkit.parameters(basis))) do (i, ps)
-        return DataDrivenDiffEq._set_default_val(Num(ps), p_best[i])
+    p_new = map(enumerate(parameters(basis))) do (i, ps)
+        return Num(setdefault(ps, p_best[i]))
     end
 
-    subs = Dict(a => b for (a, b) in zip(ModelingToolkit.parameters(basis), p_new))
+    subs = Dict(a => b for (a, b) in zip(parameters(basis), p_new))
 
     rhs = map(x -> Num(x.rhs), equations(basis))
     eqs, _ = model(rhs, ps, candidate.st)
 
-    eqs = collect(map(eq -> ModelingToolkit.substitute(eq, subs), eqs))
+    eqs = collect(map(eq -> substitute(eq, subs), eqs))
 
     return Basis(
         eqs, states(basis), parameters = p_new, iv = get_iv(basis),
-        controls = controls(basis), observed = observed(basis),
+        controls = DataDrivenDiffEq.controls(basis), observed = observed(basis),
         implicits = implicit_variables(basis),
         name = gensym(:Basis), eval_expression = eval_expresssion
     )

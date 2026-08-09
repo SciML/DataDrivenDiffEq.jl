@@ -5,6 +5,7 @@ pages = [
     "Basis" => "basis.md",
     "Solutions" => "solutions.md",
     "Utilities" => "utils.md",
+    "Developer API" => "developer_api.md",
     "DataDrivenDMD" => [
         "Background" => "libs/datadrivendmd/koopman.md",
         "Examples" => koopman_tutorial,

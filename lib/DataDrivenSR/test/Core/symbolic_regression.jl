@@ -1,8 +1,10 @@
 using DataDrivenDiffEq
 using DataDrivenSR
+using Symbolics: @variables
 using SymbolicRegression
 using Test
 using StableRNGs
+using StatsAPI: r2, rss
 
 rng = StableRNG(42)
 X = rand(rng, 2, 50)
