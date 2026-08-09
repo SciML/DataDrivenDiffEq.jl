@@ -32,6 +32,9 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 TransformVariables = "84d833dd-6860-57f9-a1a7-6da5db126cff"
 WeightInitializers = "d49dbf32-c5c2-4618-8acc-27bb2598ef2d"
 
+[sources]
+DataDrivenDiffEq = {path = "../.."}
+
 [compat]
 AbstractDifferentiation = "0.6.2"
 ChainRulesCore = "1.15"
