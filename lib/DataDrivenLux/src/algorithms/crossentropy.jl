@@ -12,7 +12,7 @@ function CrossEntropy(;
         populationsize = 100, functions = (sin, exp, cos, log, +, -, /, *),
         arities = (1, 1, 1, 1, 2, 2, 2, 2), n_layers = 1, skip = true, loss = aicc,
         keep = 0.1, use_protected = true, distributed = false, threaded = false,
-        rng = Random.default_rng(), optimizer = LBFGS(), optim_options = Optim.Options(),
+        rng = Random.default_rng(), optimizer = LBFGS(), optim_options = nothing,
         observed = nothing, alpha = 0.999f0
     )
     return CrossEntropy(
@@ -32,7 +32,7 @@ function init_model(x::CrossEntropy, basis::Basis, dataset::Dataset, intervals)
 
     # Get the parameter mapping
     variable_mask = map(enumerate(equations(basis))) do (i, eq)
-        return any(ModelingToolkit.isvariable, ModelingToolkit.get_variables(eq.rhs)) &&
+        return !isempty(get_variables(eq.rhs)) &&
             IntervalArithmetic.iscommon(intervals[i])
     end
 

@@ -18,7 +18,7 @@ struct KoopmanResult{K, B, C, Q, P, T} <: AbstractDataDrivenResult
     q::Q
     """Internal matrix used for updating"""
     p::P
-    # StatsBase results
+    # Statistical-model results
     """Residual sum of squares"""
     rss::T
     """Loglikelihood"""
@@ -73,31 +73,17 @@ Return the learned output map.
 """
 get_outputmap(k::KoopmanResult) = getfield(k, :c)
 
-"""
-    get_trainerror(result)
+# StatsAPI interface
+StatsAPI.coef(x::KoopmanResult) = getfield(x, :k)
 
-Return training error information from a DMD result when an algorithm provides it.
-"""
-function get_trainerror end
+StatsAPI.rss(x::KoopmanResult) = getfield(x, :rss)
 
-"""
-    get_testerror(result)
+StatsAPI.dof(x::KoopmanResult) = getfield(x, :dof)
 
-Return test error information from a DMD result when an algorithm provides it.
-"""
-function get_testerror end
+StatsAPI.nobs(x::KoopmanResult) = getfield(x, :nobs)
 
-# StatsBase Overload
-StatsBase.coef(x::KoopmanResult) = getfield(x, :k)
+StatsAPI.loglikelihood(x::KoopmanResult) = getfield(x, :loglikelihood)
 
-StatsBase.rss(x::KoopmanResult) = getfield(x, :rss)
+StatsAPI.nullloglikelihood(x::KoopmanResult) = getfield(x, :nullloglikelihood)
 
-StatsBase.dof(x::KoopmanResult) = getfield(x, :dof)
-
-StatsBase.nobs(x::KoopmanResult) = getfield(x, :nobs)
-
-StatsBase.loglikelihood(x::KoopmanResult) = getfield(x, :loglikelihood)
-
-StatsBase.nullloglikelihood(x::KoopmanResult) = getfield(x, :nullloglikelihood)
-
-StatsBase.r2(x::KoopmanResult) = r2(x, :CoxSnell)
+StatsAPI.r2(x::KoopmanResult) = r2(x, :CoxSnell)

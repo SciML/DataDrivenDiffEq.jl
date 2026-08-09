@@ -1,21 +1,17 @@
 module DataDrivenSparse
 
-using DataDrivenDiffEq
-# Load specific (abstract) types
-using DataDrivenDiffEq: AbstractDataDrivenAlgorithm
-using DataDrivenDiffEq: AbstractDataDrivenResult
-using DataDrivenDiffEq: DDReturnCode
-using DataDrivenDiffEq: InternalDataDrivenProblem
+import DataDrivenDiffEq
+using DataDrivenDiffEq: AbstractDataDrivenAlgorithm, AbstractDataDrivenResult,
+    DDReturnCode, DataDrivenCommonOptions, DataDrivenSolution, InternalDataDrivenProblem
 
-using DataDrivenDiffEq.DocStringExtensions
-using DataDrivenDiffEq.CommonSolve
-using DataDrivenDiffEq.StatsBase
-using DataDrivenDiffEq.Parameters
-using DataDrivenDiffEq.Setfield
+using CommonSolve: CommonSolve
+using DocStringExtensions: FIELDS, TYPEDEF, TYPEDFIELDS
+using Parameters: @unpack
+using StatsAPI: StatsAPI, StatisticalModel, aicc, coef, dof, nobs, r2, rss
 
-using Reexport
-using LinearAlgebra
-using Printf
+using LinearAlgebra: I, cholesky, dot, norm
+using Printf: @printf
+using Statistics: mean
 
 """
     AbstractSparseRegressionAlgorithm
@@ -76,7 +72,7 @@ coefficients, thresholds, iterations = alg(X, Y)
 abstract type AbstractSparseRegressionAlgorithm <: AbstractDataDrivenAlgorithm end
 abstract type AbstractProximalOperator end
 
-abstract type AbstractSparseRegressionCache <: StatsBase.StatisticalModel end
+abstract type AbstractSparseRegressionCache <: StatisticalModel end
 
 function _set!(x::AbstractSparseRegressionCache, y::AbstractSparseRegressionCache)
     begin
@@ -104,38 +100,38 @@ function _is_converged(x::AbstractSparseRegressionCache, abstol, reltol)::Bool
     return false
 end
 
-# StatsBase Overload
-StatsBase.coef(x::AbstractSparseRegressionCache) = getfield(x, :X)
+# StatsAPI interface
+StatsAPI.coef(x::AbstractSparseRegressionCache) = getfield(x, :X)
 
-StatsBase.rss(x::AbstractSparseRegressionCache) = begin
+StatsAPI.rss(x::AbstractSparseRegressionCache) = begin
     @unpack Ã, X, B̃ = x
     sum(abs2, X * Ã .- B̃)
 end
 
-StatsBase.dof(x::AbstractSparseRegressionCache) = begin
+StatsAPI.dof(x::AbstractSparseRegressionCache) = begin
     @unpack active_set = x
     sum(active_set)
 end
 
-StatsBase.nobs(x::AbstractSparseRegressionCache) = begin
+StatsAPI.nobs(x::AbstractSparseRegressionCache) = begin
     @unpack B̃ = x
     return prod(size(B̃))
 end
 
-function StatsBase.loglikelihood(x::AbstractSparseRegressionCache)
+function StatsAPI.loglikelihood(x::AbstractSparseRegressionCache)
     return begin
         -nobs(x) / 2 * log(rss(x) / nobs(x))
     end
 end
 
-function StatsBase.nullloglikelihood(x::AbstractSparseRegressionCache)
+function StatsAPI.nullloglikelihood(x::AbstractSparseRegressionCache)
     return begin
         @unpack B̃ = x
         -nobs(x) / 2 * log(mean(abs2, B̃ .- mean(vec(B̃))))
     end
 end
 
-StatsBase.r2(x::AbstractSparseRegressionCache) = r2(x, :CoxSnell)
+StatsAPI.r2(x::AbstractSparseRegressionCache) = r2(x, :CoxSnell)
 
 ##
 

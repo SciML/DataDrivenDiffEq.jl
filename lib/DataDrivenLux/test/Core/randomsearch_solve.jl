@@ -7,6 +7,8 @@ using Distributions
 using Test
 using StableRNGs
 using IntervalArithmetic
+using StatsAPI: aicc, r2, rss
+using Symbolics: @variables
 
 rng = StableRNG(1234)
 # Dummy stuff

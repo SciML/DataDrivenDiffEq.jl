@@ -2,7 +2,7 @@
 $(TYPEDEF)
 `STLSQ` is taken from the [original paper on SINDY](https://www.pnas.org/doi/10.1073/pnas.1517384113) and implements a
 sequentially thresholded least squares iteration. `λ` is the threshold of the iteration.
-It is based upon [this Matlab implementation](https://github.com/eurika-kaiser/SINDY-MPC/blob/e1dfd9908b2b56af303ee9fb30a133aced4fd757/utils/sparsifyDynamics.m).
+It is based upon [this Matlab implementation](https://raw.githubusercontent.com/eurika-kaiser/SINDY-MPC/e1dfd9908b2b56af303ee9fb30a133aced4fd757/utils/sparsifyDynamics.m).
 It solves the following problem
 
 ```math
@@ -111,7 +111,7 @@ function step!(cache::STLSQCache, λ::T) where {T}
 
     step!(cache)
 
-    proximal(X, active_set, λ)
+    _apply_active_set!(proximal, X, active_set, λ)
     return
 end
 

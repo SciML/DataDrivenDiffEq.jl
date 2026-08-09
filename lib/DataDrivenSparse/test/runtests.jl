@@ -7,16 +7,12 @@ const GROUP = get(ENV, "DATADRIVENDIFFEQ_TEST_GROUP", get(ENV, "GROUP", "All"))
 
 function activate_qa_env()
     Pkg.activate(joinpath(@__DIR__, "qa"))
-    # On Julia 1.10, QA can otherwise resolve registered copies of the in-repo
-    # packages. Develop the local root and sublibrary before instantiating.
-    if VERSION < v"1.11.0-DEV.0"
-        Pkg.develop(
-            [
-                Pkg.PackageSpec(path = joinpath(@__DIR__, "..", "..", "..")),
-                Pkg.PackageSpec(path = joinpath(@__DIR__, "..")),
-            ]
-        )
-    end
+    Pkg.develop(
+        [
+            Pkg.PackageSpec(path = joinpath(@__DIR__, "..", "..", "..")),
+            Pkg.PackageSpec(path = joinpath(@__DIR__, "..")),
+        ]
+    )
     return Pkg.instantiate()
 end
 

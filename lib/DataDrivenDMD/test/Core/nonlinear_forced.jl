@@ -2,10 +2,11 @@ using DataDrivenDiffEq
 using DataDrivenDMD
 using LinearAlgebra
 using Test
-using StatsBase
+using StatsAPI: dof, r2
 using StableRNGs
 using OrdinaryDiffEq
 using OrdinaryDiffEqFunctionMap
+using Symbolics: @variables
 
 rng = StableRNG(42)
 

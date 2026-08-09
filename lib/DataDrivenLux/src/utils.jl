@@ -1,5 +1,3 @@
-using InverseFunctions: square
-
 function _safe_div(x::X, y::Y) where {X, Y}
     iszero(y) && return zero(Y)
     return \(x, y)
@@ -13,16 +11,18 @@ end
 
 InverseFunctions.inverse(::typeof(_safe_pow)) = InverseFunctions.inverse(^)
 
-safe_functions = Dict(f => gensym(string(f)) for f in (sin, cos, log, exp, sqrt, square))
+_square(x) = x^2
 
-inverse_safe = Dict()
+safe_functions = Dict(f => gensym(string(f)) for f in (sin, cos, log, exp, sqrt, _square))
+
+inverse_functions = Dict(log => exp, exp => log, sqrt => _square, _square => sqrt)
+inverse_safe = Dict{Any, Any}()
 
 for (f, safe_f) in safe_functions
-    finv = InverseFunctions.inverse(f)
-    if isa(finv, InverseFunctions.NoInverse)
-        inverse_safe[safe_f] = NoInverse(safe_f)
+    if haskey(inverse_functions, f)
+        inverse_safe[safe_f] = safe_functions[inverse_functions[f]]
     else
-        inverse_safe[safe_f] = safe_functions[finv]
+        inverse_safe[safe_f] = NoInverse(safe_f)
     end
 end
 

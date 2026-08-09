@@ -1,7 +1,6 @@
 using DataDrivenDiffEq, Test
 using LinearAlgebra
 using ModelingToolkit
-using StatsBase
 
 # Generate some test data
 t = collect(0:0.1:5.0)
@@ -137,6 +136,7 @@ end
     s3 = DirectDataset(data)
     s4 = DiscreteDataset(data)
     s5 = DataDrivenDataset(p1, p2, p3)
+    single = DataDrivenDataset(p1)
 
     sets = [s1, s2, s3, s4]
 
@@ -162,6 +162,7 @@ end
     @test hcat(X, X) == b(s3)
     @test hcat(X[:, 1:(end - 1)], X[:, 1:(end - 1)]) == b(s4)
     @test hcat(X, X, X) ≈ b(s5)
+    @test b(single) == b(p1)
 
     # Check if misspecified data is detected
     wrong_data = (

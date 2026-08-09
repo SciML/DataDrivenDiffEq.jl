@@ -22,25 +22,48 @@ struct DataDrivenDataset{N, U, C} <: AbstractDataDrivenProblem{N, U, C}
     """Name of the dataset"""
     name::Symbol
     """The problems"""
-    probs::NTuple{M, AbstractDataDrivenProblem{N, U, C}} where {M}
+    probs::Tuple{Vararg{AbstractDataDrivenProblem{N, U, C}}}
     """The length of each problem - for internal use"""
-    sizes::NTuple{M, Int} where {M}
+    sizes::Tuple{Vararg{Int}}
+
+    function DataDrivenDataset{N, U, C}(
+            name::Symbol,
+            probs::Tuple{Vararg{AbstractDataDrivenProblem{N, U, C}}},
+            sizes::Tuple{Vararg{Int}}
+        ) where {N, U, C}
+        return new{N, U, C}(name, probs, sizes)
+    end
 end
 
 # Constructor
 
 function DataDrivenDataset(
-        probs::Vararg{T, N}; name = gensym(:DDSet),
-        kwargs...
-    ) where {T <: AbstractDataDrivenProblem, N}
-    return DataDrivenDataset(name, probs, map(length, probs))
+        name::Symbol,
+        probs::Tuple{
+            AbstractDataDrivenProblem{N, U, C},
+            Vararg{AbstractDataDrivenProblem{N, U, C}},
+        },
+        sizes::Tuple{Int, Vararg{Int}}
+    ) where {N, U, C}
+    return DataDrivenDataset{N, U, C}(name, probs, sizes)
 end
 
 function DataDrivenDataset(
-        solutions::Vararg{T, N}; name = gensym(:DDSet),
+        prob::AbstractDataDrivenProblem{N, U, C},
+        probs::Vararg{AbstractDataDrivenProblem{N, U, C}};
+        name = gensym(:DDSet),
         kwargs...
-    ) where {T <: SciMLBase.AbstractTimeseriesSolution, N}
-    probs = map(solutions) do s
+    ) where {N, U, C}
+    problems = (prob, probs...)
+    return DataDrivenDataset(name, problems, map(length, problems))
+end
+
+function DataDrivenDataset(
+        solution::T, solutions::Vararg{T}; name = gensym(:DDSet),
+        kwargs...
+    ) where {T <: SciMLBase.AbstractTimeseriesSolution}
+    all_solutions = (solution, solutions...)
+    probs = map(all_solutions) do s
         DataDrivenProblem(s; kwargs...)
     end
     return DataDrivenDataset(probs..., name = name)

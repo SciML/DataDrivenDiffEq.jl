@@ -17,35 +17,7 @@ const GROUP = get(ENV, "GROUP", "All")
 
     if !isempty(base_group) && isdir(joinpath(lib_dir, base_group))
         Pkg.activate(joinpath(lib_dir, base_group))
-        # On Julia < 1.11 the [sources] section is not honored; develop the
-        # in-repo path dependencies (transitively) so the sublibrary tests run
-        # against this checkout of DataDrivenDiffEq rather than a released one.
-        if VERSION < v"1.11.0-DEV.0"
-            developed = Set{String}()
-            push!(developed, normpath(joinpath(lib_dir, base_group)))
-            specs = Pkg.PackageSpec[]
-            queue = [joinpath(lib_dir, base_group)]
-            while !isempty(queue)
-                pkg_dir = popfirst!(queue)
-                toml_path = joinpath(pkg_dir, "Project.toml")
-                isfile(toml_path) || continue
-                toml = Pkg.TOML.parsefile(toml_path)
-                if haskey(toml, "sources")
-                    for (dep_name, source_spec) in toml["sources"]
-                        if source_spec isa Dict && haskey(source_spec, "path")
-                            dep_path = normpath(joinpath(pkg_dir, source_spec["path"]))
-                            if isdir(dep_path) && !(dep_path in developed)
-                                push!(developed, dep_path)
-                                @info "Queuing local source dependency" dep_name dep_path
-                                push!(specs, Pkg.PackageSpec(path = dep_path))
-                                push!(queue, dep_path)
-                            end
-                        end
-                    end
-                end
-            end
-            isempty(specs) || Pkg.develop(specs)
-        end
+        Pkg.develop(Pkg.PackageSpec(path = dirname(@__DIR__)))
         withenv("DATADRIVENDIFFEQ_TEST_GROUP" => test_group) do
             Pkg.test(base_group, coverage = true)
         end
@@ -75,6 +47,9 @@ const GROUP = get(ENV, "GROUP", "All")
                 end
                 @safetestset "CommonSolve" begin
                     include("./Core/commonsolve.jl")
+                end
+                @safetestset "Developer API" begin
+                    include("./Core/developer_api.jl")
                 end
             end,
             qa = (;

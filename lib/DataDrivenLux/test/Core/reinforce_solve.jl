@@ -8,6 +8,9 @@ using Test
 using Optimisers
 using Optim
 using StableRNGs
+using StatsAPI: aicc, bic, r2, rss
+using Symbolics: @variables
+using ModelingToolkitBase: @parameters
 
 rng = StableRNG(1234)
 # Dummy stuff

@@ -1,3 +1,6 @@
+_basis_input(x::Number) = [x]
+_basis_input(x) = collect(x)
+
 for f in [
         :chebyshev_basis,
         :sin_basis,
@@ -6,7 +9,7 @@ for f in [
         :polynomial_basis,
         :monomial_basis,
     ]
-    @eval $f(x, c) = $f(scalarize(x), c)
+    @eval $f(x, c) = $f(_basis_input(x), c)
 end
 
 function _generateBasis!(eqs, f, x, coeffs)
@@ -78,6 +81,27 @@ end
 
 fourier_basis(x::Array, terms::Int) = fourier_basis(x, 1:terms)
 
+function _append_exponents!(
+        exponents::Vector{Vector{Int}}, current::Vector{Int}, index::Int, remaining::Int
+    )
+    if iszero(index)
+        push!(exponents, copy(current))
+        return
+    end
+
+    for exponent in 0:remaining
+        current[index] = exponent
+        _append_exponents!(exponents, current, index - 1, remaining - exponent)
+    end
+    return
+end
+
+function _bounded_exponents(n_variables::Int, degree::Int)
+    exponents = Vector{Vector{Int}}()
+    _append_exponents!(exponents, zeros(Int, n_variables), n_variables, degree)
+    return exponents
+end
+
 """
 $(SIGNATURES)
 
@@ -87,21 +111,16 @@ Constructs an array containing a polynomial basis in the variables `x` up to deg
 function polynomial_basis(x::Array, degree::Int = 1)
     @assert degree > 0
     n_x = length(x)
-    n_c = binomial(n_x + degree, degree)
-    eqs = Array{Num}(undef, n_c)
-    _check_degree(x) = sum(x) <= degree ? true : false
-    itr = Base.Iterators.product([0:degree for i in 1:n_x]...)
-    itr_ = Base.Iterators.Stateful(Base.Iterators.filter(_check_degree, itr))
-    filled = false
-    @inbounds for i in 1:n_c
-        eqs[i] = 1
-        filled = true
-        for (xi, ci) in zip(x, popfirst!(itr_))
-            if !iszero(ci)
-                filled ? eqs[i] = xi^ci : eqs[i] *= xi^ci
-                filled = false
+    exponents = _bounded_exponents(n_x, degree)
+    eqs = Array{Num}(undef, length(exponents))
+    @inbounds for (i, powers) in enumerate(exponents)
+        term = Num(1)
+        for (xi, exponent) in zip(x, powers)
+            if !iszero(exponent)
+                term *= xi^exponent
             end
         end
+        eqs[i] = term
     end
     return eqs
 end

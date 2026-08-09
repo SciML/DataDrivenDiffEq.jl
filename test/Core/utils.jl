@@ -1,5 +1,6 @@
 using DataDrivenDiffEq
 using DataDrivenDiffEq: collocate_data
+using DataInterpolations: CubicSpline, LinearInterpolation, QuadraticInterpolation
 using LinearAlgebra
 
 @testset "Optimal Shrinkage" begin

@@ -114,14 +114,14 @@ function (algorithm::AbstractKoopmanAlgorithm)(
     if any(control_idx) && !isempty(X̃)
         X̃, Ũ = X̃[no_controls, :], X̃[control_idx, :]
     else
-        X̃, Ũ = X̃, DataDrivenDiffEq.__EMPTY_MATRIX
+        X̃, Ũ = X̃, _EMPTY_MATRIX
     end
 
     return map(traindata) do (X, Y, Z)
         if any(control_idx)
             X_, Y_, U_ = X[no_controls, :], Y[no_controls, :], X[control_idx, :]
         else
-            X_, Y_, U_ = X, Y, DataDrivenDiffEq.__EMPTY_MATRIX
+            X_, Y_, U_ = X, Y, _EMPTY_MATRIX
         end
 
         K, B = algorithm(X_, Y_, U_, control_input)

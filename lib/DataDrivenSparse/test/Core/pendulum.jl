@@ -3,7 +3,9 @@ using DataDrivenSparse
 using OrdinaryDiffEq
 using StableRNGs
 using Test
-using StatsBase
+using StatsAPI: dof, loglikelihood, r2, rss
+using StatsBase: ZScoreTransform
+using Symbolics: @variables
 
 # The basis definition
 @variables u[1:2]

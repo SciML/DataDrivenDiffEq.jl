@@ -4,7 +4,10 @@ using Lux
 using Test
 using Distributions
 using DataDrivenDiffEq
+using ModelingToolkitBase: equations
 using StableRNGs
+using StatsAPI: rss
+using Symbolics: @variables
 
 rng = StableRNG(1234)
 # Dummy stuff

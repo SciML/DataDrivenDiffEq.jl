@@ -95,8 +95,7 @@ function __preprocess_basis(
     # Check for iv
     iv === nothing && (iv = Symbolics.variable(:t))
     iv = value(iv)
-    # Scalarize equations
-    eqs = scalarize(eqs)
+    eqs = collect(eqs)
 
     lhs = isa(eqs, AbstractVector{Equation}) ?
         map(Base.Fix2(getfield, :lhs), eqs) :
@@ -121,7 +120,7 @@ function __preprocess_basis(
     rhs = [eq for eq in rhs if ~isequal(Num(eq), zero(Num))]
 
     rhs = linear_independent ? create_linear_independent_eqs(rhs, false) : rhs
-    unique!(rhs, simplify)
+    _unique_symbolics!(rhs, simplify)
 
     f = DataDrivenFunction(
         rhs,
@@ -304,11 +303,30 @@ function controls(b::AbstractBasis)
     return ctrls
 end
 
-# For internal use
+"""
+    is_implicit(basis) -> Bool
+
+Return whether `basis` contains implicit variables.
+"""
 is_implicit(b::Basis{X, <:Any}) where {X} = X
+
+"""
+    is_controlled(basis) -> Bool
+
+Return whether `basis` contains control variables.
+"""
 is_controlled(b::Basis{<:Any, X}) where {X} = X
 
 ## Callable
+"""
+    get_f(basis)
+
+Return the generated callable used to evaluate `basis`.
+
+Solver implementations should normally call the basis directly. This accessor is for
+implementations that need to reuse the generated function with specialized argument
+handling.
+"""
 get_f(b::AbstractBasis) = getfield(b, :f)
 
 #(b::Basis)(args...) = get_f(b)(args...)
@@ -500,27 +518,20 @@ function jacobian(x::Basis, s, eval_expression::Bool = false)
     )
 end
 
-## Utilities
-function Base.deleteat!(b::Symbolics.Arr{T, N}, idxs) where {T, N}
-    return deleteat!(unwrap(b), idxs)
-end
-
 ## Interfacing && merging
 
-function Base.unique!(b::AbstractVector{Num}, simplify_eqs = false)
+function _unique_symbolics!(b::AbstractVector{Num}, simplify_eqs::Bool = false)
     idx = zeros(Bool, length(b))
     for i in 1:length(b), j in (i + 1):length(b)
-
-        i == j && continue
         idx[i] && continue
-        idx[i] = isequal(b[i], b[j])
+        idx[j] |= isequal(b[i], b[j])
     end
     deleteat!(b, idx)
-    simplify_eqs && map(simplify, b)
+    simplify_eqs && map!(simplify, b, b)
     return
 end
 
-function Base.unique!(b::Basis, simplify_eqs = false; eval_expression = false)
+function Base.unique!(b::Basis, simplify_eqs::Bool = false; eval_expression = false)
     idx = zeros(Bool, length(b))
     eqs_ = equations(b)
     n_eqs = length(eqs_)
@@ -589,16 +600,44 @@ function Base.isequal(x::Basis, y::Basis)
     return isequal(yrhs, xrhs)
 end
 
+function _parameter_default(p)
+    ModelingToolkitBase.hasdefault(p) && return ModelingToolkitBase.getdefault(p)
+
+    # Array defaults are stored on the symbolic array parent. `getdefault` follows
+    # indexed variables to that parent, while `hasdefault` currently does not.
+    try
+        return ModelingToolkitBase.getdefault(p)
+    catch err
+        err isa ErrorException && endswith(err.msg, " has no default value") || rethrow()
+        return zero(symtype(p))
+    end
+end
+
 """
-$(SIGNATURES)
+    get_parameter_values(basis::Basis) -> values
 
-Return the default values for the given [`Basis`](@ref).
-If no default value is stored, returns `zero(T)` where `T` is the `symtype` of the parameter.
+Return the numeric default value of each parameter in `basis`. Parameters without a
+stored default contribute `zero(T)`, where `T` is the parameter's symbolic type.
+Symbolic wrappers are removed so the returned values can be passed to SciML problems.
 
-## Note
+# Arguments
 
-This extends `getmetadata` in a way that all parameters have a numeric value.
-Values are unwrapped from symbolic wrappers to ensure compatibility with ODEProblem.
+- `basis::Basis`: symbolic basis whose parameter defaults are queried.
+
+# Returns
+
+- `values::AbstractVector`: parameter defaults in the order returned by
+  `ModelingToolkitBase.parameters(basis)`.
+
+# Examples
+
+```julia
+using DataDrivenDiffEq, Symbolics
+
+@variables x p = 2.0
+basis = Basis([p * x], [x], parameters = [p])
+get_parameter_values(basis) # returns [2.0]
+```
 """
 function get_parameter_values(x::Basis)
     ps = parameters(x)
@@ -608,38 +647,41 @@ function get_parameter_values(x::Basis)
         return Float64[]
     end
     return map(ps) do p
-        # In Symbolics v7, hasmetadata check for VariableDefaultValue may not work
-        # Use try-catch to handle getdefaultval which throws if no default exists
-        val = try
-            Symbolics.getdefaultval(p)
-        catch
-            zero(symtype(p))
-        end
+        val = _parameter_default(p)
         # Unwrap symbolic values to numeric values for use in ODEProblem
         return unwrap(val)
     end
 end
 
 """
-$(SIGNATURES)
+    get_parameter_map(basis::Basis) -> parameter_map
 
-Return the default values as a vector of pairs for the given [`Basis`](@ref).
-If no default value is stored, returns `zero(T)` where `T` is the `symtype` of the parameter.
+Return each symbolic parameter in `basis` paired with its numeric default. Parameters
+without a stored default are paired with `zero(T)`, where `T` is the parameter's
+symbolic type.
 
-## Note
+# Arguments
 
-This extends `getmetadata` in a way that all parameters have a numeric value.
-Values are unwrapped from symbolic wrappers to ensure compatibility with ODEProblem.
+- `basis::Basis`: symbolic basis whose parameter defaults are queried.
+
+# Returns
+
+- `parameter_map::AbstractVector{<:Pair}`: symbolic parameters paired with unwrapped
+  numeric values, in basis parameter order.
+
+# Examples
+
+```julia
+using DataDrivenDiffEq, Symbolics
+
+@variables x p = 2.0
+basis = Basis([p * x], [x], parameters = [p])
+get_parameter_map(basis) # returns [p => 2.0]
+```
 """
 function get_parameter_map(x::Basis)
     return map(parameters(x)) do p
-        # In Symbolics v7, hasmetadata check for VariableDefaultValue may not work
-        # Use try-catch to handle getdefaultval which throws if no default exists
-        val = try
-            Symbolics.getdefaultval(p)
-        catch
-            zero(symtype(p))
-        end
+        val = _parameter_default(p)
         # Unwrap symbolic values to numeric values for use in ODEProblem
         return p => unwrap(val)
     end

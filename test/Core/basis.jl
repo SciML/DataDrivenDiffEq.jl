@@ -1,5 +1,6 @@
 using DataDrivenDiffEq
 using ModelingToolkit
+using ModelingToolkitBase: get_iv
 
 @testset "Basic Functionality" begin
     @variables x[1:3] u[1:2]
@@ -111,7 +112,7 @@ end
     # Check getters
     @test isequal(states(basis), u)
     @test isequal(parameters(basis), w)
-    @test isequal(ModelingToolkit.get_iv(basis), t)
+    @test isequal(get_iv(basis), t)
     @test isequal(controls(basis), [])
     @test !DataDrivenDiffEq.is_implicit(basis)
     @test DataDrivenDiffEq.count_operation(
@@ -140,6 +141,8 @@ end
     merge!(basis_3, basis)
     push!(basis, 5 * u[3] + u[2])
     unique!(basis) # Does not remove
+    @test size(basis) == (6,)
+    @test isnothing(unique!(basis, true))
     @test size(basis) == (6,)
 end
 

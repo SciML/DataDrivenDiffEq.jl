@@ -20,7 +20,9 @@ using DataDrivenLux
 using DataDrivenSparse
 using DataDrivenSR
 
-using StatsBase
+import StatsAPI
+import StatsBase
+using StatsBase: summarystats
 using Literate
 
 cp(joinpath(@__DIR__, "Manifest.toml"), joinpath(@__DIR__, "src", "assets", "Manifest.toml"), force = true)
@@ -82,8 +84,7 @@ makedocs(
     sitename = "DataDrivenDiffEq.jl",
     authors = "Julius Martensen, Christopher Rackauckas, et al.",
     modules = [DataDrivenDiffEq, DataDrivenDMD, DataDrivenLux, DataDrivenSparse, DataDrivenSR],
-    clean = true, doctest = false, linkcheck = true,
-    warnonly = [:missing_docs, :cross_references],
+    clean = true, doctest = true, linkcheck = true,
     linkcheck_ignore = [
         "http://cwrowley.princeton.edu/papers/Hemati-2017a.pdf",
         "https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279",

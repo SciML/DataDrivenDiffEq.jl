@@ -1,6 +1,6 @@
 @concrete struct Reinforce <: AbstractDAGSRAlgorithm
     reward
-    ad_backend <: AD.AbstractBackend
+    ad_backend
     options <: CommonAlgOptions
 end
 
@@ -15,8 +15,8 @@ function Reinforce(;
         functions = (sin, exp, cos, log, +, -, /, *), arities = (1, 1, 1, 1, 2, 2, 2, 2),
         n_layers = 1, skip = true, loss = aicc, keep = 0.1, use_protected = true,
         distributed = false, threaded = false, rng = Random.default_rng(),
-        optimizer = LBFGS(), optim_options = Optim.Options(), observed = nothing,
-        alpha = 0.999f0, optimiser = Adam(), ad_backend = AD.ForwardDiffBackend()
+        optimizer = LBFGS(), optim_options = nothing, observed = nothing,
+        alpha = 0.999f0, optimiser = Adam(), ad_backend = nothing
     )
     return Reinforce(
         reward,
@@ -47,7 +47,12 @@ function update_parameters!(cache::SearchCache{<:Reinforce})
     (; alg, optimiser_state, candidates, keeps, p) = cache
     (; ad_backend) = alg
 
-    ∇p, _... = AD.gradient(ad_backend, (p) -> reinforce_loss(candidates[keeps], p, alg), p)
+    loss = p -> reinforce_loss(candidates[keeps], p, alg)
+    ∇p = if isnothing(ad_backend)
+        ForwardDiff.gradient(loss, p)
+    else
+        first(AD.gradient(ad_backend, loss, p))
+    end
     opt_state, p_ = Optimisers.update!(optimiser_state, p[:], ∇p[:])
     cache.p .= p_
     return

@@ -9,6 +9,7 @@ using LinearAlgebra
 using OrdinaryDiffEq
 using OrdinaryDiffEqFunctionMap
 using DataDrivenDMD
+using StatsAPI: dof, r2, rss
 #md using Plots
 
 A = [0.9 -0.2; 0.0 0.2]

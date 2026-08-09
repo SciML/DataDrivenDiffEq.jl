@@ -1,5 +1,5 @@
 function _promote(args...)
-    _type = Base.promote_eltype(args...)
+    _type = promote_type(map(eltype, args)...)
     return map(x -> convert.(_type, x), args)
 end
 
@@ -127,7 +127,7 @@ function DataDrivenProblem(
         probType, X, t, DX, Y, U, p; name = gensym(:DDProblem),
         kwargs...
     )
-    dType = Base.promote_eltype(X, t, DX, Y, U, p)
+    dType = promote_type(map(eltype, (X, t, DX, Y, U, p))...)
     cType = !isempty(U)
     name = isa(name, Symbol) ? name : Symbol(name)
     # We assume a discrete Problem
@@ -146,6 +146,20 @@ function DataDrivenProblem(
     )
 end
 
+"""
+    remake_problem(problem; kwargs...) -> AbstractDataDrivenProblem
+
+Construct a problem of the same causal kind with selected data replaced.
+
+# Keywords
+
+- `X`, `t`, `DX`, `Y`, `U`, `p`: replacement state, time, derivative, target, control,
+  and parameter data. Each defaults to the corresponding data in `problem`.
+
+# Returns
+
+- `AbstractDataDrivenProblem`: a problem with the requested replacements.
+"""
 function remake_problem(
         d::DataDrivenProblem{<:Any, <:Any, probType};
         X = getfield(d, :X), t = getfield(d, :t), DX = getfield(d, :DX),
@@ -408,11 +422,25 @@ function check_lengths(args...)
     return @assert all(map(x -> size(x)[end], args) .== size(first(args))[end]) "One or more measurements are not sized equally."
 end
 
-# Return the target variables
+"""
+    get_implicit_data(problem)
+
+Return the target matrix fitted by the default data-driven algorithm interface.
+
+Direct problems return `Y`, discrete problems return the next-step states, and
+continuous problems return `DX`.
+"""
 get_implicit_data(x::ABSTRACT_DIRECT_PROB{N, C}) where {N, C} = x.Y
 get_implicit_data(x::ABSTRACT_DISCRETE_PROB{N, C}) where {N, C} = x.X[:, 2:end]
 get_implicit_data(x::ABSTRACT_CONT_PROB{N, C}) where {N, C} = x.DX
 
+"""
+    get_oop_args(problem) -> (X, p, t, U)
+
+Return the arguments used for out-of-place basis evaluation on `problem`.
+
+Discrete problems omit the final sample so that inputs align with next-step targets.
+"""
 function get_oop_args(x::DataDrivenProblem)
     return map(f -> getfield(x, f), (:X, :p, :t, :U))
 end
@@ -537,7 +565,7 @@ function DataDrivenProblem(
     t = sol.t
     p = sol.prob.p
 
-    p = isa(p, DiffEqBase.NullParameters) ? eltype(X)[] : p
+    p = isa(p, SciMLBase.NullParameters) ? eltype(X)[] : p
 
     if isdiscrete(sol.alg)
         return DiscreteDataDrivenProblem(X, t; p = p, kwargs...)

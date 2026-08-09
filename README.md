@@ -84,4 +84,4 @@ Parameters:
    p₇ : -2.7
 ```
 
-![](LorenzResult.png)
+![](https://raw.githubusercontent.com/SciML/DataDrivenDiffEq.jl/master/LorenzResult.png)

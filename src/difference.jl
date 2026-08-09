@@ -2,9 +2,6 @@
 # This was removed from Symbolics.jl v7, so we define it locally for backwards compatibility
 # See: https://github.com/SciML/DataDrivenDiffEq.jl/issues/563
 
-using Symbolics: Num, value, wrap
-using SymbolicUtils: Operator, term, unwrap
-
 """
     Difference(t; dt, update=false)
 
@@ -23,18 +20,15 @@ Represents a difference operator for discrete-time systems.
 d = Difference(t; dt = 0.01)
 ```
 """
-struct Difference <: Operator
+struct Difference
     t
     dt
     update::Bool
     Difference(t; dt, update = false) = new(value(t), dt, update)
 end
 
-(D::Difference)(x) = term(D, unwrap(x))
+(D::Difference)(x) = term(D, unwrap(x); type = symtype(x), shape = ())
 (D::Difference)(x::Num) = wrap(D(unwrap(x)))
-
-# More specific method to avoid ambiguity with SymbolicUtils.Operator method
-SymbolicUtils.promote_symtype(::Difference, ::Type{T}) where {T} = T
 
 function Base.show(io::IO, D::Difference)
     return print(io, "Difference(", D.t, "; dt=", D.dt, ", update=", D.update, ")")

@@ -61,20 +61,71 @@ end
 DataNormalization() = DataNormalization{Nothing}()
 DataNormalization(method::Type{T}) where {T} = DataNormalization{T}()
 
-function StatsBase.fit(::DataNormalization{Nothing}, data)
-    return StatsBase.fit(ZScoreTransform, data, dims = 2, scale = false, center = false)
+function StatsAPI.fit(::DataNormalization{Nothing}, data)
+    return fit(ZScoreTransform, data, dims = 2, scale = false, center = false)
 end
 
-function StatsBase.fit(::DataNormalization{UnitRangeTransform}, data)
-    tf = StatsBase.fit(UnitRangeTransform, data, dims = 2)
+function StatsAPI.fit(::DataNormalization{UnitRangeTransform}, data)
+    tf = fit(UnitRangeTransform, data, dims = 2)
     # Adapt for constants here
     tf.scale .= [isinf(s) ? one(eltype(s)) : s for s in tf.scale]
     return tf
 end
 
-function StatsBase.fit(::DataNormalization{ZScoreTransform}, data)
-    tf = StatsBase.fit(ZScoreTransform, data, dims = 2, center = false)
+function StatsAPI.fit(::DataNormalization{ZScoreTransform}, data)
+    tf = fit(ZScoreTransform, data, dims = 2, center = false)
     # Adapt for constants here
     tf.scale .= [iszero(s) ? one(eltype(s)) : s for s in tf.scale]
     return tf
+end
+
+"""
+    apply_transform(transform, data) -> transformed_data
+
+Apply a fitted data-normalization transform and return a transformed copy of `data`.
+
+This is developer API for DataDrivenDiffEq solver packages. The supported transforms are
+`StatsBase.ZScoreTransform` and `StatsBase.UnitRangeTransform`, which are the transforms
+produced by [`DataNormalization`](@ref).
+
+# Arguments
+
+- `transform`: fitted normalization transform.
+- `data::AbstractArray`: numeric data arranged consistently with the fitted transform.
+
+# Returns
+
+- `transformed_data`: a transformed copy of `data`.
+"""
+apply_transform(transform, data) = apply_transform!(transform, copy(data))
+
+"""
+    apply_transform!(transform, data) -> data
+
+Apply a fitted data-normalization transform to `data` in place.
+
+This is the mutating form of [`apply_transform`](@ref) and is developer API for
+DataDrivenDiffEq solver packages.
+"""
+function apply_transform!(transform::ZScoreTransform, data::AbstractMatrix{<:Real})
+    offset = transform.dims == 1 ? reshape(transform.mean, 1, :) : reshape(transform.mean, :, 1)
+    scale = transform.dims == 1 ? reshape(transform.scale, 1, :) : reshape(transform.scale, :, 1)
+
+    isempty(offset) || (data .-= offset)
+    isempty(scale) || (data ./= scale)
+    return data
+end
+
+function apply_transform!(transform::UnitRangeTransform, data::AbstractMatrix{<:Real})
+    offset = transform.dims == 1 ? reshape(transform.min, 1, :) : reshape(transform.min, :, 1)
+    scale = transform.dims == 1 ? reshape(transform.scale, 1, :) : reshape(transform.scale, :, 1)
+
+    transform.unit && (data .-= offset)
+    data .*= scale
+    return data
+end
+
+function apply_transform!(transform, data::AbstractVector{<:Real})
+    apply_transform!(transform, reshape(data, :, 1))
+    return data
 end

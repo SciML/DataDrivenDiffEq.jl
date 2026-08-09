@@ -25,7 +25,7 @@ function init_model(x::AbstractDAGSRAlgorithm, basis::Basis, dataset::Dataset, i
 
     # Get the parameter mapping
     variable_mask = map(enumerate(equations(basis))) do (i, eq)
-        return any(ModelingToolkit.isvariable, ModelingToolkit.get_variables(eq.rhs)) &&
+        return !isempty(get_variables(eq.rhs)) &&
             IntervalArithmetic.iscommon(intervals[i])
     end
 

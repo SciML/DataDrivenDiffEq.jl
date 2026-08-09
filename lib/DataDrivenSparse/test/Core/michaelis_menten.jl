@@ -3,7 +3,9 @@ using DataDrivenSparse
 using OrdinaryDiffEq
 using StableRNGs
 using Test
-using StatsBase
+using StatsAPI: dof, r2, rss
+using ModelingToolkitBase: @parameters
+using Symbolics: @variables
 
 function michaelis_menten(u, p, t)
     return [0.6 - 1.5u[1] / (0.3 + u[1])] # Should be 0.6*0.3+0.6u[1] - 1.5u[1] = u[2]*u[1]-0.3*u[2]
