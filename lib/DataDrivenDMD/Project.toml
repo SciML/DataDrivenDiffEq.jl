@@ -1,7 +1,7 @@
 name = "DataDrivenDMD"
 uuid = "3c9adf31-5280-42ff-b439-b71cc6b07807"
 authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
-version = "0.1.6"
+version = "0.2.0"
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
