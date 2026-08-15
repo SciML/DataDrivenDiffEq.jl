@@ -54,7 +54,7 @@ Parameters:
    p₄ : -1.0
    p₅ : -1.0
    p₆ : 1.0
-   p₇ : -2.7</code></pre><p><img src="https://raw.githubusercontent.com/SciML/DataDrivenDiffEq.jl/master/LorenzResult.png" alt/></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/49ff50252c153d813f2f3542fd6cc4cbf1584531/src/DataDrivenDiffEq.jl#L1">source</a></section></details></article><p>The methods in this package take in data and return the model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete, continuous differential equations or direct mappings.</p><p>There are two main types of estimation, depending on if you need the result to be human-understandable:</p><ul><li>Structural identification - returns a human-readable result in symbolic form.</li><li>Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human-readable.</li></ul><p>A quick-start example:</p><pre><code class="language-julia hljs">using DataDrivenDiffEq
+   p₇ : -2.7</code></pre><p><img src="https://raw.githubusercontent.com/SciML/DataDrivenDiffEq.jl/master/LorenzResult.png" alt/></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/52c0647bbd0f414fde05f9641d3746f0366c2384/src/DataDrivenDiffEq.jl#L1">source</a></section></details></article><p>The methods in this package take in data and return the model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete, continuous differential equations or direct mappings.</p><p>There are two main types of estimation, depending on if you need the result to be human-understandable:</p><ul><li>Structural identification - returns a human-readable result in symbolic form.</li><li>Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human-readable.</li></ul><p>A quick-start example:</p><pre><code class="language-julia hljs">using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
 using DataDrivenSparse
@@ -122,9 +122,9 @@ Build Info:
   Official https://julialang.org release
 Platform Info:
   OS: Linux (x86_64-linux-gnu)
-  CPU: 40 × Intel(R) Xeon(R) Silver 4114 CPU @ 2.20GHz
+  CPU: 128 × AMD EPYC 7513 32-Core Processor
   WORD_SIZE: 64
-  LLVM: libLLVM-18.1.7 (ORCJIT, skylake-avx512)
+  LLVM: libLLVM-18.1.7 (ORCJIT, znver3)
   GC: Built with stock GC
 Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)
 Environment:
@@ -157,7 +157,7 @@ Environment:
   <span class="sgr90">[d360d2e6] </span>ChainRulesCore v1.26.1
   <span class="sgr90">[fb6a15b2] </span>CloseOpenIntervals v0.1.13
   <span class="sgr90">[da1fd8a2] </span>CodeTracking v3.0.2
-  <span class="sgr90">[944b1d66] </span>CodecZlib v0.7.8
+  <span class="sgr90">[944b1d66] </span>CodecZlib v0.7.9
   <span class="sgr90">[35d6a980] </span>ColorSchemes v3.31.0
   <span class="sgr90">[3da002f7] </span>ColorTypes v0.12.1
   <span class="sgr90">[c3611d14] </span>ColorVectorSpace v0.11.0
@@ -206,7 +206,7 @@ Environment:
   <span class="sgr90">[460bff9d] </span>ExceptionUnwrapping v0.1.11
 <span class="sgr32">⌃</span> <span class="sgr90">[d4d017d3] </span>ExponentialUtilities v1.31.0
   <span class="sgr90">[e2ba6199] </span>ExprTools v0.1.11
-  <span class="sgr90">[21656369] </span>ExpressionExplorer v1.1.4
+  <span class="sgr90">[21656369] </span>ExpressionExplorer v1.1.5
   <span class="sgr90">[55351af7] </span>ExproniconLite v0.10.14
   <span class="sgr90">[c87230d0] </span>FFMPEG v0.4.5
   <span class="sgr90">[7034ab61] </span>FastBroadcast v1.3.6
@@ -366,7 +366,7 @@ Environment:
 <span class="sgr33">⌅</span> <span class="sgr90">[0bca4576] </span>SciMLBase v2.155.2
   <span class="sgr90">[19f34311] </span>SciMLJacobianOperators v0.1.17
 <span class="sgr33">⌅</span> <span class="sgr90">[a6db7da4] </span>SciMLLogging v1.10.1
-  <span class="sgr90">[c0aeaf25] </span>SciMLOperators v1.26.1
+  <span class="sgr90">[c0aeaf25] </span>SciMLOperators v1.27.0
   <span class="sgr90">[431bcebd] </span>SciMLPublic v1.2.4
   <span class="sgr90">[53ae85a6] </span>SciMLStructures v1.10.4
   <span class="sgr90">[30f210dd] </span>ScientificTypesBase v3.1.0
@@ -562,4 +562,4 @@ Environment:
   <span class="sgr90">[8e850b90] </span>libblastrampoline_jll v5.15.0+0
   <span class="sgr90">[8e850ede] </span>nghttp2_jll v1.64.0+1
   <span class="sgr90">[3f19e933] </span>p7zip_jll v17.7.0+0
-<span class="sgr36"><span class="sgr1">Info</span></span> Packages marked with <span class="sgr32">⌃</span> and <span class="sgr33">⌅</span> have new versions available. Those with <span class="sgr32">⌃</span> may be upgradable, but those with <span class="sgr33">⌅</span> are restricted by compatibility constraints from upgrading. To see why use `status --outdated -m`</code></pre></details><p>You can also download the <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.15.4/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.15.4/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="problems/">Problems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 14 August 2026 21:59">Friday 14 August 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<span class="sgr36"><span class="sgr1">Info</span></span> Packages marked with <span class="sgr32">⌃</span> and <span class="sgr33">⌅</span> have new versions available. Those with <span class="sgr32">⌃</span> may be upgradable, but those with <span class="sgr33">⌅</span> are restricted by compatibility constraints from upgrading. To see why use `status --outdated -m`</code></pre></details><p>You can also download the <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.15.4/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.15.4/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="problems/">Problems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Saturday 15 August 2026 12:40">Saturday 15 August 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
