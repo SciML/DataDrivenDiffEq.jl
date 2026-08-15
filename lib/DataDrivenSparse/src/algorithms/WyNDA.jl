@@ -10,6 +10,22 @@ The forgetting factor `λ` controls how quickly older samples are discounted.
 Values close to one recover a batch least-squares-like fit, while smaller values
 adapt faster to parameter drift.
 
+# Arguments
+
+- `λ`: forgetting factor satisfying `0 < λ <= 1`.
+
+# Keywords
+
+- `initial_covariance`: positive scalar or square matrix used for the initial
+  inverse covariance.
+- `initial_coefficients`: optional initial coefficient vector or target-by-feature
+  matrix.
+
+# Returns
+
+Return an online algorithm object callable as `alg(X, Y; options)`, producing the
+coefficient matrix, the forgetting factor, and the number of observations.
+
 # Fields
 
 $(FIELDS)

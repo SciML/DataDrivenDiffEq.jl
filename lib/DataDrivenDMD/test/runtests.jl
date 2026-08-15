@@ -33,6 +33,9 @@ end
         @safetestset "Nonlinear forced" begin
             include("./Core/nonlinear_forced.jl")
         end
+        @safetestset "Interface" begin
+            include("./Core/interface.jl")
+        end
     end
 
     if GROUP == "QA"

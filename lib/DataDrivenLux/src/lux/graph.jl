@@ -7,6 +7,25 @@ different [`FunctionLayer`](@ref)s.
 # Fields
 
 $(FIELDS)
+
+# Arguments
+
+- `in_dimension::Int`: number of input signals.
+- `out_dimension::Int`: number of output equations.
+- `n_layers::Int`: number of learned function layers.
+- `arities`: arity for each candidate function.
+- `fs`: candidate functions.
+
+# Keywords
+
+- `skip::Bool`: retain outputs from preceding layers as inputs.
+- `eltype::Type`: element type used for initial weights.
+- `input_functions`: optional functions used to generate input signals.
+
+# Returns
+
+Return a Lux wrapper model that maps candidate graph parameters and states to
+symbolic-regression outputs.
 """
 @concrete struct LayeredDAG <: AbstractLuxWrapperLayer{:layers}
     layers

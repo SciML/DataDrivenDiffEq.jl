@@ -7,6 +7,18 @@ $(SIGNATURES)
 
 Uses the crossentropy method for discrete optimization to search the space of possible
 solutions.
+
+# Keywords
+
+The constructor accepts `populationsize`, `functions`, `arities`, `n_layers`,
+`skip`, `loss`, `keep`, `use_protected`, `distributed`, `threaded`, `rng`,
+`optimizer`, `optim_options`, `observed`, and `alpha`, which are forwarded to
+[`CommonAlgOptions`](@ref).
+
+# Returns
+
+Return a [`AbstractDAGSRAlgorithm`](@ref) that updates categorical graph
+parameters using the cross-entropy rule.
 """
 function CrossEntropy(;
         populationsize = 100, functions = (sin, exp, cos, log, +, -, /, *),

@@ -86,7 +86,8 @@ place, `operator(y, x, λ)` as an out-of-place-buffer form, and
 `active_set!(mask, operator, x, λ)` to identify the nonzero coefficients. The two
 callable forms must preserve the shape and element type of the coefficient array.
 Concrete operators may store additional thresholds, but those fields and their
-defaults must be documented.
+defaults must be documented. The in-place form returns the modified `x`; the
+buffer form writes `y` and returns it. `active_set!` returns the modified mask.
 """
 abstract type AbstractProximalOperator end
 
@@ -100,12 +101,45 @@ Update the Boolean active-set mask for a sparse-regression proximal operator.
 This is a developer extension point for [`AbstractProximalOperator`](@ref).
 `mask` and `x` must have the same shape, and an active entry indicates that the
 corresponding coefficient survives thresholding.
+
+# Arguments
+
+- `mask`: Boolean array with the same shape as `x`.
+- `operator::AbstractProximalOperator`: thresholding operator.
+- `x`: coefficient array inspected by the operator.
+- `lambda`: nonnegative threshold parameter.
+
+# Returns
+
+Return the modified `mask`.
 """
 function active_set! end
 
 @public active_set!
 
+"""
+    AbstractSparseRegressionCache
+
+Developer interface for the mutable cache used by
+[`SparseLinearSolver`](@ref). This type is intended for packages implementing a
+new [`AbstractSparseRegressionAlgorithm`](@ref), not for constructing user
+results directly.
+
+# Interface
+
+A cache subtype must provide mutable fields `Ã`, `B̃`, `X`, `X_prev`, and
+`active_set`. `Ã` is the feature matrix, `B̃` is the target vector or matrix,
+`X` is the current coefficient array, `X_prev` is the previous iterate, and
+`active_set` has the same shape as `X`. The generic solver calls `step!(cache,
+λ)`, copies a winning cache with `_set!`, and checks convergence with the
+`abstol` and `reltol` values from [`DataDrivenCommonOptions`](@ref).
+
+The cache must also support the `StatsAPI` methods `coef`, `rss`, `dof`, and
+`nobs`; the default methods supplied here use the fields above. A custom cache
+should preserve the coefficient shape and return a numeric residual from `rss`.
+"""
 abstract type AbstractSparseRegressionCache <: StatisticalModel end
+@public AbstractSparseRegressionCache
 
 function _set!(x::AbstractSparseRegressionCache, y::AbstractSparseRegressionCache)
     begin
@@ -171,12 +205,55 @@ StatsAPI.r2(x::AbstractSparseRegressionCache) = r2(x, :CoxSnell)
 include("algorithms/proximals.jl")
 export SoftThreshold, HardThreshold, ClippedAbsoluteDeviation
 
+"""
+    get_thresholds(alg::AbstractSparseRegressionAlgorithm)
+
+Return the scalar threshold or ordered threshold schedule explored by
+[`SparseLinearSolver`](@ref). A custom algorithm must return either a scalar or
+an iterable that supports `minimum` and iteration.
+"""
 get_thresholds(x::AbstractSparseRegressionAlgorithm) = getfield(x, :thresholds)
+
+"""
+    get_relaxation(alg::AbstractSparseRegressionAlgorithm)
+
+Return an optional relaxation parameter used by an algorithm. The default is
+`nothing`; algorithms that expose relaxation should specialize this method and
+document how it changes their update rule.
+"""
 get_relaxation(x::AbstractSparseRegressionAlgorithm) = nothing
+
+"""
+    get_proximal(alg::AbstractSparseRegressionAlgorithm)
+
+Return the [`AbstractProximalOperator`](@ref) used by an algorithm. The default
+is [`SoftThreshold`](@ref).
+"""
 get_proximal(x::AbstractSparseRegressionAlgorithm) = SoftThreshold()
 
 include("solver.jl")
 export SparseLinearSolver
+
+"""
+    init_cache(alg, A, B)
+
+Construct the mutable [`AbstractSparseRegressionCache`](@ref) for a sparse
+regression algorithm. `A` contains features by observation and `B` contains
+targets by observation. Implement this method for a custom algorithm before
+using it with [`SparseLinearSolver`](@ref).
+"""
+function init_cache end
+
+"""
+    step!(cache, lambda)
+
+Perform one thresholded update of a sparse-regression cache in place. The
+implementation must update `cache.X`, `cache.X_prev`, and `cache.active_set`
+consistently and return the cache or `nothing`.
+"""
+function step! end
+
+@public get_thresholds, get_relaxation, get_proximal, init_cache, step!
 
 function (x::X where {X <: AbstractSparseRegressionAlgorithm})(
         X, Y;

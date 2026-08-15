@@ -12,6 +12,16 @@ It solves the following problem
 
 $(FIELDS)
 
+# Arguments
+
+- `threshold`: positive scalar or iterable of positive sparsity thresholds.
+- `ρ`: positive augmented-Lagrangian parameter.
+
+# Returns
+
+Return an algorithm object callable as `alg(X, Y; options)`, producing coefficient
+matrices, selected thresholds, and iteration counts.
+
 # Example
 
 ```julia

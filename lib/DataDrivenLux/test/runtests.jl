@@ -25,6 +25,7 @@ end
             @safetestset "Nodes" include("Core/nodes.jl")
             @safetestset "Layers" include("Core/layers.jl")
             @safetestset "Graphs" include("Core/graphs.jl")
+            @safetestset "Interface" include("Core/interface.jl")
         end
 
         @testset "Caches" begin

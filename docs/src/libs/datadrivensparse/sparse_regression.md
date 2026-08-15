@@ -54,6 +54,12 @@ use the concrete algorithms and operators.
 
 ```@docs
 DataDrivenSparse.AbstractSparseRegressionAlgorithm
+DataDrivenSparse.AbstractSparseRegressionCache
+DataDrivenSparse.get_thresholds
+DataDrivenSparse.get_relaxation
+DataDrivenSparse.get_proximal
+DataDrivenSparse.init_cache
+DataDrivenSparse.step!
 STLSQ
 ADMM
 SR3

@@ -9,6 +9,17 @@ operators, and node identifiers used to compute path complexity.
 # Fields
 
 $(FIELDS)
+
+# Arguments
+
+- `interval::Interval`: interval containing values reachable along the path.
+- `path_operators::Tuple`: operators applied along the path.
+- `path_ids::Tuple`: `(layer, node)` identifiers for the path nodes.
+
+# Returns
+
+Return an immutable path state. Use `update_path` to prepend another operation
+without mutating an existing state.
 """
 struct PathState{T, PO <: Tuple, PI <: Tuple} <: AbstractPathState
     "Accumulated loglikelihood of the state"

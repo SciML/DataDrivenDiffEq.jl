@@ -2,6 +2,14 @@
 $(TYPEDEF)
 
 Additive output error model for observations following `ŷ ~ y + ϵ`.
+
+When called as `model(distribution, y, y_pred, scale)`, the model evaluates the
+log-likelihood of `y_pred` under the distribution centered at `y` with the supplied
+scale.
+
+# Returns
+
+Return a scalar log-likelihood contribution.
 """
 struct AdditiveError <: AbstractErrorModel end
 
@@ -16,6 +24,13 @@ end
 $(TYPEDEF)
 
 Multiplicative output error model for observations following `ŷ ~ y * (1 + ϵ)`.
+
+When called as `model(distribution, y, y_pred, scale)`, the scale is multiplied by
+`abs(y)` before evaluating the distribution.
+
+# Returns
+
+Return a scalar log-likelihood contribution.
 """
 struct MultiplicativeError <: AbstractErrorModel end
 
@@ -122,8 +137,25 @@ end
 $(TYPEDEF)
 
 The error distribution of a models output.
+
+Construct `ObservedModel(Y; fixed = false)` to create one additive-normal error
+distribution per row of the target matrix. Set `fixed = true` to keep the initial
+scale fixed during optimization.
+
+# Arguments
+
+- `Y::AbstractMatrix`: observed target data, with one target variable per row.
+
+# Keywords
+
+- `fixed::Bool`: whether the observation scales are optimized.
+
+# Returns
+
+Return an observation model used by [`Candidate`](@ref) likelihood calculations.
 """
 struct ObservedModel{fixed, M}
+    """One observation distribution per target row."""
     observed_distributions::NTuple{M, ObservedDistribution}
 end
 

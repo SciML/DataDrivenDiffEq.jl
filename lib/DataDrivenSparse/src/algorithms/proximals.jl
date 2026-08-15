@@ -20,6 +20,17 @@ Proximal operator, which implements the soft thresholding operator.
 sign(x) * max(abs(x) - λ, 0)
 ```
 
+# Arguments
+
+- `x`: coefficient array updated in place, or the source array for the buffered
+  form.
+- `λ`: nonnegative threshold.
+
+# Returns
+
+Return the modified array. The three-argument form writes the result into its
+first array argument.
+
 See [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
 struct SoftThreshold <: AbstractProximalOperator end;
@@ -60,6 +71,17 @@ Proximal operator, which implements the hard thresholding operator.
 ```julia
 abs(x) > sqrt(2*λ) ? x : 0
 ```
+
+# Arguments
+
+- `x`: coefficient array updated in place, or the source array for the buffered
+  form.
+- `λ`: nonnegative threshold.
+
+# Returns
+
+Return the modified array. The three-argument form writes the result into its
+first array argument.
 
 See [by Zheng et al., 2018](https://ieeexplore.ieee.org/document/8573778).
 """
@@ -103,6 +125,21 @@ abs(x) > ρ ? x : sign(x) * max(abs(x) - λ, 0)
 ```
 
 Where `ρ = 5λ` per default.
+
+# Arguments
+
+- `x`: coefficient array updated in place, or the source array for the buffered
+  form.
+- `λ`: nonnegative soft-threshold parameter.
+
+# Fields
+
+- `ρ`: optional hard cutoff; `NaN` selects the default `5λ` cutoff.
+
+# Returns
+
+Return the modified array. The three-argument form writes the result into its
+first array argument.
 
 #Fields
 $(FIELDS)

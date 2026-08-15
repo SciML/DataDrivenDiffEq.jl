@@ -7,6 +7,18 @@ $(SIGNATURES)
 
 Performs a random search over the space of possible solutions to the symbolic regression
 problem.
+
+# Keywords
+
+The constructor accepts the fields of [`CommonAlgOptions`](@ref):
+`populationsize`, `functions`, `arities`, `n_layers`, `skip`, `loss`, `keep`,
+`use_protected`, `distributed`, `threaded`, `rng`, `optimizer`,
+`optim_options`, `observed`, and `alpha`.
+
+# Returns
+
+Return a [`AbstractDAGSRAlgorithm`](@ref) that updates candidate graphs by
+resampling without changing their continuous parameters.
 """
 function RandomSearch(;
         populationsize = 100, functions = (sin, exp, cos, log, +, -, /, *),

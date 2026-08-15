@@ -4,23 +4,39 @@ $(TYPEDEF)
 Sparse regression solver that applies an [`AbstractSparseRegressionAlgorithm`](@ref)
 to one or more target variables.
 
-## Constructor
+# Arguments
 
-```julia
-SparseLinearSolver(algorithm; options = DataDrivenCommonOptions())
-```
+- `algorithm::AbstractSparseRegressionAlgorithm`: algorithm used for each target.
+
+# Keywords
+
+- `options::DataDrivenCommonOptions`: tolerances, iteration limits, selector, and
+  progress settings copied into the solver.
+
+# Returns
+
+Return a solver object callable as `solver(X, Y)`, where `X` has features in rows
+and `Y` has target variables in rows. The call returns one cache, selected
+threshold, and iteration count per target.
 
 ## Fields
 
 $(TYPEDFIELDS)
 """
 struct SparseLinearSolver{A <: AbstractSparseRegressionAlgorithm, T <: Number}
+    """Sparse-regression algorithm applied to each target."""
     algorithm::A
+    """Absolute convergence tolerance for cache updates."""
     abstol::T
+    """Relative convergence tolerance for cache updates."""
     reltol::T
+    """Maximum number of iterations over all thresholds."""
     maxiters::Int
+    """Whether progress information is printed."""
     verbose::Bool
+    """Whether the underlying algorithm reports progress."""
     progress::Bool
+    """Function used to select the best cache."""
     selector::Function
 end
 

@@ -7,6 +7,17 @@ targets, controls, time points, and interval bounds for symbolic search.
 # Fields
 
 $(FIELDS)
+
+# Arguments
+
+- `X::AbstractMatrix`: state or feature data, with observations in columns.
+- `Y::AbstractMatrix`: target data, with target variables in rows.
+- `U::AbstractMatrix`: optional control data; defaults to an empty matrix.
+- `t::AbstractVector`: optional time points; defaults to equally spaced indices.
+
+# Returns
+
+Return a promoted, interval-annotated dataset used by candidate models.
 """
 @concrete struct Dataset{T}
     x <: AbstractMatrix{T}

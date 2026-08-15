@@ -7,6 +7,39 @@ Concrete algorithms normally expose these keywords through their own constructor
 # Fields
 
 $(FIELDS)
+
+# Keywords
+
+- `populationsize::Int`: number of candidate graphs retained in the population.
+- `functions`: candidate unary and binary functions.
+- `arities`: arity corresponding to each entry in `functions`.
+- `n_layers::Int`: number of learned graph layers.
+- `skip::Bool`: whether each layer receives skip connections.
+- `simplex::AbstractSimplex`: map used for categorical path weights.
+- `loss`: function used to rank candidates.
+- `keep::Union{Real,Int}`: retained fraction or number of candidates.
+- `use_protected::Bool`: whether unsafe symbolic operations are replaced by safe
+  versions.
+- `distributed::Bool`: whether candidate optimization uses worker processes.
+- `threaded::Bool`: whether candidate optimization uses Julia threads.
+- `rng::AbstractRNG`: random-number generator for graph sampling.
+- `optimizer`: Optim.jl optimizer for continuous candidate parameters.
+- `optim_options`: optional Optim.jl options object.
+- `optimiser`: optional Optimisers.jl update rule for search parameters.
+- `observed`: optional fixed or fitted observation model.
+- `alpha::Real`: exponential-update coefficient used by cross-entropy search.
+
+# Returns
+
+Return a configuration object consumed by [`AbstractDAGSRAlgorithm`](@ref)
+implementations.
+
+# Example
+
+```julia
+options = CommonAlgOptions(populationsize = 20, n_layers = 2)
+options.populationsize == 20
+```
 """
 @concrete struct CommonAlgOptions
     populationsize::Int

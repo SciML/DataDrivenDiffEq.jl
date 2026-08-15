@@ -22,6 +22,22 @@ Options for using SymbolicRegression.jl within the `solve` function.
 Automatically creates [`Options`](https://docs.sciml.ai/SymbolicRegression/stable/api/#Options) with the given specification.
 Sorts the operators stored in `functions` into unary and binary operators on conversion.
 
+# Keywords
+
+- `weights`: optional observation weights with the shape of the target data.
+- `numprocs`: number of worker processes created for multiprocessing.
+- `procs`: already allocated worker process IDs.
+- `addprocs_function`: replacement for `Distributed.addprocs` when workers are
+  allocated by a scheduler.
+- `parallelism`: `:serial`, `:multithreading`, or `:multiprocessing`.
+- `runtests::Bool`: whether SymbolicRegression runs its environment checks first.
+- `eq_options`: [`SymbolicRegression.Options`] used by equation search.
+
+# Returns
+
+Return an algorithm object usable with the common `solve` interface. The solver
+returns a [`DataDrivenSolution`](@ref) containing the selected symbolic basis.
+
 # Fields
 
 $(FIELDS)

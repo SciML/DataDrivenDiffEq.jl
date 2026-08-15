@@ -18,6 +18,16 @@ with the additional constraint
 If the parameter `ρ > 0`, ridge regression will be performed using the normal equations of the corresponding
 regression problem.
 
+# Arguments
+
+- `threshold`: positive scalar or iterable of positive thresholds to explore.
+- `rho`: nonnegative ridge-regression coefficient.
+
+# Returns
+
+Return an algorithm object callable as `alg(X, Y; options)`, producing coefficient
+matrices, selected thresholds, and iteration counts.
+
 # Fields
 
 $(FIELDS)
