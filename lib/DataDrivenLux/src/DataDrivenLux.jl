@@ -39,11 +39,43 @@ using ForwardDiff: ForwardDiff
 using Logging: Logging, NullLogger, with_logger
 using Random: Random, AbstractRNG
 using Distributed: Distributed, pmap
+using SciMLPublic: @public
 
 const AD = AbstractDifferentiation
 
 abstract type AbstractAlgorithmCache <: AbstractDataDrivenResult end
+"""
+    AbstractDAGSRAlgorithm
+
+Developer interface for differentiable directed-acyclic-graph symbolic-regression
+algorithms. This interface is intended for solver extensions, not ordinary users.
+
+# Interface
+
+A subtype must provide an `options` field compatible with [`CommonAlgOptions`](@ref)
+and a method `update_parameters!(cache::SearchCache{<:MyAlgorithm})`. The generic
+cache initialization supplies the dataset, candidate population, and optimization
+state. An algorithm that uses a different graph representation must also specialize
+`init_model(alg, basis, dataset, intervals)`.
+
+The generic `CommonSolve.solve!` path consumes the cache, repeatedly calls
+`update_parameters!`, and returns a [`DataDrivenDiffEq.DataDrivenSolution`](@ref).
+Custom algorithms should keep the `loss`, `keep`, and population semantics of
+`CommonAlgOptions` or document any intentional differences.
+
+# Example
+
+```julia
+struct MyDAGAlgorithm <: DataDrivenLux.AbstractDAGSRAlgorithm
+    options::DataDrivenLux.CommonAlgOptions
+end
+
+DataDrivenLux.update_parameters!(cache::DataDrivenLux.SearchCache{<:MyDAGAlgorithm}) =
+    nothing
+```
+"""
 abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
+@public AbstractDAGSRAlgorithm
 abstract type AbstractSimplex end
 abstract type AbstractErrorModel end
 abstract type AbstractErrorDistribution end

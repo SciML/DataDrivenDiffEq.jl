@@ -10,12 +10,48 @@ using DocStringExtensions: FIELDS, SIGNATURES, TYPEDEF
 using Parameters: @unpack
 using Statistics: mean
 using StatsAPI: StatsAPI, r2
+using SciMLPublic: @public
 
 using LinearAlgebra: Diagonal, Eigen, eigen, svd
 
 const _EMPTY_MATRIX = Matrix(undef, 0, 0)
 
+"""
+    AbstractKoopmanAlgorithm
+
+Developer interface for algorithms that estimate a Koopman operator or generator.
+This interface is intended for DataDrivenDiffEq solver packages and advanced
+extensions, not ordinary application code.
+
+# Interface
+
+A subtype must implement `alg(X, Y) -> (K, B)`, where `X` and `Y` are lifted data
+matrices, `K` is an operator representation accepted by `eigen`, and `B` is the
+input map or an empty matrix when no controls are used. A controlled implementation
+may additionally implement `alg(X, Y, U) -> (K, B)`. The generic four-argument
+forms support a supplied input map or `nothing`.
+
+To participate in the common `solve` workflow, the subtype must also be usable by
+the `DataDrivenDiffEq.get_fit_targets` and `CommonSolve.solve!` methods for
+[`InternalDataDrivenProblem`](@ref). A custom algorithm should preserve the
+returned matrix dimensions so that the result can be converted back to a
+[`DataDrivenDiffEq.Basis`](@ref).
+
+# Example
+
+```julia
+using LinearAlgebra
+
+struct MyKoopman <: DataDrivenDMD.AbstractKoopmanAlgorithm end
+
+function (::MyKoopman)(X, Y)
+    return (eigen(Y / X), zeros(eltype(X), size(Y, 1), 0))
+end
+```
+"""
 abstract type AbstractKoopmanAlgorithm <: AbstractDataDrivenAlgorithm end
+
+@public AbstractKoopmanAlgorithm
 
 # Results
 include("./result.jl")

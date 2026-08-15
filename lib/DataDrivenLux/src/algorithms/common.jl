@@ -1,3 +1,13 @@
+"""
+    CommonAlgOptions(; kwargs...)
+
+Shared configuration for [`AbstractDAGSRAlgorithm`](@ref) implementations.
+Concrete algorithms normally expose these keywords through their own constructor.
+
+# Fields
+
+$(FIELDS)
+"""
 @concrete struct CommonAlgOptions
     populationsize::Int
     functions
@@ -17,6 +27,8 @@
     observed <: Union{ObservedModel, Nothing}
     alpha::Real
 end
+
+@public CommonAlgOptions
 
 function CommonAlgOptions(;
         populationsize::Int = 100,

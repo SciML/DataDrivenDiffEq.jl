@@ -48,6 +48,10 @@ Where the matrix of evaluated basis elements $\varPhi_y \in \mathbb R^{\lvert \v
 
 ## [Algorithms](@id sparse_algorithms)
 
+The abstract algorithm and proximal operator entries below are developer
+interfaces for extending `DataDrivenSparse`. Application code should generally
+use the concrete algorithms and operators.
+
 ```@docs
 DataDrivenSparse.AbstractSparseRegressionAlgorithm
 STLSQ
@@ -60,7 +64,12 @@ SparseLinearSolver
 
 ## [Proximal Operators](@id proximal_operators)
 
+Custom proximal operators should subtype `AbstractProximalOperator` and
+implement the documented callable and active-set methods.
+
 ```@docs
+DataDrivenSparse.AbstractProximalOperator
+DataDrivenSparse.active_set!
 SoftThreshold
 HardThreshold
 ClippedAbsoluteDeviation

@@ -8,6 +8,7 @@ using CommonSolve: CommonSolve
 using DocStringExtensions: FIELDS, TYPEDEF, TYPEDFIELDS
 using Parameters: @unpack
 using StatsAPI: StatsAPI, StatisticalModel, aicc, coef, dof, nobs, r2, rss
+using SciMLPublic: @public
 
 using LinearAlgebra: I, cholesky, dot, norm
 using Printf: @printf
@@ -70,7 +71,39 @@ coefficients, thresholds, iterations = alg(X, Y)
 ```
 """
 abstract type AbstractSparseRegressionAlgorithm <: AbstractDataDrivenAlgorithm end
+@public AbstractSparseRegressionAlgorithm
+
+"""
+    AbstractProximalOperator
+
+Developer interface for thresholding operators used by sparse-regression
+algorithms such as [`SR3`](@ref).
+
+# Interface
+
+A subtype must implement `operator(x, λ)` as a callable object that updates `x` in
+place, `operator(y, x, λ)` as an out-of-place-buffer form, and
+`active_set!(mask, operator, x, λ)` to identify the nonzero coefficients. The two
+callable forms must preserve the shape and element type of the coefficient array.
+Concrete operators may store additional thresholds, but those fields and their
+defaults must be documented.
+"""
 abstract type AbstractProximalOperator end
+
+@public AbstractProximalOperator
+
+"""
+    active_set!(mask, operator, x, lambda)
+
+Update the Boolean active-set mask for a sparse-regression proximal operator.
+
+This is a developer extension point for [`AbstractProximalOperator`](@ref).
+`mask` and `x` must have the same shape, and an active entry indicates that the
+corresponding coefficient survives thresholding.
+"""
+function active_set! end
+
+@public active_set!
 
 abstract type AbstractSparseRegressionCache <: StatisticalModel end
 
