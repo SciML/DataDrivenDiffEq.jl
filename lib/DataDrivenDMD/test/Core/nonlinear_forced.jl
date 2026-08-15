@@ -51,7 +51,7 @@ end
     tspan = (0.0, 15.0)
     p = [-0.8; -0.7; 1.0]
 
-    problem = DiscreteProblem(slow_manifold, u0, tspan, p)
+    problem = SciMLBase.DiscreteProblem(slow_manifold, u0, tspan, p)
     solution = solve(problem, FunctionMap())
 
     ufun(u, p, t) = exp(-(t - 10.0) / 10.0)
