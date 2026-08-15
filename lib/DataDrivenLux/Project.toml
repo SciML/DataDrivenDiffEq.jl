@@ -69,9 +69,11 @@ Symbolics = "7.18.1"
 Test = "1.10"
 TransformVariables = "0.8"
 WeightInitializers = "1"
+SciMLTesting = "2.4"
 julia = "1.10"
 
 [extras]
+SciMLTesting = "09d9d899-5365-40a9-917a-5f67fddea283"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
