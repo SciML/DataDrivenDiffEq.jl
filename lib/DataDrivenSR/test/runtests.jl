@@ -18,6 +18,10 @@ function activate_qa_env()
 end
 
 if GROUP == "All" || GROUP == "Core" || GROUP == "DataDrivenSR"
+    @testset "Developer interface" begin
+        include("./Core/developer_api.jl")
+    end
+
     @testset "Symbolic Regression" begin
         include("./Core/symbolic_regression.jl")
     end
