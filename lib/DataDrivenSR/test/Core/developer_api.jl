@@ -11,7 +11,7 @@ using Test
     problem = DirectDataDrivenProblem(X, Y)
     algorithm = EQSearch()
 
-    @test algorithm isa AbstractDataDrivenAlgorithm
+    @test algorithm isa DataDrivenDiffEq.AbstractDataDrivenAlgorithm
     inputs, targets = DataDrivenDiffEq.get_fit_targets(algorithm, problem, basis)
     @test inputs == X
     @test targets == Y
