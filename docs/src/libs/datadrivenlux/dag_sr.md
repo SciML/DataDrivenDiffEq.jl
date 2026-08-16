@@ -67,7 +67,6 @@ custom model components. Application code should use the concrete types above.
 
 ```@docs
 DataDrivenLux.AbstractAlgorithmCache
-DataDrivenLux.AbstractDAGSRAlgorithm
 DataDrivenLux.AbstractSimplex
 DataDrivenLux.AbstractErrorModel
 DataDrivenLux.AbstractRewardScale
