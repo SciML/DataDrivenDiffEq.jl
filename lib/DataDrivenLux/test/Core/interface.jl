@@ -1,7 +1,9 @@
 using DataDrivenDiffEq
 using DataDrivenLux
 using IntervalArithmetic: interval
-using ModelingToolkit: @variables
+using StableRNGs
+using StatsAPI: rss
+using Symbolics: @variables
 using Test
 
 struct InterfaceAlgorithm <: DataDrivenLux.AbstractDAGSRAlgorithm
@@ -25,17 +27,18 @@ problem = DirectDataDrivenProblem(
 )
 dataset = DataDrivenLux.Dataset(problem)
 intervals = [interval(-10.0, 10.0)]
-algorithm = InterfaceAlgorithm(DataDrivenLux.CommonAlgOptions())
+algorithm = InterfaceAlgorithm(
+    DataDrivenLux.CommonAlgOptions(;
+        populationsize = 1, functions = (identity,), arities = (1,),
+        keep = 1, loss = rss, rng = StableRNG(100)
+    )
+)
 
 @testset "Generic DAG symbolic-regression interface" begin
     model = DataDrivenLux.init_model(algorithm, basis, dataset, intervals)
     @test model isa DataDrivenLux.LayeredDAG
 
-    cache = DataDrivenLux.SearchCache{
-        InterfaceAlgorithm, DataDrivenLux.__PROCESSUSE(1), Nothing,
-    }(
-        algorithm, DataDrivenLux.Candidate[], Int[], Bool[], Int[], Float32[],
-        dataset, nothing
-    )
+    cache = DataDrivenLux.init_cache(algorithm, basis, problem)
+    @test cache isa DataDrivenLux.SearchCache{<:InterfaceAlgorithm}
     @test DataDrivenLux.update_parameters!(cache) === nothing
 end
