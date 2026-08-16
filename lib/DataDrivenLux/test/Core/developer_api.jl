@@ -3,7 +3,7 @@ using DataDrivenLux
 using Symbolics: @variables
 using Test
 
-struct InterfaceTestAlgorithm <: AbstractDAGSRAlgorithm end
+struct InterfaceTestAlgorithm <: DataDrivenLux.AbstractDAGSRAlgorithm end
 
 @testset "AbstractDAGSRAlgorithm" begin
     @variables x
@@ -12,7 +12,7 @@ struct InterfaceTestAlgorithm <: AbstractDAGSRAlgorithm end
     Y = 2 .* X
     problem = DirectDataDrivenProblem(X, Y)
 
-    @test InterfaceTestAlgorithm() isa AbstractDAGSRAlgorithm
+    @test InterfaceTestAlgorithm() isa DataDrivenLux.AbstractDAGSRAlgorithm
     inputs, targets = DataDrivenDiffEq.get_fit_targets(
         InterfaceTestAlgorithm(), problem, basis
     )
@@ -21,7 +21,7 @@ struct InterfaceTestAlgorithm <: AbstractDAGSRAlgorithm end
 end
 
 @testset "Component interfaces" begin
-    @test Softmax() isa AbstractSimplex
-    @test AdditiveError() isa AbstractErrorModel
-    @test RelativeReward() isa AbstractRewardScale
+    @test Softmax() isa DataDrivenLux.AbstractSimplex
+    @test AdditiveError() isa DataDrivenLux.AbstractErrorModel
+    @test RelativeReward() isa DataDrivenLux.AbstractRewardScale
 end
