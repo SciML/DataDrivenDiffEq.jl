@@ -25,6 +25,17 @@ Sorts the operators stored in `functions` into unary and binary operators on con
 # Fields
 
 $(FIELDS)
+
+# Examples
+
+```julia
+using DataDrivenSR
+using SymbolicRegression: Options
+
+algorithm = EQSearch(
+    eq_options = Options(binary_operators = [+, *], unary_operators = [sin])
+)
+```
 """
 @with_kw struct EQSearch <: AbstractDataDrivenAlgorithm
     "Optionally weight the loss for each y by this value (same shape as y)"
