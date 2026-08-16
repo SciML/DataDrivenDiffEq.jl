@@ -141,7 +141,7 @@ Where `ρ = 5λ` per default.
 Return the modified array. The three-argument form writes the result into its
 first array argument.
 
-#Fields
+# Fields
 $(FIELDS)
 
 # Example
