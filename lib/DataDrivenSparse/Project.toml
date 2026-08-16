@@ -34,9 +34,11 @@ StatsAPI = "1"
 StatsBase = "0.34"
 Symbolics = "7.18.1"
 Test = "1.10"
+SciMLTesting = "2.10"
 julia = "1.10"
 
 [extras]
+SciMLTesting = "09d9d899-5365-40a9-917a-5f67fddea283"
 ModelingToolkitBase = "7771a370-6774-4173-bd38-47e70ca0b839"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
