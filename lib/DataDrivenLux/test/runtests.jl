@@ -6,6 +6,10 @@ using Test
 
 @info "Finished loading packages"
 
+@testset "Developer interface" begin
+    include("./Core/developer_api.jl")
+end
+
 const GROUP = get(ENV, "DATADRIVENDIFFEQ_TEST_GROUP", get(ENV, "GROUP", "All"))
 
 function activate_qa_env()
