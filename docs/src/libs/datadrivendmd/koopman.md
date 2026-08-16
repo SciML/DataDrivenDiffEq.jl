@@ -48,13 +48,3 @@ get_operator
 get_inputmap
 get_outputmap
 ```
-
-## Developer API
-
-`AbstractKoopmanAlgorithm` is the extension point for adding operator-learning
-algorithms. Application code should normally use one of the concrete algorithms
-above together with [`solve`](@ref solve).
-
-```@docs
-DataDrivenDMD.AbstractKoopmanAlgorithm
-```
