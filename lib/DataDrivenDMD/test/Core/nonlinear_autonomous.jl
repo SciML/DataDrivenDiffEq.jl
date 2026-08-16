@@ -6,6 +6,7 @@ using StatsAPI: loglikelihood, r2, rss
 using StableRNGs
 using OrdinaryDiffEq
 using OrdinaryDiffEqFunctionMap
+using SciMLBase: DiscreteProblem
 using Symbolics: @variables
 
 rng = StableRNG(42)

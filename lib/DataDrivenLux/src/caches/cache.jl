@@ -6,6 +6,10 @@ Optimization cache for DataDrivenLux symbolic regression algorithms.
 # Fields
 
 $(FIELDS)
+
+The cache owns the candidate population and the current search parameters. It is
+mutated by `update_cache!`; callers should treat it as an implementation object
+unless they are implementing a new [`AbstractDAGSRAlgorithm`](@ref).
 """
 struct SearchCache{ALG, PTYPE, O} <: AbstractAlgorithmCache
     alg::ALG

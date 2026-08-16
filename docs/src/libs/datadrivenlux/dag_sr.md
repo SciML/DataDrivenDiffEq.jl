@@ -3,6 +3,20 @@
 DataDrivenLux provides differentiable directed-acyclic-graph structure search
 for discovering governing equations.
 
+## Developer API
+
+`AbstractDAGSRAlgorithm` is the extension interface for implementing another
+search algorithm. Application code should use the concrete algorithms below.
+
+```@docs
+DataDrivenLux.AbstractDAGSRAlgorithm
+DataDrivenLux.CommonAlgOptions
+DataDrivenLux.init_model
+DataDrivenLux.init_cache
+DataDrivenLux.update_parameters!
+DataDrivenLux.convert_to_basis
+```
+
 ## Error Models
 
 ```@docs

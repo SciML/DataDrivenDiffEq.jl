@@ -39,16 +39,105 @@ using ForwardDiff: ForwardDiff
 using Logging: Logging, NullLogger, with_logger
 using Random: Random, AbstractRNG
 using Distributed: Distributed, pmap
+using SciMLPublic: @public
 
 const AD = AbstractDifferentiation
 
 abstract type AbstractAlgorithmCache <: AbstractDataDrivenResult end
+"""
+    AbstractDAGSRAlgorithm
+
+Developer interface for differentiable directed-acyclic-graph symbolic-regression
+algorithms. This interface is intended for solver extensions, not ordinary users.
+
+# Interface
+
+A subtype must provide an `options` field compatible with [`CommonAlgOptions`](@ref)
+and methods `init_model(alg, basis, dataset, intervals)` and
+`update_parameters!(cache::SearchCache{<:MyAlgorithm})`. The generic cache
+initialization supplies the dataset, candidate population, and optimization state.
+`init_model` must return a callable Lux model compatible with the basis and
+dataset dimensions. `update_parameters!` must mutate `cache.p` or other algorithm
+state in place and return `nothing`. An algorithm that uses the default layered
+graph can reuse the generic `init_model` method.
+
+The `init_model` method should retain the package's dispatch shape,
+`(::MyAlgorithm, ::Basis, ::Dataset, intervals)`, so it is more specific than the
+default method while remaining applicable to the common solver path.
+
+The generic `CommonSolve.solve!` path consumes the cache, repeatedly calls
+`update_parameters!`, and returns a [`DataDrivenDiffEq.DataDrivenSolution`](@ref).
+Custom algorithms should keep the `loss`, `keep`, and population semantics of
+`CommonAlgOptions` or document any intentional differences.
+
+# Example
+
+```julia
+struct MyDAGAlgorithm <: DataDrivenLux.AbstractDAGSRAlgorithm
+    options::DataDrivenLux.CommonAlgOptions
+end
+
+DataDrivenLux.init_model(alg, basis, dataset, intervals) =
+    DataDrivenLux.LayeredDAG(
+        length(basis), size(dataset.y, 1), 1, (1,), (identity,)
+    )
+DataDrivenLux.update_parameters!(cache::DataDrivenLux.SearchCache{<:MyDAGAlgorithm}) = nothing
+```
+"""
 abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
+@public AbstractDAGSRAlgorithm
 abstract type AbstractSimplex end
 abstract type AbstractErrorModel end
 abstract type AbstractErrorDistribution end
 abstract type AbstractConfigurationCache <: StatisticalModel end
 abstract type AbstractRewardScale{risk} end
+
+"""
+    init_model(alg, basis, dataset, intervals)
+
+Construct the callable Lux model used by a differentiable symbolic-regression
+algorithm. `basis` supplies the feature count, `dataset` supplies target and
+control dimensions, and `intervals` contains the interval-evaluated basis values
+used to mask invalid inputs.
+
+# Returns
+
+Return a model accepted by `LuxCore.initialparameters`, `LuxCore.setup`, and the
+call `(model)(inputs, parameters, state)`. A custom algorithm may specialize this
+method when it does not use the default [`LayeredDAG`](@ref) representation.
+"""
+function init_model end
+
+"""
+    update_parameters!(cache)
+
+Update the population parameters for a symbolic-regression search iteration.
+The method is called by `update_cache!` after the retained candidates have been
+selected. Mutate the cache in place and return `nothing`.
+"""
+function update_parameters! end
+
+"""
+    init_cache(alg::AbstractDAGSRAlgorithm, basis, problem; kwargs...)
+
+Build the search cache consumed by the common `solve!` implementation. The
+default method creates a [`Dataset`](@ref), calls [`init_model`](@ref), samples
+the initial population, and initializes the optimizer state. A custom algorithm
+may specialize this method when its cache representation differs from
+[`SearchCache`](@ref).
+"""
+function init_cache end
+
+"""
+    convert_to_basis(candidate, parameters, options)
+
+Convert the selected symbolic-regression candidate into a
+[`DataDrivenDiffEq.Basis`](@ref). A custom graph implementation must provide this
+method if it does not use the package's [`Candidate`](@ref) representation.
+"""
+function convert_to_basis end
+
+@public init_model, init_cache, update_parameters!, convert_to_basis
 
 @enum __PROCESSUSE begin
     SERIAL = 1

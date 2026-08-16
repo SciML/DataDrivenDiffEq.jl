@@ -7,6 +7,22 @@ solving the explicit problem, as introduced [here](https://royalsocietypublishin
 \\argmin_{x} \\|x\\|_0 ~s.t.~Ax= 0
 ```
 
+# Arguments
+
+- `threshold`: threshold passed to the explicit optimizer when `opt` is a type.
+- `opt`: an [`AbstractSparseRegressionAlgorithm`](@ref) instance or constructor.
+
+# Keywords
+
+- `options::DataDrivenCommonOptions`: convergence and selection settings.
+- `necessary_idx`: Boolean mask identifying coefficients that must participate
+  in each candidate implicit relation.
+
+# Returns
+
+Return an implicit sparse-regression algorithm object. Calling it returns the
+best cache, threshold, and iteration count for each candidate left-hand side.
+
 # Fields
 
 $(FIELDS)

@@ -6,6 +6,16 @@ Result returned by DataDrivenDMD solvers.
 # Fields
 
 $(FIELDS)
+
+The `k`, `b`, and `c` fields represent the learned operator, input map, and
+output map. `q` and `p` retain update matrices used by the online formulation;
+they are developer state and should not be edited by callers. The remaining
+fields implement the `StatsAPI.StatisticalModel` interface.
+
+# Returns
+
+The constructor returns a result whose operator and maps are compatible with
+`get_operator`, `get_inputmap`, and `get_outputmap`.
 """
 struct KoopmanResult{K, B, C, Q, P, T} <: AbstractDataDrivenResult
     """Matrix representation of the operator / generator"""

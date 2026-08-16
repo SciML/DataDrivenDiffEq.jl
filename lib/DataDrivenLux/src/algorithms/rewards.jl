@@ -2,6 +2,13 @@
 $(TYPEDEF)
 
 Scales the losses in such a way that the minimum loss is equal to one.
+
+Calling `RelativeReward(risk_seeking)(losses)` returns exponentially scaled
+rewards. With `risk_seeking = true`, the minimum reward is shifted to zero.
+
+# Arguments
+
+- `risk_seeking::Bool`: whether to subtract the minimum reward after scaling.
 """
 struct RelativeReward{risk} <: AbstractRewardScale{risk} end
 
@@ -20,6 +27,13 @@ end
 $(TYPEDEF)
 
 Scales the losses in such a way that the minimum loss is the most influential reward.
+
+Calling `AbsoluteReward(risk_seeking)(losses)` uses `exp.(-losses)` directly.
+With `risk_seeking = true`, the minimum reward is shifted to zero.
+
+# Arguments
+
+- `risk_seeking::Bool`: whether to subtract the minimum reward after scaling.
 """
 struct AbsoluteReward{risk} <: AbstractRewardScale{risk} end
 

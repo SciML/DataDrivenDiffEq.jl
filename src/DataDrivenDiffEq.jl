@@ -78,13 +78,38 @@ abstract type AbstractDataDrivenFunction{Bool, Bool} end
 """
     AbstractBasis
 
-Supertype for symbolic feature bases accepted by data-driven algorithms.
+Supertype for symbolic feature bases accepted by data-driven algorithms. A basis
+maps measured states, parameters, time, and optional controls to feature values.
 
 # Interface
 
-Subtypes must provide symbolic equations, state and parameter accessors, and callable
-in-place and out-of-place evaluation. Solver packages may use [`get_f`](@ref),
-[`is_implicit`](@ref), and [`is_controlled`](@ref) to inspect these capabilities.
+Subtypes must provide the following interface:
+
+- `ModelingToolkitBase.equations(b)`, `unknowns(b)`, `parameters(b)`,
+  `get_observed(b)`, and `get_iv(b)` expose the symbolic system.
+- [`states`](@ref), [`controls`](@ref), [`is_implicit`](@ref), and
+  [`is_controlled`](@ref) describe the feature inputs.
+- [`get_f`](@ref) or [`dynamics`](@ref) returns the callable feature evaluator.
+- An explicit basis is callable as `b(u, p, t)` and, when controlled, as
+  `b(u, p, t, c)`. An implicit basis is callable as `b(du, u, p, t)` and,
+  when controlled, as `b(du, u, p, t, c)`.
+
+The default accessors use fields named `eqs`, `unknowns`, `ps`, `observed`, `iv`,
+`ctrls`, `implicit`, `f`, `name`, and `systems`. A subtype with different storage
+must provide equivalent methods explicitly. Solver-specific requirements, such as
+[`jacobian`](@ref) for Koopman algorithms, should be documented by that solver.
+
+# Example
+
+`Basis` is the standard implementation:
+
+```julia
+using DataDrivenDiffEq, Symbolics
+
+@variables x
+b = Basis([2x], [x])
+b([3.0], [], 0.0) # [6.0]
+```
 """
 abstract type AbstractBasis <: AbstractSystem end
 
@@ -101,8 +126,23 @@ Supertype for algorithms that solve data-driven problems.
 # Interface
 
 An algorithm package must define `CommonSolve.solve!` for
-[`InternalDataDrivenProblem`](@ref). It may specialize [`get_fit_targets`](@ref) when its
-regression targets differ from the problem's implicit data.
+`InternalDataDrivenProblem{A}` and return a [`DataDrivenSolution`](@ref). The
+implementation must accept the preprocessed data and options in that internal
+problem, and must not require callers to construct the internal representation.
+
+The default [`get_fit_targets`](@ref) evaluates the basis and returns the problem's
+implicit data. An algorithm may specialize it when its regression targets differ
+from the problem's implicit data. The algorithm's callable form and keyword
+arguments are solver-specific and must be documented by the concrete algorithm.
+
+# Example
+
+```julia
+struct MyAlgorithm <: DataDrivenDiffEq.AbstractDataDrivenAlgorithm end
+
+DataDrivenDiffEq.get_fit_targets(::MyAlgorithm, problem, basis) =
+    (basis(problem), DataDrivenDiffEq.get_implicit_data(problem))
+```
 """
 abstract type AbstractDataDrivenAlgorithm end
 
@@ -113,8 +153,11 @@ Supertype for algorithm-specific result objects stored by [`DataDrivenSolution`]
 
 # Interface
 
-Result types should implement the applicable `StatsAPI.StatisticalModel` accessors and
-an `is_success(result)` predicate.
+Result types must implement the applicable `StatsAPI.StatisticalModel` accessors:
+`coef`, `rss`, `dof`, `nobs`, `loglikelihood`, `nullloglikelihood`, and `r2`.
+Solver packages should also provide a success predicate and a return code so that
+failed fits can be excluded from model selection. The result fields and the meaning
+of each statistic must be documented by the concrete result type.
 """
 abstract type AbstractDataDrivenResult <: StatisticalModel end
 
@@ -126,9 +169,30 @@ Supertype for data containers consumed by data-driven algorithms.
 
 # Interface
 
-Problem subtypes must implement [`get_implicit_data`](@ref), [`get_oop_args`](@ref), and
-[`remake_problem`](@ref). `N` is the numeric element type, `C` records whether controls
-are present, and `K` records whether the problem is direct, discrete, or continuous.
+`N` is the numeric element type, `C` records whether controls are present, and `K`
+is `DDProbType(1)`, `DDProbType(2)`, or `DDProbType(3)` for direct, discrete, or
+continuous data. Problem subtypes must implement:
+
+- [`get_implicit_data`](@ref): the target matrix used by the default algorithm.
+- [`get_oop_args`](@ref): `(X, p, t, U)` aligned with that target matrix.
+- [`remake_problem`](@ref): a same-kind problem with selected data replaced by
+  keyword arguments.
+- [`is_valid`](@ref): validation of finite values and compatible sample lengths.
+
+They must also expose state, control, parameter, time, and observed data through
+the corresponding ModelingToolkit accessors or equivalent package methods. For a
+discrete problem, inputs and targets must be offset by one sample; for direct and
+continuous problems they must have the same sample count.
+
+# Example
+
+`DataDrivenProblem` is the reference implementation:
+
+```julia
+X = [1.0 2.0 3.0]
+problem = DirectDataDrivenProblem(X, 2 .* X)
+get_implicit_data(problem) == 2 .* X
+```
 """
 abstract type AbstractDataDrivenProblem{Number, Bool, DDProbType} end
 

@@ -7,6 +7,18 @@ and a latent array of weights representing a probability distribution over the i
 # Fields
 
 $(FIELDS)
+
+# Arguments
+
+- `f`: unary or binary function represented by the node.
+- `arity::Int`: number of inputs consumed by `f`.
+- `in_dims::Int`: number of available input signals.
+- `id`: `(layer, node)` identifier used in path statistics.
+- `input_functions`: optional functions used to construct input masks.
+
+# Returns
+
+Return a Lux wrapper layer that samples one function node configuration.
 """
 @concrete struct FunctionNode <: AbstractLuxWrapperLayer{:node}
     node

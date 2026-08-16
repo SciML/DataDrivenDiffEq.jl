@@ -21,6 +21,10 @@ if GROUP == "All" || GROUP == "Core" || GROUP == "DataDrivenSparse"
         include("./Core/sparse_linear_solve.jl")
     end
 
+    @safetestset "Interface" begin
+        include("./Core/interface.jl")
+    end
+
     @safetestset "Pendulum" begin
         include("./Core/pendulum.jl")
     end

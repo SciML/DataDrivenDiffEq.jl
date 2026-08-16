@@ -12,6 +12,17 @@ It solves the following problem
 
 Where `R` is a proximal operator, and the result is given by `w`.
 
+# Arguments
+
+- `threshold`: positive sparsity threshold or threshold schedule.
+- `nu`: positive relaxation parameter.
+- `R`: [`AbstractProximalOperator`](@ref) used for the relaxed update.
+
+# Returns
+
+Return an algorithm object callable as `alg(X, Y; options)`, producing coefficient
+matrices, selected thresholds, and iteration counts.
+
 # Fields
 
 $(FIELDS)

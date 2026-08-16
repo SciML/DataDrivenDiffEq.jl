@@ -38,6 +38,100 @@ const DEVELOPER_API = (
     end
 end
 
+struct InterfaceBasis <: DataDrivenDiffEq.AbstractBasis
+    eqs
+    unknowns
+    ctrls
+    ps
+    observed
+    iv
+    implicit
+    f
+    name
+    systems
+end
+
+function (basis::InterfaceBasis)(u, p, t)
+    return basis.f(u, p, t)
+end
+
+DataDrivenDiffEq.is_implicit(::InterfaceBasis) = false
+DataDrivenDiffEq.is_controlled(::InterfaceBasis) = false
+
+struct InterfaceProblem <: DataDrivenDiffEq.AbstractDataDrivenProblem{
+        Float64, false, DataDrivenDiffEq.DDProbType(1),
+    }
+    X
+    t
+    DX
+    Y
+    U
+    p
+    name
+end
+
+DataDrivenDiffEq.get_oop_args(problem::InterfaceProblem) =
+    (problem.X, problem.p, problem.t, problem.U)
+
+function DataDrivenDiffEq.remake_problem(problem::InterfaceProblem; p = problem.p, kwargs...)
+    return InterfaceProblem(
+        problem.X, problem.t, problem.DX, problem.Y, problem.U, p, problem.name
+    )
+end
+
+(basis::InterfaceBasis)(problem::InterfaceProblem) = 2 .* problem.X
+
+struct InterfaceResult <: DataDrivenDiffEq.AbstractDataDrivenResult
+    value::Float64
+end
+
+import StatsAPI
+StatsAPI.coef(result::InterfaceResult) = result.value
+StatsAPI.rss(result::InterfaceResult) = result.value
+StatsAPI.dof(::InterfaceResult) = 1
+StatsAPI.nobs(::InterfaceResult) = 1
+StatsAPI.loglikelihood(::InterfaceResult) = 0.0
+StatsAPI.nullloglikelihood(::InterfaceResult) = 0.0
+StatsAPI.r2(::InterfaceResult) = 1.0
+
+@testset "Generic extension interfaces" begin
+    @variables x t
+    f(u, p, t) = 2 .* u
+    basis = InterfaceBasis(
+        [x ~ 2x], [x], Any[], Any[], Any[], t, Any[], f, :interface, Any[]
+    )
+    X = [1.0 2.0 3.0]
+    problem = InterfaceProblem(
+        X, [0.0, 1.0, 2.0], zeros(0, 0), 2 .* X,
+        zeros(0, 0), Float64[], :interface
+    )
+    algorithm = InterfaceTestAlgorithm()
+
+    @test DataDrivenDiffEq.dynamics(basis)([3.0], [], 0.0) == [6.0]
+    @test DataDrivenDiffEq.get_f(basis) === f
+    @test all(isequal.(DataDrivenDiffEq.states(basis), [x]))
+    @test DataDrivenDiffEq.controls(basis) == []
+    @test DataDrivenDiffEq.is_direct(problem)
+    @test DataDrivenDiffEq.is_autonomous(problem)
+    @test !DataDrivenDiffEq.is_parametrized(problem)
+    @test DataDrivenDiffEq.has_timepoints(problem)
+    @test DataDrivenDiffEq.get_implicit_data(problem) == 2 .* X
+    @test DataDrivenDiffEq.get_oop_args(problem) ==
+        (X, Float64[], [0.0, 1.0, 2.0], zeros(0, 0))
+    @test DataDrivenDiffEq.assert_lhs(problem) == (:direct, 0.0)
+    @test DataDrivenDiffEq.is_valid(problem)
+
+    inputs, targets = DataDrivenDiffEq.get_fit_targets(algorithm, problem, basis)
+    @test inputs == 2 .* X
+    @test targets == 2 .* X
+    @test DataDrivenDiffEq.remake_problem(problem; p = [3.0]).p == [3.0]
+
+    result = InterfaceResult(1.0)
+    @test StatsAPI.coef(result) == 1.0
+    @test StatsAPI.rss(result) == 1.0
+    @test StatsAPI.dof(result) == 1
+end
+
 @testset "Developer interface behavior" begin
     @variables x
     basis = Basis([x, x^2], [x])

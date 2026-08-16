@@ -7,6 +7,22 @@ It accumulates all outputs of the nodes.
 # Fields
 
 $(FIELDS)
+
+# Arguments
+
+- `in_dimension::Int`: number of available input signals.
+- `arities::Tuple`: arity for each function in `fs`.
+- `fs::Tuple`: functions used to construct the nodes.
+
+# Keywords
+
+- `skip::Bool`: include a skip connection around the layer.
+- `id_offset::Int`: starting layer identifier for path bookkeeping.
+- `input_functions`: optional input functions used by each node.
+
+# Returns
+
+Return a Lux wrapper layer whose output contains the values of all nodes.
 """
 @concrete struct FunctionLayer <: AbstractLuxWrapperLayer{:nodes}
     nodes

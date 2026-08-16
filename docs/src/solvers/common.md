@@ -30,6 +30,10 @@ DataDrivenCommonOptions
 
 After defining a [`problem`](@ref problem), we choose a method to [`solve`](@ref solve) it. Depending on the input arguments and the type of problem, the function will return a result derived from the algorithm of choice. Different options can be provided, depending on the inference method, for options like rounding, normalization, or the progress bar. An optional [`Basis`](@ref) can be used for lifting the measurements.
 
+The exported `solve` name follows the generic `CommonSolve` interface, which is
+documented by its owning package. The examples below describe its use with
+DataDrivenDiffEq problems and algorithms.
+
 ```julia
 solution = solve(DataDrivenProblem, [basis], solver; kwargs...)
 ```

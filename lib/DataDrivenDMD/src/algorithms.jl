@@ -46,6 +46,17 @@ K = Y / X
 
 where `Y` and `X` are data matrices. Returns a  `Eigen` factorization of the operator.
 
+# Arguments
+
+- `X::AbstractArray`: lifted state data, with one observation per column.
+- `Y::AbstractArray`: lifted next-state data with the same number of columns as `X`.
+- `U::AbstractArray`: optional control data for the controlled DMDc form.
+
+# Returns
+
+Return `(K, B)`, where `K` is an `Eigen` factorization and `B` is an empty matrix
+for the uncontrolled form or the learned input map for the controlled form.
+
 # Fields
 
 $(FIELDS)
@@ -53,6 +64,15 @@ $(FIELDS)
 # Signatures
 
 $(SIGNATURES)
+
+# Example
+
+```julia
+X = [1.0 2.0; 2.0 4.0]
+Y = [2.0 4.0; 4.0 8.0]
+K, B = DMDPINV()(X, Y)
+isempty(B)
+```
 """
 mutable struct DMDPINV <: AbstractKoopmanAlgorithm end;
 
@@ -89,6 +109,18 @@ where `Y` and `X = U*Σ*V'` are data matrices. The singular value decomposition 
 the `truncation` parameter, which can either be an `Int` indicating an index-based truncation or a `Real`
 indicating a tolerance-based truncation. Returns a `Eigen` factorization of the operator.
 
+# Arguments
+
+- `X::AbstractArray`: lifted state data, with one observation per column.
+- `Y::AbstractArray`: lifted next-state data with the same number of columns as `X`.
+- `U::AbstractArray`: optional control data for the controlled DMDc form.
+- `truncation`: an integer rank or a real-valued relative singular-value tolerance.
+
+# Returns
+
+Return `(K, B)`, where `K` is an `Eigen` factorization and `B` is the learned input
+map or an empty matrix when controls are absent.
+
 # Fields
 
 $(FIELDS)
@@ -96,6 +128,13 @@ $(FIELDS)
 # Signatures
 
 $(SIGNATURES)
+
+# Example
+
+```julia
+K, B = DMDSVD(1)([1.0 2.0; 2.0 4.0], [2.0 4.0; 4.0 8.0])
+size(Matrix(K)) == (1, 1)
+```
 """
 mutable struct DMDSVD{T} <: AbstractKoopmanAlgorithm where {T <: Number}
     """Indicates the truncation"""
@@ -159,6 +198,19 @@ If `rtol` ∈ (0, 1) is given, the singular value decomposition is reduced to in
 entries bigger than `rtol*maximum(Σ)`. If `rtol` is an integer, the reduced SVD up to `rtol` is used
 for computation.
 
+# Arguments
+
+- `X::AbstractArray`: lifted input data, with one observation per column.
+- `Y::AbstractArray`: lifted target data with the same number of columns as `X`.
+- `U::AbstractArray`: optional control data.
+- `truncation`: rank or relative singular-value tolerance used for the joint SVD.
+- `alg::AbstractKoopmanAlgorithm`: algorithm applied after the joint reduction.
+
+# Returns
+
+Return `(K, B)` from `alg` after the data are projected onto the retained singular
+subspace.
+
 # Fields
 
 $(FIELDS)
@@ -166,6 +218,14 @@ $(FIELDS)
 # Signatures
 
 $(SIGNATURES)
+
+# Example
+
+```julia
+alg = TOTALDMD(1, DMDPINV())
+K, B = alg([1.0 2.0; 2.0 4.0], [2.0 4.0; 4.0 8.0])
+isempty(B)
+```
 """
 mutable struct TOTALDMD{R, A} <:
     AbstractKoopmanAlgorithm where {R <: Number, A <: AbstractKoopmanAlgorithm}
@@ -204,6 +264,20 @@ It is assumed that `K = sqrt(K₁*inv(K₂))`, where `K₁` is the approximation
 If `truncation` ∈ (0, 1) is given, the singular value decomposition is reduced to include only
 entries bigger than `truncation*maximum(Σ)`. If `truncation` is an integer, the reduced SVD up to `truncation` is used for computation.
 
+# Arguments
+
+- `X::AbstractArray`: lifted input data, with one observation per column.
+- `Y::AbstractArray`: lifted target data with the same number of columns as `X`.
+- `U::AbstractArray`: optional control data. This form delegates to the wrapped
+  `DMDSVD` algorithm.
+- `truncation`: rank or relative singular-value tolerance used by the wrapped
+  `DMDSVD` algorithm.
+
+# Returns
+
+Return `(K, B)`, where `K` is an `Eigen` factorization and `B` is an empty matrix
+for uncontrolled data or the learned input map for controlled data.
+
 # Fields
 
 $(FIELDS)
@@ -211,6 +285,13 @@ $(FIELDS)
 # Signatures
 
 $(SIGNATURES)
+
+# Example
+
+```julia
+K, B = FBDMD(1)([1.0 2.0; 2.0 4.0], [2.0 4.0; 4.0 8.0])
+isempty(B)
+```
 """
 mutable struct FBDMD{R} <: AbstractKoopmanAlgorithm where {R <: Number}
     alg::DMDSVD{R}

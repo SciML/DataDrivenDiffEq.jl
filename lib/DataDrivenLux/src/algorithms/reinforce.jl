@@ -9,6 +9,20 @@ $(SIGNATURES)
 
 Uses the REINFORCE algorithm to search over the space of possible solutions to the
 symbolic regression problem.
+
+# Keywords
+
+- `reward`: [`RelativeReward`](@ref) or [`AbsoluteReward`](@ref) transform.
+- `ad_backend`: optional AbstractDifferentiation backend.
+- `optimiser`: Optimisers.jl update rule for continuous search parameters.
+- `populationsize`, `functions`, `arities`, `n_layers`, `skip`, `loss`, `keep`,
+  `use_protected`, `distributed`, `threaded`, `rng`, `optimizer`,
+  `optim_options`, `observed`, and `alpha`: forwarded to
+  [`CommonAlgOptions`](@ref).
+
+# Returns
+
+Return a differentiable [`AbstractDAGSRAlgorithm`](@ref) for population search.
 """
 function Reinforce(;
         reward = RelativeReward(false), populationsize = 100,

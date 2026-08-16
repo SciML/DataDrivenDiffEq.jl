@@ -47,6 +47,24 @@ to the symbolic regression problem.
 # Fields
 
 $(FIELDS)
+
+# Arguments
+
+- `rng`: random-number generator replicated for this candidate.
+- `model`: callable graph model.
+- `basis`: feature basis used to evaluate the dataset.
+- `dataset::Dataset`: observed data and interval bounds.
+
+# Keywords
+
+- `observed::ObservedModel`: observation likelihood model.
+- `parameterdist`: distribution and transform for basis parameters.
+- `ptype`: element type used for candidate state and parameters.
+
+# Returns
+
+Return a candidate with initialized Lux parameters, path state, scales, and
+statistical fit values.
 """
 @concrete struct Candidate <: StatisticalModel
     "Random seed"

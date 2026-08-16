@@ -29,7 +29,11 @@ A similar result holds for time continuous systems in the form of the Koopman ge
 
 ## [Algorithms](@id koopman_algorithms)
 
+The abstract algorithm below is a developer interface for extending the Koopman
+solver. Users should generally select one of the concrete algorithms.
+
 ```@docs
+DataDrivenDMD.AbstractKoopmanAlgorithm
 DMDPINV
 DMDSVD
 TOTALDMD
