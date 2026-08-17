@@ -59,3 +59,15 @@ RandomSearch
 Reinforce
 CrossEntropy
 ```
+
+## Developer API
+
+The following interfaces are for implementing DataDrivenLux algorithms and
+custom model components. Application code should use the concrete types above.
+
+```@docs
+DataDrivenLux.AbstractAlgorithmCache
+DataDrivenLux.AbstractSimplex
+DataDrivenLux.AbstractErrorModel
+DataDrivenLux.AbstractRewardScale
+```

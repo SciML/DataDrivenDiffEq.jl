@@ -43,6 +43,13 @@ using SciMLPublic: @public
 
 const AD = AbstractDifferentiation
 
+"""
+    AbstractAlgorithmCache
+
+Developer interface for the optimization state returned by a DataDrivenLux
+algorithm. Concrete caches are [`SearchCache`](@ref) values and are stored in
+the result of `solve`.
+"""
 abstract type AbstractAlgorithmCache <: AbstractDataDrivenResult end
 """
     AbstractDAGSRAlgorithm
@@ -86,10 +93,31 @@ DataDrivenLux.update_parameters!(cache::DataDrivenLux.SearchCache{<:MyDAGAlgorit
 """
 abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
 @public AbstractDAGSRAlgorithm
+"""
+    AbstractSimplex
+
+Developer interface for mappings used to normalize node weights onto the
+probability simplex. A subtype is called as `simplex(rng, output, input, κ)`.
+"""
 abstract type AbstractSimplex end
+
+"""
+    AbstractErrorModel
+
+Developer interface for observation error models. A subtype is called as
+`model(distribution, observation, prediction, scale)` and returns a log density.
+"""
 abstract type AbstractErrorModel end
+
 abstract type AbstractErrorDistribution end
 abstract type AbstractConfigurationCache <: StatisticalModel end
+
+"""
+    AbstractRewardScale{risk}
+
+Developer interface for reward transformations used by search algorithms. A
+subtype is called with a vector of losses and returns one reward per loss.
+"""
 abstract type AbstractRewardScale{risk} end
 
 """
@@ -138,6 +166,8 @@ method if it does not use the package's [`Candidate`](@ref) representation.
 function convert_to_basis end
 
 @public init_model, init_cache, update_parameters!, convert_to_basis
+@public AbstractAlgorithmCache, AbstractDAGSRAlgorithm, AbstractSimplex,
+    AbstractErrorModel, AbstractRewardScale
 
 @enum __PROCESSUSE begin
     SERIAL = 1
