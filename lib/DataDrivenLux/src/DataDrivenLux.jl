@@ -99,7 +99,6 @@ abstract type AbstractDAGSRAlgorithm <: AbstractDataDrivenAlgorithm end
 Developer interface for mappings used to normalize node weights onto the
 probability simplex. A subtype is called as `simplex(rng, output, input, κ)`.
 """
->>>>>>> 70010c20 (docs: declare sublibrary developer APIs)
 abstract type AbstractSimplex end
 
 """
