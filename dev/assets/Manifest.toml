@@ -479,7 +479,7 @@ version = "0.1.7"
 
 [[deps.DataDrivenDiffEq]]
 deps = ["CommonSolve", "DataInterpolations", "DataStructures", "DiffEqBase", "DocStringExtensions", "LinearAlgebra", "MLUtils", "ModelingToolkitBase", "Parameters", "PrecompileTools", "QuadGK", "Random", "RecipesBase", "Reexport", "SciMLBase", "SciMLPublic", "SciMLStructures", "Setfield", "Statistics", "StatsAPI", "StatsBase", "SymbolicUtils", "Symbolics"]
-path = "/home/runner/_work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl"
+path = "/home/runner/_work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/"
 uuid = "2445eb08-9709-466a-b3fc-47e12bd697a2"
 version = "1.15.5"
 
@@ -622,9 +622,9 @@ version = "1.16.0"
 
 [[deps.DifferentiationInterface]]
 deps = ["ADTypes", "LinearAlgebra"]
-git-tree-sha1 = "dbd46a5cd0e79a97438b0ebbec42e744e8f436fe"
+git-tree-sha1 = "0693d8b0a4608ff289d228ab4c598df5894845cd"
 uuid = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
-version = "0.7.20"
+version = "0.7.21"
 
     [deps.DifferentiationInterface.extensions]
     DifferentiationInterfaceChainRulesCoreExt = "ChainRulesCore"
