@@ -8,9 +8,9 @@ using DataDrivenDiffEq: ABSTRACT_CONT_PROB, ABSTRACT_DISCRETE_PROB, AbstractBasi
 using CommonSolve: CommonSolve, solve
 using DocStringExtensions: FIELDS, SIGNATURES, TYPEDEF
 using Parameters: @unpack
+using SciMLPublic: @public
 using Statistics: mean
 using StatsAPI: StatsAPI, r2
-using SciMLPublic: @public
 
 using LinearAlgebra: Diagonal, Eigen, eigen, svd
 
