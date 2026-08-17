@@ -17,6 +17,10 @@ function activate_qa_env()
 end
 
 if GROUP == "All" || GROUP == "Core" || GROUP == "DataDrivenSparse"
+    @safetestset "Developer interface" begin
+        include("./Core/developer_api.jl")
+    end
+
     @safetestset "Basic Sparse Regression" begin
         include("./Core/sparse_linear_solve.jl")
     end
