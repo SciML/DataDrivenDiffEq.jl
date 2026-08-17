@@ -21,7 +21,11 @@ SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
+DataDrivenDMD = "0.1.6"
 DataDrivenDiffEq = "1"
+DataDrivenLux = "0.2.6"
+DataDrivenSR = "0.1.7"
+DataDrivenSparse = "0.2.1"
 Documenter = "1"
 Literate = "2.14"
 LossFunctions = "1"
