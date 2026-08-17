@@ -9,6 +9,7 @@ function dev_subpkg(subpkg)
 end
 
 Pkg.develop(PackageSpec(path = abspath(joinpath(dirname(@__FILE__), ".."))))
+
 dev_subpkg("DataDrivenDMD")
 dev_subpkg("DataDrivenLux")
 dev_subpkg("DataDrivenSparse")
