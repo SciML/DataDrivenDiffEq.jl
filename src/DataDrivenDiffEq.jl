@@ -10,8 +10,8 @@ using SciMLBase: SciMLBase, isdiscrete
 using CommonSolve: CommonSolve, init
 using Reexport: @reexport
 import ModelingToolkitBase
-using ModelingToolkitBase: AbstractSystem, MTKParameters, equations, get_iv, get_observed,
-    independent_variable, observed, parameters, unknowns
+using ModelingToolkitBase: @parameters, AbstractSystem, MTKParameters, equations, get_iv,
+    get_observed, independent_variable, observed, parameters, unknowns
 
 using Parameters: @unpack, @with_kw
 using Setfield: @set!
@@ -31,10 +31,13 @@ using Random: Random, shuffle
 using QuadGK: quadgk
 using Statistics: mean, median
 using StatsBase: StatsBase, UnitRangeTransform, ZScoreTransform, summarystats
-using StatsAPI: StatsAPI, StatisticalModel, bic, dof, fit, nobs, r2, rss
+using StatsAPI: StatsAPI, StatisticalModel, aic, aicc, bic, dof, fit, loglikelihood,
+    nobs, nullloglikelihood, r2, rss
 
 import DataInterpolations
-using DataInterpolations: LinearInterpolation
+using DataInterpolations: BSplineApprox, BSplineInterpolation, ConstantInterpolation,
+    CubicSpline, Curvefit, LagrangeInterpolation, LinearInterpolation,
+    QuadraticInterpolation, QuadraticSpline
 
 using MLUtils: splitobs, DataLoader
 
@@ -270,6 +273,32 @@ include("./commonsolve.jl")
 include("./solution.jl")
 export DataDrivenSolution
 export get_algorithm, get_results, get_basis, is_converged, get_problem
+
+# Reexported upstream API, approved via `reexports_allow` in test/qa/qa.jl, so that
+# `using DataDrivenDiffEq` on its own is enough to write a `Basis`, choose a collocation
+# method, normalize and batch the data, and inspect the recovered system. Every name
+# stays owned and documented by its upstream package.
+
+# The symbolic DSL a `Basis` is written in.
+export @variables, @parameters, Differential, Equation, Num, build_function, get_variables
+
+# The ModelingToolkitBase accessors that expose a recovered `Basis` as a symbolic system;
+# see the `AbstractBasis` docstring above.
+export equations, get_iv, get_observed, independent_variable, observed, parameters,
+    unknowns
+
+# The `StatsAPI`/`StatsBase` statistical interface implemented by `DataDrivenSolution` and
+# the algorithm results; see the "Statistical interface" section of the solutions docs.
+export aic, aicc, bic, dof, loglikelihood, nobs, nullloglikelihood, r2, rss, summarystats
+
+# The `DataInterpolations` methods that can be wrapped by `InterpolationMethod` to supply
+# derivatives to a `ContinuousDataDrivenProblem`.
+export BSplineApprox, BSplineInterpolation, ConstantInterpolation, CubicSpline, Curvefit,
+    LagrangeInterpolation, LinearInterpolation, QuadraticInterpolation, QuadraticSpline
+
+# The batching and normalization types named by `DataProcessing` and `DataNormalization`.
+export DataLoader, splitobs
+export UnitRangeTransform, ZScoreTransform
 
 @public AbstractBasis, AbstractDataDrivenAlgorithm, AbstractDataDrivenResult,
     AbstractDataDrivenProblem, ABSTRACT_DIRECT_PROB, ABSTRACT_DISCRETE_PROB,

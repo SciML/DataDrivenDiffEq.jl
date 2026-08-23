@@ -15,6 +15,12 @@ using StatsAPI: StatsAPI, r2
 using Symbolics: Symbolics, Differential, Num, substitute
 
 import SymbolicRegression
+# Reexported so that `using DataDrivenSR` on its own is enough to configure `EQSearch`,
+# the way the tutorials do (`eq_options = SymbolicRegression.Options(...)`). Approved via
+# `reexports_allow` in test/qa/qa.jl; the rest of the SymbolicRegression surface stays
+# behind `using SymbolicRegression`.
+using SymbolicRegression: Options
+export SymbolicRegression, Options
 
 """
 $(TYPEDEF)
@@ -46,7 +52,6 @@ $(FIELDS)
 
 ```julia
 using DataDrivenSR
-using SymbolicRegression: Options
 
 algorithm = EQSearch(
     eq_options = Options(binary_operators = [+, *], unary_operators = [sin])
