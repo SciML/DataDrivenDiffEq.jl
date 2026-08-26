@@ -52,9 +52,10 @@ $(FIELDS)
 
 ```julia
 using DataDrivenSR
+using SymbolicRegression: OperatorEnum, Options
 
 algorithm = EQSearch(
-    eq_options = Options(binary_operators = [+, *], unary_operators = [sin])
+    eq_options = Options(operators = OperatorEnum(1 => (sin,), 2 => (+, *)))
 )
 ```
 """
@@ -72,7 +73,9 @@ algorithm = EQSearch(
     "Whether to run (quick) tests before starting the search, to see if there will be any problems during the equation search related to the host environment"
     runtests::Bool = true
     "Options for `equation_search`"
-    eq_options::SymbolicRegression.Options = SymbolicRegression.Options()
+    eq_options::SymbolicRegression.Options = SymbolicRegression.Options(
+        operators = SymbolicRegression.OperatorEnum(1 => (), 2 => ())
+    )
 end
 
 struct SRResult{H, P, T} <: AbstractDataDrivenResult

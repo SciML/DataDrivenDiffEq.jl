@@ -12,8 +12,8 @@ X = rand(rng, 2, 50)
 @testset "Simple" begin
     alg = DataDrivenSR.EQSearch(
         eq_options = SymbolicRegression.Options(
-            unary_operators = [sin, exp],
-            binary_operators = [*], maxdepth = 1,
+            operators = SymbolicRegression.OperatorEnum(1 => (sin, exp), 2 => (*,)),
+            maxdepth = 2,
             seed = 42,
             verbosity = -1, progress = false
         )
@@ -29,8 +29,8 @@ end
 @testset "Univariate" begin
     alg = DataDrivenSR.EQSearch(
         eq_options = SymbolicRegression.Options(
-            unary_operators = [sin, exp],
-            binary_operators = [*], maxdepth = 1,
+            operators = SymbolicRegression.OperatorEnum(1 => (sin, exp), 2 => (*,)),
+            maxdepth = 2,
             seed = 42,
             verbosity = -1, progress = false
         )
@@ -46,8 +46,8 @@ end
 @testset "Lifted" begin
     alg = DataDrivenSR.EQSearch(
         eq_options = SymbolicRegression.Options(
-            unary_operators = [sin, exp],
-            binary_operators = [+], maxdepth = 1,
+            operators = SymbolicRegression.OperatorEnum(1 => (sin, exp), 2 => (+,)),
+            maxdepth = 2,
             seed = 42,
             verbosity = -1, progress = false
         )
