@@ -33,7 +33,7 @@ using ComponentArrays: ComponentArrays, ComponentVector
 
 using IntervalArithmetic: IntervalArithmetic, Interval, interval
 using ProgressMeter: ProgressMeter
-using AbstractDifferentiation: AbstractDifferentiation
+using DifferentiationInterface: DifferentiationInterface, gradient
 using ForwardDiff: ForwardDiff
 
 using Logging: Logging, NullLogger, with_logger
@@ -41,7 +41,7 @@ using Random: Random, AbstractRNG
 using Distributed: Distributed, pmap
 using SciMLPublic: @public
 
-const AD = AbstractDifferentiation
+const AD = DifferentiationInterface
 
 """
     AbstractAlgorithmCache

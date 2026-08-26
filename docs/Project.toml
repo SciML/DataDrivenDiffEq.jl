@@ -20,6 +20,13 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
+[sources]
+DataDrivenDMD = {path = "../lib/DataDrivenDMD"}
+DataDrivenDiffEq = {path = "/home/crackauc/sandbox/tmp_20260826_075752_67903/docs-scan/work/DataDrivenDiffEq.jl"}
+DataDrivenLux = {path = "../lib/DataDrivenLux"}
+DataDrivenSR = {path = "../lib/DataDrivenSR"}
+DataDrivenSparse = {path = "../lib/DataDrivenSparse"}
+
 [compat]
 DataDrivenDMD = "0.1.6"
 DataDrivenDiffEq = "1"

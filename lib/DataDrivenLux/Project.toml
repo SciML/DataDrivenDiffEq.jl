@@ -4,7 +4,7 @@ version = "0.2.7"
 authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 
 [deps]
-AbstractDifferentiation = "c29ec348-61ec-40c8-8164-b8c60e9d9f3d"
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
@@ -37,7 +37,7 @@ WeightInitializers = "d49dbf32-c5c2-4618-8acc-27bb2598ef2d"
 DataDrivenDiffEq = {path = "../.."}
 
 [compat]
-AbstractDifferentiation = "0.6.2"
+DifferentiationInterface = "0.6, 0.7"
 ChainRulesCore = "1.15"
 CommonSolve = "0.2.6"
 ComponentArrays = "0.15.40"

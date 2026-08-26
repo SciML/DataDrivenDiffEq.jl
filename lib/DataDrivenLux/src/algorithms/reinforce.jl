@@ -13,7 +13,7 @@ symbolic regression problem.
 # Keywords
 
 - `reward`: [`RelativeReward`](@ref) or [`AbsoluteReward`](@ref) transform.
-- `ad_backend`: optional AbstractDifferentiation backend.
+- `ad_backend`: optional DifferentiationInterface backend.
 - `optimiser`: Optimisers.jl update rule for continuous search parameters.
 - `populationsize`, `functions`, `arities`, `n_layers`, `skip`, `loss`, `keep`,
   `use_protected`, `distributed`, `threaded`, `rng`, `optimizer`,
@@ -65,7 +65,7 @@ function update_parameters!(cache::SearchCache{<:Reinforce})
     ∇p = if isnothing(ad_backend)
         ForwardDiff.gradient(loss, p)
     else
-        first(AD.gradient(ad_backend, loss, p))
+        gradient(loss, ad_backend, p)
     end
     opt_state, p_ = Optimisers.update!(optimiser_state, p[:], ∇p[:])
     cache.p .= p_
