@@ -40,8 +40,8 @@ prob = ContinuousDataDrivenProblem(X, t, U = U)
 # We will stick to simple operations, use a `L1DistLoss`, and limit the verbosity of the algorithm.
 
 eqsearch_options = SymbolicRegression.Options(
-    binary_operators = [+, *],
-    loss = L1DistLoss(),
+    operators = SymbolicRegression.OperatorEnum(1 => (), 2 => (+, *)),
+    elementwise_loss = L1DistLoss(),
     verbosity = -1, progress = false, npop = 30,
     timeout_in_seconds = 60.0
 )
