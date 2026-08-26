@@ -185,14 +185,14 @@ function DataDrivenProblem(
         DX::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
         Y::AbstractMatrix = Array{eltype(X)}(undef, 0, 0),
         U::F = Array{eltype(X)}(undef, 0, 0),
-        p::Union{AbstractVector, MTKParameters} = Array{eltype(X)}(undef, 0),
+        p = Array{eltype(X)}(undef, 0),
         probtype = nothing,
         kwargs...
     ) where {F <: Union{AbstractMatrix, Function}}
-    if SS.isscimlstructure(p)
-        _p, _, _ = SS.canonicalize(SS.Tunable(), p)
-    else
-        _p = p
+    _p = isdefined(SciMLBase, :unwrap_parameters) ?
+        getproperty(SciMLBase, :unwrap_parameters)(p) : p
+    if SS.isscimlstructure(_p)
+        _p, _, _ = SS.canonicalize(SS.Tunable(), _p)
     end
     return DataDrivenProblem(probtype, X, t, DX, Y, U, _p; kwargs...)
 end

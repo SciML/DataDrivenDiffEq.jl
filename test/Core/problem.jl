@@ -1,6 +1,7 @@
 using DataDrivenDiffEq, Test
 using LinearAlgebra
 using ModelingToolkit
+import SciMLBase
 
 # Generate some test data
 t = collect(0:0.1:5.0)
@@ -47,6 +48,11 @@ end
     @test is_parametrized(p6)
     @test isequal(p6.p, p)
     @test has_timepoints(p4)
+
+    if isdefined(SciMLBase, :DespecializedParameters)
+        wrapped_p = getproperty(SciMLBase, :DespecializedParameters)(p)
+        @test isequal(ContinuousDataDrivenProblem(X, DX; p = wrapped_p).p, p)
+    end
 end
 
 @testset "DirectProblem" begin
