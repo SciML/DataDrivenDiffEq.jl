@@ -22,7 +22,7 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [sources]
 DataDrivenDMD = {path = "../lib/DataDrivenDMD"}
-DataDrivenDiffEq = {path = "/home/crackauc/sandbox/tmp_20260826_075752_67903/docs-scan/work/DataDrivenDiffEq.jl"}
+DataDrivenDiffEq = {path = ".."}
 DataDrivenLux = {path = "../lib/DataDrivenLux"}
 DataDrivenSR = {path = "../lib/DataDrivenSR"}
 DataDrivenSparse = {path = "../lib/DataDrivenSparse"}
