@@ -10,8 +10,8 @@ using SciMLBase: SciMLBase, isdiscrete
 using CommonSolve: CommonSolve, init
 using Reexport: @reexport
 import ModelingToolkitBase
-using ModelingToolkitBase: @parameters, AbstractSystem, MTKParameters, equations, get_iv,
-    get_observed, independent_variable, observed, parameters, unknowns
+using ModelingToolkitBase: @parameters, AbstractSystem, equations, get_iv, get_observed,
+    independent_variable, observed, parameters, unknowns
 
 using Parameters: @unpack, @with_kw
 using Setfield: @set!
