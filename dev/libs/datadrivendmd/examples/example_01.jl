@@ -2,6 +2,7 @@ using DataDrivenDiffEq
 using LinearAlgebra
 using OrdinaryDiffEq
 using OrdinaryDiffEqFunctionMap
+using SciMLBase: DiscreteProblem
 using DataDrivenDMD
 using StatsAPI: dof, r2, rss
 

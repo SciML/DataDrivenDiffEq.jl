@@ -22,8 +22,8 @@ U = permutedims(sin.(0.5 * t))
 prob = ContinuousDataDrivenProblem(X, t, U = U)
 
 eqsearch_options = SymbolicRegression.Options(
-    binary_operators = [+, *],
-    loss = L1DistLoss(),
+    operators = SymbolicRegression.OperatorEnum(1 => (), 2 => (+, *)),
+    elementwise_loss = L1DistLoss(),
     verbosity = -1, progress = false, npop = 30,
     timeout_in_seconds = 60.0
 )
