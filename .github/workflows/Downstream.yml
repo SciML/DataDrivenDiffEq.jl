@@ -39,7 +39,11 @@ jobs:
         run: |
           using Pkg
           Pkg.develop(PackageSpec(path="."))
-          Pkg.develop(PackageSpec(path="lib/DataDrivenSparse"))
+          if isdir("lib")
+              Pkg.develop(map(name -> PackageSpec(; path = joinpath("lib", name)),
+                              filter(name -> isfile(joinpath("lib", name, "Project.toml")),
+                                     readdir("lib"))))
+          end
           Pkg.update()
           Pkg.test(coverage=true)
       - uses: julia-actions/julia-processcoverage@v1
