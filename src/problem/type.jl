@@ -189,8 +189,10 @@ function DataDrivenProblem(
         probtype = nothing,
         kwargs...
     ) where {F <: Union{AbstractMatrix, Function}}
-    _p = isdefined(SciMLBase, :unwrap_parameters) ?
-        getproperty(SciMLBase, :unwrap_parameters)(p) : p
+    _p = p
+    if isdefined(SciMLBase, :unwrap_parameters)
+        _p = getproperty(SciMLBase, :unwrap_parameters)(_p)
+    end
     if SS.isscimlstructure(_p)
         _p, _, _ = SS.canonicalize(SS.Tunable(), _p)
     end
