@@ -56,7 +56,7 @@ Statistics = "1"
 StatsBase = "0.34"
 StatsAPI = "1.1"
 SymbolicUtils = "4"
-Symbolics = "7.18.1"
+Symbolics = "7.37"
 Test = "1"
 julia = "1.10"
 

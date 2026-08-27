@@ -43,10 +43,12 @@ function Dataset(
     U = convert.(T, U)
     t = convert.(T, t)
     t = isempty(t) ? convert.(T, LinRange(0, size(Y, 2) - 1, size(Y, 2))) : convert.(T, t)
-    x_intervals = interval.(map(extrema, eachrow(X)))
-    y_intervals = interval.(map(extrema, eachrow(Y)))
-    u_intervals = interval.(map(extrema, eachrow(U)))
-    t_intervals = isempty(t) ? interval(zero(T), zero(T)) : interval(extrema(t))
+    # IA 1.x `interval(x)` treats a Tuple as one endpoint and hits `_interval_infsup(::Type{Any}, ...)`.
+    # Splatting extrema into two endpoints matches the public `interval(lo, hi)` API.
+    x_intervals = [interval(lo, hi) for (lo, hi) in map(extrema, eachrow(X))]
+    y_intervals = [interval(lo, hi) for (lo, hi) in map(extrema, eachrow(Y))]
+    u_intervals = [interval(lo, hi) for (lo, hi) in map(extrema, eachrow(U))]
+    t_intervals = isempty(t) ? interval(zero(T), zero(T)) : interval(extrema(t)...)
     return Dataset{T}(X, Y, U, t, x_intervals, y_intervals, u_intervals, t_intervals)
 end
 
