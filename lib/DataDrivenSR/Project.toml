@@ -1,7 +1,7 @@
 name = "DataDrivenSR"
 uuid = "7fed8a53-d475-4873-af3a-ba53cceea094"
 authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
-version = "0.1.8"
+version = "0.1.9"
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
