@@ -34,7 +34,7 @@ for (data, _interval) in zip(
         (X, Y, 1:size(X, 2)),
         (dummy_dataset.x_intervals[1], dummy_dataset.y_intervals[1], dummy_dataset.t_interval)
     )
-    @test isequal_interval(_interval, interval(extrema(data)))
+    @test isequal_interval(_interval, interval(extrema(data)...))
 end
 
 # We have 1 Choices in the first layer, 2 in the last
