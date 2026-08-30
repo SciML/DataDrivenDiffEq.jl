@@ -1,6 +1,6 @@
 name = "DataDrivenLux"
 uuid = "47881146-99d0-492a-8425-8f2f33327637"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 
 [deps]
