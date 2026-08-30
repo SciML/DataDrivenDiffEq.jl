@@ -181,6 +181,19 @@ end
 
 initial_values(c::Candidate) = ComponentVector(; c.scales, c.parameters)
 
+function _optim_converged(result)
+    status = result.stopped_by
+    convergence_reached = status.x_converged || status.f_converged || status.g_converged
+    x_isfinite = isfinite(result.x_abschange) || isnan(result.x_relchange)
+    f_isfinite = if status.iterations > 0
+        isfinite(result.f_abschange) || isnan(result.f_relchange)
+    else
+        true
+    end
+    g_isfinite = isfinite(result.g_residual)
+    return convergence_reached && all((x_isfinite, f_isfinite, g_isfinite))
+end
+
 function optimize_candidate!(
         c::Candidate, dataset::Dataset{T}, ps = c.ps; optimizer = Optim.LBFGS(),
         options = nothing
@@ -199,7 +212,7 @@ function optimize_candidate!(
                 return Optim.optimize(loss, p_init, optimizer, options)
             end
 
-            if Optim.converged(res)
+            if _optim_converged(res)
                 c.outgoing_path .= path
                 @set! c.st = st
                 c.parameters .= res.minimizer.parameters

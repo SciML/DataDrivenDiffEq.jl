@@ -63,7 +63,7 @@ function update_parameters!(cache::SearchCache{<:Reinforce})
 
     loss = p -> reinforce_loss(candidates[keeps], p, alg)
     ∇p = if isnothing(ad_backend)
-        ForwardDiff.gradient(loss, p)
+        gradient(loss, AutoForwardDiff(), p)
     else
         gradient(loss, ad_backend, p)
     end
