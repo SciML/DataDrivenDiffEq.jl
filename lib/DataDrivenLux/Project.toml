@@ -4,6 +4,7 @@ version = "0.3.0"
 authors = ["JuliusMartensen <julius.martensen@gmail.com>"]
 
 [deps]
+ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
@@ -37,6 +38,7 @@ WeightInitializers = "d49dbf32-c5c2-4618-8acc-27bb2598ef2d"
 DataDrivenDiffEq = {path = "../.."}
 
 [compat]
+ADTypes = "1"
 DifferentiationInterface = "0.6, 0.7"
 ChainRulesCore = "1.15"
 CommonSolve = "0.2.6"

@@ -33,6 +33,7 @@ using ComponentArrays: ComponentArrays, ComponentVector
 
 using IntervalArithmetic: IntervalArithmetic, Interval, interval
 using ProgressMeter: ProgressMeter
+using ADTypes: AutoForwardDiff
 using DifferentiationInterface: DifferentiationInterface, gradient
 using ForwardDiff: ForwardDiff
 

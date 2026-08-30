@@ -4,11 +4,22 @@ using IntervalArithmetic
 using Distributions
 using Random
 using Lux
+using Optim
 using Test
 using StableRNGs
 using StatsAPI: nobs, r2, rss
 using Symbolics: @variables
 using ModelingToolkitBase: @parameters
+
+@testset "Optim convergence" begin
+    result = Optim.optimize(x -> sum(abs2, x), ones(2), Optim.LBFGS())
+    @test DataDrivenLux._optim_converged(result)
+
+    result = Optim.optimize(
+        x -> sum(abs2, x), ones(2), Optim.LBFGS(), Optim.Options(iterations = 0)
+    )
+    @test !DataDrivenLux._optim_converged(result)
+end
 
 @testset "Candidate without choice" begin
     fs = (x -> x^2,)
