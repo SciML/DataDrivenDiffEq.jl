@@ -30,7 +30,7 @@ DataDrivenSparse = {path = "../lib/DataDrivenSparse"}
 [compat]
 DataDrivenDMD = "0.1.6"
 DataDrivenDiffEq = "1"
-DataDrivenLux = "0.2.6"
+DataDrivenLux = "0.3"
 DataDrivenSR = "0.1.7"
 DataDrivenSparse = "0.2.1"
 Documenter = "1"
