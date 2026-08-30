@@ -73,10 +73,10 @@ end
     st_symbols = [gensym() for _ in 1:N]
     calls = [
         :(
-                $(st_symbols[i]) = get_loglikelihood(
-                    layers.$(fields[i]), ps.$(fields[i]), st.$(fields[i])
-                )
-            ) for i in 1:N
+            $(st_symbols[i]) = get_loglikelihood(
+                layers.$(fields[i]), ps.$(fields[i]), st.$(fields[i])
+            )
+        ) for i in 1:N
     ]
     push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
     return Expr(:block, calls...)
@@ -89,10 +89,10 @@ end
     st_symbols = [gensym() for _ in 1:N]
     calls = [
         :(
-                $(st_symbols[i]) = get_configuration(
-                    layers.$(fields[i]), ps.$(fields[i]), st.$(fields[i])
-                )
-            ) for i in 1:N
+            $(st_symbols[i]) = get_configuration(
+                layers.$(fields[i]), ps.$(fields[i]), st.$(fields[i])
+            )
+        ) for i in 1:N
     ]
     push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
     return Expr(:block, calls...)
