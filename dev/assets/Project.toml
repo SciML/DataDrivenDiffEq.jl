@@ -21,16 +21,16 @@ SymbolicRegression = "8254be44-1295-4e6a-a16d-46603ac705cb"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [sources]
-DataDrivenDMD = {path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD"}
-DataDrivenDiffEq = {path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/"}
-DataDrivenLux = {path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenLux"}
-DataDrivenSR = {path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSR"}
-DataDrivenSparse = {path = "/home/runner/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSparse"}
+DataDrivenDMD = {path = "/home/runner/_work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD"}
+DataDrivenDiffEq = {path = "/home/runner/_work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/"}
+DataDrivenLux = {path = "/home/runner/_work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenLux"}
+DataDrivenSR = {path = "/home/runner/_work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSR"}
+DataDrivenSparse = {path = "/home/runner/_work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSparse"}
 
 [compat]
 DataDrivenDMD = "0.1.6"
 DataDrivenDiffEq = "1"
-DataDrivenLux = "0.2.6"
+DataDrivenLux = "0.3"
 DataDrivenSR = "0.1.7"
 DataDrivenSparse = "0.2.1"
 Documenter = "1"
