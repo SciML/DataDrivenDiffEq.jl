@@ -5,6 +5,7 @@ version = "1.16.0"
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
+CurveFit = "5a033b19-8c74-5913-a970-47c3779ef25c"
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
@@ -30,7 +31,8 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
 CommonSolve = "0.2"
-DataInterpolations = "9.0"
+CurveFit = "1.8.1"
+DataInterpolations = "9.2, 10"
 DataStructures = "0.19"
 DiffEqBase = "7"
 DocStringExtensions = "0.9"

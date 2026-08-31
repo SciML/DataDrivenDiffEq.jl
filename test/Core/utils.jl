@@ -3,6 +3,20 @@ using DataDrivenDiffEq: collocate_data
 using DataInterpolations: CubicSpline, LinearInterpolation, QuadraticInterpolation
 using LinearAlgebra
 
+@testset "DataInterpolations reexports" begin
+    t = collect(0.0:1.0:5.0)
+    model(t, p) = @. p[1] + p[2] * t
+    u = model(t, [1.0, 2.0])
+
+    curvefit = Curvefit(u, t, model, [0.5, 1.5])
+    @test curvefit.(t) ≈ u
+
+    interpolation = BSplineInterpolation(u, t, 3, :Average)
+    approximation = BSplineApprox(u, t, 3, 4, :Average)
+    @test interpolation.(t) ≈ u
+    @test all(isfinite, approximation.(t))
+end
+
 @testset "Optimal Shrinkage" begin
     t = collect(-2:0.01:2)
     U = [cos.(t) .* exp.(-t .^ 2) sin.(2 * t)]
