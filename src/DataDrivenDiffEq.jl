@@ -34,6 +34,7 @@ using StatsBase: StatsBase, UnitRangeTransform, ZScoreTransform, summarystats
 using StatsAPI: StatsAPI, StatisticalModel, aic, aicc, bic, dof, fit, loglikelihood,
     nobs, nullloglikelihood, r2, rss
 
+import CurveFit
 import DataInterpolations
 using DataInterpolations: BSplineApprox, BSplineInterpolation, ConstantInterpolation,
     CubicSpline, Curvefit, LagrangeInterpolation, LinearInterpolation,

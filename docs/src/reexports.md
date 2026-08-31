@@ -84,7 +84,9 @@ Owned and documented by
 [DataInterpolations](https://docs.sciml.ai/DataInterpolations/stable/). The rest of
 the DataInterpolations surface — the remaining interpolation types, the derivative and
 integral interfaces, and the caching options — must be imported from
-DataInterpolations directly. DataDrivenDiffEq's own kernel-based collocation
+DataInterpolations directly. `Curvefit` uses CurveFit.jl's nonlinear least-squares
+algorithms, which DataDrivenDiffEq loads when it provides this reexport. DataDrivenDiffEq's
+own kernel-based collocation
 (`EpanechnikovKernel`, `GaussianKernel`, `collocate_data`, …) is documented under
 [Utilities](utils.md).
 
