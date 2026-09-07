@@ -54,7 +54,7 @@ Parameters:
    p₄ : -1.0
    p₅ : -1.0
    p₆ : 1.0
-   p₇ : -2.7</code></pre><p><img src="https://raw.githubusercontent.com/SciML/DataDrivenDiffEq.jl/master/LorenzResult.png" alt/></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/ada1a846ee98343de0a6cc9aa4ec3af288e71d50/src/DataDrivenDiffEq.jl#L1">source</a></section></details></article><p>The methods in this package take in data and return the model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete, continuous differential equations or direct mappings.</p><p>There are two main types of estimation, depending on if you need the result to be human-understandable:</p><ul><li>Structural identification - returns a human-readable result in symbolic form.</li><li>Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human-readable.</li></ul><p>A quick-start example:</p><pre><code class="language-julia hljs">using DataDrivenDiffEq
+   p₇ : -2.7</code></pre><p><img src="https://raw.githubusercontent.com/SciML/DataDrivenDiffEq.jl/master/LorenzResult.png" alt/></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/SciML/DataDrivenDiffEq.jl/blob/2d37119aab5e04fdcf8eee5408170f636cb41fe9/src/DataDrivenDiffEq.jl#L1">source</a></section></details></article><p>The methods in this package take in data and return the model which generated the data. A known model is not required as input. These methods can estimate equation-free and equation-based models for discrete, continuous differential equations or direct mappings.</p><p>There are two main types of estimation, depending on if you need the result to be human-understandable:</p><ul><li>Structural identification - returns a human-readable result in symbolic form.</li><li>Structural estimation - returns a function that predicts the derivative and generates a correct time series, but is not necessarily human-readable.</li></ul><p>A quick-start example:</p><pre><code class="language-julia hljs">using DataDrivenDiffEq
 using ModelingToolkit
 using OrdinaryDiffEq
 using DataDrivenSparse
@@ -96,8 +96,8 @@ Pkg.add(&quot;DataDrivenDiffEq&quot;)</code></pre><h2 id="Package-Overview"><a c
 Pkg.add(&quot;DataDrivenDMD&quot;)</code></pre><h3 id="Sparse-Regression"><a class="docs-heading-anchor" href="#Sparse-Regression">Sparse Regression</a><a id="Sparse-Regression-1"></a><a class="docs-heading-anchor-permalink" href="#Sparse-Regression" title="Permalink"></a></h3><p>Uses Sparse Regression algorithms to find a suitable and sparse combination of basis functions to approximate a system of (differential) equations.</p><p>To use this functionality, install <a href="libs/datadrivensparse/sparse_regression/#DataDrivenSparse">DataDrivenSparse</a> via:</p><pre><code class="language-julia hljs">using Pkg
 Pkg.add(&quot;DataDrivenSparse&quot;)</code></pre><h3 id="Symbolic-Regression"><a class="docs-heading-anchor" href="#Symbolic-Regression">Symbolic Regression</a><a id="Symbolic-Regression-1"></a><a class="docs-heading-anchor-permalink" href="#Symbolic-Regression" title="Permalink"></a></h3><p>Uses SymbolicRegression.jl to find a suitable set of equations to match the data.</p><p>To use this functionality, install <a href="libs/datadrivensr/symbolic_regression/#DataDrivenSR">DataDrivenSR</a> via:</p><pre><code class="language-julia hljs">using Pkg
 Pkg.add(&quot;DataDrivenSR&quot;)</code></pre><h2 id="Contributing"><a class="docs-heading-anchor" href="#Contributing">Contributing</a><a id="Contributing-1"></a><a class="docs-heading-anchor-permalink" href="#Contributing" title="Permalink"></a></h2><ul><li><p>Please refer to the <a href="https://github.com/SciML/ColPrac">SciML ColPrac: Contributor&#39;s Guide on Collaborative Practices for Community Packages</a> for guidance on PRs, issues, and other matters relating to contributing to SciML.</p></li><li><p>See the <a href="https://github.com/SciML/SciMLStyle">SciML Style Guide</a> for common coding practices and other style decisions.</p></li><li><p>There are a few community forums:</p><ul><li>The #diffeq-bridged and #sciml-bridged channels in the <a href="https://julialang.org/slack/">Julia Slack</a>. You can message @AlCap23 to start a discussion.</li><li>The #diffeq-bridged and #sciml-bridged channels in the <a href="https://julialang.zulipchat.com/#narrow/stream/279055-sciml-bridged">Julia Zulip</a></li><li>On the <a href="https://discourse.julialang.org">Julia Discourse forums</a></li><li>See also <a href="https://sciml.ai/community/">SciML Community page</a></li></ul></li></ul><h2 id="Reproducibility"><a class="docs-heading-anchor" href="#Reproducibility">Reproducibility</a><a id="Reproducibility-1"></a><a class="docs-heading-anchor-permalink" href="#Reproducibility" title="Permalink"></a></h2><details><summary>The documentation of this SciML package was built using these direct dependencies,</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr32"><span class="sgr1">Status</span></span> `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/docs/Project.toml`
-  <span class="sgr90">[3c9adf31] </span>DataDrivenDMD v0.1.7 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD`
-  <span class="sgr90">[2445eb08] </span>DataDrivenDiffEq v1.16.0 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl`
+  <span class="sgr90">[3c9adf31] </span>DataDrivenDMD v0.1.8 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD`
+  <span class="sgr90">[2445eb08] </span>DataDrivenDiffEq v1.16.1 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl`
   <span class="sgr90">[47881146] </span>DataDrivenLux v0.3.1 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenLux`
   <span class="sgr90">[7fed8a53] </span>DataDrivenSR v0.1.9 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSR`
   <span class="sgr90">[5b588203] </span>DataDrivenSparse v0.2.2 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSparse`
@@ -109,21 +109,22 @@ Pkg.add(&quot;DataDrivenSR&quot;)</code></pre><h2 id="Contributing"><a class="do
   <span class="sgr90">[1dea7af3] </span>OrdinaryDiffEq v7.8.1
   <span class="sgr90">[d3585ca7] </span>OrdinaryDiffEqFunctionMap v2.3.0
   <span class="sgr90">[91a5bcdd] </span>Plots v1.41.7
-  <span class="sgr90">[0bca4576] </span>SciMLBase v3.50.2
+<span class="sgr32">⌃</span> <span class="sgr90">[0bca4576] </span>SciMLBase v3.51.0
   <span class="sgr90">[860ef19b] </span>StableRNGs v1.0.4
   <span class="sgr90">[82ae8749] </span>StatsAPI v1.8.0
   <span class="sgr90">[2913bbd2] </span>StatsBase v0.34.13
-  <span class="sgr90">[8254be44] </span>SymbolicRegression v2.2.1
+  <span class="sgr90">[8254be44] </span>SymbolicRegression v2.4.0
   <span class="sgr90">[0c5d862f] </span>Symbolics v7.39.0
-  <span class="sgr90">[37e2e46d] </span>LinearAlgebra v1.12.0</code></pre></details><details><summary>and using this machine and Julia version.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Julia Version 1.12.7
+  <span class="sgr90">[37e2e46d] </span>LinearAlgebra v1.12.0
+<span class="sgr36"><span class="sgr1">Info</span></span> Packages marked with <span class="sgr32">⌃</span> have new versions available and may be upgradable.</code></pre></details><details><summary>and using this machine and Julia version.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Julia Version 1.12.7
 Commit 6d172b025e4 (2026-08-15 08:05 UTC)
 Build Info:
   Official https://julialang.org release
 Platform Info:
   OS: Linux (x86_64-linux-gnu)
-  CPU: 4 × Intel(R) Xeon(R) 6973P-C
+  CPU: 4 × AMD EPYC 9V74 80-Core Processor
   WORD_SIZE: 64
-  LLVM: libLLVM-18.1.7 (ORCJIT, graniterapids)
+  LLVM: libLLVM-18.1.7 (ORCJIT, znver4)
   GC: Built with stock GC
 Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)</code></pre></details><details><summary>A more complete overview of all dependencies and their versions is also provided.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr32"><span class="sgr1">Status</span></span> `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/docs/Manifest.toml`
   <span class="sgr90">[47edcb42] </span>ADTypes v1.24.0
@@ -159,7 +160,7 @@ Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
 <span class="sgr33">⌅</span> <span class="sgr90">[861a8166] </span>Combinatorics v1.0.2
   <span class="sgr90">[38540f10] </span>CommonSolve v0.2.14
   <span class="sgr90">[bbf7d656] </span>CommonSubexpressions v0.3.1
-  <span class="sgr90">[f70d9fcc] </span>CommonWorldInvalidations v1.2.1
+  <span class="sgr90">[f70d9fcc] </span>CommonWorldInvalidations v1.2.2
   <span class="sgr90">[34da2185] </span>Compat v4.18.1
   <span class="sgr90">[b0b7db55] </span>ComponentArrays v0.15.48
   <span class="sgr90">[b152e2b5] </span>CompositeTypes v0.1.4
@@ -172,8 +173,8 @@ Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   <span class="sgr90">[a8cc5b0e] </span>Crayons v4.2.0
   <span class="sgr90">[5a033b19] </span>CurveFit v1.11.5
   <span class="sgr90">[9a962f9c] </span>DataAPI v1.16.0
-  <span class="sgr90">[3c9adf31] </span>DataDrivenDMD v0.1.7 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD`
-  <span class="sgr90">[2445eb08] </span>DataDrivenDiffEq v1.16.0 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl`
+  <span class="sgr90">[3c9adf31] </span>DataDrivenDMD v0.1.8 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenDMD`
+  <span class="sgr90">[2445eb08] </span>DataDrivenDiffEq v1.16.1 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl`
   <span class="sgr90">[47881146] </span>DataDrivenLux v0.3.1 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenLux`
   <span class="sgr90">[7fed8a53] </span>DataDrivenSR v0.1.9 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSR`
   <span class="sgr90">[5b588203] </span>DataDrivenSparse v0.2.2 `~/work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenSparse`
@@ -236,7 +237,7 @@ Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   <span class="sgr90">[82899510] </span>IteratorInterfaceExtensions v1.0.0
   <span class="sgr90">[1019f520] </span>JLFzf v0.1.11
   <span class="sgr90">[692b3bcd] </span>JLLWrappers v1.8.0
-  <span class="sgr90">[682c06a0] </span>JSON v1.7.1
+  <span class="sgr90">[682c06a0] </span>JSON v1.8.0
   <span class="sgr90">[ae98c720] </span>Jieko v0.2.1
   <span class="sgr90">[ccbc3e58] </span>JumpProcesses v9.32.0
   <span class="sgr90">[63c18a36] </span>KernelAbstractions v0.9.42
@@ -275,7 +276,7 @@ Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   <span class="sgr90">[872c559c] </span>NNlib v0.9.45
   <span class="sgr90">[77ba4419] </span>NaNMath v1.1.4
   <span class="sgr90">[8913a72c] </span>NonlinearSolve v4.29.1
-  <span class="sgr90">[be0214bd] </span>NonlinearSolveBase v2.49.2
+  <span class="sgr90">[be0214bd] </span>NonlinearSolveBase v2.49.3
   <span class="sgr90">[5959db7a] </span>NonlinearSolveFirstOrder v2.5.0
   <span class="sgr90">[9a2c21bd] </span>NonlinearSolveQuasiNewton v1.15.3
   <span class="sgr90">[26075421] </span>NonlinearSolveSpectralMethods v1.8.1
@@ -297,7 +298,7 @@ Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   <span class="sgr90">[79d7bb75] </span>OrdinaryDiffEqVerner v2.4.1
   <span class="sgr90">[90014a1f] </span>PDMats v0.11.41
   <span class="sgr90">[d96e819e] </span>Parameters v0.13.1
-<span class="sgr33">⌅</span> <span class="sgr90">[69de0a69] </span>Parsers v2.8.8
+  <span class="sgr90">[69de0a69] </span>Parsers v3.0.0
   <span class="sgr90">[ccf2f8ad] </span>PlotThemes v3.3.0
   <span class="sgr90">[995b91a9] </span>PlotUtils v1.4.4
   <span class="sgr90">[91a5bcdd] </span>Plots v1.41.7
@@ -329,7 +330,7 @@ Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   <span class="sgr90">[5eaf0fd0] </span>RoundingEmulator v0.2.1
   <span class="sgr90">[7e49a35a] </span>RuntimeGeneratedFunctions v0.5.25
   <span class="sgr90">[9dfe8606] </span>SCCNonlinearSolve v1.15.2
-  <span class="sgr90">[0bca4576] </span>SciMLBase v3.50.2
+<span class="sgr32">⌃</span> <span class="sgr90">[0bca4576] </span>SciMLBase v3.51.0
   <span class="sgr90">[19f34311] </span>SciMLJacobianOperators v0.1.18
   <span class="sgr90">[a6db7da4] </span>SciMLLogging v2.1.0
   <span class="sgr90">[c0aeaf25] </span>SciMLOperators v1.30.0
@@ -365,7 +366,7 @@ Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   <span class="sgr90">[ec057cc2] </span>StructUtils v2.8.5
   <span class="sgr90">[2efcf032] </span>SymbolicIndexingInterface v0.3.55
   <span class="sgr90">[19f23fe9] </span>SymbolicLimits v1.2.1
-  <span class="sgr90">[8254be44] </span>SymbolicRegression v2.2.1
+  <span class="sgr90">[8254be44] </span>SymbolicRegression v2.4.0
 <span class="sgr32">⌃</span> <span class="sgr90">[d1185830] </span>SymbolicUtils v4.46.1
   <span class="sgr90">[0c5d862f] </span>Symbolics v7.39.0
   <span class="sgr90">[3783bdb8] </span>TableTraits v1.0.1
@@ -524,4 +525,4 @@ Threads: 1 default, 1 interactive, 1 GC (on 4 virtual cores)</code></pre></detai
   <span class="sgr90">[8e850b90] </span>libblastrampoline_jll v5.15.0+0
   <span class="sgr90">[8e850ede] </span>nghttp2_jll v1.64.0+1
   <span class="sgr90">[3f19e933] </span>p7zip_jll v17.7.0+0
-<span class="sgr36"><span class="sgr1">Info</span></span> Packages marked with <span class="sgr32">⌃</span> and <span class="sgr33">⌅</span> have new versions available. Those with <span class="sgr32">⌃</span> may be upgradable, but those with <span class="sgr33">⌅</span> are restricted by compatibility constraints from upgrading. To see why use `status --outdated -m`</code></pre></details><p>You can also download the <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.16.0/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.16.0/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="problems/">Problems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 4 September 2026 21:51">Friday 4 September 2026</span>. Using Julia version 1.12.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<span class="sgr36"><span class="sgr1">Info</span></span> Packages marked with <span class="sgr32">⌃</span> and <span class="sgr33">⌅</span> have new versions available. Those with <span class="sgr32">⌃</span> may be upgradable, but those with <span class="sgr33">⌅</span> are restricted by compatibility constraints from upgrading. To see why use `status --outdated -m`</code></pre></details><p>You can also download the <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.16.1/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/SciML/DataDrivenDiffEq.jl/tree/gh-pages/v1.16.1/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="problems/">Problems »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Monday 7 September 2026 01:43">Monday 7 September 2026</span>. Using Julia version 1.12.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
