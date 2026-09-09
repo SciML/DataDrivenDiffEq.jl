@@ -98,6 +98,9 @@ makedocs(
         # Zenodo's latestdoi redirect times out under Documenter's 10s curl budget
         # (exit 28) even though the badge resolves in a browser.
         "https://zenodo.org/badge/latestdoi/212827023",
+        # GitHub raw returns 404 to Documenter's crawler on Actions; the file is
+        # present (HEAD/GET 200 outside CI).
+        "https://raw.githubusercontent.com/eurika-kaiser/SINDY-MPC/e1dfd9908b2b56af303ee9fb30a133aced4fd757/utils/sparsifyDynamics.m",
     ],
     format = Documenter.HTML(
         assets = ["assets/favicon.ico"],
