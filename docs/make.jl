@@ -95,6 +95,9 @@ makedocs(
         # SciML's hosted docs reject Documenter's linkcheck crawler with HTTP 403,
         # though the cross-doc links resolve fine in a browser.
         r"^https://docs\.sciml\.ai/.*",
+        # Zenodo's latestdoi redirect times out under Documenter's 10s curl budget
+        # (exit 28) even though the badge resolves in a browser.
+        "https://zenodo.org/badge/latestdoi/212827023",
     ],
     format = Documenter.HTML(
         assets = ["assets/favicon.ico"],
