@@ -18,6 +18,8 @@ using LinearAlgebra
 end
 
 @testset "Optimal Shrinkage" begin
+    # Callers pass size(...) extents; Int32 must be accepted on every platform.
+    @test DataDrivenDiffEq.optimal_svht(Int32(10), Int32(20)) isa Real
     t = collect(-2:0.01:2)
     U = [cos.(t) .* exp.(-t .^ 2) sin.(2 * t)]
     S = Diagonal([2.0; 3.0])

@@ -56,6 +56,8 @@ end
     discrete_prob = DiscreteDataDrivenProblem(x)
 
     d = Difference(get_iv(basis), dt = 1.0)
+    # hash(::Difference, ::UInt) must return the platform native UInt.
+    @test typeof(hash(d, UInt(1))) === UInt
     @test Symbolics.symtype(d(first(states(basis)))) === Real
     @test isempty(Symbolics.shape(d(first(states(basis)))))
     ∂ = Differential(get_iv(basis))

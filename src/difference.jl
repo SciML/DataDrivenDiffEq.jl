@@ -38,4 +38,4 @@ Base.nameof(::Difference) = :Difference
 function Base.:(==)(D1::Difference, D2::Difference)
     return isequal(D1.t, D2.t) && isequal(D1.dt, D2.dt) && isequal(D1.update, D2.update)
 end
-Base.hash(D::Difference, u::UInt) = hash(D.dt, hash(D.t, xor(u, 0x055640d6d952f101)))
+Base.hash(D::Difference, u::UInt) = hash(D.dt, hash(D.t, xor(u, 0x055640d6d952f101 % UInt)))

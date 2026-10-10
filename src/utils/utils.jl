@@ -3,7 +3,7 @@
 # Values is 4/sqrt(3)", http://arxiv.org/abs/1305.5870
 # Code taken from https://github.com/erichson/optht
 
-function optimal_svht(m::Int64, n::Int64; known_noise::Bool = false)
+function optimal_svht(m::Integer, n::Integer; known_noise::Bool = false)
     @assert m / n > 0
     @assert m / n <= 1
 
