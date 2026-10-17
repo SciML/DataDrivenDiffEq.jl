@@ -92,6 +92,9 @@ makedocs(
         "https://royalsocietypublishing.org/doi/10.1098/rspa.2020.0279",
         "https://www.pnas.org/doi/10.1073/pnas.1517384113",
         "https://link.springer.com/article/10.1007/s00332-015-9258-5",
+        # Flaky raw.githubusercontent.com responses from Documenter's crawler
+        # (curl intermittently fails even when the blob is publicly reachable).
+        "https://raw.githubusercontent.com/eurika-kaiser/SINDY-MPC/e1dfd9908b2b56af303ee9fb30a133aced4fd757/utils/sparsifyDynamics.m",
         # SciML's hosted docs reject Documenter's linkcheck crawler with HTTP 403,
         # though the cross-doc links resolve fine in a browser.
         r"^https://docs\.sciml\.ai/.*",

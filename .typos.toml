@@ -1,9 +1,9 @@
 [default.extend-words]
 # Pre-existing typos in public API (breaking to fix)
 expresssion = "expresssion"
+implicits = "implicits"
 
 # Public Basis keyword matching implicit_variables
-implicits = "implicits"
 
 # Julia-specific functions
 indexin = "indexin"
