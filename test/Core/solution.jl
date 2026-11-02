@@ -77,3 +77,18 @@ sol_2 = DataDrivenSolution(
 @test r2(sol_2) ≈ 0.99998 atol = 1.0e-3
 @test nobs(sol_2) == prod(size(y))
 @test_nowarn summarystats(sol_2)
+
+# Regression test for #514: strong sparsity (e.g. SR3 with a large threshold)
+# can zero out every coefficient, leaving an empty basis. Constructing the
+# solution must not throw a DimensionMismatch; the residual is the data itself.
+@variables x_empty[1:3]
+b_empty = Basis(Num[], x_empty)
+@test length(b_empty) == 0
+sol_empty = DataDrivenSolution(
+    b_empty, prob, DataDrivenDiffEq.ZeroDataDrivenAlgorithm(),
+    DataDrivenDiffEq.AbstractDataDrivenResult[dummy_sol],
+    internal_problem
+)
+@test dof(sol_empty) == 0
+@test rss(sol_empty) ≈ sum(abs2, ŷ)
+@test_nowarn summarystats(sol_empty)

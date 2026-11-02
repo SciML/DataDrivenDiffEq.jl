@@ -42,17 +42,26 @@ function DataDrivenSolution(
     Y = get_implicit_data(prob)
     Ŷ = b(prob)
     T = eltype(p)
-    residuals = Y .- Ŷ
-    # Handle case where residuals may have element type Any
-    # (e.g., when basis has no equations due to all-zero coefficients)
-    if eltype(residuals) === Any
-        if isempty(residuals)
-            rss = zero(T)
-        else
-            rss = sum(abs2, T.(residuals))
-        end
+    if isempty(Ŷ)
+        # Strong sparsity can zero out every coefficient, leaving an empty
+        # basis whose prediction has no rows. The residual of "no model" is
+        # the data itself, so the rss is that of the data. This keeps empty
+        # models comparable (strictly worse than any fit) for rss-based
+        # selectors such as BIC instead of throwing a DimensionMismatch.
+        rss = sum(abs2, Y)
     else
-        rss = sum(abs2, residuals)
+        residuals = Y .- Ŷ
+        # Handle case where residuals may have element type Any
+        # (e.g., when basis has no equations due to all-zero coefficients)
+        if eltype(residuals) === Any
+            if isempty(residuals)
+                rss = zero(T)
+            else
+                rss = sum(abs2, T.(residuals))
+            end
+        else
+            rss = sum(abs2, residuals)
+        end
     end
 
     return DataDrivenSolution{eltype(p)}(
@@ -163,7 +172,11 @@ Returns the `summarystats` for each row of the error for the `DataDrivenSolution
 """
 @views function StatsBase.summarystats(sol::DataDrivenSolution)
     p = getfield(sol, :prob)
-    map(summarystats, eachrow(get_implicit_data(p) .- sol(p)))
+    Y = get_implicit_data(p)
+    Ŷ = sol(p)
+    # Empty basis (see DataDrivenSolution): the residual is the data itself.
+    resids = isempty(Ŷ) ? Y : Y .- Ŷ
+    map(summarystats, eachrow(resids))
 end
 
 """
