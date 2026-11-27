@@ -5,6 +5,7 @@ using Test
 using Distributions
 using DataDrivenDiffEq
 using ModelingToolkitBase: equations
+using Optimisers: AdamW
 using StableRNGs
 using StatsAPI: rss
 using Symbolics: @variables
@@ -52,3 +53,14 @@ end
 @test_nowarn basis = DataDrivenLux.convert_to_basis(cache.candidates[1])
 basis = DataDrivenLux.convert_to_basis(cache.candidates[1])
 @test all(isequal.(map(x -> x.rhs, equations(basis)), [sin(x[1])]))
+
+@testset "REINFORCE with a single possible path" begin
+    algorithm = Reinforce(;
+        functions = (sin,), arities = (1,), skip = false, populationsize = 1,
+        keep = 1, loss = rss, rng = StableRNG(1234), optimiser = AdamW(1.0e-2)
+    )
+    policy = DataDrivenLux.init_cache(algorithm, dummy_basis, dummy_problem)
+    initial_weights = copy(policy.p)
+    DataDrivenLux.update_parameters!(policy)
+    @test policy.p == initial_weights
+end
