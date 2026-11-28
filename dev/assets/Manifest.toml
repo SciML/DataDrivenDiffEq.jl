@@ -525,7 +525,7 @@ version = "1.16.3"
 deps = ["ADTypes", "ChainRulesCore", "CommonSolve", "ComponentArrays", "ConcreteStructs", "DataDrivenDiffEq", "DifferentiationInterface", "Distributed", "Distributions", "DistributionsAD", "DocStringExtensions", "ForwardDiff", "IntervalArithmetic", "InverseFunctions", "LinearAlgebra", "Logging", "Lux", "LuxCore", "ModelingToolkitBase", "Optim", "Optimisers", "ProgressMeter", "Random", "SciMLPublic", "Setfield", "StatsAPI", "Symbolics", "TransformVariables", "WeightInitializers"]
 path = "/home/runner/_work/DataDrivenDiffEq.jl/DataDrivenDiffEq.jl/lib/DataDrivenLux"
 uuid = "47881146-99d0-492a-8425-8f2f33327637"
-version = "0.3.1"
+version = "0.3.2"
 
 [[deps.DataDrivenSR]]
 deps = ["CommonSolve", "DataDrivenDiffEq", "DocStringExtensions", "ModelingToolkitBase", "Parameters", "Statistics", "StatsAPI", "SymbolicRegression", "Symbolics"]
@@ -1799,11 +1799,11 @@ version = "1.2.2"
     CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 
 [[deps.Lux]]
-deps = ["ADTypes", "Adapt", "ArrayInterface", "ChainRulesCore", "ConcreteStructs", "DiffResults", "DispatchDoctor", "EnzymeCore", "FastClosures", "ForwardDiff", "Functors", "GPUArraysCore", "LinearAlgebra", "LuxCore", "LuxLib", "MLDataDevices", "MacroTools", "Markdown", "NNlib", "Optimisers", "PrecompileTools", "Preferences", "Random", "ReactantCore", "Reexport", "SciMLPublic", "Setfield", "Static", "StaticArraysCore", "Statistics", "UUIDs", "WeightInitializers"]
-git-tree-sha1 = "b1d4326199132ef3a20775f627abdea687b070ed"
+deps = ["ADTypes", "Adapt", "ArrayInterface", "ChainRulesCore", "ConcreteStructs", "DiffResults", "EnzymeCore", "FastClosures", "ForwardDiff", "Functors", "GPUArraysCore", "LinearAlgebra", "LuxCore", "LuxLib", "MLDataDevices", "MacroTools", "Markdown", "NNlib", "Optimisers", "PrecompileTools", "Preferences", "Random", "ReactantCore", "Reexport", "SciMLPublic", "Setfield", "Static", "StaticArraysCore", "Statistics", "UUIDs", "WeightInitializers"]
+git-tree-sha1 = "e3c4fc86e0ef5ed6a0203d8859e5b109f13a3ae2"
 registries = "General"
 uuid = "b2108857-7c20-44ae-9111-449ecde12c47"
-version = "1.32.14"
+version = "1.32.17"
 
     [deps.Lux.extensions]
     ComponentArraysExt = "ComponentArrays"
@@ -2272,10 +2272,10 @@ version = "2.10.0"
 
 [[deps.NonlinearSolveQuasiNewton]]
 deps = ["ArrayInterface", "CommonSolve", "ConcreteStructs", "LinearAlgebra", "LinearSolve", "MaybeInplace", "NonlinearSolveBase", "PrecompileTools", "Reexport", "SciMLBase", "SciMLLogging", "SciMLOperators", "StaticArraysCore"]
-git-tree-sha1 = "db0bca65e9c849333023a0d5827813947d003f09"
+git-tree-sha1 = "f0156ade635d8465ff2442f21a637491b3e2d400"
 registries = "General"
 uuid = "9a2c21bd-3a47-402d-9113-8faf9a0ee114"
-version = "1.15.3"
+version = "1.16.0"
 weakdeps = ["ForwardDiff"]
 
     [deps.NonlinearSolveQuasiNewton.extensions]
